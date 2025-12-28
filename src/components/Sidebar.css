@@ -390,10 +390,15 @@
   transition: all 0.2s ease;
 }
 
+.about-toggle-btn:hover {
+  scale: 1.1;
+  transform: translateY(1px);
+}
+
 .about-toggle-btn.active {
-  background: var(--accent);
+  background: var(--gradient-gold);
   color: #000;
-  border-color: var(--accent);
+  border-color: #000;
 }
 
 .about-sidebar-content {
