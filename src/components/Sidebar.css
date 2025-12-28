@@ -467,3 +467,25 @@
   align-items: center;
   gap: 6px;
 }
+
+.video-container {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden; 
+  border: 1px solid var(--border);
+  margin-top: 5px;
+  background-color: #000; 
+}
+
+.about-video-iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  display: block;
+}
+
+.theme-dark-black-gold .video-container {
+  border-image: var(--gradient-gold) 1;
+  border-image-slice: 1;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+}

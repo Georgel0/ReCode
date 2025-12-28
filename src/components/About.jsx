@@ -7,7 +7,7 @@ export default function About() {
       <section className="about-info-block">
         <h3 className="about-sub-title">General</h3>
         <p className="about-description">
-          ReCode was built with the purpose to be an universal tool, increse the overall productivity, help developers to stay focused and write better and faster code.
+          ReCode was built with the purpose to be an universal tool, increase the overall productivity, help developers to stay focused and write better and faster code.
         </p>
       </section>
       
@@ -15,7 +15,7 @@ export default function About() {
         <h3 className="about-sub-title">AI Workflow</h3>
         <p className="about-description">
           ReCode utilizes the <strong>Grok API</strong> powered by <strong>Llama models</strong>. 
-          When you use a tool, the code is sent to the AI in a JSON format, he dose the work then he sends it back in a JSON format, then we structure the response so you the user can work with it easley. All done via a backend server built with Node.js.
+          When you use a tool, the code is sent to the AI in a JSON format, it does the work then sends it back in a JSON format, then we structure the response so you can work with it easily. All done via a backend server built with Node.js.
         </p>
       </section>
 
@@ -24,6 +24,19 @@ export default function About() {
         <p className="about-description">
           Built with React + Vite, Node.js, Firebase Firestore for real-time history, and hosted on Vercel's Edge Network for global speed.
         </p>
+      </section>
+
+      <section className="about-info-block">
+        <h3 className="about-sub-title">Video Introduction</h3>
+        <div className="video-container">
+          <iframe
+            src="https://player.mux.com/gTlyythoN01D5QLRReHSOFTjttP7wVo3W7JJGBvQFztQ?metadata-video-title=ReCode+Video+Introduction&video-title=ReCode+Video+Introduction"
+            className="about-video-iframe"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowFullScreen
+            title="ReCode Video Introduction"
+          ></iframe>
+        </div>
       </section>
 
       <section className="dev-contact-footer">
