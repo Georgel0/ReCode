@@ -395,9 +395,15 @@
 }
 
 .about-toggle-btn.active {
-  background: var(--bg-primary);
+  background: var(--accent);
   color: #000;
   border-color: var(--border);
+}
+
+.theme-dark-black-gold .about-toggle-btn.active, .theme-light-quartz .about-toggle-btn.active {
+  background: var(--gradient-gold);
+  color: #000;
+  border-color: #000;
 }
 
 .about-sidebar-content {
