@@ -220,6 +220,31 @@
   margin-top: 0.25rem;
 }
 
+.history-snippet {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 2px 0;
+  opacity: 0.7;
+}
+
+.history-date {
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.history-card-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 180px;
+}
+
 .close-btn {
   background: none;
   color: var(--text-secondary);
