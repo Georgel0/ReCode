@@ -7,8 +7,24 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
-  //Closeing the history when clicking outside of it (mobile)
   const sidebarRef = useRef(null);
+
+  const refreshHistory = async () => {
+    try {
+      await cleanupOldHistory();
+      const data = await getHistory();
+      setHistoryItems(data);
+    } catch (error) {
+      console.error("Failed to refresh history:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      refreshHistory();
+    }
+  }, [isOpen, activeModule]);
+
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (isOpen && window.innerWidth < 768 && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -24,19 +40,8 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
       document.removeEventListener('touchstart', handleOutsideClick);
     };
   }, [isOpen, toggleSidebar]);
-  const refreshHistory = async () => {
-    //Run cleanup before fetching history
-    await cleanupOldHistory();
-    const data = await getHistory();
-    setHistoryItems(data);
-  };
-  
-  useEffect(() => {
-    if (isOpen) refreshHistory();
-  }, [isOpen]);
-  //Handle individual deletion
+
   const handleDelete = async (e, itemId) => {
-    //Prevent triggering loadFromHistory
     e.stopPropagation();
     setIsDeleting(true);
     try {
@@ -51,7 +56,6 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
 
   const handleClearAll = async () => {
     if (historyItems.length === 0) return;
-    
     if (window.confirm('Are you sure you want to delete all history items? This cannot be undone.')) {
       setIsDeleting(true);
       try {
@@ -74,6 +78,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
     { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database' },
     { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt' },
   ];
+
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} ref={sidebarRef}>
       <div className="sidebar-header">
@@ -81,22 +86,21 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
           <div className="logo-image" />
           <h2>ReCode</h2>
         </div>
-        <button className="close-btn" onClick={toggleSidebar}>
-          ✕
-        </button>
+        <button className="close-btn" onClick={toggleSidebar}>✕</button>
       </div>
 
       <nav className="nav-menu">
- 
         <h3>Modules</h3>
         {modules.map(module => (
           <a
             key={module.id}
             href="#"
             className={`nav-item ${activeModule === module.id ? 'active' : ''}`}
-            onClick={() => setActiveModule(module.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveModule(module.id);
+            }}
           >
-      
              <i className={module.icon}></i>
              {module.label}
           </a>
@@ -107,59 +111,66 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
         <h3>Theme:</h3>
         <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
           {Object.entries(groupedThemes).map(([group, themes]) => (
-        
-     <optgroup key={group} label={group}>
+            <optgroup key={group} label={group}>
               {themes.map((theme) => (
                 <option key={theme.id} value={theme.id}>
                   {theme.label}
                 </option>
               ))}
-            
- </optgroup>
+            </optgroup>
           ))}
         </select>
       </div>
 
       <div className="history-section">
         <div className="history-header">
-          <h3>History:</h3>
-          <div style={{ display: 'flex', gap: '5px' }}>
-            {historyItems.length > 0 && (
-              <button 
-                className="refresh-btn" 
-                onClick={handleClearAll}
-                disabled={isDeleting}
-                title="Clear All History"
-                style={{ color: 'var(--danger)' }}
-              >
-                <i className="fas fa-trash"></i>
-              </button>
-            )}
-            <button className="refresh-btn" onClick={refreshHistory} title="Refresh History">↻</button>
-          </div>
+          <h3>History</h3>
+          {historyItems.length > 0 && (
+            <button 
+              className="refresh-btn" 
+              onClick={handleClearAll}
+              disabled={isDeleting}
+              title="Clear All History"
+              style={{ color: 'var(--danger)' }}
+            >
+              <i className="fas fa-trash"></i>
+            </button>
+          )}
         </div>
+        
         <div className="history-list">
-          {historyItems.length === 0 ?
- (
-            <p className="empty-state">No conversions yet.</p>
+          {historyItems.length === 0 ? (
+            <p className="empty-state">No history yet.</p>
           ) : (
             historyItems.map(item => (
               <div key={item.id} className="history-card" onClick={() => loadFromHistory(item)}>
                 <div className="history-card-content">
-                  {/* Display language pair for 
- generic converter */}
                   <span className="history-type">
                     {item.type === 'converter' 
                       ? `${item.sourceLang?.toUpperCase()} to ${item.targetLang?.toUpperCase()}`
-                      : item.type}
-        
-                   </span>
-                  <span className="history-date">{item.createdAt && item.createdAt.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</span>
+                      : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                  </span>
+                  
+                  {item.input && (
+                    <span className="history-snippet">
+                      {item.input.substring(0, 35)}{item.input.length > 35 ? '...' : ''}
+                    </span>
+                  )}
+
+                  <span className="history-date">
+                    {item.createdAt?.seconds 
+                      ? new Date(item.createdAt.seconds * 1000).toLocaleString([], { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        }) 
+                      : 'N/A'}
+                  </span>
                 </div>
                 <button className="delete-item-btn" onClick={(e) => handleDelete(e, item.id)} disabled={isDeleting}>
                   <i className="fas fa-trash"></i>
-    
-               </button>
+                </button>
               </div>
             ))
           )}
