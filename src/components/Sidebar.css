@@ -391,14 +391,13 @@
 }
 
 .about-toggle-btn:hover {
-  scale: 1.1;
   transform: translateY(1px);
 }
 
 .about-toggle-btn.active {
-  background: var(--gradient-gold);
+  background: var(--bg-primary);
   color: #000;
-  border-color: #000;
+  border-color: var(--border);
 }
 
 .about-sidebar-content {

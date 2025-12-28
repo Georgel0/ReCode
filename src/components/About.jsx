@@ -3,6 +3,14 @@ import React from 'react';
 export default function About() {
  return (
   <div className="about-sidebar-content">
+    
+      <section className="about-info-block">
+        <h3 className="about-sub-title">General</h3>
+        <p className="about-description">
+          ReCode was built with the purpose to be an universal tool, increse the overall productivity, help developers to stay focused and write better and faster code.
+        </p>
+      </section>
+      
       <section className="about-info-block">
         <h3 className="about-sub-title">AI Workflow</h3>
         <p className="about-description">
@@ -23,7 +31,7 @@ export default function About() {
         <div className="contact-icon-row">
           <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer"><i className="fab fa-github"></i></a>
           <a href="https://www.linkedin.com/in/georgel-garabajiu-297a052a8" target="_blank" rel="noreferrer"><i className="fab fa-linkedin"></i></a>
-          <a href="mailto:georgelgarabajiu07@email.com"><i className="fas fa-envelope"></i></a>
+          <a href="mailto:georgelgarabajiu07@gmail.com"><i className="fas fa-envelope"></i></a>
         </div>
         <div className="source-link-wrapper">
            <a href="https://github.com/Georgel0/ReCode" target="_blank" rel="noreferrer" className="source-code-link">
