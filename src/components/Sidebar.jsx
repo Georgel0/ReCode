@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { getHistory, deleteHistoryItem, cleanupOldHistory, clearAllHistory } from '../services/firebase';
 import './Sidebar.css';
 import { useTheme } from './ThemeContext';
+import About from "./About"; 
 
 export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleSidebar, loadFromHistory }) {
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showAbout, setShowAbout] = useState(false); 
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
 
@@ -89,91 +91,107 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
         <button className="close-btn" onClick={toggleSidebar}>✕</button>
       </div>
 
-      <nav className="nav-menu">
-        <h3>Modules</h3>
-        {modules.map(module => (
-          <a
-            key={module.id}
-            href="#"
-            className={`nav-item ${activeModule === module.id ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveModule(module.id);
-            }}
-          >
-             <i className={module.icon}></i>
-             {module.label}
-          </a>
-        ))}
-      </nav>
-      
-      <div className="theme-selector-group">
-        <h3>Theme:</h3>
-        <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
-          {Object.entries(groupedThemes).map(([group, themes]) => (
-            <optgroup key={group} label={group}>
-              {themes.map((theme) => (
-                <option key={theme.id} value={theme.id}>
-                  {theme.label}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+      <div className="about-trigger-wrapper">
+        <button 
+          className={`about-toggle-btn ${showAbout ? 'active' : ''}`}
+          onClick={() => setShowAbout(!showAbout)}
+        >
+          <i className={showAbout ? "fas fa-arrow-left" : "fas fa-info-circle"}></i>
+          {showAbout ? 'Back to Modules' : 'About ReCode'}
+        </button>
       </div>
 
-      <div className="history-section">
-        <div className="history-header">
-          <h3>History</h3>
-          {historyItems.length > 0 && (
-            <button 
-              className="refresh-btn" 
-              onClick={handleClearAll}
-              disabled={isDeleting}
-              title="Clear All History"
-              style={{ color: 'var(--danger)' }}
-            >
-              <i className="fas fa-trash"></i>
-            </button>
-          )}
-        </div>
+      <div className="sidebar-scroll-area">
+        {showAbout ? (
+          <About />
+        ) : (
+          <nav className="nav-menu">
+            <h3>Modules</h3>
+            {modules.map(module => (
+              <a
+                key={module.id}
+                href="#"
+                className={`nav-item ${activeModule === module.id ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveModule(module.id);
+                }}
+              >
+                 <i className={module.icon}></i>
+                 {module.label}
+              </a>
+            ))}
+          </nav>
+        )}
         
-        <div className="history-list">
-          {historyItems.length === 0 ? (
-            <p className="empty-state">No history yet.</p>
-          ) : (
-            historyItems.map(item => (
-              <div key={item.id} className="history-card" onClick={() => loadFromHistory(item)}>
-                <div className="history-card-content">
-                  <span className="history-type">
-                    {item.type === 'converter' 
-                      ? `${item.sourceLang?.toUpperCase()} to ${item.targetLang?.toUpperCase()}`
-                      : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                  </span>
-                  
-                  {item.input && (
-                    <span className="history-snippet">
-                      {item.input.substring(0, 35)}{item.input.length > 35 ? '...' : ''}
-                    </span>
-                  )}
+        <div className="theme-selector-group">
+          <h3>Theme:</h3>
+          <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
+            {Object.entries(groupedThemes).map(([group, themes]) => (
+              <optgroup key={group} label={group}>
+                {themes.map((theme) => (
+                  <option key={theme.id} value={theme.id}>
+                    {theme.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
 
-                  <span className="history-date">
-                    {item.createdAt?.seconds 
-                      ? new Date(item.createdAt.seconds * 1000).toLocaleString([], { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        }) 
-                      : 'N/A'}
-                  </span>
+        <div className="history-section">
+          <div className="history-header">
+            <h3>History</h3>
+            {historyItems.length > 0 && (
+              <button 
+                className="refresh-btn" 
+                onClick={handleClearAll}
+                disabled={isDeleting}
+                title="Clear All History"
+                style={{ color: 'var(--danger)' }}
+              >
+                <i className="fas fa-trash"></i>
+              </button>
+            )}
+          </div>
+          
+          <div className="history-list">
+            {historyItems.length === 0 ? (
+              <p className="empty-state">No history yet.</p>
+            ) : (
+              historyItems.map(item => (
+                <div key={item.id} className="history-card" onClick={() => loadFromHistory(item)}>
+                  <div className="history-card-content">
+                    <span className="history-type">
+                      {item.type === 'converter' 
+                        ? `${item.sourceLang?.toUpperCase()} to ${item.targetLang?.toUpperCase()}`
+                        : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                    </span>
+                    
+                    {item.input && (
+                      <span className="history-snippet">
+                        {item.input.substring(0, 35)}{item.input.length > 35 ? '...' : ''}
+                      </span>
+                    )}
+
+                    <span className="history-date">
+                      {item.createdAt?.seconds 
+                        ? new Date(item.createdAt.seconds * 1000).toLocaleString([], { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          }) 
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <button className="delete-item-btn" onClick={(e) => handleDelete(e, item.id)} disabled={isDeleting}>
+                    <i className="fas fa-trash"></i>
+                  </button>
                 </div>
-                <button className="delete-item-btn" onClick={(e) => handleDelete(e, item.id)} disabled={isDeleting}>
-                  <i className="fas fa-trash"></i>
-                </button>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
     </aside>
