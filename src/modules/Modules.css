@@ -378,7 +378,7 @@ textarea:focus {
 }
 
 .clear-btn {
-  background-color: transparent;
+  background-color: transparent !important;
   border: 1px solid #ff4d4d;
   color: #ff4d4d;
 }
