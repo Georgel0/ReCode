@@ -22,13 +22,52 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     }
   }, [onLoadData]);
 
+  const getLanguage = (fileName) => {
+    if (!fileName) return 'javascript';
+    const ext = fileName.split('.').pop().toLowerCase();
+    const map = {
+      js: 'javascript',
+      jsx: 'javascript',
+      ts: 'typescript',
+      tsx: 'typescript',
+      html: 'xml',
+      css: 'css',
+      json: 'json',
+      md: 'markdown',
+      py: 'python',
+      c: 'c',
+      cs: 'csharp',
+      cpp: 'cpp',
+      swift: 'swift',
+      go: 'go',
+      php: 'php'
+    };
+    return map[ext] || 'javascript';
+  };
+
   const handleGenerate = async () => {
     if (!input.trim()) return; 
     setLoading(true);
     setFiles([]);
-    
+
     try {
-      const result = await convertCode('generator', input);
+      let result = await convertCode('generator', input);
+      
+      // If backend returns a single 'index.txt' containing JSON, try to parse it here.
+      if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
+         const rawContent = result.files[0].content;
+         if (rawContent.trim().startsWith('{')) {
+            try {
+               const parsed = JSON.parse(rawContent);
+               if (parsed.files) {
+                  result = parsed;
+               }
+            } catch (e) {
+               console.warn("Frontend failsafe parse failed:", e);
+            }
+         }
+      }
+
       if (result && result.files) {
         setFiles(result.files); 
         setActiveFileIndex(0);
@@ -59,29 +98,6 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   };
 
   const activeFile = files[activeFileIndex] || null;
-  
-  const getLanguage = (fileName) => {
-  const ext = fileName.split('.').pop().toLowerCase();
-  const map = {
-    js: 'javascript',
-    jsx: 'javascript',
-    ts: 'typescript',
-    tsx: 'typescript',
-    html: 'xml', 
-    css: 'css',
-    json: 'json',
-    md: 'markdown',
-    py: 'python',
-    c: 'c',
-    cs: 'csharp',
-    cpp: 'cpp',
-    swift: 'swift',
-    go: 'go',
-    php: 'php'
-  };
-  return map[ext] || 'javascript';
-};
-
 
   return (
     <div className="module-container">
@@ -101,7 +117,11 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
           /> 
           <div className="action-row">
             <button className="clear-btn action-btn" onClick={handleClearAll}>Clear All</button>
-            <button className="primary-button action-btn" onClick={handleGenerate} disabled={loading}>
+            <button 
+              className="primary-button action-btn" 
+              onClick={handleGenerate} 
+              disabled={loading}
+            >
               {loading ? 'Generating...' : 'Generate Code'}
             </button> 
           </div>
@@ -126,11 +146,11 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
 
                 <div className="highlighter-wrapper">
                   <SyntaxHighlighter 
-                    language={getLanguage(activeFile.fileName)} 
+                    language={getLanguage(activeFile?.fileName)} 
                     style={vscDarkPlus} 
                     customStyle={{ margin: 0, height: '100%', borderRadius: '8px' }}
                   >
-                    {activeFile.content}
+                    {activeFile ? activeFile.content : ''}
                   </SyntaxHighlighter>
                 </div>
                 
@@ -141,7 +161,10 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
                   {files.length > 1 && (
                     <button className="primary-button" onClick={downloadZip}>Download ZIP</button>
                   )}
-                  <button className="primary-button" onClick={() => navigator.clipboard.writeText(activeFile.content)}>
+                  <button 
+                    className="primary-button" 
+                    onClick={() => navigator.clipboard.writeText(activeFile.content)}
+                  >
                     Copy
                   </button> 
                 </div>

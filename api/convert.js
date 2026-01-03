@@ -16,16 +16,16 @@ export default async function handler(req, res) {
   let systemMessage = "";
   let userMessage = "";
   
-  // DEFINING PROMPTS
   if (type === 'converter') {
     systemMessage = "You are a code conversion engine. Output ONLY the raw code string. No markdown backticks. No explanations.";
     userMessage = `Convert this ${sourceLang} code to ${targetLang}:\n\n${input}`;
   }
   else if (type === 'generator') {
-    systemMessage = `You are an expert multi-file code generator. Provide all necessary files. 
+    systemMessage = `You are an expert multi-file code generator. 
     Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. 
-    No markdown backticks, no explanations. Support languages like Python, C, C#, C++, Swift, Go, and PHP.`;
-    userMessage = `Write code for the following request:\n\n${input}`;
+    No markdown backticks. No explanations. 
+    Support languages: Python, C, C#, C++, Swift, Go, PHP, HTML, CSS, JS.`;
+    userMessage = `Request: ${input}`;
   }
   else if (type === 'analysis') {
     systemMessage = "You are a senior code reviewer. Analyze the code concisely. Use HTML formatting (<br>, <strong>) for readability if needed, but do not use Markdown.";
@@ -62,27 +62,31 @@ export default async function handler(req, res) {
     
     let text = completion.choices[0]?.message?.content || "";
     
-    // Extract JSON if it exists within the text
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const potentialJson = jsonMatch ? jsonMatch[0] : text;
-
     let finalResponse = {};
+
+    if (type === 'generator' || (type === 'css-framework' && targetLang === 'tailwind')) {
+      // Extract JSON object using regex 
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      let jsonString = jsonMatch ? jsonMatch[0] : text;
+
+      // Clean Markdown wrapper
+      jsonString = jsonString.replace(/^```[a-z]*\s*|```$/g, '').trim();
+
+      // Fix common AI JSON errors
+      jsonString = jsonString.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+
+      try {
+        finalResponse = JSON.parse(jsonString);
+      } catch (e) {
+        console.error("JSON Parse Failed:", e.message);
+        if (type === 'generator') {
+          finalResponse = { files: [{ fileName: 'index.txt', content: jsonString }] };
+        } else {
+          throw new Error("AI did not return valid JSON for Tailwind.");
+        }
+      }
+    }
     
-    if (type === 'css-framework' && targetLang === 'tailwind') {
-      try {
-        finalResponse = JSON.parse(potentialJson);
-      } catch (e) {
-        throw new Error("AI did not return valid JSON for Tailwind");
-      }
-    }
-    else if (type === 'generator') {
-      try {
-        finalResponse = JSON.parse(potentialJson);
-      } catch (e) {
-        // Fallback: treat the text as a single file if JSON parsing fails
-        finalResponse = { files: [{ fileName: 'index.txt', content: text }] };
-      }
-    }
     else if (['converter', 'regex', 'sql', 'json'].includes(type)) {
       finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
