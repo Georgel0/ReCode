@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   else if (type === 'generator') {
     systemMessage = `You are an expert multi-file code generator. Provide all necessary files. 
     Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. 
-    No markdown backticks, no explanations.`;
+    No markdown backticks, no explanations. Support languages like Python, C, C#, C++, Swift, Go, and PHP.`;
     userMessage = `Write code for the following request:\n\n${input}`;
   }
   else if (type === 'analysis') {
@@ -62,43 +62,29 @@ export default async function handler(req, res) {
     
     let text = completion.choices[0]?.message?.content || "";
     
-    // Strip markdown formatting
-    const codeBlockMatch = text.match(/```(?:[a-z]+)?\s*([\s\S]*?)```/);
-    if (codeBlockMatch) {
-      text = codeBlockMatch[1].trim();
-    } else {
-      text = text.replace(/^```[a-z]*\s*|```$/g, '').trim();
-    }
-    
+    // Extract JSON if it exists within the text
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const potentialJson = jsonMatch ? jsonMatch[0] : text;
+
     let finalResponse = {};
     
-    if (type === 'css-framework') {
-      if (targetLang === 'tailwind') {
-        try {
-          finalResponse = JSON.parse(text);
-        } catch (e) {
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try { finalResponse = JSON.parse(jsonMatch[0]); }
-            catch (err) { throw new Error("AI did not return valid JSON"); }
-          } else {
-            throw new Error("AI did not return valid JSON");
-          }
-        }
-      } else {
-        finalResponse = { convertedCode: text };
+    if (type === 'css-framework' && targetLang === 'tailwind') {
+      try {
+        finalResponse = JSON.parse(potentialJson);
+      } catch (e) {
+        throw new Error("AI did not return valid JSON for Tailwind");
       }
     }
     else if (type === 'generator') {
-      // Handle the multi-file JSON parsing
       try {
-        finalResponse = JSON.parse(text);
+        finalResponse = JSON.parse(potentialJson);
       } catch (e) {
+        // Fallback: treat the text as a single file if JSON parsing fails
         finalResponse = { files: [{ fileName: 'index.txt', content: text }] };
       }
     }
     else if (['converter', 'regex', 'sql', 'json'].includes(type)) {
-      finalResponse = { convertedCode: text };
+      finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
     else if (type === 'analysis') {
       finalResponse = { analysis: text };

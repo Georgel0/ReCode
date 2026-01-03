@@ -59,6 +59,29 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   };
 
   const activeFile = files[activeFileIndex] || null;
+  
+  const getLanguage = (fileName) => {
+  const ext = fileName.split('.').pop().toLowerCase();
+  const map = {
+    js: 'javascript',
+    jsx: 'javascript',
+    ts: 'typescript',
+    tsx: 'typescript',
+    html: 'xml', 
+    css: 'css',
+    json: 'json',
+    md: 'markdown',
+    py: 'python',
+    c: 'c',
+    cs: 'csharp',
+    cpp: 'cpp',
+    swift: 'swift',
+    go: 'go',
+    php: 'php'
+  };
+  return map[ext] || 'javascript';
+};
+
 
   return (
     <div className="module-container">
@@ -103,7 +126,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
 
                 <div className="highlighter-wrapper">
                   <SyntaxHighlighter 
-                    language="javascript" 
+                    language={getLanguage(activeFile.fileName)} 
                     style={vscDarkPlus} 
                     customStyle={{ margin: 0, height: '100%', borderRadius: '8px' }}
                   >
