@@ -1,100 +1,131 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api'; 
 import { saveHistory } from '../services/firebase';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 import './Modules.css'; 
 
 export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   const [input, setInput] = useState('');
-  const [outputCode, setOutputCode] = useState(''); 
+  const [files, setFiles] = useState([]); 
+  const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
-      const savedOutput = onLoadData.fullOutput?.convertedCode || onLoadData.fullOutput?.text || '';
-      setOutputCode(savedOutput);
+      const savedFiles = onLoadData.fullOutput?.files || [];
+      setFiles(savedFiles);
+      setActiveFileIndex(0);
     }
-  }, [onLoadData]); 
+  }, [onLoadData]);
 
   const handleGenerate = async () => {
     if (!input.trim()) return; 
     setLoading(true);
-    setOutputCode('');
-
+    setFiles([]);
+    
     try {
-      const result = await convertCode('generator', input); 
-      if (result && result.convertedCode) {
-        setOutputCode(result.convertedCode); 
+      const result = await convertCode('generator', input);
+      if (result && result.files) {
+        setFiles(result.files); 
+        setActiveFileIndex(0);
         await saveHistory('generator', input, result);
-      } else {
-        throw new Error("AI returned an unexpected structure."); 
       }
     } catch (error) {
-      alert(`Generation failed: ${error.message}`); 
+      alert(`Generation failed: ${error.message}`);
     }
     setLoading(false); 
   };
+
+  const handleClearAll = () => {
+    setInput('');
+    setFiles([]);
+    setActiveFileIndex(0);
+  };
+
+  const downloadSingleFile = (file) => {
+    const blob = new Blob([file.content], { type: 'text/plain' });
+    saveAs(blob, file.fileName);
+  };
+
+  const downloadZip = async () => {
+    const zip = new JSZip();
+    files.forEach(f => zip.file(f.fileName, f.content));
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'project.zip');
+  };
+
+  const activeFile = files[activeFileIndex] || null;
 
   return (
     <div className="module-container">
       <header className="module-header">
         <h1>Code Generator</h1>
-        <p>Describe the code you need, and the AI will write it for you.</p>
+        <p>Describe your project and the AI will generate multiple files with syntax highlighting.</p>
       </header>
 
       <div className="converter-grid">
         <div className="panel input-panel">
-          <h3>Description / Prompt</h3>
+          <h3>Requirements</h3>
           <textarea 
+            className="flex-grow"
             value={input} 
             onChange={(e) => setInput(e.target.value)} 
-            placeholder="E.g., Write a Python script to scrape weather data..." 
-            spellCheck="false"
-            className="flex-grow"
+            placeholder="E.g., Create a React button component with a separate CSS file..." 
           /> 
           <div className="action-row">
-            <button 
-                className="primary-button action-btn" 
-                onClick={handleGenerate} 
-                disabled={loading || !input.trim()}
-            >
-                {loading ? 'Generating...' : 'Generate Code'}
+            <button className="clear-btn action-btn" onClick={handleClearAll}>Clear All</button>
+            <button className="primary-button action-btn" onClick={handleGenerate} disabled={loading}>
+              {loading ? 'Generating...' : 'Generate Code'}
             </button> 
           </div>
         </div>
 
         <div className="panel output-panel">
-          <h3>Generated Code</h3>
+          <h3>Generated Output</h3>
           <div className="results-container">
-            {outputCode ? (
-              <div className="code-output-container"> 
-                <textarea 
-                  className="output-textarea" 
-                  value={outputCode} 
-                  readOnly 
-                  spellCheck="false"
-                /> 
+            {files.length > 0 ? (
+              <div className="code-output-container">
+                <div className="tabs-container">
+                  {files.map((file, idx) => (
+                    <button 
+                      key={idx} 
+                      className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
+                      onClick={() => setActiveFileIndex(idx)}
+                    >
+                      {file.fileName}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="highlighter-wrapper">
+                  <SyntaxHighlighter 
+                    language="javascript" 
+                    style={vscDarkPlus} 
+                    customStyle={{ margin: 0, height: '100%', borderRadius: '8px' }}
+                  >
+                    {activeFile.content}
+                  </SyntaxHighlighter>
+                </div>
                 
                 <div className="action-row">
-                  <button 
-                    className="primary-button copy-btn" 
-                    onClick={() => navigator.clipboard.writeText(outputCode)}
-                    style={{ marginLeft: 0 }}
-                  >
+                  <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
+                    Download File
+                  </button>
+                  {files.length > 1 && (
+                    <button className="primary-button" onClick={downloadZip}>Download ZIP</button>
+                  )}
+                  <button className="primary-button" onClick={() => navigator.clipboard.writeText(activeFile.content)}>
                     Copy
-                  </button> 
-                  
-                  <button 
-                    className="primary-button secondary-action-btn" 
-                    onClick={() => onSwitchModule('analysis', { input: outputCode, sourceModule: 'generator' })}
-                  >
-                    Analyze This
                   </button> 
                 </div>
               </div>
             ) : (
               <div className="placeholder-text">
-                {loading ? 'AI is writing your code...' : 'Result will appear here...'}
+                {loading ? 'AI is building your project...' : 'Result will appear here...'}
               </div> 
             )}
           </div>

@@ -22,7 +22,9 @@ export default async function handler(req, res) {
     userMessage = `Convert this ${sourceLang} code to ${targetLang}:\n\n${input}`;
   }
   else if (type === 'generator') {
-    systemMessage = "You are an expert code generator. Return ONLY the raw code. Do not use Markdown backticks. Do not add explanations or wrapper text.";
+    systemMessage = `You are an expert multi-file code generator. Provide all necessary files. 
+    Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. 
+    No markdown backticks, no explanations.`;
     userMessage = `Write code for the following request:\n\n${input}`;
   }
   else if (type === 'analysis') {
@@ -31,11 +33,9 @@ export default async function handler(req, res) {
   }
   else if (type === 'css-framework') {
     if (targetLang === 'tailwind') {
-      // Tailwind specific: Split by selectors for the UI cards
       systemMessage = `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.`;
       userMessage = `Convert this CSS to Tailwind:\n\n${input}`;
     } else {
-      // Bootstrap, SASS, LESS: Return raw code block
       systemMessage = `You are a CSS to ${targetLang} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`;
       userMessage = `Convert this CSS to ${targetLang}:\n\n${input}`;
     }
@@ -55,15 +55,13 @@ export default async function handler(req, res) {
   
   try {
     const completion = await groq.chat.completions.create({
-      messages: [
-        { role: "system", content: systemMessage },
-        { role: "user", content: userMessage },
-      ],
+      messages: [{ role: "system", content: systemMessage }, { role: "user", content: userMessage }],
       model: "llama-3.3-70b-versatile",
       temperature: 0.1,
     });
     
     let text = completion.choices[0]?.message?.content || "";
+    
     // Strip markdown formatting
     const codeBlockMatch = text.match(/```(?:[a-z]+)?\s*([\s\S]*?)```/);
     if (codeBlockMatch) {
@@ -74,13 +72,11 @@ export default async function handler(req, res) {
     
     let finalResponse = {};
     
-    // FORMING RESPONSES
     if (type === 'css-framework') {
       if (targetLang === 'tailwind') {
         try {
           finalResponse = JSON.parse(text);
         } catch (e) {
-          // Fallback for partial JSON matches
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             try { finalResponse = JSON.parse(jsonMatch[0]); }
@@ -90,12 +86,18 @@ export default async function handler(req, res) {
           }
         }
       } else {
-        // For Bootstrap/SASS/LESS, treating it like a normal conversion
         finalResponse = { convertedCode: text };
       }
     }
-    // Handle text-based outputs (Converter, Generator, Regex, SQL, JSON)
-    else if (['converter', 'generator', 'regex', 'sql', 'json'].includes(type)) {
+    else if (type === 'generator') {
+      // Handle the multi-file JSON parsing
+      try {
+        finalResponse = JSON.parse(text);
+      } catch (e) {
+        finalResponse = { files: [{ fileName: 'index.txt', content: text }] };
+      }
+    }
+    else if (['converter', 'regex', 'sql', 'json'].includes(type)) {
       finalResponse = { convertedCode: text };
     }
     else if (type === 'analysis') {
