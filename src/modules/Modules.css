@@ -388,6 +388,12 @@ textarea:focus {
   color: white;
 }
 
+.theme-dark-black-gold .clear-btn, 
+.theme-light-quartz .clear-btn {
+  color: white;
+  border: none;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
