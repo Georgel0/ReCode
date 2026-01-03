@@ -11,10 +11,13 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "file-saver": "^2.0.5",
     "firebase": "^12.6.0",
     "groq-sdk": "^0.37.0",
+    "jszip": "^3.10.1",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "react-syntax-highlighter": "^16.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
