@@ -155,7 +155,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
                 </div>
                 
                 <div className="action-row">
-                  <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
+                  <button className="primary-button" onClick={() => downloadSingleFile(activeFile)}>
                     Download File
                   </button>
                   {files.length > 1 && (
