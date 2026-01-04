@@ -464,6 +464,7 @@ textarea:focus {
 }
 
 .highlighter-wrapper {
+  max-width: 100%;
   flex: 1;
   overflow-y: hidden;
   border-radius: var(--radius);
