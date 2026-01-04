@@ -124,7 +124,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
           </nav>
         )}
         
-        <div className="theme-selector-group">
+        <div className="theme-selector-section">
           <h3>Theme:</h3>
           <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
             {Object.entries(groupedThemes).map(([group, themes]) => (
