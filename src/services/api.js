@@ -1,4 +1,3 @@
-// This function communicates with Vercel API route (/api/convert)
 export const convertCode = async (type, input, sourceLang = '', targetLang = '') => {
  let lastError;
  const MAX_RETRIES = 3;
