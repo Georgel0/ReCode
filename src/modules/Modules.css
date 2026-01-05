@@ -40,6 +40,7 @@
   flex-direction: column;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-subtle);
+  min-width: 0;
 }
 
 .panel h3 {
@@ -298,6 +299,7 @@ textarea:focus {
   flex-direction: column;
   height: 100%;     
   min-height: 0;
+  min-width: 0;
   flex: 1;            
 }
 
@@ -466,7 +468,7 @@ textarea:focus {
 .highlighter-wrapper {
   max-width: 100%;
   flex: 1;
-  overflow-y: hidden;
+  overflow: hidden;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: #1e1e1e;
