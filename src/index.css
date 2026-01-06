@@ -124,6 +124,13 @@ select, input, textarea {
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
 }
 
+.secondary-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 select {
   -webkit-appearance: none;
   -moz-appearance: none;
