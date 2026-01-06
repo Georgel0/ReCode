@@ -219,7 +219,7 @@ select option {
 }
 
 .theme-dark-black-gold .primary-button:hover {
-  position: absolute;
+  position: relative;
   overflow: hidden;
 }
 
