@@ -127,6 +127,8 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
             <button className="file-upload-btn" onClick={() => fileInputRef.current.click()}>
               Upload File
             </button>
+            <button className="info-icon" onClick={() => setShowInfoModal(true)}>
+            </button>
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -134,7 +136,6 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
               onChange={handleFileChange}
               accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift"
             />
-             <button className="info-icon" onClick={() => setShowInfoModal(true)}>i</button>
           </div>
        
           <div className="action-row start" style={{ marginBottom: '1rem' }}>
