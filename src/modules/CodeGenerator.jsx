@@ -116,14 +116,14 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
             placeholder="E.g., Create a React button component with a separate CSS file..." 
           /> 
           <div className="action-row">
-            <button className="primary-button clear-btn" onClick={handleClearAll}>Clear All</button>
             <button 
               className="primary-button" 
               onClick={handleGenerate} 
               disabled={loading}
-            >
-              {loading ? 'Generating...' : 'Generate Code'}
+            >{loading ? 'Generating...' : 'Generate Code'}
             </button> 
+            <button className="secondary-button clear-btn" onClick={handleClearAll}>Clear All
+            </button>
           </div>
         </div>
 
