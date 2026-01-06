@@ -118,7 +118,6 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       <header className="module-header">
         <div className="header-title-row">
           <h1>Universal Code Converter</h1>
-          <button className="info-icon" onClick={() => setShowInfoModal(true)}>i</button>
         </div>
         <p>Translate code between {LANGUAGES.length} programming languages.</p>
       </header>
@@ -137,6 +136,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
               onChange={handleFileChange}
               accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift"
             />
+             <button className="info-icon" onClick={() => setShowInfoModal(true)}>i</button>
           </div>
        
           <div className="action-row start" style={{ marginBottom: '1rem' }}>
