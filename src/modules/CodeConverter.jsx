@@ -134,7 +134,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
               onChange={handleFileChange}
               accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift"
             />
-            <button className="info-icon" onClick={() => setShowInfoModal(true)}>
+            <button className="info-icon" onClick={() => setShowInfoModal(true)}>i
             </button>
           </div>
        
