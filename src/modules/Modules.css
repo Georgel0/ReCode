@@ -323,7 +323,7 @@ textarea:focus {
 }
 
 .info-icon {
-  position: relative;
+  position: absolute;
   top: 0; left: 0;
   
   width: 24px;
