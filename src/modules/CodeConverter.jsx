@@ -124,17 +124,19 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
         <div className="panel input-panel">
           <div className="panel-header-row">
             <h3>Source: {LANGUAGES.find(l => l.value === sourceLang)?.label}</h3>
-            <button className="file-upload-btn" onClick={() => fileInputRef.current.click()}>
+            <div className="header-actions">
+              <button className="file-upload-btn" onClick={() => fileInputRef.current.click()}>
               Upload File
-            </button>
-            <input 
+              </button>
+              <input 
               type="file" 
               ref={fileInputRef} 
               style={{ display: 'none' }} 
               onChange={handleFileChange}
               accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift" />
-            <button className="info-icon" onClick={() => setShowInfoModal(true)}>i
-            </button>
+              <button className="info-icon" onClick={() => setShowInfoModal(true)}>i
+              </button>
+            </div>
           </div>
        
           <div className="action-row start" style={{ marginBottom: '1rem' }}>
