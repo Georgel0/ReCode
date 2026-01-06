@@ -218,6 +218,11 @@ select option {
   --header-color: var(--gradient-gold);
 }
 
+.theme-dark-black-gold .primary-button:hover {
+  position: absolute;
+  overflow: hidden;
+}
+
 .theme-dark-black-gold .primary-button:hover::after {
   content: '';
   position: absolute;
