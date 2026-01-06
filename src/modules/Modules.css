@@ -322,12 +322,6 @@ textarea:focus {
   border-color: var(--accent);
 }
 
-.header-title-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .info-icon {
   width: 24px;
   height: 24px;
@@ -354,7 +348,7 @@ textarea:focus {
 .panel-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .file-upload-btn {
