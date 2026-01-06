@@ -323,9 +323,6 @@ textarea:focus {
 }
 
 .info-icon {
-  position: absolute;
-  top: 0; left: 0;
-  
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -351,7 +348,7 @@ textarea:focus {
 .panel-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .file-upload-btn {
