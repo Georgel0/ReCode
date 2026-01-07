@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     userMessage = `Convert this ${sourceLang} code to ${targetLang}:\n\n${input}`;
   }
   else if (type === 'generator') {
-    systemMessage = `You are an expert multi-file code generator. 
+    systemMessage = `You are an expert multi-file code generator. Use the newest technologies, features and methods available for writing the best and cleanest fully working code.
     Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. 
     No markdown backticks. No explanations. 
     Support languages: Python, C, C#, C++, Swift, Go, PHP, HTML, CSS, JS.`;
