@@ -19,20 +19,17 @@ export default async function handler(req, res) {
   if (type === "refactor") {
     systemMessage = `You are a Code Refactoring Expert.
       Your goal is to take a collection of files and refactor them to be faster, cleaner, and use modern best practices.
-      Input will be a JSON string of files.
+      Input will be a JSON array of files: [{"name": "...", "content": "..."}].
       Return strictly valid JSON in this format: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.
-      No markdown backticks. No explanation or comments.`;
-      userMessage = `Refactor these files:\n\n${input}`;
+      Output ONLY the JSON object. No markdown backticks. No explanation or comments.`;
+    userMessage = `Refactor these files:\n\n${input}`;
   }
   else if (type === 'converter') {
     systemMessage = "You are a code conversion engine. Output ONLY the raw code string. No markdown backticks. No explanations.";
     userMessage = `Convert this ${sourceLang} code to ${targetLang}:\n\n${input}`;
   }
   else if (type === 'generator') {
-    systemMessage = `You are an expert multi-file code generator. Use the newest technologies, features and methods available for writing the best and cleanest fully working code.
-    Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. 
-    No markdown backticks. No explanations. 
-    Support languages: Python, C, C#, C++, Swift, Go, PHP, HTML, CSS, JS.`;
+    systemMessage = `You are an expert multi-file code generator. Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. No markdown backticks. No explanations.`;
     userMessage = `Request: ${input}`;
   }
   else if (type === 'analysis') {
@@ -57,7 +54,7 @@ export default async function handler(req, res) {
     userMessage = `Dialect: ${targetLang || 'Standard SQL'}\nRequirement: ${input}`;
   }
   else if (type === 'json') {
-    systemMessage = "You are a JSON validator and formatter. Repair any syntax errors, remove comments if present, and format the JSON. Return ONLY the raw valid JSON string.";
+    systemMessage = "You are a JSON validator and formatter. Return ONLY the raw valid JSON string.";
     userMessage = `Fix and format this JSON:\n\n${input}`;
   }
   
@@ -69,33 +66,32 @@ export default async function handler(req, res) {
     });
     
     let text = completion.choices[0]?.message?.content || "";
-    
     let finalResponse = {};
 
-    if (type === 'generator' || (type === 'css-framework' && targetLang === 'tailwind')) {
-      // Extract JSON object using regex 
+    // Logic for Multi-File Outputs 
+    if (type === 'generator' || type === 'refactor' || (type === 'css-framework' && targetLang === 'tailwind')) {
+      // Extract JSON object from text 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       let jsonString = jsonMatch ? jsonMatch[0] : text;
 
-      // Clean Markdown wrapper
+      // Strip Markdown backticks if present
       jsonString = jsonString.replace(/^```[a-z]*\s*|```$/g, '').trim();
 
-      // Fix common AI JSON errors
+      // Fix common trailing comma issues
       jsonString = jsonString.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
 
       try {
         finalResponse = JSON.parse(jsonString);
       } catch (e) {
-        console.error("JSON Parse Failed:", e.message);
-        if (type === 'generator') {
-          finalResponse = { files: [{ fileName: 'index.txt', content: jsonString }] };
+        console.error("JSON Parse Failed for multi-file type:", e.message);
+        if (type === 'refactor' || type === 'generator') {
+          finalResponse = { files: [{ fileName: 'error.txt', content: "Failed to parse AI response. Raw output: " + text }] };
         } else {
-          throw new Error("AI did not return valid JSON for Tailwind.");
+          throw new Error("AI did not return valid JSON.");
         }
       }
-    }
-    
-    else if (['refactor', 'converter', 'regex', 'sql', 'json'].includes(type)) {
+    } 
+    else if (['converter', 'regex', 'sql', 'json'].includes(type)) {
       finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
     else if (type === 'analysis') {
