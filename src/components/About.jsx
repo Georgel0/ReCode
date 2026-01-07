@@ -1,57 +1,57 @@
 import React from 'react';
 
 export default function About() {
- return (
-  <div className="about-sidebar-content">
+  return (
+    <div className="about-sidebar-content">
     
       <section className="about-info-block">
-        <h3 className="about-sub-title">General</h3>
+        <h2 className="about-main-title">ReCode: Engineering Intelligence</h2>
         <p className="about-description">
-          ReCode was built with the purpose to be an universal tool, increase the overall productivity, help developers to stay focused and write better and faster code.
+          ReCode is a high-leverage development ecosystem designed to bridge the gap between complex logic and rapid deployment. By automating the technical overhead of refactoring, analysis, and architecture, we empower developers to focus on high-level innovation rather than syntax.
         </p>
       </section>
       
       <section className="about-info-block">
-        <h3 className="about-sub-title">AI Workflow</h3>
+        <h3 className="about-sub-title">The Proprietary Engine</h3>
         <p className="about-description">
-          ReCode utilizes the <strong>Grok API</strong> powered by <strong>Llama models</strong>. 
-          When you use a tool, the code is sent to the AI in a JSON format, it does the work then sends it back in a JSON format, then we structure the response so you can work with it easily. All done via a backend server built with Node.js.
+          Our specialized AI workflow utilizes the <strong>Grok-Llama hybrid architecture</strong>. By processing code through an optimized Node.js microservice layer, ReCode performs deep-path analysis and structured JSON synthesis. This ensures that every line of code generated is not just functional, but architecturally sound and production-ready.
         </p>
       </section>
 
       <section className="about-info-block">
-        <h3 className="about-sub-title">Tech Stack</h3>
+        <h3 className="about-sub-title">Enterprise Infrastructure</h3>
         <p className="about-description">
-          Built with React + Vite, Node.js, Firebase Firestore for real-time history, and hosted on Vercel's Edge Network for global speed.
+          Built for speed and reliability, ReCode leverages a modern stack featuring <strong>React + Vite</strong> for performance, <strong>Firebase Firestore</strong> for real-time state synchronization, and global distribution via <strong>Vercel’s Edge Network</strong>.
         </p>
       </section>
 
       <section className="about-info-block">
-        <h3 className="about-sub-title">Video Introduction</h3>
+        <h3 className="about-sub-title">Platform Overview</h3>
         <div className="video-container">
           <iframe
-            src="https://player.mux.com/gTlyythoN01D5QLRReHSOFTjttP7wVo3W7JJGBvQFztQ?metadata-video-title=ReCode+Video+Introduction&video-title=ReCode+Video+Introduction"
+            src="https://player.mux.com/gTlyythoN01D5QLRReHSOFTjttP7wVo3W7JJGBvQFztQ?metadata-video-title=ReCode+Platform+Overview"
             className="about-video-iframe"
             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
             allowFullScreen
-            title="ReCode Video Introduction"
+            title="ReCode Platform Overview"
           ></iframe>
         </div>
       </section>
 
       <section className="dev-contact-footer">
-        <h3 className="contact-title">Developer Info/Contact</h3>
+        <h3 className="contact-title">Connect with the Architect</h3>
+        <p className="about-description small">Available for strategic partnerships and custom enterprise implementations.</p>
         <div className="contact-icon-row">
-          <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer"><i className="fab fa-github"></i></a>
-          <a href="https://www.linkedin.com/in/georgel-garabajiu-297a052a8" target="_blank" rel="noreferrer"><i className="fab fa-linkedin"></i></a>
-          <a href="mailto:georgelgarabajiu07@gmail.com"><i className="fas fa-envelope"></i></a>
+          <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer" title="GitHub"><i className="fab fa-github"></i></a>
+          <a href="https://www.linkedin.com/in/georgel-garabajiu-297a052a8" target="_blank" rel="noreferrer" title="LinkedIn"><i className="fab fa-linkedin"></i></a>
+          <a href="mailto:georgelgarabajiu07@gmail.com" title="Email"><i className="fas fa-envelope"></i></a>
         </div>
         <div className="source-link-wrapper">
            <a href="https://github.com/Georgel0/ReCode" target="_blank" rel="noreferrer" className="source-code-link">
-             <i className="fas fa-code-branch"></i> View Source Code
+             <i className="fas fa-code-branch"></i> Explore Documentation & Source
            </a>
         </div>
       </section>
     </div>
- );
+  );
 }
