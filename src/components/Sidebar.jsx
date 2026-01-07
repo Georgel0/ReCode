@@ -73,6 +73,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
 
   const modules = [
     { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt' },
+    { id: 'refactor', label: 'Code Refactor', icon: 'fas fa-wand-magic-sparkles' },
     { id: 'analysis', label: 'Code Analyzer', icon: 'fas fa-brain' },
     { id: 'generator', label: 'Code Generator', icon: 'fas fa-magic' },
     { id: 'css-tailwind', label: 'CSS Frameworks', icon: 'fas fa-swatchbook' },

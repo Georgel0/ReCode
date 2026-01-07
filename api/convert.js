@@ -16,7 +16,15 @@ export default async function handler(req, res) {
   let systemMessage = "";
   let userMessage = "";
   
-  if (type === 'converter') {
+  if (type === "refactor") {
+    systemMessage = `You are a Code Refactoring Expert.
+      Your goal is to take a collection of files and refactor them to be faster, cleaner, and use modern best practices.
+      Input will be a JSON string of files.
+      Return strictly valid JSON in this format: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.
+      No markdown backticks. No explanation or comments.`;
+      userMessage = `Refactor these files:\n\n${input}`;
+  }
+  else if (type === 'converter') {
     systemMessage = "You are a code conversion engine. Output ONLY the raw code string. No markdown backticks. No explanations.";
     userMessage = `Convert this ${sourceLang} code to ${targetLang}:\n\n${input}`;
   }
@@ -87,7 +95,7 @@ export default async function handler(req, res) {
       }
     }
     
-    else if (['converter', 'regex', 'sql', 'json'].includes(type)) {
+    else if (['refactor', 'converter', 'regex', 'sql', 'json'].includes(type)) {
       finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
     else if (type === 'analysis') {

@@ -8,6 +8,7 @@ import CodeGenerator from './modules/CodeGenerator';
 import RegexGenerator from './modules/RegexGenerator';
 import SqlBuilder from './modules/SqlBuilder';
 import JsonFormatter from './modules/JsonFormatter';
+import CodeRefactor from './modules/CodeRefactor';
 
 import './index.css';
 import { useTheme } from './components/ThemeContext';
@@ -42,6 +43,8 @@ function App() {
     let targetModule = 'converter';
     if (historyItem.type === 'css-framework' || historyItem.type === 'css-tailwind') {
         targetModule = 'css-tailwind';
+    } else if (historyItem.type === 'refactor') {
+      targetModule = 'refactor';
     } else if (historyItem.type === 'analysis') {
         targetModule = 'analysis';
     } else if (historyItem.type === 'generator') {
@@ -62,6 +65,8 @@ function App() {
     switch (activeModule) {
       case 'converter':
         return <CodeConverter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'refactor':
+        return <CodeRefactor onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
       case 'analysis':
         return <CodeAnalysis onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
       case 'css-tailwind': 
