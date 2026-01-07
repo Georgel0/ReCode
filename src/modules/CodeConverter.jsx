@@ -158,14 +158,14 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
           />
 
           <div className="action-row">
-            <button className="primary-button clear-btn" onClick={handleClear}>
-              Clear
+            <button className="primary-button action-btn" onClick={handleConvert} disabled={loading || !input.trim()}>
+              {loading ? 'Converting...' : 'Convert Code'}
             </button>
             <button className="primary-button" onClick={handleSwap}>
               ⇄ Swap
             </button>
-            <button className="primary-button action-btn" onClick={handleConvert} disabled={loading || !input.trim()}>
-              {loading ? 'Converting...' : 'Convert Code'}
+            <button className="primary-button clear-btn" onClick={handleClear}>
+              Clear
             </button>
           </div>
         </div>
