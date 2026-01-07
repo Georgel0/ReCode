@@ -21,7 +21,7 @@ const LANGUAGES = [
 ];
 
 export default function CodeRefactor({ onLoadData, onSwitchModule }) {
-  const [files, setFiles] = useState([{ id: 1, name: 'index.js', language: 'javascript', content: '' }]);
+  const [files, setFiles] = useState([]);
   const [activeTab, setActiveTab] = useState(1);
   const [outputFiles, setOutputFiles] = useState([]);
   const [activeOutputIdx, setActiveOutputIdx] = useState(0);
