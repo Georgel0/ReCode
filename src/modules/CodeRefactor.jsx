@@ -142,9 +142,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 onChange={handleFileUpload}
                 accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php"
               />
-              <button className="primary-button secondary-action-btn" onClick={handleClear}>
-                Clear
-              </button>
             </div>
           </div>
 
@@ -154,24 +151,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 {file.name || 'untitled'}
               </div>
             ))}
-          </div>
-
-          <div className="action-row start" style={{ marginBottom: '1rem', gap: '0.5rem' }}>
-            <input 
-              className="lang-select" 
-              style={{ flex: 2 }}
-              value={currentFile?.name || ''} 
-              placeholder="Filename (e.g. index.js)"
-              onChange={(e) => updateFile(currentFile.id, 'name', e.target.value)} 
-            />
-            <select 
-              value={currentFile?.language} 
-              onChange={(e) => updateFile(currentFile.id, 'language', e.target.value)}
-              className="lang-select"
-              style={{ flex: 1 }}
-            >
-              {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-            </select>
           </div>
           
           <textarea 
@@ -185,6 +164,9 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
           <div className="action-row">
             <button className="primary-button action-btn" onClick={handleRefactor} disabled={loading || files.every(f => !f.content.trim())}>
               {loading ? 'Processing...' : 'Refactor Project'}
+            </button>
+            <button className="primary-button secondary-action-btn" onClick={handleClear}>
+                Clear
             </button>
           </div>
         </div>
