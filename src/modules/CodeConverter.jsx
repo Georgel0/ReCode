@@ -161,7 +161,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
             <button className="primary-button clear-btn" onClick={handleClear}>
               Clear
             </button>
-            <button className="primary-button secondary-action-btn" onClick={handleSwap}>
+            <button className="primary-button" onClick={handleSwap}>
               ⇄ Swap
             </button>
             <button className="primary-button action-btn" onClick={handleConvert} disabled={loading || !input.trim()}>
