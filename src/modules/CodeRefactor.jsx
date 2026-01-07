@@ -67,23 +67,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
   
-  const addTab = () => {
-    const newId = Date.now();
-    setFiles([...files, { id: newId, name: `file_${files.length + 1}.js`, language: 'javascript', content: '' }]);
-    setActiveTab(newId);
-  };
-  
-  const removeTab = (id, e) => {
-    e.stopPropagation();
-    if (files.length === 1) {
-      setFiles([{ id: 1, name: 'index.js', language: 'javascript', content: '' }]);
-      return;
-    }
-    const newFiles = files.filter(f => f.id !== id);
-    setFiles(newFiles);
-    if (activeTab === id) setActiveTab(newFiles[0].id);
-  };
-  
   const updateFile = (id, field, value) => {
     setFiles(files.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
@@ -159,8 +142,9 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 onChange={handleFileUpload}
                 accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php"
               />
-              <button className="primary-button secondary-action-btn" onClick={handleClear}>Clear</button>
-              <button className="primary-button" onClick={addTab} title="Add New Tab">+</button>
+              <button className="primary-button secondary-action-btn" onClick={handleClear}>
+                Clear
+              </button>
             </div>
           </div>
 
@@ -168,7 +152,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
             {files.map(file => (
               <div key={file.id} className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} onClick={() => setActiveTab(file.id)}>
                 {file.name || 'untitled'}
-                <span className="close-tab" style={{marginLeft: '8px', opacity: 0.6}} onClick={(e) => removeTab(file.id, e)}>×</span>
               </div>
             ))}
           </div>
