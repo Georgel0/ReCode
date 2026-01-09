@@ -9,7 +9,7 @@ const PROMPT_CONFIG = {
         clean: "Focus on readability, better variable naming, and DRY principles.",
         perf: "Focus on algorithmic efficiency, reducing memory footprint, and optimizing loops.",
         modern: "Focus on using the latest language features (e.g., ES6+, Python 3.10+) and removing deprecated APIs.",
-        comments: "Focus on adding detailed JSDoc/Docstring documentation and explaining complex logic."
+        comments: "Focus on adding comments that explain the code, make sure the code is still readable and explained well."
       };
       
       const specificGoal = goals[mode] || goals.clean;
