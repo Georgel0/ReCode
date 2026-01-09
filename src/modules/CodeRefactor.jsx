@@ -20,8 +20,9 @@ const LANGUAGES = [
   { value: 'php', label: 'PHP', ext: '.php' },
 ];
 
-export default function CodeRefactor({ onLoadData, onSwitchModule }) {
-  const [files, setFiles] = useState([]);
+export default function CodeRefactor({ onLoadData }) {
+  // Init with default file to prevent undefined errors
+  const [files, setFiles] = useState([{ id: 1, name: 'main.js', content: '' }]);
   const [activeTab, setActiveTab] = useState(1);
   const [outputFiles, setOutputFiles] = useState([]);
   const [activeOutputIdx, setActiveOutputIdx] = useState(0);
@@ -29,101 +30,102 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   const fileInputRef = useRef(null);
   
   useEffect(() => {
-    if (onLoadData && onLoadData.type === 'refactor') {
-      if (onLoadData.inputFiles) setFiles(onLoadData.inputFiles);
-      if (onLoadData.fullOutput?.files) setOutputFiles(onLoadData.fullOutput.files);
+    if (onLoadData?.type === 'refactor') {
+      if (onLoadData.inputFiles?.length) setFiles(onLoadData.inputFiles);
+      if (onLoadData.fullOutput?.files?.length) setOutputFiles(onLoadData.fullOutput.files);
     }
   }, [onLoadData]);
   
-  // Handle Multiple File Upload
-  const handleFileUpload = async (e) => {
-    const uploadedFiles = Array.from(e.target.files);
-    if (uploadedFiles.length === 0) return;
-    
-    const newFilesPromises = uploadedFiles.map(file => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const extension = '.' + file.name.split('.').pop().toLowerCase();
-          const matchedLang = LANGUAGES.find(l => l.ext === extension);
-          resolve({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            language: matchedLang ? matchedLang.value : 'javascript',
-            content: event.target.result
-          });
-        };
-        reader.readAsText(file);
-      });
-    });
-    
-    const newFiles = await Promise.all(newFilesPromises);
-    
-    // If we only had the default empty file, replace it. Otherwise, append.
-    setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
-    setActiveTab(newFiles[0].id);
-    
-    // Reset file input so same file can be uploaded again if needed
+  const resetInput = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
   
-  const updateFile = (id, field, value) => {
-    setFiles(files.map(f => f.id === id ? { ...f, [field]: value } : f));
+  const handleFileUpload = async (e) => {
+    const uploaded = Array.from(e.target.files);
+    if (!uploaded.length) return;
+    
+    const newFiles = await Promise.all(uploaded.map(file => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const ext = '.' + file.name.split('.').pop().toLowerCase();
+        resolve({
+          id: Date.now() + Math.random(),
+          name: file.name,
+          language: LANGUAGES.find(l => l.ext === ext)?.value || 'javascript',
+          content: ev.target.result
+        });
+      };
+      reader.readAsText(file);
+    })));
+    
+    setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
+    setActiveTab(newFiles[0].id);
+    resetInput();
+  };
+  
+  const updateFile = (id, content) => {
+    setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
+  };
+  
+  const removeFile = (e, id) => {
+    e.stopPropagation(); // Prevent tab switching when clicking X
+    const remaining = files.filter(f => f.id !== id);
+    if (remaining.length === 0) {
+      handleClear();
+    } else {
+      setFiles(remaining);
+      if (activeTab === id) setActiveTab(remaining[0].id);
+    }
   };
   
   const handleClear = () => {
+    setFiles([{ id: 1, name: 'main.js', content: '' }]);
     setActiveTab(1);
     setOutputFiles([]);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    resetInput();
   };
   
   const handleRefactor = async () => {
-    if (files.some(f => !f.content.trim())) return;
+    if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     try {
       const result = await convertCode('refactor', JSON.stringify(files));
-      if (result && result.files) {
+      if (result?.files) {
         setOutputFiles(result.files);
         setActiveOutputIdx(0);
         await saveHistory('refactor', JSON.stringify(files), result);
       }
     } catch (error) {
       console.error("Refactor failed:", error);
-      alert("Failed to refactor code. Please try again.");
+      alert("Failed to refactor code.");
     }
     setLoading(false);
   };
   
-  const downloadSingleFile = (file) => {
-    const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, file.fileName || file.name);
-  };
-  
   const downloadZip = async () => {
     const zip = new JSZip();
-    outputFiles.forEach(file => {
-      zip.file(file.fileName, file.content);
-    });
+    outputFiles.forEach(f => zip.file(f.fileName, f.content));
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, "refactored_project.zip");
   };
   
-  const getLanguage = (name) => {
-    const ext = name?.split('.').pop();
+  const getLanguage = (fileName) => {
+    const ext = fileName?.split('.').pop();
     return LANGUAGES.find(l => l.ext === `.${ext}`)?.value || 'javascript';
   };
   
-  const currentFile = files.find(f => f.id === activeTab);
+  const currentFile = files.find(f => f.id === activeTab) || files[0];
   const currentOutputFile = outputFiles[activeOutputIdx];
   
   return (
     <div className="module-container">
       <header className="module-header">
         <h1>Smart Code Refactor</h1>
-        <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
+        <p>Refactor and optimize multiple files simultaneously.</p>
       </header>
 
       <div className="converter-grid">
+        {/* INPUT PANEL */}
         <div className="panel">
           <div className="panel-header-row">
             <h3>Source Code</h3>
@@ -132,11 +134,8 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 Upload Files
               </button>
               <input 
-                type="file" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
-                multiple 
-                onChange={handleFileUpload}
+                type="file" ref={fileInputRef} style={{ display: 'none' }} 
+                multiple onChange={handleFileUpload}
                 accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php"
               />
             </div>
@@ -144,30 +143,47 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
 
           <div className="tabs-container">
             {files.map(file => (
-              <div key={file.id} className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} onClick={() => setActiveTab(file.id)}>
-                {file.name || 'untitled'}
+              <div 
+                key={file.id} 
+                className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} 
+                onClick={() => setActiveTab(file.id)}
+              >
+                {file.name}
+                {files.length > 1 && (
+                  <span 
+                    style={{ marginLeft: '8px', opacity: 0.6, cursor: 'pointer' }}
+                    onClick={(e) => removeFile(e, file.id)}
+                  >×</span>
+                )}
               </div>
             ))}
           </div>
           
           <textarea 
             className="flex-grow"
-            value={currentFile?.content || ''}
-            onChange={(e) => updateFile(currentFile.id, 'content', e.target.value)}
+            value={currentFile.content}
+            onChange={(e) => updateFile(currentFile.id, e.target.value)}
             placeholder="Paste your code here or upload files..."
             spellCheck="false"
+            style={{ 
+              fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+              fontSize: '0.85rem' 
+            }}
           />
 
           <div className="action-row">
-            <button className="primary-button action-btn" onClick={handleRefactor} disabled={loading || files.every(f => !f.content.trim())}>
+            <button 
+              className="primary-button action-btn" 
+              onClick={handleRefactor} 
+              disabled={loading || files.every(f => !f.content.trim())}
+            >
               {loading ? 'Processing...' : 'Refactor Project'}
             </button>
-            <button className="primary-button clear-btn" onClick={handleClear}>
-                Clear
-            </button>
+            <button className="clear-btn" onClick={handleClear}>Clear</button>
           </div>
         </div>
 
+        {/* OUTPUT PANEL */}
         <div className="panel">
           <div className="panel-header-row">
             <h3>Refactored Result</h3>
@@ -192,19 +208,19 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 <SyntaxHighlighter 
                   language={getLanguage(currentOutputFile?.fileName)} 
                   style={vscDarkPlus}
-                  customStyle={{ margin: 0, height: '100%', borderRadius: '8px', fontSize: '0.85rem' }}
+                  customStyle={{ margin: 0, height: '100%', borderRadius: '0 0 8px 8px', fontSize: '0.85rem' }}
                 >
                   {currentOutputFile?.content || ''}
                 </SyntaxHighlighter>
               </div>
 
               <div className="action-row">
-                <button className="primary-button secondary-action-btn" onClick={() => downloadSingleFile(currentOutputFile)}>
+                <button className="primary-button secondary-action-btn" onClick={() => saveAs(new Blob([currentOutputFile.content]), currentOutputFile.fileName)}>
                   Download File
                 </button>
                 <button className="primary-button" onClick={() => {
-                  navigator.clipboard.writeText(currentOutputFile.content);
-                  alert("Copied to clipboard!");
+                   navigator.clipboard.writeText(currentOutputFile.content);
+                   alert("Copied!");
                 }}>
                   Copy
                 </button>
