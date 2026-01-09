@@ -20,13 +20,19 @@ const LANGUAGES = [
   { value: 'php', label: 'PHP', ext: '.php' },
 ];
 
+const REFACTOR_MODES = [
+  { id: 'clean', label: 'Clean & Readability', desc: 'Improves naming, structure, and formatting.' },
+  { id: 'perf', label: 'Performance', desc: 'Optimizes loops, memory usage, and complexity.' },
+  { id: 'modern', label: 'Modernize Syntax', desc: 'Updates legacy code (e.g., var to const, async/await).' },
+  { id: 'comments', label: 'Add Comments', desc: 'Adds documentation and explanatory comments.' },
+];
+
 export default function CodeRefactor({ onLoadData, onSwitchModule }) {
-  // Initialize with one empty file so the UI isn't blank on start
-  const [files, setFiles] = useState([{ id: 1, name: 'untitled.js', language: 'javascript', content: '' }]);
+  const [files, setFiles] = useState([{ id: 1, name: 'main.js', language: 'javascript', content: '' }]);
   const [activeTab, setActiveTab] = useState(1);
   const [outputFiles, setOutputFiles] = useState([]);
-  const [activeOutputIdx, setActiveOutputIdx] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [refactorMode, setRefactorMode] = useState('clean');
   const fileInputRef = useRef(null);
   
   useEffect(() => {
@@ -35,7 +41,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
       if (onLoadData.fullOutput?.files) setOutputFiles(onLoadData.fullOutput.files);
     }
   }, [onLoadData]);
-  
+
+  // Sync index helper
+  const activeFileIndex = files.findIndex(f => f.id === activeTab);
+  const safeIndex = activeFileIndex === -1 ? 0 : activeFileIndex;
+
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
@@ -56,10 +66,8 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
         reader.readAsText(file);
       });
     });
-    
+
     const newFiles = await Promise.all(newFilesPromises);
-    
-    // Replace default empty file or append to existing list
     setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
     setActiveTab(newFiles[0].id);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -68,24 +76,34 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   const updateFile = (id, field, value) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
-  
-  const handleClear = () => {
-    setFiles([{ id: 1, name: 'untitled.js', language: 'javascript', content: '' }]);
-    setActiveTab(1);
-    setOutputFiles([]);
-    setActiveOutputIdx(0);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+
+  const removeFile = (e, idToRemove) => {
+    e.stopPropagation();
+    if (files.length === 1) {
+        handleClear();
+        return;
+    }
+    const newFiles = files.filter(f => f.id !== idToRemove);
+    setFiles(newFiles);
+    if (idToRemove === activeTab) setActiveTab(newFiles[0].id);
   };
   
+  const handleClear = () => {
+    setFiles([{ id: Date.now(), name: 'untitled.js', language: 'javascript', content: '' }]);
+    setActiveTab(files[0]?.id || 1);
+    setOutputFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleRefactor = async () => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     try {
-      const result = await convertCode('refactor', JSON.stringify(files));
+      const payload = { files, options: { mode: refactorMode } };
+      const result = await convertCode('refactor', JSON.stringify(payload));
       if (result && result.files) {
         setOutputFiles(result.files);
-        setActiveOutputIdx(0);
-        await saveHistory('refactor', JSON.stringify(files), result);
+        await saveHistory('refactor', JSON.stringify(payload), result);
       }
     } catch (error) {
       console.error("Refactor failed:", error);
@@ -93,8 +111,9 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     }
     setLoading(false);
   };
-  
+
   const downloadSingleFile = (file) => {
+    if(!file) return;
     const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, file.fileName || file.name);
   };
@@ -114,14 +133,31 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     return LANGUAGES.find(l => l.ext === ext)?.value || 'javascript';
   };
   
-  const currentFile = files.find(f => f.id === activeTab) || files[0];
-  const currentOutputFile = outputFiles[activeOutputIdx];
-  
+  const currentFile = files[safeIndex];
+  const currentOutputFile = outputFiles[safeIndex];
+
   return (
     <div className="module-container">
       <header className="module-header">
-        <h1>Smart Code Refactor</h1>
-        <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
+        <div className="header-content">
+          <h1>Smart Code Refactor</h1>
+          <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
+        </div>
+        <div className="refactor-options">
+            <span className="label-text">Refactor Goal:</span>
+            <div className="mode-selector">
+                {REFACTOR_MODES.map(mode => (
+                    <button 
+                        key={mode.id}
+                        className={`mode-btn ${refactorMode === mode.id ? 'selected' : ''}`}
+                        onClick={() => setRefactorMode(mode.id)}
+                        title={mode.desc}
+                    >
+                        {mode.label}
+                    </button>
+                ))}
+            </div>
+        </div>
       </header>
 
       <div className="converter-grid">
@@ -150,18 +186,21 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} 
                 onClick={() => setActiveTab(file.id)}
               >
-                {file.name || 'untitled'}
+                <span className="tab-name">{file.name || 'untitled'}</span>
+                <span className="close-tab" onClick={(e) => removeFile(e, file.id)}>×</span>
               </div>
             ))}
           </div>
           
-          <textarea 
-            className="flex-grow"
-            value={currentFile?.content || ''}
-            onChange={(e) => updateFile(currentFile.id, 'content', e.target.value)}
-            placeholder="Paste your code here or upload files..."
-            spellCheck="false"
-          />
+          <div className="editor-container">
+            <textarea 
+                className="code-editor"
+                value={currentFile?.content || ''}
+                onChange={(e) => updateFile(currentFile.id, 'content', e.target.value)}
+                placeholder="Paste your code here or upload files..."
+                spellCheck="false"
+            />
+          </div>
 
           <div className="action-row">
             <button 
@@ -193,8 +232,8 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 {outputFiles.map((file, idx) => (
                   <div 
                     key={idx} 
-                    className={`tab-btn ${activeOutputIdx === idx ? 'active' : ''}`} 
-                    onClick={() => setActiveOutputIdx(idx)}
+                    className={`tab-btn ${safeIndex === idx ? 'active' : ''}`} 
+                    onClick={() => files[idx] && setActiveTab(files[idx].id)}
                   >
                     {file.fileName}
                   </div>
@@ -202,13 +241,18 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
               </div>
 
               <div className="highlighter-wrapper flex-grow">
-                <SyntaxHighlighter 
-                  language={getLanguage(currentOutputFile?.fileName)} 
-                  style={vscDarkPlus}
-                  customStyle={{ margin: 0, height: '100%', borderRadius: '8px', fontSize: '0.85rem' }}
-                >
-                  {currentOutputFile?.content || ''}
-                </SyntaxHighlighter>
+                {currentOutputFile ? (
+                    <SyntaxHighlighter 
+                      language={getLanguage(currentOutputFile.fileName)} 
+                      style={vscDarkPlus}
+                      showLineNumbers={true}
+                      customStyle={{ margin: 0, height: '100%', borderRadius: '0 0 8px 8px', fontSize: '0.85rem' }}
+                    >
+                      {currentOutputFile.content}
+                    </SyntaxHighlighter>
+                ) : (
+                    <div className="placeholder-text">Select a source file to view its result.</div>
+                )}
               </div>
 
               <div className="action-row">
@@ -224,8 +268,18 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
               </div>
             </>
           ) : (
-            <div className="placeholder-text">
-              {loading ? 'AI is optimizing your files...' : 'Better code will appear here after refactoring...'}
+            <div className="placeholder-container-inner">
+                {loading ? (
+                   <div className="processing-state">
+                       <div className="pulse-ring"></div>
+                       <p>AI is optimizing your files...</p>
+                       <small>Mode: {REFACTOR_MODES.find(m => m.id === refactorMode)?.label}</small>
+                   </div>
+               ) : (
+                   <div className="empty-state">
+                       <p>Better code will appear here after refactoring...</p>
+                   </div>
+               )}
             </div>
           )}
         </div>
