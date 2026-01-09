@@ -160,7 +160,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     <div className="module-container">
       <header className="module-header">
         <div className="header-content">
-          <h1>Smart Code Refactor</h1>
+          <h1>Code Refactor</h1>
           <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
         </div>
         <div className="refactor-options">

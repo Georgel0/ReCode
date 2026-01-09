@@ -213,30 +213,6 @@ textarea:focus {
   color: var(--text-on-accent);
 }
 
-.placeholder-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60vh;
-}
-
-.placeholder-panel {
-  text-align: center;
-  padding: 3rem;
-  max-width: 500px;
-}
-
-.placeholder-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  color: var(--accent);
-}
-
-.placeholder-message {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-}
-
 .flex-grow {
   flex-grow: 1;
 }
