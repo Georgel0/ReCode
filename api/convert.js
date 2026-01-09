@@ -3,7 +3,7 @@ import JSON5 from "json5";
 
 const PROMPT_CONFIG = {
   refactor: {
-    system: (options) => {
+    system: (mode) => {
       // Determine the specific goal based on the UI selection
       const goals = {
         clean: "Focus on readability, better variable naming, and DRY principles.",
@@ -12,7 +12,7 @@ const PROMPT_CONFIG = {
         comments: "Focus on adding detailed JSDoc/Docstring documentation and explaining complex logic."
       };
       
-      const specificGoal = goals[options?.mode] || goals.clean;
+      const specificGoal = goals[mode] || goals.clean;
       
       return `You are a Code Refactoring Expert.
       Your goal: ${specificGoal}

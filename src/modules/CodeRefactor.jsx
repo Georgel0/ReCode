@@ -18,6 +18,7 @@ const LANGUAGES = [
   { value: 'go', label: 'Go', ext: '.go' },
   { value: 'rust', label: 'Rust', ext: '.rs' },
   { value: 'php', label: 'PHP', ext: '.php' },
+  { value: 'plaintext', label: 'Plain Text', ext: '.txt' }
 ];
 
 const REFACTOR_MODES = [
@@ -50,12 +51,21 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
     
+    setOutputFiles([]);
+    
     const newFilesPromises = uploadedFiles.map(file => {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (event) => {
-          const extension = '.' + file.name.split('.').pop().toLowerCase();
-          const matchedLang = LANGUAGES.find(l => l.ext === extension);
+          let name = file.name;
+          let extension = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+          let matchedLang = LANGUAGES.find(l => l.ext === extension);
+          
+          if (!matchedLang) {
+            name = name + (extension ? '' : '.txt');
+            matchedLang = LANGUAGES.find(l => l.value === 'plaintext');
+          }
+          
           resolve({
             id: Date.now() + Math.random(),
             name: file.name,
@@ -85,6 +95,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     }
     const newFiles = files.filter(f => f.id !== idToRemove);
     setFiles(newFiles);
+    setOutputFiles([]);
     if (idToRemove === activeTab) setActiveTab(newFiles[0].id);
   };
   
@@ -98,6 +109,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   const handleRefactor = async () => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
+    setOutputFiles([]);
     try {
       const inputFiles = JSON.stringify(files.map(f => ({
         name: f.name,
@@ -182,7 +194,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 style={{ display: 'none' }} 
                 multiple 
                 onChange={handleFileUpload}
-                accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php"
+                accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.txt,text/plain"
               />
             </div>
           </div>
@@ -242,6 +254,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                     key={idx} 
                     className={`tab-btn ${safeIndex === idx ? 'active' : ''}`} 
                     onClick={() => files[idx] && setActiveTab(files[idx].id)}
+                    style={{ cursor: files[idx] ? 'pointer' : 'not-allowed', opacity: files[idx] ? 1 : 0.5 }}
                   >
                     {file.fileName}
                   </div>
