@@ -21,7 +21,8 @@ const LANGUAGES = [
 ];
 
 export default function CodeRefactor({ onLoadData, onSwitchModule }) {
-  const [files, setFiles] = useState([]);
+  // Initialize with one empty file so the UI isn't blank on start
+  const [files, setFiles] = useState([{ id: 1, name: 'untitled.js', language: 'javascript', content: '' }]);
   const [activeTab, setActiveTab] = useState(1);
   const [outputFiles, setOutputFiles] = useState([]);
   const [activeOutputIdx, setActiveOutputIdx] = useState(0);
@@ -35,7 +36,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     }
   }, [onLoadData]);
   
-  // Handle Multiple File Upload
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
@@ -59,26 +59,26 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     
     const newFiles = await Promise.all(newFilesPromises);
     
-    // If we only had the default empty file, replace it. Otherwise, append.
+    // Replace default empty file or append to existing list
     setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
     setActiveTab(newFiles[0].id);
-    
-    // Reset file input so same file can be uploaded again if needed
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
   
   const updateFile = (id, field, value) => {
-    setFiles(files.map(f => f.id === id ? { ...f, [field]: value } : f));
+    setFiles(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
   
   const handleClear = () => {
+    setFiles([{ id: 1, name: 'untitled.js', language: 'javascript', content: '' }]);
     setActiveTab(1);
     setOutputFiles([]);
+    setActiveOutputIdx(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
   
   const handleRefactor = async () => {
-    if (files.some(f => !f.content.trim())) return;
+    if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     try {
       const result = await convertCode('refactor', JSON.stringify(files));
@@ -102,18 +102,19 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   const downloadZip = async () => {
     const zip = new JSZip();
     outputFiles.forEach(file => {
-      zip.file(file.fileName, file.content);
+      zip.file(file.fileName || 'file.txt', file.content);
     });
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, "refactored_project.zip");
   };
   
   const getLanguage = (name) => {
-    const ext = name?.split('.').pop();
-    return LANGUAGES.find(l => l.ext === `.${ext}`)?.value || 'javascript';
+    if (!name) return 'javascript';
+    const ext = `.${name.split('.').pop().toLowerCase()}`;
+    return LANGUAGES.find(l => l.ext === ext)?.value || 'javascript';
   };
   
-  const currentFile = files.find(f => f.id === activeTab);
+  const currentFile = files.find(f => f.id === activeTab) || files[0];
   const currentOutputFile = outputFiles[activeOutputIdx];
   
   return (
@@ -144,7 +145,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
 
           <div className="tabs-container">
             {files.map(file => (
-              <div key={file.id} className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} onClick={() => setActiveTab(file.id)}>
+              <div 
+                key={file.id} 
+                className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} 
+                onClick={() => setActiveTab(file.id)}
+              >
                 {file.name || 'untitled'}
               </div>
             ))}
@@ -159,7 +164,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
           />
 
           <div className="action-row">
-            <button className="primary-button action-btn" onClick={handleRefactor} disabled={loading || files.every(f => !f.content.trim())}>
+            <button 
+              className="primary-button action-btn" 
+              onClick={handleRefactor} 
+              disabled={loading || files.every(f => !f.content.trim())}
+            >
               {loading ? 'Processing...' : 'Refactor Project'}
             </button>
             <button className="primary-button clear-btn" onClick={handleClear}>
@@ -182,7 +191,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
             <>
               <div className="tabs-container">
                 {outputFiles.map((file, idx) => (
-                  <div key={idx} className={`tab-btn ${activeOutputIdx === idx ? 'active' : ''}`} onClick={() => setActiveOutputIdx(idx)}>
+                  <div 
+                    key={idx} 
+                    className={`tab-btn ${activeOutputIdx === idx ? 'active' : ''}`} 
+                    onClick={() => setActiveOutputIdx(idx)}
+                  >
                     {file.fileName}
                   </div>
                 ))}
