@@ -72,12 +72,9 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   };
   
   const handleClear = () => {
-    if (window.confirm("Clear all files and output?")) {
-      setFiles([{ id: 1, name: 'index.js', language: 'javascript', content: '' }]);
-      setActiveTab(1);
-      setOutputFiles([]);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    setActiveTab(1);
+    setOutputFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
   
   const handleRefactor = async () => {
@@ -165,7 +162,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
             <button className="primary-button action-btn" onClick={handleRefactor} disabled={loading || files.every(f => !f.content.trim())}>
               {loading ? 'Processing...' : 'Refactor Project'}
             </button>
-            <button className="primary-button secondary-action-btn" onClick={handleClear}>
+            <button className="clear-btn" onClick={handleClear}>
                 Clear
             </button>
           </div>
