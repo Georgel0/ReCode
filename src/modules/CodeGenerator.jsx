@@ -122,7 +122,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
               disabled={loading}
             >{loading ? 'Generating...' : 'Generate Code'}
             </button> 
-            <button className="secondary-button clear-btn" onClick={handleClearAll}>Clear All
+            <button className="primary-button clear-btn" onClick={handleClearAll}>Clear All
             </button>
           </div>
         </div>
