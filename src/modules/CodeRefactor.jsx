@@ -162,7 +162,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
             <button className="primary-button action-btn" onClick={handleRefactor} disabled={loading || files.every(f => !f.content.trim())}>
               {loading ? 'Processing...' : 'Refactor Project'}
             </button>
-            <button className="clear-btn" onClick={handleClear}>
+            <button className="primary-button clear-btn" onClick={handleClear}>
                 Clear
             </button>
           </div>
