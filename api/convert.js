@@ -3,12 +3,30 @@ import JSON5 from "json5";
 
 const PROMPT_CONFIG = {
   refactor: {
-    system: () => `You are a Code Refactoring Expert.
-      Your goal is to take a collection of files and refactor them to be faster, cleaner, and use modern best practices.
-      Input will be a JSON array of files: [{"name": "...", "content": "..."}].
-      Return strictly valid JSON in this format: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.
-      Output ONLY the JSON object. No markdown backticks. No explanation or comments.`,
-    user: (input) => `Refactor these files:\n\n${input}`,
+    system: (options) => {
+      // Determine the specific goal based on the UI selection
+      const goals = {
+        clean: "Focus on readability, better variable naming, and DRY principles.",
+        perf: "Focus on algorithmic efficiency, reducing memory footprint, and optimizing loops.",
+        modern: "Focus on using the latest language features (e.g., ES6+, Python 3.10+) and removing deprecated APIs.",
+        comments: "Focus on adding detailed JSDoc/Docstring documentation and explaining complex logic."
+      };
+      
+      const specificGoal = goals[options?.mode] || goals.clean;
+      
+      return `You are a Code Refactoring Expert.
+      Your goal: ${specificGoal}
+      
+      CRITICAL REQUIREMENTS:
+      1. Cross-File Integrity: If files import/reference each other, ensure all references remain valid after refactoring.
+      2. Functional Parity: The logic must remain identical; do not add new features or remove existing functionality.
+      3. Environment: Use modern best practices suitable for the detected languages.
+      
+      Input: A JSON array of files [{"name": "...", "content": "..."}].
+      Return strictly valid JSON: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.
+      Output ONLY the JSON object. No markdown, no prose, no backticks.`;
+    },
+    user: (input) => `Refactor these files while maintaining their relationships:\n\n${input}`,
     responseType: 'json_files'
   },
   
@@ -32,8 +50,7 @@ const PROMPT_CONFIG = {
   
   'css-framework': {
     system: (target) => target === 'tailwind' ?
-      `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` :
-      `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
+      `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
     
     user: (input, _, target) => `Convert this CSS to ${target}:\n\n${input}`,
     
@@ -74,14 +91,14 @@ export default async function handler(req, res) {
   // Resolve values safely
   const finalSystem = config.system(targetLang);
   const finalUser = config.user(input, sourceLang, targetLang);
-  const finalResponseType = typeof config.responseType === 'function' 
-    ? config.responseType(targetLang) 
-    : config.responseType;
+  const finalResponseType = typeof config.responseType === 'function' ?
+    config.responseType(targetLang) :
+    config.responseType;
   
   try {
     const completion = await groq.chat.completions.create({
       messages: [
-        { role: "system", content: finalSystem }, 
+        { role: "system", content: finalSystem },
         { role: "user", content: finalUser }
       ],
       model: "llama-3.3-70b-versatile",

@@ -99,17 +99,25 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     try {
-      const payload = { files, options: { mode: refactorMode } };
-      const result = await convertCode('refactor', JSON.stringify(payload));
+      const inputFiles = JSON.stringify(files.map(f => ({
+        name: f.name,
+        content: f.content
+      })));
+      
+      const result = await convertCode('refactor', inputFiles, null, refactorMode);
+      
       if (result && result.files) {
         setOutputFiles(result.files);
-        await saveHistory('refactor', JSON.stringify(payload), result);
+        await saveHistory('refactor', inputFiles, result);
+      } else if (result.error) {
+        console.error("AI error: " + result.error);
       }
     } catch (error) {
       console.error("Refactor failed:", error);
       alert("Failed to refactor code. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const downloadSingleFile = (file) => {
