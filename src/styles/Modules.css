@@ -5,25 +5,6 @@
   flex-direction: column;
 }
 
-.module-header {
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.5rem;
-}
-
-.module-header h1 {
-  color: var(--header-color);
-  background: var(--header-color);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 0.25rem;
-  font-size: 1.8rem;
-}
-
-.module-description {
-  color: var(--text-secondary);
-}
-
 .converter-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

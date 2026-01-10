@@ -31,12 +31,10 @@ export default function CodeAnalysis({ onLoadData }) {
   setAnalysis('');
 
   try {
-   // API call with the dedicated 'analysis' type
    const result = await convertCode('analysis', codeToProcess);
 
    if (result && result.analysis) {
     setAnalysis(result.analysis);
-    // Save analysis to history
     await saveHistory('analysis', codeToProcess, result);
    } else {
     throw new Error("Analysis failed: AI returned an empty response.");
@@ -61,7 +59,6 @@ export default function CodeAnalysis({ onLoadData }) {
       </header>
 
       <div className="converter-grid"> 
-        {/* Input Panel */}
         <div className="panel">
           <h3>Code Snippet</h3>
           <textarea 
@@ -81,16 +78,13 @@ export default function CodeAnalysis({ onLoadData }) {
           </div>
         </div>
 
-        {/* Output Panel - Text Based */}
         <div className="panel">
           <h3>Analysis Results</h3>
           <div className="results-container">
             {analysis ? (
               <>
-                {/* ai-summary class is used for the analysis output */}
                 <div className="ai-summary" style={{ overflowY: 'auto' }}>
                   <strong>AI Analysis Summary</strong>
-                  {/* Simple rendering for analysis with line breaks */}
                   {analysis.split('\n').map((line, i) => (
                     <p 
                       key={i} 
