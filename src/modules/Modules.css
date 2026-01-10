@@ -454,7 +454,7 @@ textarea:focus {
 .refactor-options {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.4rem;
 }
 
