@@ -334,45 +334,6 @@ textarea:focus {
   gap: 8px;
 }
 
-.file-upload-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.file-upload-btn:hover {
-  border-color: var(--accent);
-}
-
-.download-btn {
-  background: var(--accent);
-  color: var(--bg-primary);
-  border: none;
-  font-weight: 600;
-}
-
-.clear-btn {
-  background-color: transparent;
-  border: 1px solid #ff4d4d;
-  color: #ff4d4d;
-}
-
-.clear-btn:hover {
-  background-color: #ff4d4d;
-  color: white;
-}
-
-.theme-dark-black-gold .clear-btn,
-.theme-light-quartz .clear-btn {
-  color: white;
-  border: none;
-}
-
 .ext-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -386,31 +347,6 @@ textarea:focus {
   border-radius: 4px;
   font-size: 0.85rem;
   border: 1px solid var(--border);
-}
-
-.tabs-container {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
-}
-
-.tab-btn {
-  padding: 8px 16px;
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.tab-btn.active {
-  background: var(--accent);
-  color: #000;
-  font-weight: 600;
 }
 
 .highlighter-wrapper {
@@ -427,47 +363,6 @@ textarea:focus {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.4rem;
-}
-
-.mode-selector {
-  display: flex;
-  background: var(--bg-tertiary);
-  padding: 4px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-.mode-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  padding: 4px 10px;
-  font-size: 0.6rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.mode-btn:hover {
-  color: var(--text-primary);
-}
-
-.mode-btn.selected {
-  background: var(--accent);
-  color: var(--bg-primary);
-  font-weight: 600;
-}
-
-.close-tab {
-  opacity: 0.5;
-  margin-left: 8px;
-  font-size: 16px;
-  transition: opacity 0.2s;
-}
-
-.close-tab:hover {
-  opacity: 1;
-  color: #ff4d4d;
 }
 
 .editor-container {
