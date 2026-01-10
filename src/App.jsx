@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTheme } from './components/ThemeContext';
 import { initializeAuth } from './services/firebase';
 
-import './Components.css';
-import './Sidebar.css';
-import './modules/Modules.css';
+import './styles/Components.css';
+import './styles/Sidebar.css';
+import './styles/Modules.css';
 
 import Sidebar from './components/Sidebar';
 import CodeConverter from './modules/CodeConverter';
