@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
-import { saveHistory } from '../services/firebase';
+import ModuleHeader from '../components/ModuleHeader';
 
 export default function CodeAnalysis({ onLoadData }) {
  const [input, setInput] = useState('');
  const [analysis, setAnalysis] = useState('');
  const [loading, setLoading] = useState(false);
+ const [lastResult, setLastResult] = useState(false);
  
  useEffect(() => {
   if (onLoadData) {
@@ -29,13 +30,18 @@ export default function CodeAnalysis({ onLoadData }) {
   
   setLoading(true);
   setAnalysis('');
+  setLastResult('');
 
   try {
    const result = await convertCode('analysis', codeToProcess);
 
    if (result && result.analysis) {
     setAnalysis(result.analysis);
-    await saveHistory('analysis', codeToProcess, result);
+    setLastResult({ 
+      type: "analysis",
+      input: codeToProcess,
+      output: result
+    });
    } else {
     throw new Error("Analysis failed: AI returned an empty response.");
    }
@@ -53,10 +59,11 @@ export default function CodeAnalysis({ onLoadData }) {
 
  return (
   <div className="module-container">
-      <header className="module-header">
-        <h1>Code Analysis</h1>
-        <p>Get a detailed, expert explanation of any code snippet.</p>
-      </header>
+      <ModuleHeader 
+        title="Code Analysis"
+        description="Get a detailed, expert explanation of any code snippet."
+        resultData={resultData}
+      />
 
       <div className="converter-grid"> 
         <div className="panel">
