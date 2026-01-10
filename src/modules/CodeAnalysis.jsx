@@ -62,7 +62,7 @@ export default function CodeAnalysis({ onLoadData }) {
       <ModuleHeader 
         title="Code Analysis"
         description="Get a detailed, expert explanation of any code snippet."
-        resultData={resultData}
+        resultData={lastResult}
       />
 
       <div className="converter-grid"> 
