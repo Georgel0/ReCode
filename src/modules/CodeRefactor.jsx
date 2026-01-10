@@ -159,10 +159,9 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   return (
     <div className="module-container">
       <header className="module-header">
-        <div className="header-content">
-          <h1>Code Refactor</h1>
-          <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
-        </div>
+        <h1>Code Refactor</h1>
+        <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
+      </header>
         <div className="refactor-options">
             <span className="label-text">Refactor Goal:</span>
             <div className="mode-selector">
@@ -178,7 +177,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 ))}
             </div>
         </div>
-      </header>
 
       <div className="converter-grid">
         <div className="panel">
