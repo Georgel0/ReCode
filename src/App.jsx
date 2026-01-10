@@ -1,4 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from './components/ThemeContext';
+import { initializeAuth } from './services/firebase';
+
+import './Components.css';
+import './Sidebar.css';
+import './modules/Modules.css';
+
 import Sidebar from './components/Sidebar';
 import CodeConverter from './modules/CodeConverter';
 import CodeAnalysis from './modules/CodeAnalysis';
@@ -9,10 +16,6 @@ import RegexGenerator from './modules/RegexGenerator';
 import SqlBuilder from './modules/SqlBuilder';
 import JsonFormatter from './modules/JsonFormatter';
 import CodeRefactor from './modules/CodeRefactor';
-
-import './index.css';
-import { useTheme } from './components/ThemeContext';
-import { initializeAuth } from './services/firebase';
 
 function App() {
   const [activeModule, setActiveModule] = useState('converter');

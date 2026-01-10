@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
-import './Modules.css';
 
 const DIALECTS = [
     { value: 'Standard SQL', label: 'Standard SQL' },

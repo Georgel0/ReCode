@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
 import { saveHistory } from '../services/firebase';
-import './Modules.css';
 
 const TARGET_FRAMEWORKS = [
  { value: 'tailwind', label: 'Tailwind CSS' },

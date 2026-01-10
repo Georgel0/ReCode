@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistory, deleteHistoryItem, cleanupOldHistory, clearAllHistory } from '../services/firebase';
-import './Sidebar.css';
 import { useTheme } from './ThemeContext';
 import About from "./About"; 
 

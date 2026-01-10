@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
 import { saveHistory } from '../services/firebase';
-import './Modules.css';
 
 export default function CodeAnalysis({ onLoadData }) {
  const [input, setInput] = useState('');

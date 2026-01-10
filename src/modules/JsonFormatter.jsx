@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
-import './Modules.css';
 
 export default function JsonFormatter({ onLoadData }) {
   const [input, setInput] = useState('');

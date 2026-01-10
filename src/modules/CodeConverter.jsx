@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '../services/api';
 import { saveHistory } from '../services/firebase';
-import './Modules.css';
 
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
