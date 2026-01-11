@@ -178,26 +178,6 @@ textarea {
   color: white;
 }
 
-.theme-dark-black-gold .clear-btn,
-.theme-light-quartz .clear-btn {
-  background: var(--gradient-gold);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  border-width: 1px;
-  border-style: solid;
-  border-image: var(--gradient-gold) 1;
-  font-size: 0.95rem;
-}
-
-.theme-dark-black-gold .clear-btn:hover,
-.theme-light-quartz .clear-btn:hover {
-  -webkit-background-clip: none;
-  -webkit-text-fill-color: none;
-  background-color: var(--gradient-gold);
-  color: antiquewhite;
-}
-
 .tabs-container {
   display: flex;
   gap: 5px;
