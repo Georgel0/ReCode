@@ -121,7 +121,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
   };
   
   return (
-    <div style={{marginBottom: "2rem"}} className="module-container">
+    <div className="module-container">
       <ModuleHeader 
         title="Universal Code Converter"
         description={`Translate code between ${LANGUAGES.length} programming languages.`}
