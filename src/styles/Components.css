@@ -119,10 +119,10 @@ textarea {
 .secondary-button {
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--gradient-gold);
   font-weight: 600;
-  background: var(--bg-primary);
-  color: var(--btn-text);
+  background: transparent;
+  color: var(--header-color);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   display: inline-flex;
   align-items: center;
@@ -133,7 +133,7 @@ textarea {
 
 .secondary-button:hover {
   background: var(--accent);
-  color: black;
+  color: var(--btn-text);
   transform: translateY(-1px);
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
 }

@@ -172,7 +172,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
             <button className="primary-button" onClick={handleSwap}>
               ⇄ Swap
             </button>
-            <button className="button clear-btn" onClick={handleClear}>
+            <button className="secondary-button clear-btn" onClick={handleClear}>
               Clear
             </button>
           </div>
