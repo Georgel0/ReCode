@@ -39,7 +39,7 @@ export default function ModuleHeader({ title, description, resultData }) {
    {resultData && (
     <button className={`save-btn ${saved ? 'success' : ''}`} onClick={handleSave} disabled={saving || saved}>
      {saving ? (
-      <><i className="fas fa-spinner fa-spin"></i> Svaing...</>
+      <><i className="fas fa-spinner fa-spin"></i> Saving...</>
      ) : saved ? (
       <><i className="fas fa-check"></i> Saved</>
      ) : (
