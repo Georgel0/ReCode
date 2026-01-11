@@ -176,7 +176,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                     </button>
                 ))}
             </div>
-        </div>
+        </div> <br/>
 
       <div className="converter-grid">
         <div className="panel">
