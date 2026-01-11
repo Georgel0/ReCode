@@ -39,7 +39,7 @@ export default function About() {
       </section>
 
       <section className="dev-contact-footer">
-        <h3 className="contact-title">Connect with the Architect</h3>
+        <h3 className="contact-title">Connect with the developer</h3>
         <p className="about-description small">Available for strategic partnerships and custom enterprise implementations.</p>
         <div className="contact-icon-row">
           <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer" title="GitHub"><i className="fab fa-github"></i></a>
