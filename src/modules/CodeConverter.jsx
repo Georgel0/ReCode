@@ -129,7 +129,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       />
 
       <div className="converter-grid">
-        <div className="panel input-panel">
+        <div className="panel">
           <div className="panel-header-row">
             <h3>Source: {LANGUAGES.find(l => l.value === sourceLang)?.label}</h3>
             <div className="header-actions">
@@ -178,7 +178,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
           </div>
         </div>
 
-        <div className="panel output-panel">
+        <div className="panel">
           <div className="panel-header-row">
             <h3>Target: {LANGUAGES.find(l => l.value === targetLang)?.label}</h3>
             {outputCode && (

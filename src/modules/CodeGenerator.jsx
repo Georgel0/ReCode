@@ -107,7 +107,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
       </header>
 
       <div className="converter-grid">
-        <div className="panel input-panel">
+        <div className="panel">
           <h3>Requirements</h3>
           <textarea 
             className="flex-grow"
@@ -127,7 +127,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
           </div>
         </div>
 
-        <div className="panel output-panel">
+        <div className="panel">
           <h3>Generated Output</h3>
           <div className="results-container">
             {files.length > 0 ? (

@@ -66,8 +66,7 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
         <p className="module-description">Convert standard CSS into a utility framework or preprocessor format.</p>
       </header>
       <div className="converter-grid">
-        {/* Input Column */}
-        <div className="panel input-panel">
+        <div className="panel">
           <h3>Input: Standard CSS</h3>
           <textarea 
   
@@ -90,8 +89,7 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
           </div>
         </div>
 
-        {/* Output Column */}
-        <div className="panel output-panel">
+        <div className="panel">
           <div className="selector-bar">
             <h3>Output:</h3>
             <select
@@ -122,8 +120,6 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
                         <div className="tailwind-code">
                           <pre className="code-pre">{item.tailwindClasses}</pre>
                         </div>
-                          
-                        {/* Action Buttons */}
        
                         <div className="card-actions">
                         <button 
