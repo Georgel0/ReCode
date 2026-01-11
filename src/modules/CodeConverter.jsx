@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '../services/api';
-import { saveHistory } from '../services/firebase';
+import ModuleHeader from '../components/ModuleHeader';
 
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -26,7 +26,8 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
   const [fileName, setFileName] = useState('');
   const [showInfoModal, setShowInfoModal] = useState(false);
   const fileInputRef = useRef(null);
-
+  const [lastResult, setLastResult] = useState(false);
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
@@ -35,27 +36,27 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       if (onLoadData.targetLang) setTargetLang(onLoadData.targetLang);
     }
   }, [onLoadData]);
-
+  
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+    
     const extension = '.' + file.name.split('.').pop().toLowerCase();
     const matchedLang = LANGUAGES.find(l => l.ext === extension);
-
+    
     if (matchedLang) {
       setSourceLang(matchedLang.value);
     }
-
+    
     setFileName(file.name.split('.').slice(0, -1).join('.'));
-
+    
     const reader = new FileReader();
     reader.onload = (event) => {
       setInput(event.target.result);
     };
     reader.readAsText(file);
   };
-
+  
   const handleDownload = () => {
     if (!outputCode) return;
     const targetExt = LANGUAGES.find(l => l.value === targetLang)?.ext || '.txt';
@@ -69,14 +70,14 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
+  
   const handleSwap = () => {
     setSourceLang(targetLang);
     setTargetLang(sourceLang);
     setInput(outputCode);
     setOutputCode('');
   };
-
+  
   const handleClear = () => {
     setInput('');
     setOutputCode('');
@@ -85,16 +86,23 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       fileInputRef.current.value = "";
     }
   };
-
+  
   const handleConvert = async () => {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
+    setLastResult('');
     try {
       const result = await convertCode('converter', input, sourceLang, targetLang);
       if (result && result.convertedCode) {
         setOutputCode(result.convertedCode);
-        await saveHistory('converter', input, result, sourceLang, targetLang);
+        setLastResult({
+          type: "converter",
+          input: input,
+          output: result,
+          targetLang: targetLang,
+          sourceLang: sourceLang
+        });
       } else {
         throw new Error("Unexpected response structure.");
       }
@@ -103,7 +111,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
     }
     setLoading(false);
   };
-
+  
   const handleCopy = () => {
     if (outputCode) {
       navigator.clipboard.writeText(outputCode);
@@ -111,13 +119,14 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       setTimeout(() => setCopyFeedback('Copy'), 2000);
     }
   };
-
+  
   return (
     <div className="module-container">
-      <header className="module-header">
-        <h1>Universal Code Converter</h1>
-        <p>Translate code between {LANGUAGES.length} programming languages.</p>
-      </header>
+      <ModuleHeader 
+        title="Universal Code Converter"
+        description={`Translate code between ${LANGUAGES.length} programming languages.`}
+        resultData={lastResult}
+      />
 
       <div className="converter-grid">
         <div className="panel input-panel">
