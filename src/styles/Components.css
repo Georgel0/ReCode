@@ -190,6 +190,12 @@ textarea {
   font-size: 0.95rem;
 }
 
+.theme-dark-black-gold .clear-btn:hover,
+.theme-light-quartz .clear-btn:hover {
+  background-color: var(--gradient-gold);
+  color: antiquewhite;
+}
+
 .tabs-container {
   display: flex;
   gap: 5px;
