@@ -192,6 +192,8 @@ textarea {
 
 .theme-dark-black-gold .clear-btn:hover,
 .theme-light-quartz .clear-btn:hover {
+  -webkit-background-clip: none;
+  -webkit-text-fill-color: none;
   background-color: var(--gradient-gold);
   color: antiquewhite;
 }
