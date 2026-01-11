@@ -180,9 +180,12 @@ textarea {
 
 .theme-dark-black-gold .clear-btn,
 .theme-light-quartz .clear-btn {
-  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: var(--gradient-gold);
   border-image: var(--gradient-gold) 1;
+  font-size: 0.95rem;
+  border-radius: var(--radius);
 }
 
 .tabs-container {
