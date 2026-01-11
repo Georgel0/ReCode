@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
+import ModuleHeader from '../components/ModuleHeader';
 
 export default function JsonFormatter({ onLoadData }) {
   const [input, setInput] = useState('');
@@ -7,6 +8,7 @@ export default function JsonFormatter({ onLoadData }) {
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('Copy');
   const [errorMsg, setErrorMsg] = useState(null);
+  const [lastResult, setLastResult] = useState(false);
 
   useEffect(() => {
     if (onLoadData) {

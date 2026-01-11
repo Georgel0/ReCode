@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api'; 
-import { saveHistory } from '../services/firebase';
+import ModuleHeader from '../components/ModuleHeader';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
@@ -11,6 +11,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   const [files, setFiles] = useState([]); 
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState(false);
 
   useEffect(() => {
     if (onLoadData) {

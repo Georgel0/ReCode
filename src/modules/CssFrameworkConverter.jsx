@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
-import { saveHistory } from '../services/firebase';
+import ModuleHeader from '../components/ModuleHeader';
 
 const TARGET_FRAMEWORKS = [
  { value: 'tailwind', label: 'Tailwind CSS' },
@@ -13,7 +13,8 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
  const [targetLang, setTargetLang] = useState(preSetTarget);
  const [data, setData] = useState(null);
  const [loading, setLoading] = useState(false);
- // Load data from history or preSetTarget on component mount/update
+ const [lastResult, setLastResult] = useState(false);
+ 
  useEffect(() => {
   if (onLoadData) {
    setInput(onLoadData.input || '');

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
+import ModuleHeader from '../components/ModuleHeader';
 
 export default function RegexGenerator({ onLoadData }) {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('Copy');
+  const [lastResult, setLastResult] = useState(false);
 
   useEffect(() => {
     if (onLoadData) {

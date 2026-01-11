@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
+import ModuleHeader from '../components/ModuleHeader';
 
 const DIALECTS = [
     { value: 'Standard SQL', label: 'Standard SQL' },
@@ -16,6 +17,7 @@ export default function SqlBuilder({ onLoadData }) {
   const [outputCode, setOutputCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('Copy');
+  const [lastResult, setLastResult] = useState(false);
 
   useEffect(() => {
     if (onLoadData) {

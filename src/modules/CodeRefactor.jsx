@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '../services/api';
-import { saveHistory } from '../services/firebase';
+import ModuleHeader from '../components/ModuleHeader';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
@@ -34,6 +34,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   const [loading, setLoading] = useState(false);
   const [refactorMode, setRefactorMode] = useState('clean');
   const fileInputRef = useRef(null);
+  const [lastResult, setLastResult] = useState(false);
   
   useEffect(() => {
     if (onLoadData && onLoadData.type === 'refactor') {
