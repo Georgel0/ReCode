@@ -180,8 +180,9 @@ textarea {
 
 .theme-dark-black-gold .clear-btn,
 .theme-light-quartz .clear-btn {
-  color: var(--header-color) !important;
-  border: 1px solid var(--gradient-gold) !important;
+  background-clip: text;
+  color: var(--gradient-gold);
+  border-image: var(--gradient-gold) 1;
 }
 
 .tabs-container {
