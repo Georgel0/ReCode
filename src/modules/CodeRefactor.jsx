@@ -228,7 +228,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
             >
               {loading ? 'Processing...' : 'Refactor Project'}
             </button>
-            <button className="primary-button clear-btn" onClick={handleClear}>
+            <button className="secondary-button clear-btn" onClick={handleClear}>
                 Clear
             </button>
           </div>
