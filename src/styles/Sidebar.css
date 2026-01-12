@@ -119,9 +119,8 @@
 }
 
 .autosave-btn {
-  background: transparent;
+  background: white;
   color: var(--accent-color);
-  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 2px;
   font-size: 0.75em;
