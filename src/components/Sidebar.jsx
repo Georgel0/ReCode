@@ -10,7 +10,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
   const [autoSave, setAutoSave] = useState(() => {
-    return localStorage.setItem('recode_autoSave') === 'true';
+    return localStorage.getItem('recode_autoSave') === 'true';
   });
 
   const refreshHistory = async () => {
