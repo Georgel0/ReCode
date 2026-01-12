@@ -152,11 +152,13 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
 
         <div className="history-section">
           <div className="history-header" >
-            <h3>History</h3>
-            <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} >
-              <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+            <div className="history-sub-header">
+              <h3>History</h3>
+              <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} style={{ color: autoSave ? "var(--accent-color)" : "var(--text-secondary)" }} >
+                <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
               {autoSave ? "Auto" : "Auto"}
-            </button>
+              </button>
+            </div>
             
             {historyItems.length > 0 && (
               <button 

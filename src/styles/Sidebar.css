@@ -112,6 +112,12 @@
   margin-bottom: 0.5rem;
 }
 
+.history-sub-header {
+  display: flex;
+  alignItems: center;
+  gap: 8px;
+}
+
 .autosave-btn {
   background: transparent;
   color: var(--accent-color);
