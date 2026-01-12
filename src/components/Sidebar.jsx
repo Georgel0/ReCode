@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistory, deleteHistoryItem, cleanupOldHistory, clearAllHistory } from '../services/firebase';
 import { useTheme } from './ThemeContext';
-import About from "./About"; 
+import About from "./About";
 
 export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleSidebar, loadFromHistory }) {
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showAbout, setShowAbout] = useState(false); 
+  const [showAbout, setShowAbout] = useState(false);
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
   const [autoSave, setAutoSave] = useState(() => {
     return localStorage.getItem('recode_autoSave') === 'true';
   });
-
+  
   const refreshHistory = async () => {
     try {
       await cleanupOldHistory();
@@ -30,13 +30,13 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
     
     window.dispatchEvent(new CustomEvent('recode_autoSave_changed', { detail: newState }));
   };
-
+  
   useEffect(() => {
     if (isOpen) {
       refreshHistory();
     }
   }, [isOpen, activeModule]);
-
+  
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (isOpen && window.innerWidth < 768 && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -52,20 +52,20 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
       document.removeEventListener('touchstart', handleOutsideClick);
     };
   }, [isOpen, toggleSidebar]);
-
+  
   const handleDelete = async (e, itemId) => {
     e.stopPropagation();
     setIsDeleting(true);
     try {
-        await deleteHistoryItem(itemId);
-        setHistoryItems(historyItems.filter(item => item.id !== itemId));
+      await deleteHistoryItem(itemId);
+      setHistoryItems(historyItems.filter(item => item.id !== itemId));
     } catch (error) {
-        alert('Failed to delete history item.');
+      alert('Failed to delete history item.');
     } finally {
-        setIsDeleting(false);
+      setIsDeleting(false);
     }
   };
-
+  
   const handleClearAll = async () => {
     if (historyItems.length === 0) return;
     if (window.confirm('Are you sure you want to delete all history items? This cannot be undone.')) {
@@ -80,7 +80,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
       }
     }
   };
-
+  
   const modules = [
     { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt' },
     { id: 'refactor', label: 'Code Refactor', icon: 'fas fa-wand-magic-sparkles' },
@@ -91,7 +91,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
     { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database' },
     { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt' },
   ];
-
+  
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} ref={sidebarRef}>
       <div className="sidebar-header">
@@ -151,26 +151,12 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
         </div>
 
         <div className="history-section">
-          <div className="history-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="history-header" >
             <h3>History</h3>
-            <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} 
-            style={{
-              background: "transparent",
-              border: "1px solid var(--border-color)",
-              color: autoSave ? "var(--accent-color)" : "var(--text-secondary)",
-              borderRadius: "4px",
-              padding: "2px 6px",
-              fontSize: "0.75em",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px"
-            }}>
+            <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} >
               <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
               {autoSave ? "Auto" : "Auto"}
             </button>
-            </div>
             
             {historyItems.length > 0 && (
               <button 

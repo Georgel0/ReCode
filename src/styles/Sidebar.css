@@ -105,12 +105,28 @@
   border-width: 1px 0 0 0;
 }
 
-
 .history-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+}
+
+.autosave-btn {
+  background: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.75em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.autosave-btn:active {
+  color: var(--text-secondary);
 }
 
 .refresh-btn {
@@ -319,7 +335,7 @@
 }
 
 .theme-dark-black-gold .nav-item {
-  color: #BBBCCB !important; 
+  color: #BBBCCB !important;
 }
 
 .nav-menu i {
@@ -342,13 +358,13 @@
 .delete-item-btn i,
 .delete-item-btn .fas {
   font-family: "Font Awesome 6 Free" !important;
-  font-weight: 900 !important; 
+  font-weight: 900 !important;
   display: inline-block;
   font-style: normal;
   font-variant: normal;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
-  color: inherit; 
+  color: inherit;
 }
 
 .about-trigger-wrapper {
@@ -381,7 +397,8 @@
   border-color: var(--border);
 }
 
-.theme-dark-black-gold .about-toggle-btn.active, .theme-light-quartz .about-toggle-btn.active {
+.theme-dark-black-gold .about-toggle-btn.active,
+.theme-light-quartz .about-toggle-btn.active {
   background: var(--gradient-gold);
   color: #000;
   border-color: #000;
@@ -452,7 +469,7 @@
 .sidebar-scroll-area {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden; 
+  overflow-x: hidden;
   padding-right: 5px;
 }
 
@@ -468,15 +485,17 @@
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
-    top: 0; left: 0;
-    height: 100vh; width: 280px; 
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     display: flex;
     flex-direction: column;
     z-index: 1000;
   }
-
+  
   .sidebar.open {
     transform: translateX(0);
   }
