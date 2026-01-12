@@ -6,16 +6,17 @@ import './styles/Components.css';
 import './styles/Sidebar.css';
 import './styles/Modules.css';
 
+import Notification from './components/Notification';
 import Sidebar from './components/Sidebar';
+
 import CodeConverter from './modules/CodeConverter';
 import CodeAnalysis from './modules/CodeAnalysis';
-import CssFrameworkConverter from './modules/CssFrameworkConverter'; 
-import Notification from './components/Notification';
 import CodeGenerator from './modules/CodeGenerator'; 
 import RegexGenerator from './modules/RegexGenerator';
 import SqlBuilder from './modules/SqlBuilder';
 import JsonFormatter from './modules/JsonFormatter';
 import CodeRefactor from './modules/CodeRefactor';
+import CssFrameworkConverter from './modules/CssFrameworkConverter'; 
 
 function App() {
   const [activeModule, setActiveModule] = useState('converter');
