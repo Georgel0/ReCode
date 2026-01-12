@@ -13,7 +13,7 @@ export default function ModuleHeader({ title, description, resultData }) {
    setIsAutoSaveEnabled(e.detail);
   };
   
-  window.addEventListener("recode_autoSave_changed");
+  window.addEventListener("recode_autoSave_changed", handleSettingChange);
   
   return () => window.removeEventListener("recode_autoSave_changed", handleSettingChange);
  }, []);
@@ -55,7 +55,7 @@ export default function ModuleHeader({ title, description, resultData }) {
     <p>{description}</p>
    </div>
    
-   {resultData && (
+   {resultData && !isAutoSaveEnabled && (
     <button className={`save-btn ${saved ? 'success' : ''}`} onClick={handleSave} disabled={saving || saved}>
      {saving ? (
       <><i className="fas fa-spinner fa-spin"></i> Saving...</>

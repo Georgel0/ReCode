@@ -9,7 +9,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
   const [showAbout, setShowAbout] = useState(false); 
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
-  const [autoSave, setAutoSave] = useTheme(() => {
+  const [autoSave, setAutoSave] = useState(() => {
     return localStorage.setItem('recode_autoSave') === 'true';
   });
 
@@ -28,7 +28,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
     setAutoSave(newState);
     localStorage.setItem("recode_autoSave", newState);
     
-    window.dispatchEvent(new CustomEvent('recode_autoSave', { detail: newState }));
+    window.dispatchEvent(new CustomEvent('recode_autoSave_changed', { detail: newState }));
   };
 
   useEffect(() => {
