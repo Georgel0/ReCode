@@ -23,7 +23,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
     }
   };
   
-  const toggaleAutoSave = () => {
+  const toggleAutoSave = () => {
     const newState = !autoSave;
     setAutoSave(newState);
     localStorage.setItem("recode_autoSave", newState);
@@ -151,10 +151,10 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
         </div>
 
         <div className="history-section">
-          <div className="history-header" style={{ dislay: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className="history-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <h3>History</h3>
-            <button onClick={toggaleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} 
+            <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} 
             style={{
               background: "transparent",
               border: "1px solid var(--border-color)",
