@@ -42,11 +42,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
       if (onLoadData.fullOutput?.files) setOutputFiles(onLoadData.fullOutput.files);
     }
   }, [onLoadData]);
-
+  
   // Sync index helper
   const activeFileIndex = files.findIndex(f => f.id === activeTab);
   const safeIndex = activeFileIndex === -1 ? 0 : activeFileIndex;
-
+  
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
@@ -76,7 +76,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
         reader.readAsText(file);
       });
     });
-
+    
     const newFiles = await Promise.all(newFilesPromises);
     setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
     setActiveTab(newFiles[0].id);
@@ -86,12 +86,12 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   const updateFile = (id, field, value) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
-
+  
   const removeFile = (e, idToRemove) => {
     e.stopPropagation();
     if (files.length === 1) {
-        handleClear();
-        return;
+      handleClear();
+      return;
     }
     const newFiles = files.filter(f => f.id !== idToRemove);
     setFiles(newFiles);
@@ -105,11 +105,12 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
     setOutputFiles([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
+  
   const handleRefactor = async () => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     setOutputFiles([]);
+    setLastResult(false);
     try {
       const inputFiles = JSON.stringify(files.map(f => ({
         name: f.name,
@@ -120,7 +121,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
       
       if (result && result.files) {
         setOutputFiles(result.files);
-        await saveHistory('refactor', inputFiles, result);
+        setLastResult({
+          type: "refactor",
+          input: inputFiles,
+          output: result
+        });
       } else if (result.error) {
         console.error("AI error: " + result.error);
       }
@@ -131,9 +136,9 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
       setLoading(false);
     }
   };
-
+  
   const downloadSingleFile = (file) => {
-    if(!file) return;
+    if (!file) return;
     const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, file.fileName || file.name);
   };
@@ -155,13 +160,14 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
   
   const currentFile = files[safeIndex];
   const currentOutputFile = outputFiles[safeIndex];
-
+  
   return (
     <div className="module-container">
-      <header className="module-header">
-        <h1>Code Refactor</h1>
-        <p>Refactor and optimize multiple files into modern, clean code simultaneously.</p>
-      </header>
+      <ModuleHeader 
+        title="Code Refactor"
+        description="Refactor and optimize multiple files into modern, clean code simultaneously."
+        resultData={lastResult}
+      />
         <div className="refactor-options">
             <span className="label-text">Refactor Goal:</span>
             <div className="mode-selector">
