@@ -8,22 +8,28 @@ export default function RegexGenerator({ onLoadData }) {
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('Copy');
   const [lastResult, setLastResult] = useState(false);
-
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
       setOutputCode(onLoadData.fullOutput?.convertedCode || '');
     }
   }, [onLoadData]);
-
+  
   const handleGenerate = async () => {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
+    setLastResult('');
     try {
       const result = await convertCode('regex', input);
       if (result && result.convertedCode) {
         setOutputCode(result.convertedCode);
+        setLastResult({
+          type: "regex",
+          input: input,
+          output: result
+        });
       } else {
         throw new Error("Unexpected response structure.");
       }
@@ -32,21 +38,22 @@ export default function RegexGenerator({ onLoadData }) {
     }
     setLoading(false);
   };
-
+  
   const handleCopy = () => {
     if (outputCode) {
-        navigator.clipboard.writeText(outputCode);
-        setCopyFeedback('Copied!');
-        setTimeout(() => setCopyFeedback('Copy'), 2000);
+      navigator.clipboard.writeText(outputCode);
+      setCopyFeedback('Copied!');
+      setTimeout(() => setCopyFeedback('Copy'), 2000);
     }
   };
-
+  
   return (
     <div className="module-container">
-      <header className="module-header">
-        <h1>Regex Generator</h1>
-        <p>Describe your pattern in plain English, and AI will generate the Regular Expression.</p>
-      </header>
+      <ModuleHeader 
+        title="Regex Generator"
+        description="Describe your pattern in plain English, and AI will generate the Regular Expression."
+        resultData={lastResult}
+      />
 
       <div className="converter-grid">
         <div className="panel">

@@ -9,36 +9,43 @@ export default function JsonFormatter({ onLoadData }) {
   const [copyFeedback, setCopyFeedback] = useState('Copy');
   const [errorMsg, setErrorMsg] = useState(null);
   const [lastResult, setLastResult] = useState(false);
-
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
       setOutputCode(onLoadData.fullOutput?.convertedCode || '');
     }
   }, [onLoadData]);
-
+  
   // Client-side instant format
   const handlePrettify = () => {
     if (!input.trim()) return;
     setErrorMsg(null);
+    setLastResult('');
     try {
-        const parsed = JSON.parse(input);
-        setOutputCode(JSON.stringify(parsed, null, 2));
+      const parsed = JSON.parse(input);
+      setOutputCode(JSON.stringify(parsed, null, 2));
     } catch (e) {
-        setErrorMsg("Invalid JSON. Use 'AI Fix & Format' to repair it.");
+      setErrorMsg("Invalid JSON. Use 'AI Fix & Format' to repair it.");
     }
   };
-
+  
   // Server-side AI fix
   const handleAiFix = async () => {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
     setErrorMsg(null);
+    setLastResult('');
     try {
       const result = await convertCode('json', input);
       if (result && result.convertedCode) {
         setOutputCode(result.convertedCode);
+        setLastResult({
+          type: "json",
+          input: input,
+          output: result
+        });
       } else {
         throw new Error("Unexpected response structure.");
       }
@@ -47,21 +54,23 @@ export default function JsonFormatter({ onLoadData }) {
     }
     setLoading(false);
   };
-
+  
   const handleCopy = () => {
     if (outputCode) {
-        navigator.clipboard.writeText(outputCode);
-        setCopyFeedback('Copied!');
-        setTimeout(() => setCopyFeedback('Copy'), 2000);
+      navigator.clipboard.writeText(outputCode);
+      setCopyFeedback('Copied!');
+      setTimeout(() => setCopyFeedback('Copy'), 2000);
     }
   };
-
+  
   return (
     <div className="module-container">
-      <header className="module-header">
-        <h1>JSON Formatter & Validator</h1>
-        <p>Refine valid JSON instantly, or use AI to automatically repair and format broken JSON strings.</p>
-      </header>
+      <ModuleHeader 
+        title="JSON Formatter & Validator"
+        description="Refine valid JSON instantly, or use AI to automatically repair and format broken JSON strings."
+        resultData={lastResult}
+      />
+
 
       <div className="converter-grid">
         <div className="panel">
