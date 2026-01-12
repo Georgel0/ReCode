@@ -9,6 +9,9 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
   const [showAbout, setShowAbout] = useState(false); 
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
+  const [autoSave, setAutoSave] = useTheme(() => {
+    return localStorage.setItem('recode_autoSave') === 'true';
+  });
 
   const refreshHistory = async () => {
     try {
@@ -18,6 +21,14 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
     } catch (error) {
       console.error("Failed to refresh history:", error);
     }
+  };
+  
+  const toggaleAutoSave = () => {
+    const newState = !autoSave;
+    setAutoSave(newState);
+    localStorage.setItem("recode_autoSave", newState);
+    
+    window.dispatchEvent(new CustomEvent('recode_autoSave', { detail: newState }));
   };
 
   useEffect(() => {
@@ -140,8 +151,27 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
         </div>
 
         <div className="history-section">
-          <div className="history-header">
+          <div className="history-header" style={{ dislay: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <h3>History</h3>
+            <button onClick={toggaleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} 
+            style={{
+              background: "transparent",
+              border: "1px solid var(--border-color)",
+              color: autoSave ? "var(--accent-color)" : "var(--text-secondary)",
+              borderRadius: "4px",
+              padding: "2px 6px",
+              fontSize: "0.75em",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px"
+            }}>
+              <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+              {autoSave ? "Auto" : "Auto"}
+            </button>
+            </div>
+            
             {historyItems.length > 0 && (
               <button 
                 className="refresh-btn" 

@@ -1,9 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { saveHistory } from '../services/firebase';
 
 export default function ModuleHeader({ title, description, resultData }) {
  const [saving, setSaving] = useState(false);
  const [saved, setSaved] = useState(false);
+ const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(
+  localStorage.getItem('recode_autoSave') === "true"
+ );
+ 
+ useEffect(() => {
+  const handleSettingChange = (e) => {
+   setIsAutoSaveEnabled(e.detail);
+  };
+  
+  window.addEventListener("recode_autoSave_changed");
+  
+  return () => window.removeEventListener("recode_autoSave_changed", handleSettingChange);
+ }, []);
  
  const handleSave = async () => {
   // Only proced if there is data and aren't already saving/saved
@@ -28,6 +41,12 @@ export default function ModuleHeader({ title, description, resultData }) {
    setSaving(false);
   }
  };
+ 
+ useEffect(() => {
+  if (isAutoSaveEnabled && resultData && !saved && !saving) {
+   handleSave();
+  }
+ }, [resultData, isAutoSaveEnabled]);
  
  return (
   <header className="module-header">
