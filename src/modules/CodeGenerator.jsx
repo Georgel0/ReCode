@@ -107,7 +107,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   return (
     <div className="module-container">
       <ModuleHeader 
-        title=""
+        title="Code Generator"
         description="Describe your project and the AI will generate multiple files with syntax highlighting."
         resultData={lastResult}
       />
