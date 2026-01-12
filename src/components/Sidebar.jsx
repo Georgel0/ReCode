@@ -156,7 +156,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
               <h3>History</h3>
               <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} style={{ color: autoSave ? "var(--accent-color)" : "var(--text-secondary)" }} >
                 <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
-              {autoSave ? "Auto" : "Auto"}
+              {autoSave ? "Auto save" : "Auto save"}
               </button>
             </div>
             
