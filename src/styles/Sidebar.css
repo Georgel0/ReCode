@@ -114,12 +114,12 @@
 
 .history-sub-header {
   display: flex;
-  alignItems: center;
+  align-items: center;
   gap: 8px;
 }
 
 .autosave-btn {
-  background: white;
+  background: transparent;
   color: var(--accent-color);
   border-radius: 4px;
   padding: 2px;
