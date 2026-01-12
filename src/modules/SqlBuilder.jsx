@@ -3,12 +3,12 @@ import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 
 const DIALECTS = [
-    { value: 'Standard SQL', label: 'Standard SQL' },
-    { value: 'PostgreSQL', label: 'PostgreSQL' },
-    { value: 'MySQL', label: 'MySQL' },
-    { value: 'SQLite', label: 'SQLite' },
-    { value: 'SQL Server', label: 'SQL Server (T-SQL)' },
-    { value: 'Oracle', label: 'Oracle PL/SQL' },
+  { value: 'Standard SQL', label: 'Standard SQL' },
+  { value: 'PostgreSQL', label: 'PostgreSQL' },
+  { value: 'MySQL', label: 'MySQL' },
+  { value: 'SQLite', label: 'SQLite' },
+  { value: 'SQL Server', label: 'SQL Server (T-SQL)' },
+  { value: 'Oracle', label: 'Oracle PL/SQL' },
 ];
 
 export default function SqlBuilder({ onLoadData }) {
@@ -18,7 +18,7 @@ export default function SqlBuilder({ onLoadData }) {
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('Copy');
   const [lastResult, setLastResult] = useState(false);
-
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
@@ -26,16 +26,22 @@ export default function SqlBuilder({ onLoadData }) {
       if (onLoadData.targetLang) setDialect(onLoadData.targetLang);
     }
   }, [onLoadData]);
-
+  
   const handleGenerate = async () => {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
+    setLastResult('');
     try {
       // Passing dialect as targetLang to the API
       const result = await convertCode('sql', input, '', dialect);
       if (result && result.convertedCode) {
         setOutputCode(result.convertedCode);
+        setLastResult({
+          type: "sql",
+          input: input,
+          output: result
+        });
       } else {
         throw new Error("Unexpected response structure.");
       }
@@ -44,21 +50,23 @@ export default function SqlBuilder({ onLoadData }) {
     }
     setLoading(false);
   };
-
+  
   const handleCopy = () => {
     if (outputCode) {
-        navigator.clipboard.writeText(outputCode);
-        setCopyFeedback('Copied!');
-        setTimeout(() => setCopyFeedback('Copy'), 2000);
+      navigator.clipboard.writeText(outputCode);
+      setCopyFeedback('Copied!');
+      setTimeout(() => setCopyFeedback('Copy'), 2000);
     }
   };
-
+  
   return (
     <div className="module-container">
-      <header className="module-header">
-        <h1>SQL Builder</h1>
-        <p>Turn natural language requirements into complex SQL queries for any database.</p>
-      </header>
+      <ModuleHeader 
+        title="SQL Builder"
+        description="Turn natural language requirements into complex SQL queries for any database."
+        resultData={lastResult}
+      />
+
 
       <div className="converter-grid">
         <div className="panel">
