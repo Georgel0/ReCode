@@ -3,68 +3,76 @@ import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 
 const TARGET_FRAMEWORKS = [
- { value: 'tailwind', label: 'Tailwind CSS' },
- { value: 'bootstrap', label: 'Bootstrap' },
- { value: 'sass', label: 'SASS/SCSS' },
- { value: 'less', label: 'LESS' },
+  { value: 'tailwind', label: 'Tailwind CSS' },
+  { value: 'bootstrap', label: 'Bootstrap' },
+  { value: 'sass', label: 'SASS/SCSS' },
+  { value: 'less', label: 'LESS' },
 ];
 export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tailwind', onSwitchModule }) {
- const [input, setInput] = useState('');
- const [targetLang, setTargetLang] = useState(preSetTarget);
- const [data, setData] = useState(null);
- const [loading, setLoading] = useState(false);
- const [lastResult, setLastResult] = useState(false);
- 
- useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   setData(onLoadData.fullOutput || null);
-   if (onLoadData.targetLang) setTargetLang(onLoadData.targetLang);
-  } else {
-   setTargetLang(preSetTarget);
-   setInput('');
-   setData(null);
-  }
- }, [onLoadData, preSetTarget]);
- const handleConvert = async () => {
-  if (!input.trim()) return;
-  setLoading(true);
-  setData(null);
-  try {
-   const result = await convertCode('css-framework', input, 'css', targetLang);
-   
-   // Validation: Check if we got the expected format based on target
-   const isValidTailwind = targetLang === 'tailwind' && result && result.conversions;
-   const isValidStandard = targetLang !== 'tailwind' && result && result.convertedCode;
-   
-   if (isValidTailwind || isValidStandard) {
-    setData(result);
-    await saveHistory('css-framework', input, result, 'css', targetLang);
-   } else {
-    console.error("Unexpected structure:", result);
-    throw new Error("AI returned an unexpected structure.");
-   }
-   
-  } catch (error) {
-   alert(`Conversion failed. Error: ${error.message}`);
-   console.error(error);
-  }
-  setLoading(false);
- };
- 
- const handleAnalyze = (snippet) => {
-  if (onSwitchModule) {
-   onSwitchModule('analysis', { input: snippet, sourceModule: 'css-framework' });
-  }
- };
- 
- const targetLabel = TARGET_FRAMEWORKS.find(f => f.value === targetLang)?.label || 'Classes';
- return (
-  <div className="module-container">
-      <header className="module-header">
-        <h1>CSS Framework Converter</h1>
-        <p className="module-description">Convert standard CSS into a utility framework or preprocessor format.</p>
-      </header>
+  const [input, setInput] = useState('');
+  const [targetLang, setTargetLang] = useState(preSetTarget);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState(false);
+  
+  useEffect(() => {
+    if (onLoadData) {
+      setInput(onLoadData.input || '');
+      setData(onLoadData.fullOutput || null);
+      if (onLoadData.targetLang) setTargetLang(onLoadData.targetLang);
+    } else {
+      setTargetLang(preSetTarget);
+      setInput('');
+      setData(null);
+    }
+  }, [onLoadData, preSetTarget]);
+  const handleConvert = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    setData(null);
+    setLastResult(false);
+    try {
+      const result = await convertCode('css-framework', input, 'css', targetLang);
+      
+      // Validation: Check if we got the expected format based on target
+      const isValidTailwind = targetLang === 'tailwind' && result && result.conversions;
+      const isValidStandard = targetLang !== 'tailwind' && result && result.convertedCode;
+      
+      if (isValidTailwind || isValidStandard) {
+        setData(result);
+        setLastResult({
+          type: 'css-framework',
+          input: input,
+          output: result,
+          sourceLang: 'css',
+          targetLang: targetLang
+        });
+      } else {
+        console.error("Unexpected structure:", result);
+        throw new Error("AI returned an unexpected structure.");
+      }
+      
+    } catch (error) {
+      alert(`Conversion failed. Error: ${error.message}`);
+      console.error(error);
+    }
+    setLoading(false);
+  };
+  
+  const handleAnalyze = (snippet) => {
+    if (onSwitchModule) {
+      onSwitchModule('analysis', { input: snippet, sourceModule: 'css-framework' });
+    }
+  };
+  
+  const targetLabel = TARGET_FRAMEWORKS.find(f => f.value === targetLang)?.label || 'Classes';
+  return (
+    <div className="module-container">
+      <ModuleHeader 
+        title="CSS Framework Converter"
+        description="Convert standard CSS into a utility framework or preprocessor format."
+        resultData={lastResult}
+      />
       <div className="converter-grid">
         <div className="panel">
           <h3>Input: Standard CSS</h3>
@@ -174,5 +182,5 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
         </div>
       </div>
     </div>
- );
+  );
 }
