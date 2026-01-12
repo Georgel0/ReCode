@@ -30,7 +30,7 @@ export default function CodeAnalysis({ onLoadData }) {
   
   setLoading(true);
   setAnalysis('');
-  setLastResult('');
+  setLastResult(false);
 
   try {
    const result = await convertCode('analysis', codeToProcess);

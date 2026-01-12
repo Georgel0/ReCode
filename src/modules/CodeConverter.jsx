@@ -91,7 +91,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
-    setLastResult('');
+    setLastResult(false);
     try {
       const result = await convertCode('converter', input, sourceLang, targetLang);
       if (result && result.convertedCode) {

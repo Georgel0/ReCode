@@ -36,7 +36,7 @@ export default function JsonFormatter({ onLoadData }) {
     setLoading(true);
     setOutputCode('');
     setErrorMsg(null);
-    setLastResult('');
+    setLastResult(false);
     try {
       const result = await convertCode('json', input);
       if (result && result.convertedCode) {

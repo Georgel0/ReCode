@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { convertCode } from '../services/api'; 
+import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -8,11 +8,11 @@ import { saveAs } from 'file-saver';
 
 export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   const [input, setInput] = useState('');
-  const [files, setFiles] = useState([]); 
+  const [files, setFiles] = useState([]);
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
-
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
@@ -21,7 +21,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
       setActiveFileIndex(0);
     }
   }, [onLoadData]);
-
+  
   const getLanguage = (fileName) => {
     if (!fileName) return 'javascript';
     const ext = fileName.split('.').pop().toLowerCase();
@@ -44,67 +44,73 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     };
     return map[ext] || 'javascript';
   };
-
+  
   const handleGenerate = async () => {
-    if (!input.trim()) return; 
+    if (!input.trim()) return;
     setLoading(true);
     setFiles([]);
-
+    setLastResult(false);
+    
     try {
       let result = await convertCode('generator', input);
       
       // If backend returns a single 'index.txt' containing JSON, try to parse it here.
       if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
-         const rawContent = result.files[0].content;
-         if (rawContent.trim().startsWith('{')) {
-            try {
-               const parsed = JSON.parse(rawContent);
-               if (parsed.files) {
-                  result = parsed;
-               }
-            } catch (e) {
-               console.warn("Frontend failsafe parse failed:", e);
+        const rawContent = result.files[0].content;
+        if (rawContent.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(rawContent);
+            if (parsed.files) {
+              result = parsed;
             }
-         }
+          } catch (e) {
+            console.warn("Frontend failsafe parse failed:", e);
+          }
+        }
       }
-
+      
       if (result && result.files) {
-        setFiles(result.files); 
+        setFiles(result.files);
         setActiveFileIndex(0);
-        await saveHistory('generator', input, result);
+        setLastResult({
+          type: 'generator',
+          input: input,
+          output: result
+        });
       }
     } catch (error) {
       alert(`Generation failed: ${error.message}`);
     }
-    setLoading(false); 
+    setLoading(false);
   };
-
+  
   const handleClearAll = () => {
     setInput('');
     setFiles([]);
     setActiveFileIndex(0);
   };
-
+  
   const downloadSingleFile = (file) => {
     const blob = new Blob([file.content], { type: 'text/plain' });
     saveAs(blob, file.fileName);
   };
-
+  
   const downloadZip = async () => {
     const zip = new JSZip();
     files.forEach(f => zip.file(f.fileName, f.content));
     const content = await zip.generateAsync({ type: 'blob' });
     saveAs(content, 'project.zip');
   };
-
+  
   const activeFile = files[activeFileIndex] || null;
-
+  
   return (
     <div className="module-container">
-      <header className="module-header">
-        <h1>Code Generator</h1>
-        <p>Describe your project and the AI will generate multiple files with syntax highlighting.</p>
-      </header>
+      <ModuleHeader 
+        title=""
+        description="Describe your project and the AI will generate multiple files with syntax highlighting."
+        resultData={lastResult}
+      />
 
       <div className="converter-grid">
         <div className="panel">

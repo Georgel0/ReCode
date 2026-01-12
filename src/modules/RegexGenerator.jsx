@@ -20,7 +20,7 @@ export default function RegexGenerator({ onLoadData }) {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
-    setLastResult('');
+    setLastResult(false);
     try {
       const result = await convertCode('regex', input);
       if (result && result.convertedCode) {

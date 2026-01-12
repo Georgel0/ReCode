@@ -31,7 +31,7 @@ export default function SqlBuilder({ onLoadData }) {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
-    setLastResult('');
+    setLastResult(false);
     try {
       // Passing dialect as targetLang to the API
       const result = await convertCode('sql', input, '', dialect);
