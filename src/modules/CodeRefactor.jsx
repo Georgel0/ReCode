@@ -286,7 +286,6 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
                 </button>
                 <button className="primary-button" onClick={() => {
                   navigator.clipboard.writeText(currentOutputFile.content);
-                  alert("Copied to clipboard!");
                 }}>
                   Copy
                 </button>
