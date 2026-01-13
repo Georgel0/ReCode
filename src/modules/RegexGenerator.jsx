@@ -6,15 +6,13 @@ export default function RegexGenerator({ onLoadData }) {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');
   const [explanation, setExplanation] = useState('');
-  
-  // Test Bench States
   const [testString, setTestString] = useState('');
   const [testResult, setTestResult] = useState(null);
-
+  
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('Copy');
   const [lastResult, setLastResult] = useState(false);
-
+  
   // Helper to parse the JSON string from the API
   const parseResponse = (rawOutput) => {
     try {
@@ -29,7 +27,7 @@ export default function RegexGenerator({ onLoadData }) {
       return { pattern: rawOutput, explanation: "AI-generated pattern logic." };
     }
   };
-
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
@@ -39,7 +37,7 @@ export default function RegexGenerator({ onLoadData }) {
       setExplanation(explanation);
     }
   }, [onLoadData]);
-
+  
   // Real-time Regex Testing Logic
   useEffect(() => {
     if (!outputCode || !testString) {
@@ -56,14 +54,14 @@ export default function RegexGenerator({ onLoadData }) {
       setTestResult({ error: "Invalid Regex Pattern" });
     }
   }, [outputCode, testString]);
-
+  
   const handleGenerate = async () => {
     if (!input.trim()) return;
     setLoading(true);
     setOutputCode('');
     setExplanation('');
     setLastResult(false);
-
+    
     try {
       const result = await convertCode('regex', input);
       
@@ -72,7 +70,7 @@ export default function RegexGenerator({ onLoadData }) {
         
         setOutputCode(pattern);
         setExplanation(explanation);
-
+        
         setLastResult({
           type: "regex",
           input: input,
@@ -92,20 +90,20 @@ export default function RegexGenerator({ onLoadData }) {
       setTimeout(() => setCopyFeedback('Copy'), 2000);
     }
   };
-
+  
   const renderHighlightedText = () => {
     if (!testResult || testResult.error || !testResult.isMatch) return testString;
     
     try {
-        const regex = new RegExp(`(${outputCode})`, 'gi');
-        const parts = testString.split(regex);
-        return parts.map((part, i) => 
-            new RegExp(outputCode, 'gi').test(part) ? (
-                <span key={i} className="regex-match-highlight">{part}</span>
-            ) : part
-        );
-    } catch(e) {
-        return testString;
+      const regex = new RegExp(`(${outputCode})`, 'gi');
+      const parts = testString.split(regex);
+      return parts.map((part, i) =>
+        new RegExp(outputCode, 'gi').test(part) ? (
+          <span key={i} className="regex-match-highlight">{part}</span>
+        ) : part
+      );
+    } catch (e) {
+      return testString;
     }
   };
   
@@ -174,24 +172,24 @@ export default function RegexGenerator({ onLoadData }) {
                                 </div>
                                 <div className="regex-status-row">
                                     {testResult?.error ? (
-                                        <span className="regex-status-error">
+                            <span className="regex-status-error">
                                             <i className="fa-solid fa-triangle-exclamation"></i> {testResult.error}
                                         </span>
                                     ) : (
                                         <span className={testResult?.isMatch ? "regex-status-success" : "regex-status-neutral"}>
-                                            <i className={`fa-solid ${testResult?.isMatch ? 'fa-check' : 'fa-xmark'}`}></i> 
-                                            {testResult?.isMatch ? `Match Found (${testResult.count})` : 'No Match'}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </>
-            ) : (
-                <div className="placeholder-text">
-                   {loading ? 'AI is processing...' : 'Your Regex pattern will appear here.'}
+                        <i className={`fa-solid ${testResult?.isMatch ? 'fa-check' : 'fa-xmark'}`}></i> 
+                         {testResult?.isMatch ? `Match Found (${testResult.count})` : 'No Match'}
+                           </span>
+                           )}
+                        </div>
+                     </div>
+                  )}
                 </div>
+              </>
+            ) : (
+              <div className="placeholder-text">
+                {loading ? 'AI is processing...' : 'Your Regex pattern will appear here.'}
+              </div>
             )}
           </div>
         </div>
