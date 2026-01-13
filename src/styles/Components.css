@@ -404,6 +404,14 @@ select option {
   box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
 }
 
+.error-message i {
+  margin-right: 6px;
+}
+
+.primary-button i {
+  margin-right: 10px;
+}
+
 @keyframes glint {
   to {
     left: 200%;

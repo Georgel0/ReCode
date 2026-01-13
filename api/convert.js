@@ -63,7 +63,6 @@ const PROMPT_CONFIG = {
     responseType: 'text'
   },
   
-  
   sql: {
     system: () => "You are a SQL query builder. Return ONLY the raw SQL query. No markdown, no explanations.",
     user: (input, _, target) => `Dialect: ${target || 'Standard SQL'}\nRequirement: ${input}`,
@@ -71,8 +70,12 @@ const PROMPT_CONFIG = {
   },
   
   json: {
-    system: () => "You are a JSON validator and formatter. Return ONLY the raw valid JSON string.",
-    user: (input) => `Fix and format this JSON:\n\n${input}`,
+    system: () =>
+      "You are a JSON repair and formatting expert. You must return a strictly valid JSON object. " +
+      "Do not include markdown formatting (like ```json). The JSON must have two fields: " +
+      "'formattedJson' (the repaired and pretty-printed JSON string) and " +
+      "'explanation' (a concise, bulleted list of what was fixed or validated).",
+    user: (input) => `Input JSON: ${input}\n\nReturn JSON format: { "formattedJson": "...", "explanation": "..." }`,
     responseType: 'text'
   }
 };
