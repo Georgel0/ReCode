@@ -379,6 +379,96 @@ textarea:focus {
   text-align: center;
 }
 
+.regex-output-box {
+  flex: 0 0 auto;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.regex-textarea {
+  min-height: 80px;
+  font-family: 'Fira Code', monospace;
+  font-size: 1.1rem;
+}
+
+.regex-explanation {
+  margin-bottom: 1.5rem;
+}
+
+.regex-explanation p {
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.regex-test-bench {
+  padding: 1.25rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+}
+
+.regex-test-input {
+  height: 45px;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.regex-test-feedback {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.regex-preview-area {
+  background: var(--bg-primary);
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  min-height: 40px;
+  word-break: break-all;
+}
+
+.regex-match-highlight {
+  background-color: rgba(16, 185, 129, 0.25);
+  color: var(--text-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3);
+}
+
+.regex-status-row {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.regex-status-error {
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.regex-status-success {
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.regex-status-neutral {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.primary-button i {
+  margin-right: 10px;
+}
+
+
 @media (max-width: 768px) {
   .converter-grid {
     grid-template-columns: 1fr;

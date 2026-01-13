@@ -58,10 +58,11 @@ const PROMPT_CONFIG = {
   },
   
   regex: {
-    system: () => "You are a Regular Expression generator. Return ONLY the raw regex pattern. No markdown, no explanations.",
-    user: (input) => `Create a regex for this requirement:\n\n${input}`,
+    system: () => "You are a Regular Expression expert. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'pattern' (the raw regex string without leading/trailing slashes) and 'explanation' (a concise, bulleted explanation of the logic).",
+    user: (input) => `Requirement: ${input}\n\nReturn JSON format: { "pattern": "...", "explanation": "..." }`,
     responseType: 'text'
   },
+  
   
   sql: {
     system: () => "You are a SQL query builder. Return ONLY the raw SQL query. No markdown, no explanations.",
