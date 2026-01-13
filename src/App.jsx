@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async'; 
 import { useTheme } from './components/ThemeContext';
 import { initializeAuth } from './services/firebase';
 
@@ -25,6 +26,19 @@ function App() {
   const [notificationMessage, setNotificationMessage] = useState(null);
   const { currentTheme } = useTheme();
 
+  const metaMap = {
+    'converter': { title: 'Code Converter | ReCode', desc: 'Convert code between any language with AI.' },
+    'refactor': { title: 'Code Refactorer | ReCode', desc: 'Optimize and clean your code using AI.' },
+    'analysis': { title: 'Code Analysis | ReCode', desc: 'Detect bugs and security issues in your code.' },
+    'css-tailwind': { title: 'Tailwind/CSS Converter | ReCode', desc: 'Convert CSS frameworks to Tailwind instantly.' },
+    'generator': { title: 'Code Generator | ReCode', desc: 'Generate boilerplate and logic from prompts.' },
+    'regex': { title: 'Regex Generator | ReCode', desc: 'Create complex regular expressions with ease.' },
+    'sql': { title: 'SQL Builder | ReCode', desc: 'Build and optimize SQL queries using AI.' },
+    'json': { title: 'JSON Formatter | ReCode', desc: 'Prettify and validate JSON data.' }
+  };
+
+  const currentMeta = metaMap[activeModule] || metaMap['converter'];
+
   useEffect(() => {
     document.body.className = '';
     document.body.classList.add(`theme-${currentTheme}`);
@@ -36,7 +50,6 @@ function App() {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  // Unified function to switch modules and pass data
   const handleModuleSwitch = (moduleName, data = null) => {
     setActiveModule(moduleName);
     setModuleData(data);
@@ -67,35 +80,27 @@ function App() {
 
   const renderModule = () => {
     switch (activeModule) {
-      case 'converter':
-        return <CodeConverter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'refactor':
-        return <CodeRefactor onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'analysis':
-        return <CodeAnalysis onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'css-tailwind': 
-        return <CssFrameworkConverter 
-                  onLoadData={moduleData} 
-                  preSetTarget="tailwind" 
-                  onSwitchModule={handleModuleSwitch} 
-               />;
-      case 'generator':
-        return <CodeGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-        
-      case 'regex':
-        return <RegexGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'sql':
-        return <SqlBuilder onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'json':
-        return <JsonFormatter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-        
-      default:
-        return <CodeConverter />;
+      case 'converter': return <CodeConverter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'refactor': return <CodeRefactor onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'analysis': return <CodeAnalysis onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'css-tailwind': return <CssFrameworkConverter onLoadData={moduleData} preSetTarget="tailwind" onSwitchModule={handleModuleSwitch} />;
+      case 'generator': return <CodeGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'regex': return <RegexGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'sql': return <SqlBuilder onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'json': return <JsonFormatter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      default: return <CodeConverter />;
     }
   };
 
   return (
     <div className='container'>
+      <Helmet>
+        <title>{currentMeta.title}</title>
+        <meta name="description" content={currentMeta.desc} />
+        <meta property="og:title" content={currentMeta.title} />
+        <meta property="og:description" content={currentMeta.desc} />
+      </Helmet>
+
       <Sidebar 
         activeModule={activeModule} 
         setActiveModule={(mod) => handleModuleSwitch(mod, null)} 
