@@ -32,7 +32,7 @@ function App() {
     'analysis': { title: 'Code Analysis | ReCode', desc: 'Detect bugs and security issues in your code.' },
     'css-tailwind': { title: 'Tailwind/CSS Converter | ReCode', desc: 'Convert CSS frameworks to Tailwind instantly.' },
     'generator': { title: 'Code Generator | ReCode', desc: 'Generate boilerplate and logic from prompts.' },
-    'regex': { title: 'Regex Generator | ReCode', desc: 'Create complex regular expressions with ease.' },
+    'regex': { title: 'Regex Generator | ReCode', desc: 'Create and test complex regular expressions with ease.' },
     'sql': { title: 'SQL Builder | ReCode', desc: 'Build and optimize SQL queries using AI.' },
     'json': { title: 'JSON Formatter | ReCode', desc: 'Prettify and validate JSON data.' }
   };
