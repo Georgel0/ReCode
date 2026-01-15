@@ -64,8 +64,11 @@ const PROMPT_CONFIG = {
   },
   
   sql: {
-    system: () => "You are a SQL query builder. Return ONLY the raw SQL query. No markdown, no explanations.",
-    user: (input, _, target) => `Dialect: ${target || 'Standard SQL'}\nRequirement: ${input}`,
+    system: () => "You are an expert SQL Architect. Your task is to generate, convert, or optimize SQL queries. " +
+      "Return ONLY the raw SQL code. Do not use Markdown formatting (no ```sql). " +
+      "If comments are requested, include them inside the SQL using -- or /* */ syntax. " +
+      "Strictly follow the Target Dialect syntax.",
+    user: (input) => input,
     responseType: 'text'
   },
   
