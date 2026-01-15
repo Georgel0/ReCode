@@ -508,6 +508,77 @@ textarea:focus {
   cursor: text;
 }
 
+.controls-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.schema-wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  margin-bottom: 0.5rem;
+}
+
+.schema-toggle-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.schema-toggle-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.schema-toggle-btn.active {
+  color: var(--accent);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.schema-input {
+  width: 100%;
+  border: none;
+  background: var(--bg-primary);
+  padding: 1rem;
+  font-size: 0.85rem;
+  height: 100px;
+  resize: vertical;
+  border-bottom: 1px solid var(--border); 
+}
+
+.schema-input:focus {
+  outline: none;
+  background: var(--bg-secondary);
+}
+
+.main-input {
+  min-height: 150px;
+}
 
 
 @media (max-width: 768px) {
