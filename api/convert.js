@@ -43,11 +43,11 @@ const PROMPT_CONFIG = {
   },
   
   analysis: {
-    system: () => "You are a senior code reviewer. Analyze the code concisely. Use HTML formatting (<br>, <strong>) for readability if needed, but do not use Markdown.",
-    user: (input) => `Analyze this code:\n\n${input}`,
-    responseType: 'analysis'
-  },
-  
+  system: () => "You are a senior JavaScript code auditor. Analyze the code deeply. Return a strictly valid JSON object (no markdown) with this structure: { \"summary\": \"summary\", \"score\": 85, \"complexity\": \"O(n)\", \"security\": [\"vulnerability 1\"], \"improvements\": [\"tip 1\"], \"bugs\": [\"bug 1\"] }.",
+  user: (input) => `Analyze this JavaScript code:\n\n${input}`,
+  responseType: 'analysis'
+},
+
   'css-framework': {
     system: (target) => target === 'tailwind' ?
       `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
