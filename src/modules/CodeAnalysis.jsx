@@ -4,7 +4,8 @@ import ModuleHeader from '../components/ModuleHeader';
 
 export default function CodeAnalysis({ onLoadData }) {
   const [input, setInput] = useState('');
-  const [analysis, setAnalysis] = useState(null); 
+  const [analysisData, setAnalysisData] = useState(null);
+  const [rawAnalysis, setRawAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
 
@@ -12,130 +13,239 @@ export default function CodeAnalysis({ onLoadData }) {
     if (onLoadData) {
       const codeToAnalyze = onLoadData.input || '';
       setInput(codeToAnalyze);
+      
       if (onLoadData.fullOutput?.analysis) {
-        parseAndSetAnalysis(onLoadData.fullOutput.analysis);
+        processAnalysisResult(onLoadData.fullOutput.analysis);
+      } else if (onLoadData.sourceModule === 'converter' && codeToAnalyze) {
+        handleAnalyze(codeToAnalyze);
+      } else {
+        setAnalysisData(null);
+        setRawAnalysis('');
       }
     }
   }, [onLoadData]);
 
-  const parseAndSetAnalysis = (rawText) => {
+  const processAnalysisResult = (resultString) => {
+    setRawAnalysis(resultString);
     try {
-      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-      setAnalysis(JSON.parse(cleanJson));
+      const cleanJson = resultString.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      setAnalysisData(parsed);
     } catch (e) {
-      setAnalysis({ summary: rawText, fallback: true });
+      console.warn("Could not parse structured analysis, falling back to text mode.");
+      setAnalysisData(null);
     }
   };
 
-  const handleAnalyze = async () => {
-    if (!input.trim()) return;
+  const handleAnalyze = async (codeOverride) => {
+    const codeToProcess = codeOverride || input;
+    if (!codeToProcess.trim()) return;
+    
     setLoading(true);
-    setAnalysis(null);
+    setAnalysisData(null);
+    setRawAnalysis('');
+    setLastResult(false);
 
     try {
-      const result = await convertCode('analysis', input);
-      if (result?.analysis) {
-        parseAndSetAnalysis(result.analysis);
-        setLastResult({ type: "analysis", input, output: result });
+      const result = await convertCode('analysis', codeToProcess);
+
+      if (result && result.analysis) {
+        processAnalysisResult(result.analysis);
+        
+        setLastResult({ 
+          type: "analysis",
+          input: codeToProcess,
+          output: result
+        });
+      } else {
+        throw new Error("Analysis failed: AI returned an empty response.");
       }
     } catch (error) {
-      console.error("Audit failed.", error);
+      alert(`Analysis failed: ${error.message}`);
     }
     setLoading(false);
   };
 
   const handleCopy = () => {
-    const text = analysis?.fallback ? analysis.summary : JSON.stringify(analysis, null, 2);
-    navigator.clipboard.writeText(text);
+    let textToCopy = rawAnalysis;
+    if (analysisData) {
+      textToCopy = `CODE ANALYSIS REPORT\n\nSCORE: ${analysisData.score}/100\n\nSUMMARY:\n${analysisData.summary}\n\nCOMPLEXITY:\n${analysisData.complexity}\n\nSECURITY:\n${analysisData.security?.join('\n- ')}\n\nIMPROVEMENTS:\n${analysisData.improvements?.join('\n- ')}`;
+    }
+    
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
+    }
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'var(--accent)';
+    if (score >= 50) return '#ffa500';      
+    return '#ff4d4d';                       
   };
 
   return (
     <div className="module-container">
       <ModuleHeader 
-        title="JS Code Auditor" 
-        description="Senior-level analysis of security, complexity, and performance."
+        title="Code Auditor"
+        description="Deep scan for vulnerabilities, complexity (Big O), and code quality."
         resultData={lastResult}
       />
 
-      <div className="converter-grid">
+      <div className="converter-grid"> 
         <div className="panel">
-          <h3><i className="fa-solid fa-code"></i> JavaScript Source</h3>
+          <h3><i className="fa-solid fa-code"></i> Source Code</h3>
           <textarea 
             value={input} 
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Paste JavaScript here..." 
+            placeholder="Paste your code here for a comprehensive audit..." 
             spellCheck="false"
           />
           <div className="action-row">
-            <button className="primary-button" onClick={handleAnalyze} disabled={loading}>
-              {loading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-shield"></i>}
-              {loading ? ' Auditing...' : ' Run Security Audit'}
+            <button 
+              className="primary-button" 
+              onClick={() => handleAnalyze()} 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <i className="fa-solid fa-circle-notch fa-spin"></i> Analyzing...
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-magnifying-glass-chart"></i> Run Audit
+                </>
+              )}
             </button>
           </div>
         </div>
 
         <div className="panel">
-          <h3><i className="fa-solid fa-chart-line"></i> Audit Results</h3>
+          <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
           <div className="results-container">
             {loading ? (
-              <div className="loading-container">
-                <i className="fa-solid fa-shield-virus fa-beat-fade spin-icon"></i>
-                <p>Scanning for vulnerabilities & Big O complexity...</p>
+              <div className="analyzing-state">
+                <div className="spinner"></div>
+                <p>Analyzing logic structure, complexity, and security vectors...</p>
               </div>
-            ) : analysis ? (
-              <div className="analysis-report-wrapper">
-                {analysis.fallback ? (
-                  <div className="audit-section-content">{analysis.summary}</div>
-                ) : (
-                  <>
-                    <div className="audit-header">
-                      <div className="audit-score-box">
-                        <div className="score-circle" style={{borderColor: analysis.score > 70 ? 'var(--accent)' : '#ff4d4d'}}>
-                          {analysis.score}
-                        </div>
-                        <div>
-                          <div style={{fontSize: '0.8rem', opacity: 0.7}}>QUALITY SCORE</div>
-                          <div style={{fontWeight: 'bold'}}>{analysis.score > 70 ? 'Healthy' : 'Needs Review'}</div>
-                        </div>
-                      </div>
-                      <div className="complexity-tag">
-                        <i className="fa-solid fa-gauge-high"></i> {analysis.complexity}
+            ) : analysisData ? (
+              <div className="analysis-dashboard">
+                
+                <div className="analysis-header-card">
+                  <div className="score-container">
+                    <div 
+                      className="score-ring" 
+                      style={{ 
+                        '--score-percent': `${analysisData.score}%`,
+                        background: `conic-gradient(${getScoreColor(analysisData.score)} ${analysisData.score}%, var(--bg-tertiary) 0)` 
+                      }}
+                    >
+                      <div className="score-value">{analysisData.score}</div>
+                    </div>
+                    <div className="score-label">
+                      <span>Quality Score</span>
+                      <strong>{analysisData.score >= 80 ? 'Excellent' : analysisData.score >= 50 ? 'Average' : 'Needs Work'}</strong>
+                    </div>
+                  </div>
+
+                  <div className="complexity-grid">
+                    <div className="complexity-card">
+                      <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
+                      <div className="complexity-info">
+                        <h4>Analysis</h4>
+                        <p>{analysisData.complexity || 'N/A'}</p>
                       </div>
                     </div>
+                  </div>
+                </div>
 
-                    <div className="audit-section">
-                      <div className="audit-section-title"><i className="fa-solid fa-file-lines"></i> Summary</div>
-                      <div className="audit-section-content">{analysis.summary}</div>
+                <div className="analysis-section">
+                  <div className="section-header">
+                    <i className="fa-solid fa-align-left"></i> Executive Summary
+                  </div>
+                  <div className="section-content summary-text">
+                    {analysisData.summary}
+                  </div>
+                </div>
+
+                {analysisData.security && analysisData.security.length > 0 && (
+                  <div className="analysis-section" style={{ borderColor: '#ff4d4d' }}>
+                    <div className="section-header danger">
+                      <i className="fa-solid fa-shield-halved"></i> Security Vulnerabilities
                     </div>
-
-                    {analysis.security?.length > 0 && (
-                      <div className="audit-section" style={{border: '1px solid #ff4d4d'}}>
-                        <div className="audit-section-title" style={{color: '#ff4d4d'}}><i className="fa-solid fa-shield-halved"></i> Security Risks</div>
-                        <div className="audit-section-content">
-                          <ul className="audit-list">
-                            {analysis.security.map((s, i) => <li key={i}><i className="fa-solid fa-circle-exclamation icon-sec"></i> {s}</li>)}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="audit-section">
-                      <div className="audit-section-title"><i className="fa-solid fa-bolt"></i> Optimization & Bugs</div>
-                      <div className="audit-section-content">
-                        <ul className="audit-list">
-                          {analysis.bugs?.map((b, i) => <li key={i}><i className="fa-solid fa-bug icon-bug"></i> {b}</li>)}
-                          {analysis.improvements?.map((imp, i) => <li key={i}><i className="fa-solid fa-wand-magic-sparkles icon-imp"></i> {imp}</li>)}
-                        </ul>
-                      </div>
+                    <div className="section-content">
+                      <ul className="analysis-list">
+                        {analysisData.security.map((item, i) => (
+                          <li key={i} className="issue-high">
+                            <i className="fa-solid fa-triangle-exclamation"></i>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  </>
+                  </div>
                 )}
+
+                {analysisData.bugs && analysisData.bugs.length > 0 && (
+                  <div className="analysis-section" style={{ borderColor: '#ffa500' }}>
+                    <div className="section-header warning">
+                      <i className="fa-solid fa-bug"></i> Potential Bugs
+                    </div>
+                    <div className="section-content">
+                      <ul className="analysis-list">
+                        {analysisData.bugs.map((item, i) => (
+                          <li key={i} className="issue-medium">
+                            <i className="fa-solid fa-circle-exclamation"></i>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                <div className="analysis-section">
+                  <div className="section-header success">
+                    <i className="fa-solid fa-wand-magic-sparkles"></i> Recommended Improvements
+                  </div>
+                  <div className="section-content">
+                    <ul className="analysis-list">
+                      {analysisData.improvements?.map((item, i) => (
+                        <li key={i} className="suggestion">
+                          <i className="fa-solid fa-check"></i>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
                 <div className="action-row">
-                  <button className="primary-button" onClick={handleCopy}><i className="fa-solid fa-copy"></i> Copy Report</button>
+                  <button className="primary-button" onClick={handleCopy}>
+                    <i className="fa-solid fa-copy"></i> Copy Report
+                  </button>
+                </div>
+
+              </div>
+            ) : rawAnalysis ? (
+              <div className="output-wrapper">
+                <div className="ai-summary">
+                  <div className="legacy-output">
+                    {rawAnalysis}
+                  </div>
+                </div>
+                <div className="action-row">
+                  <button className="primary-button" onClick={handleCopy}>
+                    Copy Analysis
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="placeholder-text">Enter code and run audit to see insights.</div>
+              <div className="placeholder-text">
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                  <i className="fa-solid fa-microchip" style={{ fontSize: '3rem', opacity: 0.3 }}></i>
+                  <span>Analysis results will appear here.</span>
+                </div>
+              </div>
             )}
           </div>
         </div>
