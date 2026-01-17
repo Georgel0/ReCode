@@ -11,6 +11,58 @@ textarea {
   font-family: inherit;
 }
 
+.panel {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  min-width: 0;
+}
+
+.panel h3 {
+  margin-top: 0;
+  color: var(--header-color);
+  background: var(--header-color);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-bottom: 1px solid var(--bg-tertiary);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.theme-dark-black-gold .panel h3,
+.theme-light-quartz .panel h3 {
+  border-bottom: 1px solid transparent;
+  border-image: var(--gradient-gold) 1;
+  border-image-slice: 1;
+  border-style: solid;
+  border-width: 0 0 1px 0;
+}
+
+textarea {
+  flex: 1;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  resize: none;
+  font-family: monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  box-shadow: var(--shadow-subtle);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+textarea:focus {
+  border-color: var(--accent);
+}
+
 .container {
   display: flex;
   height: 100vh;
@@ -337,6 +389,48 @@ select option {
   animation: pulse 1.5s infinite;
 }
 
+.output-textarea {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+
+.output-textarea:focus {
+  border-color: var(--accent);
+}
+
+.info-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: serif;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.info-icon:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -414,6 +508,13 @@ select option {
 
 .tab-btn i {
   margin-right: 8px;
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.tab-btn.active i {
+  opacity: 1;
+  color: var(--accent);
 }
 
 .loading-state {
@@ -422,6 +523,21 @@ select option {
   align-items: center;
   gap: 15px;
   color: var(--accent);
+}
+
+.has-error {
+  border-color: #ff4d4d !important;
+}
+
+.error-message {
+  color: #ff4d4d;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.code-accent {
+  color: var(--accent);
+  font-family: monospace;
 }
 
 

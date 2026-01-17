@@ -12,7 +12,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
-  
+
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
@@ -21,40 +21,28 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
       setActiveFileIndex(0);
     }
   }, [onLoadData]);
-  
+
   const getLanguage = (fileName) => {
     if (!fileName) return 'javascript';
     const ext = fileName.split('.').pop().toLowerCase();
     const map = {
-      js: 'javascript',
-      jsx: 'javascript',
-      ts: 'typescript',
-      tsx: 'typescript',
-      html: 'xml',
-      css: 'css',
-      json: 'json',
-      md: 'markdown',
-      py: 'python',
-      c: 'c',
-      cs: 'csharp',
-      cpp: 'cpp',
-      swift: 'swift',
-      go: 'go',
-      php: 'php'
+      js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
+      html: 'xml', css: 'css', json: 'json', md: 'markdown', py: 'python',
+      c: 'c', cs: 'csharp', cpp: 'cpp', swift: 'swift', go: 'go', php: 'php',
+      java: 'java', sql: 'sql', sh: 'bash', yml: 'yaml'
     };
     return map[ext] || 'javascript';
   };
-  
+
   const handleGenerate = async () => {
     if (!input.trim()) return;
     setLoading(true);
     setFiles([]);
     setLastResult(false);
-    
+
     try {
       let result = await convertCode('generator', input);
-      
-      // If backend returns a single 'index.txt' containing JSON, try to parse it here.
+
       if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
         const rawContent = result.files[0].content;
         if (rawContent.trim().startsWith('{')) {
@@ -89,8 +77,9 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     setFiles([]);
     setActiveFileIndex(0);
   };
-  
+
   const downloadSingleFile = (file) => {
+    if (!file) return;
     const blob = new Blob([file.content], { type: 'text/plain' });
     saveAs(blob, file.fileName);
   };
@@ -103,49 +92,65 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   };
   
   const activeFile = files[activeFileIndex] || null;
-  
+
   return (
     <div className="module-container">
       <ModuleHeader 
         title="Code Generator"
-        description="Describe your project and the AI will generate multiple files with syntax highlighting."
+        description="Describe your project requirements and the AI will scaffold a multi-file solution for you."
         resultData={lastResult}
       />
 
       <div className="converter-grid">
         <div className="panel">
-          <h3>Requirements</h3>
+          <h3>
+            <i className="fa-solid fa-layer-group" style={{ marginRight: '8px' }}></i>
+            Requirements
+          </h3>
           <textarea 
             className="flex-grow"
             value={input} 
             onChange={(e) => setInput(e.target.value)} 
-            placeholder="E.g., Create a React button component with a separate CSS file..." 
+            placeholder="E.g., Create a React todo app with a component for the list, a component for items, and a CSS file for styling..." 
+            spellCheck="false"
           /> 
           <div className="action-row">
+            <button className="secondary-button clear-btn" onClick={handleClearAll} disabled={loading || !input}>
+              <i className="fa-solid fa-trash-can"></i> Clear
+            </button>
             <button 
               className="primary-button" 
               onClick={handleGenerate} 
-              disabled={loading}
-            >{loading ? 'Generating...' : 'Generate Code'}
+              disabled={loading || !input.trim()}
+            >
+              {loading ? (
+                <><i className="fa-solid fa-circle-notch fa-spin"></i> Generating...</>
+              ) : (
+                <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate Code</>
+              )}
             </button> 
-            <button className="secondary-button clear-btn" onClick={handleClearAll}>Clear All
-            </button>
           </div>
         </div>
 
         <div className="panel">
-          <h3>Generated Output</h3>
+          <h3>
+            <i className="fa-solid fa-code" style={{ marginRight: '8px' }}></i>
+            Generated Output
+          </h3>
+          
           <div className="results-container">
             {files.length > 0 ? (
               <div className="code-output-container">
+                
                 <div className="tabs-container">
                   {files.map((file, idx) => (
                     <button 
                       key={idx} 
                       className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
                       onClick={() => setActiveFileIndex(idx)}
+                      title={file.fileName}
                     >
-                      {file.fileName}
+                      <i className="fa-regular fa-file-code"></i> {file.fileName}
                     </button>
                   ))}
                 </div>
@@ -154,30 +159,54 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
                   <SyntaxHighlighter 
                     language={getLanguage(activeFile?.fileName)} 
                     style={vscDarkPlus} 
-                    customStyle={{ margin: 0, height: '100%', borderRadius: '8px' }}
+                    customStyle={{ 
+                      margin: 0, 
+                      height: '100%', 
+                      background: 'transparent',
+                      fontSize: '0.9rem'
+                    }}
+                    showLineNumbers={true}
+                    wrapLines={true}
                   >
                     {activeFile ? activeFile.content : ''}
                   </SyntaxHighlighter>
                 </div>
                 
                 <div className="action-row">
-                  <button className="primary-button" onClick={() => downloadSingleFile(activeFile)}>
-                    Download File
-                  </button>
-                  {files.length > 1 && (
-                    <button className="primary-button" onClick={downloadZip}>Download ZIP</button>
-                  )}
-                  <button 
-                    className="primary-button" 
-                    onClick={() => navigator.clipboard.writeText(activeFile.content)}
+                   <button 
+                    className="secondary-button" 
+                    onClick={() => navigator.clipboard.writeText(activeFile?.content || '')}
+                    title="Copy to clipboard"
                   >
-                    Copy
+                    <i className="fa-regular fa-copy"></i> Copy
                   </button> 
+                  
+                  <div style={{ flex: 1 }}></div>
+
+                  <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
+                    <i className="fa-solid fa-download"></i> File
+                  </button>
+                  
+                  {files.length > 1 && (
+                    <button className="primary-button" onClick={downloadZip}>
+                      <i className="fa-solid fa-file-zipper"></i> Download ZIP
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="placeholder-text">
-                {loading ? 'AI is building your project...' : 'Result will appear here...'}
+                {loading ? (
+                  <div className="analyzing-state">
+                    <div className="spinner"></div>
+                    <p>AI is architecting your solution...</p>
+                  </div>
+                ) : (
+                  <div className="analyzing-state">
+                    <i className="fa-solid fa-laptop-code" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}></i>
+                    <p>Enter your requirements to generate project files.</p>
+                  </div>
+                )}
               </div> 
             )}
           </div>

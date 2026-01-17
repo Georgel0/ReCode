@@ -13,58 +13,6 @@
   min-height: 0;
 }
 
-.panel {
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-subtle);
-  min-width: 0;
-}
-
-.panel h3 {
-  margin-top: 0;
-  color: var(--header-color);
-  background: var(--header-color);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  border-bottom: 1px solid var(--bg-tertiary);
-  padding-bottom: 0.75rem;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-}
-
-.theme-dark-black-gold .panel h3,
-.theme-light-quartz .panel h3 {
-  border-bottom: 1px solid transparent;
-  border-image: var(--gradient-gold) 1;
-  border-image-slice: 1;
-  border-style: solid;
-  border-width: 0 0 1px 0;
-}
-
-textarea {
-  flex: 1;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
-  resize: none;
-  font-family: monospace;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  box-shadow: var(--shadow-subtle);
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-textarea:focus {
-  border-color: var(--accent);
-}
-
 .action-row {
   display: flex;
   justify-content: flex-end;
@@ -236,21 +184,6 @@ textarea:focus {
   right: 1rem;
 }
 
-.has-error {
-  border-color: #ff4d4d !important;
-}
-
-.error-message {
-  color: #ff4d4d;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.code-accent {
-  color: var(--accent);
-  font-family: monospace;
-}
-
 .code-output-container {
   display: flex;
   flex-direction: column;
@@ -258,48 +191,6 @@ textarea:focus {
   min-height: 0;
   min-width: 0;
   flex: 1;
-}
-
-.output-textarea {
-  flex: 1;
-  width: 100%;
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.75rem;
-  font-family: monospace;
-  font-size: 0.9rem;
-  resize: none;
-  outline: none;
-  line-height: 1.5;
-}
-
-.output-textarea:focus {
-  border-color: var(--accent);
-}
-
-.info-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--accent);
-  background: transparent;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-family: serif;
-  font-style: italic;
-  font-weight: bold;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.info-icon:hover {
-  background: var(--accent);
-  color: var(--bg-primary);
 }
 
 .panel-header-row {
@@ -337,6 +228,12 @@ textarea:focus {
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: #1e1e1e;
+}
+
+.highlighter-wrapper pre {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  font-family: 'Fira Code', 'Consolas', monospace !important;
 }
 
 .refactor-options {
@@ -805,6 +702,15 @@ textarea:focus {
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+.analyzing-state i {
+  color: var(--accent);
+}
+
+.analyzing-state p {
+  margin: 0;
+  font-size: 1rem;
 }
 
 @keyframes spin {
