@@ -105,9 +105,10 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     <div className="module-container">
       <ModuleHeader 
         title="Code Generator"
-        description="Describe your code snippet or project requirements and the AI will scaffold a multi-file solution for you. Make sure your description its as detailed as possible."
+        description="Describe your code snippet or project requirements and the AI will scaffold a multi-file solution for you."
         resultData={lastResult}
       />
+      <p>Make sure your description its as detailed as possible.</p>
 
       <div className="converter-grid">
         <div className="panel">
