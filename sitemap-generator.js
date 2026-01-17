@@ -10,8 +10,7 @@ const YOUR_DOMAIN = 'https://recode-alpha.vercel.app/';
 
 // Add new routes here as your SPA grows
 const links = [
-    { url: '/', changefreq: 'daily', priority: 1.0, lastmod: new Date().toISOString() },
-    { url: '/favicon.ico', changefreq: 'monthly', priority: 0.9 },
+    { url: '/', changefreq: 'daily', priority: 1.0, lastmod: new Date().toISOString() }
     // Example: { url: '/about', changefreq: 'monthly', priority: 0.8 },
 ];
 
