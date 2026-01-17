@@ -211,11 +211,11 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
                 {loading ? (
                   <div className="analyzing-state">
                     <div className="spinner"></div>
-                    <p>AI is architecting your solution...</p>
+                    <p>AI is building your solution...</p>
                   </div>
                 ) : (
                   <div className="analyzing-state">
-                    <i className="fa-solid fa-laptop-code" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}></i>
+                    <i className="fa-solid fa-laptop-code" style={{ fontSize: '2.5rem', marginBottom: '0.3rem', opacity: 0.7 }}></i>
                     <p>Enter your requirements to generate project files.</p>
                   </div>
                 )}
