@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async'; 
+import { Helmet } from 'react-helmet-async';
 import { useTheme } from './components/ThemeContext';
 import { initializeAuth } from './services/firebase';
 
@@ -12,12 +12,12 @@ import Sidebar from './components/Sidebar';
 
 import CodeConverter from './modules/CodeConverter';
 import CodeAnalysis from './modules/CodeAnalysis';
-import CodeGenerator from './modules/CodeGenerator'; 
+import CodeGenerator from './modules/CodeGenerator';
 import RegexGenerator from './modules/RegexGenerator';
 import SqlBuilder from './modules/SqlBuilder';
 import JsonFormatter from './modules/JsonFormatter';
 import CodeRefactor from './modules/CodeRefactor';
-import CssFrameworkConverter from './modules/CssFrameworkConverter'; 
+import CssFrameworkConverter from './modules/CssFrameworkConverter';
 
 function App() {
   const [activeModule, setActiveModule] = useState('converter');
@@ -25,7 +25,7 @@ function App() {
   const [moduleData, setModuleData] = useState(null);
   const [notificationMessage, setNotificationMessage] = useState(null);
   const { currentTheme } = useTheme();
-
+  
   const metaMap = {
     'converter': { title: 'Code Converter | ReCode', desc: 'Convert code between any language with AI.' },
     'refactor': { title: 'Code Refactorer | ReCode', desc: 'Optimize and clean your code using AI.' },
@@ -36,20 +36,20 @@ function App() {
     'sql': { title: 'SQL Builder | ReCode', desc: 'Build and optimize SQL queries using AI.' },
     'json': { title: 'JSON Formatter | ReCode', desc: 'Prettify and validate JSON data.' }
   };
-
+  
   const currentMeta = metaMap[activeModule] || metaMap['converter'];
-
+  
   useEffect(() => {
     document.body.className = '';
     document.body.classList.add(`theme-${currentTheme}`);
   }, [currentTheme]);
-
+  
   useEffect(() => {
     initializeAuth();
   }, []);
-
+  
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
+  
   const handleModuleSwitch = (moduleName, data = null) => {
     setActiveModule(moduleName);
     setModuleData(data);
@@ -57,41 +57,52 @@ function App() {
   };
   
   const loadFromHistory = (historyItem) => {
-    let targetModule = 'converter';
-    if (historyItem.type === 'css-framework' || historyItem.type === 'css-tailwind') {
+    let targetModule;
+    
+    switch (historyItem.type) {
+      case 'css-framework':
+      case 'css-tailwind':
         targetModule = 'css-tailwind';
-    } else if (historyItem.type === 'refactor') {
-      targetModule = 'refactor';
-    } else if (historyItem.type === 'analysis') {
-        targetModule = 'analysis';
-    } else if (historyItem.type === 'generator') {
-        targetModule = 'generator';
-    } else if (historyItem.type === 'regex') {
-        targetModule = 'regex';
-    } else if (historyItem.type === 'sql') {
-        targetModule = 'sql';
-    } else if (historyItem.type === 'json') {
-        targetModule = 'json';
+        break;
+      case 'refactor':
+      case 'analysis':
+      case 'generator':
+      case 'regex':
+      case 'sql':
+      case 'json':
+        targetModule = historyItem.type;
+        break;
+      default:
+        targetModule = 'converter';
     }
     
     handleModuleSwitch(targetModule, historyItem);
     setNotificationMessage(`History loaded: ${historyItem.type} conversion.`);
   };
-
+  
   const renderModule = () => {
     switch (activeModule) {
-      case 'converter': return <CodeConverter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'refactor': return <CodeRefactor onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'analysis': return <CodeAnalysis onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'css-tailwind': return <CssFrameworkConverter onLoadData={moduleData} preSetTarget="tailwind" onSwitchModule={handleModuleSwitch} />;
-      case 'generator': return <CodeGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'regex': return <RegexGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'sql': return <SqlBuilder onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      case 'json': return <JsonFormatter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
-      default: return <CodeConverter />;
+      case 'converter':
+        return <CodeConverter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'refactor':
+        return <CodeRefactor onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'analysis':
+        return <CodeAnalysis onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'css-tailwind':
+        return <CssFrameworkConverter onLoadData={moduleData} preSetTarget="tailwind" onSwitchModule={handleModuleSwitch} />;
+      case 'generator':
+        return <CodeGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'regex':
+        return <RegexGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'sql':
+        return <SqlBuilder onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      case 'json':
+        return <JsonFormatter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+      default:
+        return <CodeConverter />;
     }
   };
-
+  
   return (
     <div className='container'>
       <Helmet>
