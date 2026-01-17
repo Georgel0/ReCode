@@ -26,7 +26,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     if (!fileName) return 'javascript';
     const ext = fileName.split('.').pop().toLowerCase();
     const map = {
-      js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
+      js: 'javascript', jsx: 'react', ts: 'typescript', tsx: 'typescript',
       html: 'xml', css: 'css', json: 'json', md: 'markdown', py: 'python',
       c: 'c', cs: 'csharp', cpp: 'cpp', swift: 'swift', go: 'go', php: 'php',
       java: 'java', sql: 'sql', sh: 'bash', yml: 'yaml'
@@ -43,7 +43,6 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     try {
       let result = await convertCode('generator', input);
 
-      // Failsafe 1: Handle potential raw text wrapping of JSON
       if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
         const rawContent = result.files[0].content;
         if (rawContent.trim().startsWith('{')) {
@@ -94,10 +93,8 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   
   const activeFile = files[activeFileIndex] || null;
 
-  // Helper to ensure content renders with newlines even if API sends escaped \\n
   const formatContent = (content) => {
     if (!content) return '';
-    // If the content is one long line containing literal "\n", replace them with real newlines
     if (content.includes('\\n') && !content.includes('\n')) {
       return content.replace(/\\n/g, '\n');
     }
@@ -108,7 +105,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     <div className="module-container">
       <ModuleHeader 
         title="Code Generator"
-        description="Describe your project requirements and the AI will scaffold a multi-file solution for you."
+        description="Describe your code snippet or project requirements and the AI will scaffold a multi-file solution for you. Make sure your description its as detailed as possible."
         resultData={lastResult}
       />
 
@@ -122,7 +119,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
             className="flex-grow"
             value={input} 
             onChange={(e) => setInput(e.target.value)} 
-            placeholder="E.g., Create a React todo app with a component for the list, a component for items, and a CSS file for styling..." 
+            placeholder="E.g., Create a React button component and a CSS file for styling..." 
             spellCheck="false"
           /> 
           <div className="action-row">
@@ -175,12 +172,12 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
                       height: '100%', 
                       background: 'transparent',
                       fontSize: '0.9rem',
-                      whiteSpace: 'pre-wrap',       // Forces CSS text wrapping
-                      wordBreak: 'break-word'       // Breaks very long words if needed
+                      whiteSpace: 'pre-wrap', 
+                      wordBreak: 'break-word'   
                     }}
                     showLineNumbers={true}
                     wrapLines={true}
-                    wrapLongLines={true}            // Specific prop for react-syntax-highlighter
+                    wrapLongLines={true}  
                   >
                     {activeFile ? formatContent(activeFile.content) : ''}
                   </SyntaxHighlighter>
