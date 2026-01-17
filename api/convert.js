@@ -1,10 +1,23 @@
 import Groq from "groq-sdk";
 import JSON5 from "json5";
+import admin from "firebase-admin";
+
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  } catch (error) {
+    console.error("Firebase Admin Init Error:", error.message);
+  }
+}
 
 const PROMPT_CONFIG = {
   refactor: {
     system: (mode) => {
-      // Determine the specific goal based on the UI selection
       const goals = {
         clean: "Focus on readability, better variable naming, and DRY principles.",
         perf: "Focus on algorithmic efficiency, reducing memory footprint, and optimizing loops.",
@@ -89,14 +102,31 @@ export default async function handler(req, res) {
   const { GROQ_API_KEY } = process.env;
   if (!GROQ_API_KEY) return res.status(500).json({ error: "Server Error: API Key missing." });
   
-  const { type, input, sourceLang, targetLang } = req.body;
+  // Security check
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid token.' });
+  }
+  
+  const token = authHeader.split(' ')[1];
+  
+  try {
+    // Verify the ID token with Firebase Admin
+    // This ensures the request is coming from your actual authenticated app
+    await admin.auth().verifyIdToken(token);
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid session.' });
+  }
+  // --- 
+  
+  const { type, input, sourceLang, targetLang, mode } = req.body;
   const groq = new Groq({ apiKey: GROQ_API_KEY });
   
   const config = PROMPT_CONFIG[type];
   if (!config) return res.status(400).json({ error: `Invalid type: ${type}` });
   
-  // Resolve values safely
-  const finalSystem = config.system(targetLang);
+  const finalSystem = config.system(targetLang || mode);
   const finalUser = config.user(input, sourceLang, targetLang);
   const finalResponseType = typeof config.responseType === 'function' ?
     config.responseType(targetLang) :
@@ -110,14 +140,12 @@ export default async function handler(req, res) {
       ],
       model: "llama-3.3-70b-versatile",
       temperature: 0.1,
-      // Use the resolved response type here
       response_format: finalResponseType === 'json_files' ? { type: "json_object" } : undefined
     });
     
     let text = completion.choices[0]?.message?.content || "";
     let finalResponse = {};
     
-    // Logic for Multi-File/JSON Outputs
     if (finalResponseType === 'json_files') {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       let jsonString = jsonMatch ? jsonMatch[0] : text;
@@ -125,7 +153,6 @@ export default async function handler(req, res) {
       
       try {
         const parsed = JSON5.parse(jsonString);
-        // Validate that we got what we expected
         if (!parsed.files && !parsed.conversions) {
           throw new Error("Missing expected keys in JSON response");
         }
@@ -142,7 +169,6 @@ export default async function handler(req, res) {
       finalResponse = { analysis: text };
     }
     else {
-      // Text-only modes (sql, regex, converter)
       finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
     
