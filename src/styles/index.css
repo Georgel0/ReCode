@@ -179,6 +179,7 @@ body {
   --shadow-subtle: 0 4px 12px rgba(32, 178, 170, 0.15);
   --btn-background: var(--accent);
   --btn-background-hover: var(--accent-hover);
+  --header-color: var(--accent-hover);
 }
 
 .theme-light-mint-teal select {
