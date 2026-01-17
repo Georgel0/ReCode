@@ -14,6 +14,16 @@ const LANGUAGES = [
   { value: 'rust', label: 'Rust', ext: '.rs' },
   { value: 'php', label: 'PHP', ext: '.php' },
   { value: 'swift', label: 'Swift', ext: '.swift' },
+  { value: 'kotlin', label: 'Kotlin', ext: '.kt' },
+  { value: 'ruby', label: 'Ruby', ext: '.rb' },
+  { value: 'dart', label: 'Dart', ext: '.dart' },
+  { value: 'zig', label: 'Zig', ext: '.zig' },
+  { value: 'mojo', label: 'Mojo', ext: '.mojo' },
+  { value: 'r', label: 'R', ext: '.r' },
+  { value: 'scala', label: 'Scala', ext: '.scala' },
+  { value: 'elixir', label: 'Elixir', ext: '.ex' },
+  { value: 'haskell', label: 'Haskell', ext: '.hs' },
+  { value: 'lua', label: 'Lua', ext: '.lua' },
 ];
 
 export default function CodeConverter({ onLoadData, onSwitchModule }) {
@@ -141,7 +151,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
                 ref={fileInputRef} 
                 className="hidden" 
                 onChange={handleFileChange}
-                accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift" 
+                accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift,.kt,.rb,.dart,.zig,.mojo,.r,.scala,.ex,.hs,.lua" 
               />
               <button className="info-icon" aria-label="Supported formats" onClick={() => setShowInfoModal(true)}>
                 i
