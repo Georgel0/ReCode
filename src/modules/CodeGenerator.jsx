@@ -43,6 +43,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     try {
       let result = await convertCode('generator', input);
 
+      // Failsafe 1: Handle potential raw text wrapping of JSON
       if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
         const rawContent = result.files[0].content;
         if (rawContent.trim().startsWith('{')) {
@@ -92,6 +93,16 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
   };
   
   const activeFile = files[activeFileIndex] || null;
+
+  // Helper to ensure content renders with newlines even if API sends escaped \\n
+  const formatContent = (content) => {
+    if (!content) return '';
+    // If the content is one long line containing literal "\n", replace them with real newlines
+    if (content.includes('\\n') && !content.includes('\n')) {
+      return content.replace(/\\n/g, '\n');
+    }
+    return content;
+  };
 
   return (
     <div className="module-container">
@@ -163,12 +174,15 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
                       margin: 0, 
                       height: '100%', 
                       background: 'transparent',
-                      fontSize: '0.9rem'
+                      fontSize: '0.9rem',
+                      whiteSpace: 'pre-wrap',       // Forces CSS text wrapping
+                      wordBreak: 'break-word'       // Breaks very long words if needed
                     }}
                     showLineNumbers={true}
                     wrapLines={true}
+                    wrapLongLines={true}            // Specific prop for react-syntax-highlighter
                   >
-                    {activeFile ? activeFile.content : ''}
+                    {activeFile ? formatContent(activeFile.content) : ''}
                   </SyntaxHighlighter>
                 </div>
                 
