@@ -219,6 +219,10 @@ textarea:focus {
   font-weight: 600;
 }
 
+.download-btn i {
+  margin-right: 6px;
+}
+
 .clear-btn {
   background-color: transparent;
   border: 1px solid #ff4d4d;
@@ -460,6 +464,11 @@ select option {
   color: var(--accent);
 }
 
+.modal-close-btn {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
 .processing-state {
   display: flex;
   flex-direction: column;
@@ -538,6 +547,27 @@ select option {
 .code-accent {
   color: var(--accent);
   font-family: monospace;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.selector-bar {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.header-actions {
+  gap: 10px;
+}
+
+.file-upload-btn i {
+  margin-right: 6px;
+}
+
+.panel textarea {
+  flex-grow: 1;
 }
 
 

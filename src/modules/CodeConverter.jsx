@@ -36,7 +36,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       if (onLoadData.targetLang) setTargetLang(onLoadData.targetLang);
     }
   }, [onLoadData]);
-  
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -56,7 +56,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
     };
     reader.readAsText(file);
   };
-  
+
   const handleDownload = () => {
     if (!outputCode) return;
     const targetExt = LANGUAGES.find(l => l.value === targetLang)?.ext || '.txt';
@@ -77,7 +77,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
     setInput(outputCode);
     setOutputCode('');
   };
-  
+
   const handleClear = () => {
     setInput('');
     setOutputCode('');
@@ -86,7 +86,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       fileInputRef.current.value = "";
     }
   };
-  
+
   const handleConvert = async () => {
     if (!input.trim()) return;
     setLoading(true);
@@ -134,24 +134,26 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
             <h3>Source: {LANGUAGES.find(l => l.value === sourceLang)?.label}</h3>
             <div className="header-actions">
               <button className="file-upload-btn" onClick={() => fileInputRef.current.click()}>
-              Upload File
+                <i className="fa-solid fa-cloud-arrow-up"></i> Upload
               </button>
               <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
-              onChange={handleFileChange}
-              accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift" />
-              <button className="info-icon" onClick={() => setShowInfoModal(true)}>i
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                onChange={handleFileChange}
+                accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift" 
+              />
+              <button className="info-icon" aria-label="Supported formats" onClick={() => setShowInfoModal(true)}>
+                i
               </button>
             </div>
           </div>
        
-          <div className="action-row start" style={{ marginBottom: '1rem' }}>
+          <div className="selector-bar">
             <select 
               value={sourceLang} 
               onChange={(e) => setSourceLang(e.target.value)}
-              className="lang-select"
+              className="lang-select full-width"
             >
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
@@ -160,20 +162,24 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
           <textarea 
             value={input} 
             onChange={(e) => setInput(e.target.value)} 
-            placeholder={`Paste your code or upload a file...`} 
+            placeholder="Paste your code or upload a file..." 
             spellCheck="false"
             className="flex-grow"
           />
 
           <div className="action-row">
             <button className="primary-button action-btn" onClick={handleConvert} disabled={loading || !input.trim()}>
-              {loading ? 'Converting...' : 'Convert Code'}
+              {loading ? (
+                 <><i className="fa-solid fa-spinner fa-spin"></i> Converting...</>
+              ) : (
+                 <><i className="fa-solid fa-wand-magic-sparkles"></i> Convert Code</>
+              )}
             </button>
-            <button className="primary-button" onClick={handleSwap}>
-              ⇄ Swap
+            <button className="secondary-button" onClick={handleSwap} title="Swap Languages">
+              <i className="fa-solid fa-right-left"></i> Swap
             </button>
-            <button className="secondary-button clear-btn" onClick={handleClear}>
-              Clear
+            <button className="secondary-button clear-btn" onClick={handleClear} title="Clear Input">
+              <i className="fa-solid fa-trash"></i>
             </button>
           </div>
         </div>
@@ -183,16 +189,16 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
             <h3>Target: {LANGUAGES.find(l => l.value === targetLang)?.label}</h3>
             {outputCode && (
               <button className="file-upload-btn download-btn" onClick={handleDownload}>
-                Download Result
+                <i className="fa-solid fa-download"></i> Download
               </button>
             )}
           </div>
           
-          <div className="action-row start" style={{ marginBottom: '1rem' }}>
+          <div className="selector-bar">
             <select 
               value={targetLang} 
               onChange={(e) => setTargetLang(e.target.value)}
-              className="lang-select"
+              className="lang-select full-width"
             >
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
@@ -209,7 +215,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
                     spellCheck="false"
                   />
                   <button className="primary-button copy-btn copy-btn-absolute" onClick={handleCopy}>
-                    {copyFeedback}
+                     <i className={copyFeedback === 'Copied!' ? "fa-solid fa-check" : "fa-regular fa-copy"}></i> {copyFeedback}
                   </button>
                 </div>
                 
@@ -218,13 +224,15 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
                     className="primary-button secondary-action-btn" 
                     onClick={() => onSwitchModule('analysis', { input: outputCode, sourceModule: 'converter' })}
                   >
-                    Analyze Result
+                    <i className="fa-solid fa-magnifying-glass-chart"></i> Analyze Result
                   </button>
                 </div>
               </div>
             ) : (
               <div className="placeholder-text">
-                {loading ? 'AI is processing...' : 'Result will appear here...'}
+                {loading ? (
+                    <span><i className="fa-solid fa-circle-notch fa-spin"></i> AI is processing...</span>
+                ) : 'Result will appear here...'}
               </div>
             )}
           </div>
@@ -234,14 +242,16 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
       {showInfoModal && (
         <div className="modal-overlay" onClick={() => setShowInfoModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Supported Files</h2>
+            <h2><i className="fa-solid fa-file-code"></i> Supported Files</h2>
             <p>You can upload files with the following extensions:</p>
             <div className="ext-grid">
               {LANGUAGES.map(l => (
-                <span key={l.value} className="ext-tag"><strong>{l.ext}</strong> ({l.label})</span>
+                <span key={l.value} className="ext-tag">
+                    <strong>{l.ext}</strong> <span className="text-secondary">({l.label})</span>
+                </span>
               ))}
             </div>
-            <button className="primary-button action-btn" onClick={() => setShowInfoModal(false)} style={{marginTop: '1.5rem', width: '100%'}}>
+            <button className="primary-button modal-close-btn" onClick={() => setShowInfoModal(false)}>
               Got it
             </button>
           </div>
