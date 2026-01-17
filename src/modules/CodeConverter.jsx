@@ -179,7 +179,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
               <i className="fa-solid fa-right-left"></i> Swap
             </button>
             <button className="secondary-button clear-btn" onClick={handleClear} title="Clear Input">
-              <i className="fa-solid fa-trash"></i>
+              <i className="fa-solid fa-trash"></i> Clear
             </button>
           </div>
         </div>
