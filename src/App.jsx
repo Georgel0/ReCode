@@ -34,7 +34,7 @@ function App() {
   }, [activeModule]);
   
   const metaMap = {
-    'converter': { title: 'Code Converter | ReCode', desc: 'Convert code between any language with AI.' },
+    'converter': { title: 'Code Converter | ReCode', desc: 'Convert code between many languages with AI.' },
     'refactor': { title: 'Code Refactorer | ReCode', desc: 'Optimize and clean your code using AI.' },
     'analysis': { title: 'Code Analysis | ReCode', desc: 'Detect bugs and security issues in your code.' },
     'css-tailwind': { title: 'Tailwind/CSS Converter | ReCode', desc: 'Convert CSS frameworks to Tailwind instantly.' },
