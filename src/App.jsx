@@ -20,11 +20,18 @@ import CodeRefactor from './modules/CodeRefactor';
 import CssFrameworkConverter from './modules/CssFrameworkConverter';
 
 function App() {
-  const [activeModule, setActiveModule] = useState('converter');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moduleData, setModuleData] = useState(null);
   const [notificationMessage, setNotificationMessage] = useState(null);
   const { currentTheme } = useTheme();
+    const [activeModule, setActiveModule] = 
+    useState(() => {
+      return localStorage.getItem('recode_active_module') || 'converter';
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('recode_active_module', activeModule);
+  }, [activeModule]);
   
   const metaMap = {
     'converter': { title: 'Code Converter | ReCode', desc: 'Convert code between any language with AI.' },
