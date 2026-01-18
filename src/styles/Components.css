@@ -470,7 +470,7 @@ select option {
 }
 
 .ext-grid {
-  max-height: 70vh;
+  max-height: 60vh;
   overflow: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
