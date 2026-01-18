@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTheme } from './components/ThemeContext';
-import { initializeAuth } from './services/firebase';
+import { initializeAuth, cleanupOldHistory } from './services/firebase';
 
 import './styles/Components.css';
 import './styles/Sidebar.css';
@@ -52,8 +52,17 @@ function App() {
   }, [currentTheme]);
   
   useEffect(() => {
-    initializeAuth();
-  }, []);
+  const setupApp = async () => {
+    try {
+      const user = await initializeAuth();
+      if (user) cleanupOldHistory();
+    } catch (error) {
+      console.error("Initialization failed", error);
+    } 
+  };
+  setupApp();
+}, []);
+
   
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   
