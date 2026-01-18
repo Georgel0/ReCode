@@ -64,9 +64,7 @@ const PROMPT_CONFIG = {
   'css-framework': {
     system: (target) => target === 'tailwind' ?
       `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
-    
     user: (input, _, target) => `Convert this CSS to ${target}:\n\n${input}`,
-    
     responseType: (target) => target === 'tailwind' ? 'json_files' : 'text'
   },
   
