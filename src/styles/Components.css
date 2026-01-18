@@ -439,7 +439,7 @@ select option {
   overflow: auto;
   max-height: 80%;
   position: fixed;
-  top: 0;left: 0;
+  top: 40px;left: 0;
   right: 0;bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
@@ -467,6 +467,7 @@ select option {
 
 .modal-close-btn {
   position: fixed;
+  bottom: 0; right: 0;
   margin-top: 1.5rem;
   width: 100%;
 }
