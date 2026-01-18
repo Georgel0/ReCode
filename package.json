@@ -13,6 +13,7 @@
     "@google/generative-ai": "^0.24.1",
     "file-saver": "^2.0.5",
     "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
     "groq-sdk": "^0.37.0",
     "json5": "^2.2.3",
     "jszip": "^3.10.1",
