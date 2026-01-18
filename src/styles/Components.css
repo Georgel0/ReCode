@@ -437,8 +437,10 @@ select option {
 
 .modal-overlay {
   position: fixed;
-  top: 0;left: 0;
-  right: 0;bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
@@ -465,6 +467,23 @@ select option {
 .modal-close-btn {
   margin-top: 1.5rem;
   width: 100%;
+}
+
+.ext-grid {
+  max-height: 70vh;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ext-tag {
+  background: var(--bg-primary);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
 }
 
 .processing-state {
@@ -606,5 +625,9 @@ select option {
   .save-btn {
     width: 100%;
     justify-content: center;
+  }
+  
+  .ext-grid {
+    grid-template-columns: 1fr;
   }
 }

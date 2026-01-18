@@ -206,21 +206,6 @@
   gap: 8px;
 }
 
-.ext-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.ext-tag {
-  background: var(--bg-primary);
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  border: 1px solid var(--border);
-}
-
 .highlighter-wrapper {
   max-width: 100%;
   flex: 1;
@@ -734,10 +719,6 @@
   
   .panel h3 {
     margin-bottom: 0.5rem;
-  }
-  
-  .ext-grid {
-    grid-template-columns: 1fr;
   }
   
   .file-upload-btn {
