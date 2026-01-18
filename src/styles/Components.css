@@ -133,6 +133,9 @@ textarea:focus {
   box-shadow: none;
 }
 
+.primary-button i {
+  margin-right: 10px;
+}
 
 .theme-dark-black-gold .primary-button:hover {
   position: relative;
@@ -212,6 +215,10 @@ textarea:focus {
   border-color: var(--accent);
 }
 
+.file-upload-btn i {
+  margin-right: 6px;
+}
+
 .download-btn {
   background: var(--accent);
   color: var(--bg-primary);
@@ -257,6 +264,17 @@ textarea:focus {
   background: var(--accent);
   color: #000;
   font-weight: 600;
+}
+
+.tab-btn i {
+  margin-right: 8px;
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.tab-btn.active i {
+  opacity: 1;
+  color: var(--accent);
 }
 
 .close-tab {
@@ -524,25 +542,6 @@ select option {
   box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
 }
 
-.error-message i {
-  margin-right: 6px;
-}
-
-.primary-button i {
-  margin-right: 10px;
-}
-
-.tab-btn i {
-  margin-right: 8px;
-  opacity: 0.7;
-  font-size: 0.9em;
-}
-
-.tab-btn.active i {
-  opacity: 1;
-  color: var(--accent);
-}
-
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -561,6 +560,10 @@ select option {
   font-size: 0.85rem;
 }
 
+.error-message i {
+  margin-right: 6px;
+}
+
 .code-accent {
   color: var(--accent);
   font-family: monospace;
@@ -577,10 +580,6 @@ select option {
 
 .header-actions {
   gap: 10px;
-}
-
-.file-upload-btn i {
-  margin-right: 6px;
 }
 
 .panel textarea {
