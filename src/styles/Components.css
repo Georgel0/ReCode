@@ -473,7 +473,7 @@ select option {
   max-height: 60vh;
   overflow: auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem;
   margin-top: 1rem;
 }
