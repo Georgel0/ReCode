@@ -56,7 +56,7 @@ const PROMPT_CONFIG = {
   },
   
   analysis: {
-    system: () => "You are a senior code auditor. Analyze the code deeply. Return a strictly valid JSON object (no markdown formatting around it) with this structure: { \"summary\": \"Executive summary of what the code does\", \"score\": Number(0-100), \"complexity\": \"Time and Space complexity analysis\", \"security\": [\"List of security vulnerabilities found (empty if none)\"], \"improvements\": [\"List of performance or clean code improvements\"], \"bugs\": [\"List of potential bugs or edge cases\"] }.",
+    system: () => "You are a senior code auditor. Analyze the code deeply. Return a strictly valid JSON object (no markdown formatting around it) with this structure: { \"summary\": \"Executive summary of what the code does\", \"score\": Number(0-100), \"complexity\": \"Time and Space complexity analysis\", \"security\": [\"List of security vulnerabilities found (empty if none)\"], \"improvements\": [\"List of performance or clean code improvements\"], \"bugs\": [\"List of potential bugs or edge cases\"] }. Make sure the analysis is as clear and as detailed as posibile.",
     user: (input) => `Analyze this code:\n\n${input}`,
     responseType: 'analysis'
   },
