@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getHistory, deleteHistoryItem, cleanupOldHistory, clearAllHistory } from '../services/firebase';
+import { getHistory, deleteHistoryItem, clearAllHistory } from '../services/firebase';
 import { useTheme } from './ThemeContext';
 import About from "./About";
 
@@ -15,7 +15,6 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
   
   const refreshHistory = async () => {
     try {
-      await cleanupOldHistory();
       const data = await getHistory();
       setHistoryItems(data);
     } catch (error) {
