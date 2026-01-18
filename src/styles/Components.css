@@ -436,10 +436,8 @@ select option {
 }
 
 .modal-overlay {
-  overflow: auto;
-  max-height: 80%;
   position: fixed;
-  top: 40px;left: 0;
+  top: 0;left: 0;
   right: 0;bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
@@ -447,7 +445,6 @@ select option {
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
-  margin: 20px;
 }
 
 .modal-content {
@@ -466,8 +463,6 @@ select option {
 }
 
 .modal-close-btn {
-  position: fixed;
-  bottom: 0; right: 0;
   margin-top: 1.5rem;
   width: 100%;
 }
