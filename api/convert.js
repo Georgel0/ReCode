@@ -180,10 +180,12 @@ export default async function handler(req, res) {
     return res.status(200).json(finalResponse);
 
   } catch (error) {
-    console.error("AI Gateway Error:", error);
-    // Return the actual error message safely
-    return res.status(500).json({ 
-      error: `AI Processing Failed: ${error.message || "Unknown Error"}` 
-    });
-  }
+  // Add this to see the ACTUAL reason (401, 404, etc.)
+  console.error("GATEWAY ERROR DETAILS:", {
+    message: error.message,
+    statusCode: error.statusCode, // This will tell us if it's Auth (401) or Not Found (404)
+    data: error.data
+  });
+  return res.status(500).json({ error: error.message });
+}
 }
