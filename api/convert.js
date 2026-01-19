@@ -17,8 +17,7 @@ if (!admin.apps.length) {
 
 // Initialize Vercel AI Gateway
 const gateway = createGateway({
-  apiKey: process.env.VERCEL_AI_GATEWAY_KEY, 
-  baseURL: "https://ai-gateway.vercel.sh/v1",
+  apiKey: process.env.VERCEL_AI_GATEWAY_KEY
 });
 
 const PROMPT_CONFIG = {
