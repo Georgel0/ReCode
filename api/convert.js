@@ -70,10 +70,10 @@ const PROMPT_CONFIG = {
     model: "deepseek/deepseek-v3.2-thinking",
     system: (mode) => {
       const goals = {
-        clean: "readability and DRY principles",
-        perf: "algorithmic efficiency and memory optimization",
-        modern: "modern language features and removing deprecations",
-        comments: "detailed documentation and explanation"
+        clean: "readability and DRY principles, focus entirely on readability",
+        perf: "algorithmic efficiency and memory optimization, focus entirely on performance",
+        modern: "modern language features and removing deprecations, focuc entirely on modernizing the code",
+        comments: "add one-line comments through the code to explain what the code dose, foucus on code explanation"
       };
       return `You are a Code Refactoring Expert. Goal: ${goals[mode] || goals.clean}.
       CRITICAL:
@@ -125,7 +125,7 @@ export default async function handler(req, res) {
 
   try {
     // Call Vercel AI Gateway
-    const { text, reasoning } = await generateText({
+    const { text } = await generateText({
       model: gateway(selectedModelId), // Routes to Mistral or DeepSeek
       messages: [
         { role: "system", content: finalSystem },
@@ -133,11 +133,6 @@ export default async function handler(req, res) {
       ],
       temperature: 0.1,
     });
-    
-    // Log reasoning if available (only for DeepSeek Thinking models)
-    if (reasoning) {
-      console.log(`[AI Logic] ${type}:`, reasoning.slice(0, 200) + "...");
-    }
 
     // Parse & Format Response
     let finalResponse = {};
