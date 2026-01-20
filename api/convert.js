@@ -37,7 +37,7 @@ const PROMPT_CONFIG = {
   },
   regex: {
     model: "mistral/devstral-2",
-    system: () => "You are a Regular Expression expert. Return strictly valid JSON with fields: 'pattern' (raw string) and 'explanation' (bullet points). No markdown.",
+    system: () => "You are a Regular Expression expert. Return strictly valid JSON with fields: 'pattern' (raw string) and detailed explanation (bullet points). No markdown.",
     user: (input) => `Requirement: ${input}\n\nReturn JSON format: { "pattern": "...", "explanation": "..." }`,
     responseType: 'text' 
   },
@@ -179,10 +179,9 @@ export default async function handler(req, res) {
     return res.status(200).json(finalResponse);
 
   } catch (error) {
-  // Add this to see the ACTUAL reason (401, 404, etc.)
   console.error("GATEWAY ERROR DETAILS:", {
     message: error.message,
-    statusCode: error.statusCode, // This will tell us if it's Auth (401) or Not Found (404)
+    statusCode: error.statusCode, 
     data: error.data
   });
   return res.status(500).json({ error: error.message });
