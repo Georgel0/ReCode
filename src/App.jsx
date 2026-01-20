@@ -25,7 +25,7 @@ function App() {
   const [moduleData, setModuleData] = useState(null);
   const [notificationMessage, setNotificationMessage] = useState(null);
   const { currentTheme } = useTheme();
-    const [activeModule, setActiveModule] = 
+  const [activeModule, setActiveModule] = 
     useState(() => {
       return localStorage.getItem('recode_active_module') || 'converter';
   });
