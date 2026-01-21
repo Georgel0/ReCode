@@ -31,7 +31,7 @@ function App() {
       return localStorage.getItem('recode_active_module') || 'converter';
   });
   const [showModelSelector, setShowModelSelector] = useState(false);
-  const [quailtyMode, setQualityMode] = useState(() => {
+  const [qualityMode, setQualityMode] = useState(() => {
     return localStorage.getItem('recode_quality_mode') || null;
   });
   
@@ -118,7 +118,7 @@ function App() {
     const commonProps = {
       onLoadData: moduleData,
       onSwitchModule: handleModuleSwitch,
-      quailtyMode: qualityMode || 'fast'
+      qualityMode: qualityMode || 'fast'
     };
     
     switch (activeModule) {
@@ -164,7 +164,7 @@ function App() {
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
         loadFromHistory={loadFromHistory}
-        openModelSelector={() => setShowModelSelector}
+        openModelSelector={() => setShowModelSelector(true)}
       />
       
       <main className="main-content">
