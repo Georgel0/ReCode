@@ -25,17 +25,21 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
     }
   }, [onLoadData]);
 
-  const processAnalysisResult = (resultString) => {
-    setRawAnalysis(resultString);
-    try {
-      const cleanJson = resultString.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanJson);
-      setAnalysisData(parsed);
-    } catch (e) {
-      console.warn("Could not parse structured analysis, falling back to text mode.");
-      setAnalysisData(null);
-    }
-  };
+  const processAnalysisResult = (result) => {
+  if (typeof result === 'object' && result !== null) {
+    setAnalysisData(result);
+    setRawAnalysis(JSON.stringify(result, null, 2));
+    return;
+  }
+  setRawAnalysis(result);
+  try {
+    const cleanJson = result.replace(/```json/g, '').replace(/```/g, '').trim();
+    setAnalysisData(JSON.parse(cleanJson));
+  } catch (e) {
+    setAnalysisData(null);
+  }
+};
+
 
   const handleAnalyze = async (codeOverride) => {
     const codeToProcess = codeOverride || input;
