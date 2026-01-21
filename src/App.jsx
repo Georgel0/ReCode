@@ -172,7 +172,7 @@ function App() {
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
         loadFromHistory={loadFromHistory}
-        openModelSelector={() => setShowModelSelector(true)}
+        openModelSelector={() => { setShowModelSelector(true); toggleSidebar() }}
         qualityMode={qualityMode}
         toggleQuality={toggleQualityMode}
       />
