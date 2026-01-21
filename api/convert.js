@@ -44,13 +44,13 @@ const PROMPT_CONFIG = {
   },
   
   converter: {
-    system: () => "You are a code conversion engine. Output ONLY the raw code string. No markdown backticks. No explanations.",
+    system: () => "You are a code conversion engine. Output ONLY the raw code string.  Make sure the conversion is valid and the syntaxes are correct. No markdown backticks. No explanations.",
     user: (input, src, tgt) => `Convert this ${src} code to ${tgt}:\n\n${input}`,
     responseType: 'text'
   },
   
   generator: {
-    system: () => `You are an expert multi-file code generator. Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. No markdown backticks. No explanations.`,
+    system: () => `You are an expert multi-file code generator. Generate the code by fallowing the user request. Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. No markdown backticks. No explanations.`,
     user: (input) => `Request: ${input}`,
     responseType: 'json_files'
   },
