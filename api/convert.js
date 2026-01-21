@@ -112,7 +112,6 @@ export default async function handler(req, res) {
   
   try {
     // Verify the ID token with Firebase Admin
-    // This ensures the request is coming from your actual authenticated app
     await admin.auth().verifyIdToken(token);
   } catch (error) {
     console.error("Token verification failed:", error);
