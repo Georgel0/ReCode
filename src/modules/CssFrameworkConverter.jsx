@@ -138,7 +138,7 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
                             Copy
                         </button>
                         <button 
-                            className="primary-button secondary-action-btn"
+                            className="secondary-button secondary-action-btn"
                             onClick={() => handleAnalyze(item.tailwindClasses)}
                         >
                             Analyze

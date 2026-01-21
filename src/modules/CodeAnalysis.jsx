@@ -108,6 +108,7 @@ export default function CodeAnalysis({ onLoadData }) {
             >
               {loading ? (
                 <>
+                  <br/>
                   <i className="fa-solid fa-circle-notch fa-spin"></i> Analyzing...
                 </>
               ) : (
