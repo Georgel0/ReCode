@@ -135,7 +135,7 @@ export default async function handler(req, res) {
       // Initialize OpenAI Provider via Vercel Gateway
       const openai = createOpenAI({
         apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
-        baseURL: "[https://api.vercel.ai/v1](https://api.vercel.ai/v1)", 
+        baseURL: "https://api.vercel.ai/v1",
       });
       
       // Generate
@@ -171,46 +171,38 @@ export default async function handler(req, res) {
     let finalResponse = {};
     
     // Response parsing logic
-    if (finalResponseType === 'json_files' || finalResponseType === 'json') {
+    if (finalResponseType === 'json_files' || finalResponseType === 'json' || type === 'json' || type === 'regex') {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       let jsonString = jsonMatch ? jsonMatch[0] : text;
       jsonString = jsonString.replace(/^```(json)?\s*|```$/g, '').trim();
       
       try {
-        const parsed = JSON5.parse(jsonString);
-        if (finalResponseType === 'json_files' && !parsed.files && !parsed.conversions) {
-          if (parsed.content) throw new Error("Missing expected keys in JSON response");
-        }
-        finalResponse = parsed;
+        finalResponse = JSON5.parse(jsonString);
       } catch (e) {
         console.error("JSON5 Parse Error:", e);
-        finalResponse = {
-          error: "Parse Failure",
-          raw: text,
-          files: [{ fileName: "output.txt", content: text }]
-        };
+        finalResponse = { error: "Parse Failure", raw: text };
       }
     }
-    else if (finalResponseType === 'analysis') {
-      try {
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          finalResponse = JSON5.parse(jsonMatch[0]);
-        } else {
-          finalResponse = { analysis: text };
-        }
-      } catch {
+  else if (finalResponseType === 'analysis') {
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        finalResponse = JSON5.parse(jsonMatch[0]);
+      } else {
         finalResponse = { analysis: text };
       }
+    } catch {
+      finalResponse = { analysis: text };
     }
-    else {
-      finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
-    }
-    
-    return res.status(200).json(finalResponse);
-    
-  } catch (error) {
-    console.error("AI Processing Failed:", error);
-    return res.status(500).json({ error: "AI Processing Failed: " + error.message });
   }
+  else {
+    finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
+  }
+  
+  return res.status(200).json(finalResponse);
+  
+} catch (error) {
+  console.error("AI Processing Failed:", error);
+  return res.status(500).json({ error: "AI Processing Failed: " + error.message });
+}
 }
