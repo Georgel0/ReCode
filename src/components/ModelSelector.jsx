@@ -7,7 +7,7 @@ export default function ModelSelector({ isOpen, onClose, onSelect }) {
   <div className="modal-overlay">
    <div className="modal-content model-selector-modal">
     <div className="modal-header">
-     <h2><i className="fas fa-robot"></i> Select AI Model</h2>
+     <h2><i className="fas fa-microchip"></i> Select AI Model</h2>
      {onClose && <button className="close-btn" onClick={onClose}>✕</button>}
     </div>
     
@@ -15,7 +15,7 @@ export default function ModelSelector({ isOpen, onClose, onSelect }) {
     
     <div className="model-options-grid">
      <div className="model-card fast" onClick={() => onSelect('fast')}>
-      <div className="card-icon"><i className="fas fa-bolt"></i></div>
+      <div className="card-icon"><i className="fas fa-stopwatch"></i></div>
       <div className="card-info">
        <h3>Fast Response</h3>
        <p>Fast response but lower code quality</p>
@@ -28,7 +28,7 @@ export default function ModelSelector({ isOpen, onClose, onSelect }) {
      </div>
      
       <div className="model-card quality" onClick={() => onSelect('quality')}>
-      <div className="card-icon"><i className="fas fa-brain"></i></div>
+      <div className="card-icon"><i className="fas fa-gem"></i></div>
       <div className="card-info">
        <h3>High Quality</h3>
        <p>Slower response but higher code quality</p>

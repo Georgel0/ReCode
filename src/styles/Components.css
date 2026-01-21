@@ -640,16 +640,16 @@ select option {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
 }
 
-.model-card.fast:hover { border-color: #10b981; } 
-.model-card.quality:hover { border-color: #8b5cf6; } 
+.model-card.fast:hover { border-color: var(--border) } 
+.model-card.quality:hover { border-color: var(--border) } 
 
 .card-icon {
   font-size: 2rem;
   margin-bottom: 0.5rem;
 }
 
-.fast .card-icon { color: #10b981; }
-.quality .card-icon { color: #8b5cf6; }
+.fast .card-icon { color: var(--text-primary); }
+.quality .card-icon { color: var(--text-primary); }
 
 .card-info h3 {
   margin: 0 0 0.5rem 0;

@@ -165,6 +165,7 @@ function App() {
         toggleSidebar={toggleSidebar}
         loadFromHistory={loadFromHistory}
         openModelSelector={() => setShowModelSelector(true)}
+        qualityMode={qualityMode}
       />
       
       <main className="main-content">

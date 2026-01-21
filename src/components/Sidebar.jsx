@@ -3,7 +3,7 @@ import { getHistory, deleteHistoryItem, clearAllHistory } from '../services/fire
 import { useTheme } from './ThemeContext';
 import About from "./About";
 
-export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleSidebar, loadFromHistory, openModelSelector }) {
+export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleSidebar, loadFromHistory, openModelSelector, qualityMode }) {
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -138,6 +138,7 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
           <button className="model-trigger-btn" onClick={openModelSelector}>
             <i className="fas fa-microchip"></i>
             <span>AI Model Mode</span>
+            {qualityMode === 'fast' ? <i className="fas fa-stopwatch"></i> : <i className="fas fa-gem"></i>}
           </button>
         </div>
         
