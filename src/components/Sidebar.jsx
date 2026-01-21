@@ -142,7 +142,10 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
           </button>
           <button className="second-model-trigger-btn"
           onClick={toggleQuality}>
-            {qualityMode === 'fast' ? <i className="fas fa-stopwatch"></i> : <i className="fas fa-gem"></i>}
+            <div className="mode-icon-slide" key={qualityMode}>
+              {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
+            </div>
+            
           </button>
         </div>
         

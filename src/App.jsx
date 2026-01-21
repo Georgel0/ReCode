@@ -84,10 +84,10 @@ function App() {
   
   const toggleQualityMode = () => {
     const newMode = qualityMode === 'fast' ? 'quality' : 'fast';
-    localStorage.setItem('recode_quality_mode', mode);
+    localStorage.setItem('recode_quality_mode', newMode);
     setQualityMode(newMode);
     
-    setNotificationMessage(`Switched to ${mode === 'fast' ? 'Fast Response' : 'Quality Response'} Mode`);
+    setNotificationMessage(`Switched to ${newMode === 'fast' ? 'Fast Response' : 'Quality Response'} Mode`);
   };
   
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
