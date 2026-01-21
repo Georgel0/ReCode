@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 
-export default function JsonFormatter({ onLoadData }) {
+export default function JsonFormatter({ onLoadData, qualityMode }) {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');
   const [explanation, setExplanation] = useState('');
@@ -66,7 +66,7 @@ export default function JsonFormatter({ onLoadData }) {
     setExplanation('');
     setErrorMsg(null);
     try {
-      const result = await convertCode('json', input);
+      const result = await convertCode('json', input, qualityMode);
       if (result && result.convertedCode) {
         const { code, info } = parseJsonReponse(result.convertedCode);
         setOutputCode(code);

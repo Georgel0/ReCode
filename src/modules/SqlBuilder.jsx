@@ -20,7 +20,7 @@ const MODES = [
  { id: 'optimizer', label: 'Optimizer', icon: 'fa-gauge-high' },
 ];
 
-export default function SqlBuilder({ onLoadData }) {
+export default function SqlBuilder({ onLoadData, qualityMode }) {
  const [activeMode, setActiveMode] = useState('builder');
  const [input, setInput] = useState('');
  const [schema, setSchema] = useState('');
@@ -65,7 +65,7 @@ export default function SqlBuilder({ onLoadData }) {
    }
    
    // passing the prompt as 'input' to the backend
-   const result = await convertCode('sql', fullPrompt, '', targetDialect);
+   const result = await convertCode('sql', fullPrompt, '', targetDialect, qualityMode);
    
    if (result && result.convertedCode) {
     setOutputCode(result.convertedCode);

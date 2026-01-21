@@ -6,7 +6,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-export default function CodeGenerator({ onLoadData, onSwitchModule }) {
+export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState([]);
   const [activeFileIndex, setActiveFileIndex] = useState(0);
@@ -41,7 +41,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule }) {
     setLastResult(false);
 
     try {
-      let result = await convertCode('generator', input);
+      let result = await convertCode('generator', input, qualityMode);
 
       if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
         const rawContent = result.files[0].content;

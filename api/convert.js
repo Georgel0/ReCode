@@ -1,12 +1,13 @@
 import Groq from "groq-sdk";
 import JSON5 from "json5";
 import admin from "firebase-admin";
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText } from 'ai';
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin 
 if (!admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
@@ -64,9 +65,7 @@ const PROMPT_CONFIG = {
   'css-framework': {
     system: (target) => target === 'tailwind' ?
       `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
-    
     user: (input, _, target) => `Convert this CSS to ${target}:\n\n${input}`,
-    
     responseType: (target) => target === 'tailwind' ? 'json_files' : 'text'
   },
   
@@ -77,20 +76,13 @@ const PROMPT_CONFIG = {
   },
   
   sql: {
-    system: () => "You are an expert SQL Architect. Your task is to generate, convert, or optimize SQL queries. " +
-      "Return ONLY the raw SQL code. Do not use Markdown formatting (no ```sql). " +
-      "If comments are requested, include them inside the SQL using -- or /* */ syntax. " +
-      "Strictly follow the Target Dialect syntax.",
+    system: () => "You are an expert SQL Architect. Your task is to generate, convert, or optimize SQL queries. Return ONLY the raw SQL code. Do not use Markdown formatting (no ```sql). If comments are requested, include them inside the SQL using -- or /* */ syntax. Strictly follow the Target Dialect syntax.",
     user: (input) => input,
     responseType: 'text'
   },
   
   json: {
-    system: () =>
-      "You are a JSON repair and formatting expert. You must return a strictly valid JSON object. " +
-      "Do not include markdown formatting (like ```json). The JSON must have two fields: " +
-      "'formattedJson' (the repaired and pretty-printed JSON string) and " +
-      "'explanation' (a concise, bulleted list of what was fixed or validated).",
+    system: () => "You are a JSON repair and formatting expert. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'formattedJson' (the repaired and pretty-printed JSON string) and 'explanation' (a concise, bulleted list of what was fixed or validated).",
     user: (input) => `Input JSON: ${input}\n\nReturn JSON format: { "formattedJson": "...", "explanation": "..." }`,
     responseType: 'text'
   }
@@ -100,7 +92,6 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   
   const { GROQ_API_KEY } = process.env;
-  if (!GROQ_API_KEY) return res.status(500).json({ error: "Server Error: API Key missing." });
   
   // Security check
   const authHeader = req.headers.authorization;
@@ -111,61 +102,106 @@ export default async function handler(req, res) {
   const token = authHeader.split(' ')[1];
   
   try {
-    // Verify the ID token with Firebase Admin
     await admin.auth().verifyIdToken(token);
   } catch (error) {
     console.error("Token verification failed:", error);
     return res.status(401).json({ error: 'Unauthorized: Invalid session.' });
   }
-  // --- 
   
-  const { type, input, sourceLang, targetLang, mode } = req.body;
-  const groq = new Groq({ apiKey: GROQ_API_KEY });
+  // Extract qualityMode from request (default to 'fast')
+  const { type, input, sourceLang, targetLang, mode, qualityMode = 'fast' } = req.body;
   
   const config = PROMPT_CONFIG[type];
   if (!config) return res.status(400).json({ error: `Invalid type: ${type}` });
   
   const finalSystem = config.system(targetLang || mode);
   const finalUser = config.user(input, sourceLang, targetLang);
-  const finalResponseType = typeof config.responseType === 'function' ?
-    config.responseType(targetLang) :
-    config.responseType;
+  const finalResponseType = typeof config.responseType === 'function' ? config.responseType(targetLang) : config.responseType;
   
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: "system", content: finalSystem },
-        { role: "user", content: finalUser }
-      ],
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.1,
-      response_format: finalResponseType === 'json_files' ? { type: "json_object" } : undefined
-    });
+    let text = "";
     
-    let text = completion.choices[0]?.message?.content || "";
+    if (qualityMode === 'quality') {
+      
+      //  Determine Exact Model
+      let modelName;
+      
+      if (['generator', 'analysis', 'sql'].includes(type)) {
+        modelName = 'deepseek/deepseek-v3.2-thinking';
+      } else {
+        modelName = 'mistral/devstral-2';
+      }
+      
+      // Initialize OpenAI Provider via Vercel Gateway
+      const openai = createOpenAI({
+        apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
+        baseURL: "[https://api.vercel.ai/v1](https://api.vercel.ai/v1)", 
+      });
+      
+      // Generate
+      const { text: generatedText } = await generateText({
+        model: openai(modelName),
+        messages: [
+          { role: "system", content: finalSystem },
+          { role: "user", content: finalUser }
+        ],
+        temperature: 0.2,
+      });
+      
+      text = generatedText;
+      
+    } else {
+      if (!GROQ_API_KEY) return res.status(500).json({ error: "Server Error: API Key missing." });
+      
+      const groq = new Groq({ apiKey: GROQ_API_KEY });
+      
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: "system", content: finalSystem },
+          { role: "user", content: finalUser }
+        ],
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.1,
+        response_format: finalResponseType === 'json_files' ? { type: "json_object" } : undefined
+      });
+      
+      text = completion.choices[0]?.message?.content || "";
+    }
+    
     let finalResponse = {};
     
-    if (finalResponseType === 'json_files') {
+    // Response parsing logic
+    if (finalResponseType === 'json_files' || finalResponseType === 'json') {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       let jsonString = jsonMatch ? jsonMatch[0] : text;
       jsonString = jsonString.replace(/^```(json)?\s*|```$/g, '').trim();
       
       try {
         const parsed = JSON5.parse(jsonString);
-        if (!parsed.files && !parsed.conversions) {
-          throw new Error("Missing expected keys in JSON response");
+        if (finalResponseType === 'json_files' && !parsed.files && !parsed.conversions) {
+          if (parsed.content) throw new Error("Missing expected keys in JSON response");
         }
         finalResponse = parsed;
       } catch (e) {
         console.error("JSON5 Parse Error:", e);
         finalResponse = {
           error: "Parse Failure",
-          files: [{ fileName: "error_log.txt", content: text }]
+          raw: text,
+          files: [{ fileName: "output.txt", content: text }]
         };
       }
     }
     else if (finalResponseType === 'analysis') {
-      finalResponse = { analysis: text };
+      try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          finalResponse = JSON5.parse(jsonMatch[0]);
+        } else {
+          finalResponse = { analysis: text };
+        }
+      } catch {
+        finalResponse = { analysis: text };
+      }
     }
     else {
       finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
@@ -174,7 +210,7 @@ export default async function handler(req, res) {
     return res.status(200).json(finalResponse);
     
   } catch (error) {
-    console.error("Groq API Error:", error);
+    console.error("AI Processing Failed:", error);
     return res.status(500).json({ error: "AI Processing Failed: " + error.message });
   }
 }

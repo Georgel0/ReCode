@@ -27,7 +27,7 @@ const REFACTOR_MODES = [
   { id: 'comments', label: 'Add Comments', desc: 'Adds documentation and explanatory comments.' },
 ];
 
-export default function CodeRefactor({ onLoadData, onSwitchModule }) {
+export default function CodeRefactor({ onLoadData, onSwitchModule, qualityMode }) {
   const [files, setFiles] = useState([{ id: 1, name: 'main.js', language: 'javascript', content: '' }]);
   const [activeTab, setActiveTab] = useState(1);
   const [outputFiles, setOutputFiles] = useState([]);
@@ -117,7 +117,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule }) {
         content: f.content
       })));
       
-      const result = await convertCode('refactor', inputFiles, null, refactorMode);
+      const result = await convertCode('refactor', inputFiles, null, refactorMode, qualityMode);
       
       if (result && result.files) {
         setOutputFiles(result.files);

@@ -10,6 +10,7 @@ import './styles/Modules.css';
 
 import Notification from './components/Notification';
 import Sidebar from './components/Sidebar';
+import ModelSelector from './components/ModelSelector';
 
 import CodeConverter from './modules/CodeConverter';
 import CodeAnalysis from './modules/CodeAnalysis';
@@ -29,6 +30,15 @@ function App() {
     useState(() => {
       return localStorage.getItem('recode_active_module') || 'converter';
   });
+  const [showModelSelector, setShowModelSelector] = useState(false);
+  const [quailtyMode, setQualityMode] = useState(() => {
+    return localStorage.getItem('recode_quality_mode') || null;
+  });
+  
+  useEffect(() => {
+    const savedMode = localStorage.getItem('recode_quality_mode');
+    !savedMode ? setShowModelSelector(true) : setQualityMode(savedMode);
+  }, []);
   
   useEffect(() => {
     localStorage.setItem('recode_active_module', activeModule);
@@ -63,7 +73,14 @@ function App() {
   };
   setupApp();
 }, []);
-
+  
+  const handleModelSelect = (mode) => {
+    setQualityMode(mode);
+    localStorage.setItem('recode_quality_mode', mode);
+    setShowModelSelector(false);
+    
+    setNotificationMessage(`Switched to ${mode === 'fast' ? 'Fast Response' : 'Quality Response'} Mode`);
+  };
   
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   
@@ -98,25 +115,31 @@ function App() {
   };
   
   const renderModule = () => {
+    const commonProps = {
+      onLoadData: moduleData,
+      onSwitchModule: handleModuleSwitch,
+      quailtyMode: qualityMode || 'fast'
+    };
+    
     switch (activeModule) {
       case 'converter':
-        return <CodeConverter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <CodeConverter {...commonProps} />;
       case 'refactor':
-        return <CodeRefactor onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <CodeRefactor {...commonProps} />;
       case 'analysis':
-        return <CodeAnalysis onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <CodeAnalysis {...commonProps} />;
       case 'css-tailwind':
-        return <CssFrameworkConverter onLoadData={moduleData} preSetTarget="tailwind" onSwitchModule={handleModuleSwitch} />;
+        return <CssFrameworkConverter {...commonProps} preSetTarget="tailwind" />;
       case 'generator':
-        return <CodeGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <CodeGenerator {...commonProps} />;
       case 'regex':
-        return <RegexGenerator onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <RegexGenerator {...commonProps} />;
       case 'sql':
-        return <SqlBuilder onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <SqlBuilder {...commonProps} />;
       case 'json':
-        return <JsonFormatter onLoadData={moduleData} onSwitchModule={handleModuleSwitch} />;
+        return <JsonFormatter {...commonProps} />;
       default:
-        return <CodeConverter />;
+        return <CodeConverter {...commonProps} />;
     }
   };
   
@@ -128,6 +151,12 @@ function App() {
         <meta property="og:title" content={currentMeta.title} />
         <meta property="og:description" content={currentMeta.desc} />
       </Helmet>
+      
+      <ModelSelector
+        isOpen={showModelSelector}
+        onSelect={handleModelSelect}
+        onClose={qualityMode ? () => setShowModelSelector(false) : null}
+      />
 
       <Sidebar 
         activeModule={activeModule} 
@@ -135,6 +164,7 @@ function App() {
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
         loadFromHistory={loadFromHistory}
+        openModelSelector={() => setShowModelSelector}
       />
       
       <main className="main-content">

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 
-export default function CodeAnalysis({ onLoadData }) {
+export default function CodeAnalysis({ onLoadData, qualityMode }) {
   const [input, setInput] = useState('');
   const [analysisData, setAnalysisData] = useState(null);
   const [rawAnalysis, setRawAnalysis] = useState('');
@@ -47,7 +47,7 @@ export default function CodeAnalysis({ onLoadData }) {
     setLastResult(false);
 
     try {
-      const result = await convertCode('analysis', codeToProcess);
+      const result = await convertCode('analysis', codeToProcess, qualityMode);
 
       if (result && result.analysis) {
         processAnalysisResult(result.analysis);

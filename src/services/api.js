@@ -1,6 +1,6 @@
 import { getAuth } from "firebase/auth";
 
-export const convertCode = async (type, input, sourceLang = '', targetLang = '') => {
+export const convertCode = async (type, input, sourceLang = '', targetLang = '', qualityMode = 'fast') => {
   let lastError;
   const MAX_RETRIES = 3;
   const auth = getAuth();
@@ -18,7 +18,7 @@ export const convertCode = async (type, input, sourceLang = '', targetLang = '')
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ type, input, sourceLang, targetLang }),
+        body: JSON.stringify({ type, input, sourceLang, targetLang, qualityMode }),
       });
 
       // Read the raw text first

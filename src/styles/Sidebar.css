@@ -487,6 +487,38 @@
   border-radius: 10px;
 }
 
+.model-trigger-section {
+  padding: 0 0.75rem;
+  margin-top: 1rem;
+}
+
+.model-trigger-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.model-trigger-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.15);
+}
+
+.theme-dark-black-gold .model-trigger-btn,
+.theme-light-quartz .model-trigger-btn {
+  border-image: var(--gradient-gold) 1;
+}
+
+
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;

@@ -26,7 +26,7 @@ const LANGUAGES = [
   { value: 'lua', label: 'Lua', ext: '.lua' },
 ];
 
-export default function CodeConverter({ onLoadData, onSwitchModule }) {
+export default function CodeConverter({ onLoadData, onSwitchModule, qualityMode }) {
   const [sourceLang, setSourceLang] = useState('javascript');
   const [targetLang, setTargetLang] = useState('python');
   const [input, setInput] = useState('');
@@ -103,7 +103,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule }) {
     setOutputCode('');
     setLastResult(false);
     try {
-      const result = await convertCode('converter', input, sourceLang, targetLang);
+      const result = await convertCode('converter', input, sourceLang, targetLang, qualityMode);
       if (result && result.convertedCode) {
         setOutputCode(result.convertedCode);
         setLastResult({

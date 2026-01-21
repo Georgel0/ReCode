@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 
-export default function RegexGenerator({ onLoadData }) {
+export default function RegexGenerator({ onLoadData, qualityMode }) {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');
   const [explanation, setExplanation] = useState('');
@@ -63,7 +63,7 @@ export default function RegexGenerator({ onLoadData }) {
     setLastResult(false);
     
     try {
-      const result = await convertCode('regex', input);
+      const result = await convertCode('regex', input, qualityMode);
       
       if (result && result.convertedCode) {
         const { pattern, explanation } = parseResponse(result.convertedCode);

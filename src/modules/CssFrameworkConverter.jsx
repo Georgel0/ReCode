@@ -8,7 +8,7 @@ const TARGET_FRAMEWORKS = [
   { value: 'sass', label: 'SASS/SCSS' },
   { value: 'less', label: 'LESS' },
 ];
-export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tailwind', onSwitchModule }) {
+export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tailwind', onSwitchModule, qualityMode }) {
   const [input, setInput] = useState('');
   const [targetLang, setTargetLang] = useState(preSetTarget);
   const [data, setData] = useState(null);
@@ -32,7 +32,7 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
     setData(null);
     setLastResult(false);
     try {
-      const result = await convertCode('css-framework', input, 'css', targetLang);
+      const result = await convertCode('css-framework', input, 'css', targetLang, qualityMode);
       
       // Validation: Check if we got the expected format based on target
       const isValidTailwind = targetLang === 'tailwind' && result && result.conversions;

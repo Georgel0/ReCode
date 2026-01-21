@@ -3,7 +3,7 @@ import { getHistory, deleteHistoryItem, clearAllHistory } from '../services/fire
 import { useTheme } from './ThemeContext';
 import About from "./About";
 
-export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleSidebar, loadFromHistory }) {
+export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleSidebar, loadFromHistory, openModelSelector }) {
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -133,6 +133,13 @@ export default function Sidebar({ activeModule, setActiveModule, isOpen, toggleS
             ))}
           </nav>
         )}
+        
+        <div className="model-trigger-section">
+          <button className="model-trigger-btn" onClick={openModelSelector}>
+            <i className="fas fa-microchip"></i>
+            <span>AI Model Mode</span>
+          </button>
+        </div>
         
         <div className="theme-selector-section">
           <h3>Theme:</h3>
