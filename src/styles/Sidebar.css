@@ -527,6 +527,11 @@
   border-radius: 0;
 }
 
+.theme-dark-black-gold .second-model-trigger-btn,
+.theme-light-quartz .second-model-trigger-btn {
+  border: none;
+}
+
 .second-model-trigger-btn {
   width: 45px;
   display: flex;
