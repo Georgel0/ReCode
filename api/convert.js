@@ -1,12 +1,12 @@
-import { createGateway } from '@ai-sdk/gateway';
-import { generateText } from 'ai';
+import Groq from "groq-sdk";
 import JSON5 from "json5";
 import admin from "firebase-admin";
 
-// Initialize Firebase Admin (Server-Side)
+// Initialize Firebase Admin
 if (!admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
@@ -15,170 +15,167 @@ if (!admin.apps.length) {
   }
 }
 
-// Initialize Vercel AI Gateway
-const gateway = createGateway({
-  apiKey: process.env.VERCEL_AI_GATEWAY_KEY
-});
-
 const PROMPT_CONFIG = {
+  refactor: {
+    system: (mode) => {
+      const goals = {
+        clean: "Focus on readability, better variable naming, and DRY principles.",
+        perf: "Focus on algorithmic efficiency, reducing memory footprint, and optimizing loops.",
+        modern: "Focus on using the latest language features (e.g., ES6+, Python 3.10+) and removing deprecated APIs.",
+        comments: "Focus on adding comments that explain the code, make sure the code is still readable and explained well."
+      };
+      
+      const specificGoal = goals[mode] || goals.clean;
+      
+      return `You are a Code Refactoring Expert.
+      Your goal: ${specificGoal}
+      
+      CRITICAL REQUIREMENTS:
+      1. Cross-File Integrity: If files import/reference each other, ensure all references remain valid after refactoring.
+      2. Functional Parity: The logic must remain identical; do not add new features or remove existing functionality.
+      3. Environment: Use modern best practices suitable for the detected languages.
+      
+      Input: A JSON array of files [{"name": "...", "content": "..."}].
+      Return strictly valid JSON: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.
+      Output ONLY the JSON object. No markdown, no prose, no backticks.`;
+    },
+    user: (input) => `Refactor these files while maintaining their relationships:\n\n${input}`,
+    responseType: 'json_files'
+  },
+  
   converter: {
-    model: "mistral/devstral-2", 
     system: () => "You are a code conversion engine. Output ONLY the raw code string. No markdown backticks. No explanations.",
     user: (input, src, tgt) => `Convert this ${src} code to ${tgt}:\n\n${input}`,
     responseType: 'text'
   },
-  'css-framework': {
-    model: "mistral/devstral-2",
-    system: (target) => target === 'tailwind' ?
-      `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : 
-      `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
-    user: (input, _, target) => `Convert this CSS to ${target}:\n\n${input}`,
-    responseType: (target) => target === 'tailwind' ? 'json_files' : 'text'
-  },
-  regex: {
-    model: "mistral/devstral-2",
-    system: () => "You are a Regular Expression expert. Return strictly valid JSON with fields: 'pattern' (raw string) and detailed explanation (bullet points). No markdown.",
-    user: (input) => `Requirement: ${input}\n\nReturn JSON format: { "pattern": "...", "explanation": "..." }`,
-    responseType: 'text' 
-  },
-  json: {
-    model: "mistral/devstral-2",
-    system: () => "You are a JSON repair expert. Return strictly valid JSON with fields: 'formattedJson' and 'explanation'. No markdown.",
-    user: (input) => `Input JSON: ${input}\n\nReturn JSON format: { "formattedJson": "...", "explanation": "..." }`,
-    responseType: 'text'
-  },
+  
   generator: {
-    model: "mistral/devstral-2",
-    system: () => `You are an expert multi-file code generator. Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. No markdown backticks.`,
+    system: () => `You are an expert multi-file code generator. Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. No markdown backticks. No explanations.`,
     user: (input) => `Request: ${input}`,
     responseType: 'json_files'
   },
-
+  
   analysis: {
-    model: "deepseek/deepseek-v3.2-thinking",
-    system: () => "You are a senior code auditor. Analyze the code deeply for security, complexity (Big O), and logic. Return a strictly valid JSON object: { \"summary\": \"...\", \"score\": 0-100, \"complexity\": \"...\", \"security\": [], \"improvements\": [], \"bugs\": [] }.",
+    system: () => "You are a senior code auditor. Analyze the code deeply and give a deep explanation of the code. Return a strictly valid JSON object (no markdown formatting around it) with this structure: { \"summary\": \"Executive summary of what the code does\", \"score\": Number(0-100), \"complexity\": \"Time and Space complexity analysis\", \"security\": [\"List of security vulnerabilities found (empty if none)\"], \"improvements\": [\"List of performance or clean code improvements\"], \"bugs\": [\"List of potential bugs or edge cases\"] }.",
     user: (input) => `Analyze this code:\n\n${input}`,
     responseType: 'analysis'
   },
+  
+  'css-framework': {
+    system: (target) => target === 'tailwind' ?
+      `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
+    
+    user: (input, _, target) => `Convert this CSS to ${target}:\n\n${input}`,
+    
+    responseType: (target) => target === 'tailwind' ? 'json_files' : 'text'
+  },
+  
+  regex: {
+    system: () => "You are a Regular Expression expert. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'pattern' (the raw regex string without leading/trailing slashes) and 'explanation' (a concise, bulleted explanation of the logic).",
+    user: (input) => `Requirement: ${input}\n\nReturn JSON format: { "pattern": "...", "explanation": "..." }`,
+    responseType: 'text'
+  },
+  
   sql: {
-    model: "deepseek/deepseek-v3.2-thinking",
-    system: () => "You are an expert SQL Architect. Generate optimized SQL. Return ONLY the raw SQL code. Use comments -- for explanations inside the code.",
+    system: () => "You are an expert SQL Architect. Your task is to generate, convert, or optimize SQL queries. " +
+      "Return ONLY the raw SQL code. Do not use Markdown formatting (no ```sql). " +
+      "If comments are requested, include them inside the SQL using -- or /* */ syntax. " +
+      "Strictly follow the Target Dialect syntax.",
     user: (input) => input,
     responseType: 'text'
   },
-  refactor: {
-    model: "deepseek/deepseek-v3.2-thinking",
-    system: (mode) => {
-      const goals = {
-        clean: "readability and DRY principles, focus entirely on readability",
-        perf: "algorithmic efficiency and memory optimization, focus entirely on performance",
-        modern: "modern language features and removing deprecations, focuc entirely on modernizing the code",
-        comments: "add one-line comments through the code to explain what the code dose, foucus on code explanation"
-      };
-      return `You are a Code Refactoring Expert. Goal: ${goals[mode] || goals.clean}.
-      CRITICAL:
-      1. Maintain cross-file integrity.
-      2. Do not break existing logic.
-      3. Return strictly valid JSON: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.`;
-    },
-    user: (input) => `Refactor these files:\n\n${input}`,
-    responseType: 'json_files'
+  
+  json: {
+    system: () =>
+      "You are a JSON repair and formatting expert. You must return a strictly valid JSON object. " +
+      "Do not include markdown formatting (like ```json). The JSON must have two fields: " +
+      "'formattedJson' (the repaired and pretty-printed JSON string) and " +
+      "'explanation' (a concise, bulleted list of what was fixed or validated).",
+    user: (input) => `Input JSON: ${input}\n\nReturn JSON format: { "formattedJson": "...", "explanation": "..." }`,
+    responseType: 'text'
   }
 };
 
 export default async function handler(req, res) {
-  // Basic Validation
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   
-  if (!process.env.VERCEL_AI_GATEWAY_KEY) {
-    return res.status(500).json({ error: "Server Error: Gateway Key missing." });
-  }
-
-  // Authentication (Firebase)
+  const { GROQ_API_KEY } = process.env;
+  if (!GROQ_API_KEY) return res.status(500).json({ error: "Server Error: API Key missing." });
+  
+  // Security check
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: Missing token.' });
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid token.' });
   }
   
+  const token = authHeader.split(' ')[1];
+  
   try {
-    const token = authHeader.split(' ')[1];
+    // Verify the ID token with Firebase Admin
+    // This ensures the request is coming from your actual authenticated app
     await admin.auth().verifyIdToken(token);
   } catch (error) {
-    console.error("Auth Failed:", error);
+    console.error("Token verification failed:", error);
     return res.status(401).json({ error: 'Unauthorized: Invalid session.' });
   }
-
-  // Processing
-  const { type, input, sourceLang, targetLang, mode } = req.body;
-  const config = PROMPT_CONFIG[type];
+  // --- 
   
+  const { type, input, sourceLang, targetLang, mode } = req.body;
+  const groq = new Groq({ apiKey: GROQ_API_KEY });
+  
+  const config = PROMPT_CONFIG[type];
   if (!config) return res.status(400).json({ error: `Invalid type: ${type}` });
-
-  // Resolve prompts and model
+  
   const finalSystem = config.system(targetLang || mode);
   const finalUser = config.user(input, sourceLang, targetLang);
-  const finalResponseType = typeof config.responseType === 'function' ? 
-    config.responseType(targetLang) : config.responseType;
-
-  // Select the specific model from our config
-  const selectedModelId = config.model;
-
+  const finalResponseType = typeof config.responseType === 'function' ?
+    config.responseType(targetLang) :
+    config.responseType;
+  
   try {
-    // Call Vercel AI Gateway
-    const { text } = await generateText({
-      model: gateway(selectedModelId), // Routes to Mistral or DeepSeek
+    const completion = await groq.chat.completions.create({
       messages: [
         { role: "system", content: finalSystem },
         { role: "user", content: finalUser }
       ],
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
+      response_format: finalResponseType === 'json_files' ? { type: "json_object" } : undefined
     });
-
-    // Parse & Format Response
+    
+    let text = completion.choices[0]?.message?.content || "";
     let finalResponse = {};
-
-    if (finalResponseType === 'json_files' || finalResponseType === 'analysis' || type === 'json' || type === 'regex' || type === 'css-framework') {
-      // Robust JSON Extraction
-      // Find the JSON object { ... }
+    
+    if (finalResponseType === 'json_files') {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       let jsonString = jsonMatch ? jsonMatch[0] : text;
-      
-      // Clean markdown backticks if the regex missed them
       jsonString = jsonString.replace(/^```(json)?\s*|```$/g, '').trim();
-
+      
       try {
         const parsed = JSON5.parse(jsonString);
-        
-        if (finalResponseType === 'analysis') {
-          finalResponse = { analysis: parsed };
-        } else if (type === 'regex') {
-          finalResponse = { convertedCode: parsed.pattern, explanation: parsed.explanation };
-        } else if (type === 'json') {
-          finalResponse = { convertedCode: parsed.formattedJson, explanation: parsed.explanation };
-        } else {
-          finalResponse = parsed; // Files array or conversion array
+        if (!parsed.files && !parsed.conversions) {
+          throw new Error("Missing expected keys in JSON response");
         }
+        finalResponse = parsed;
       } catch (e) {
-        console.error("JSON Parse Error:", e);
+        console.error("JSON5 Parse Error:", e);
         finalResponse = {
-          error: "AI Response Parse Failure",
-          rawOutput: text, // Send back raw text so user can at least see it
-          files: [{ fileName: "output_log.txt", content: text }]
+          error: "Parse Failure",
+          files: [{ fileName: "error_log.txt", content: text }]
         };
       }
-    } else {
-      // Plain text response (SQL, Simple Convert)
+    }
+    else if (finalResponseType === 'analysis') {
+      finalResponse = { analysis: text };
+    }
+    else {
       finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
     
     return res.status(200).json(finalResponse);
-
+    
   } catch (error) {
-  console.error("GATEWAY ERROR DETAILS:", {
-    message: error.message,
-    statusCode: error.statusCode, 
-    data: error.data
-  });
-  return res.status(500).json({ error: error.message });
-}
+    console.error("Groq API Error:", error);
+    return res.status(500).json({ error: "AI Processing Failed: " + error.message });
+  }
 }
