@@ -82,6 +82,11 @@ function App() {
     setNotificationMessage(`Switched to ${mode === 'fast' ? 'Fast Response' : 'Quality Response'} Mode`);
   };
   
+  const handleOpenModelSelc = () => {
+    setShowModelSelector(true);
+    setSidebarOpen(false);
+  };
+  
   const toggleQualityMode = () => {
     const newMode = qualityMode === 'fast' ? 'quality' : 'fast';
     localStorage.setItem('recode_quality_mode', newMode);
@@ -172,11 +177,9 @@ function App() {
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
         loadFromHistory={loadFromHistory}
-        openModelSelector={() => { 
-          setShowModelSelector(true); 
-          toggleSidebar }}
         qualityMode={qualityMode}
         toggleQuality={toggleQualityMode}
+        openModelSelector={handleOpenModelSelc}
       />
       
       <main className="main-content">
