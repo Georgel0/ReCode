@@ -33,9 +33,9 @@ export default function ModelSelector({ isOpen, onClose, onSelect }) {
        <h3>High Quality</h3>
        <p>Slower response but higher code quality</p>
        <ul className="specs">
-        <li><i className="fas fa-check"></i> Instant response time</li>
-        <li><i className="fas fa-check"></i> Good for simple tasks</li>
-        <li><i className="fas fa-check"></i> Lower latency</li>
+        <li><i className="fas fa-check"></i> Slower response time</li>
+        <li><i className="fas fa-check"></i> Good for advenced tasks</li>
+        <li><i className="fas fa-check"></i> High latency</li>
        </ul>
       </div>
      </div>
