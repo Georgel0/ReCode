@@ -42,33 +42,29 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
 
 
   const handleAnalyze = async (codeOverride) => {
-    const codeToProcess = codeOverride || input;
-    if (!codeToProcess.trim()) return;
+  const codeToProcess = codeOverride || input;
+  if (!codeToProcess.trim()) return;
+
+  setLoading(true);
+  try {
+    const result = await convertCode('analysis', codeToProcess, '', '', qualityMode);
     
-    setLoading(true);
-    setAnalysisData(null);
-    setRawAnalysis('');
-    setLastResult(false);
-
-    try {
-      const result = await convertCode('analysis', codeToProcess, qualityMode);
-
-      if (result && result.analysis) {
-        processAnalysisResult(result.analysis);
-        
-        setLastResult({ 
-          type: "analysis",
-          input: codeToProcess,
-          output: result
-        });
-      } else {
-        throw new Error("Analysis failed: AI returned an empty response.");
-      }
-    } catch (error) {
-      alert(`Analysis failed: ${error.message}`);
+    if (result) {
+      processAnalysisResult(result); 
+      setLastResult({
+        type: "analysis",
+        input: codeToProcess,
+        output: result
+      });
+    } else {
+      alert("AI sent an empty response.");
     }
-    setLoading(false);
-  };
+  } catch (error) {
+    alert(`Analysis failed: ${error.message}`);
+  }
+  setLoading(false);
+};
+
 
   const handleCopy = () => {
     let textToCopy = rawAnalysis;
