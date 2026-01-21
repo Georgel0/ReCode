@@ -72,7 +72,7 @@ const PROMPT_CONFIG = {
   regex: {
     system: () => "You are a Regular Expression expert. Fallow the user requirement and generate the best regex to match it. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'pattern' (the raw regex string without leading/trailing slashes) and 'explanation' (a concise, bulleted explanation of the logic).",
     user: (input) => `Requirement: ${input}\n\nReturn JSON format: { "pattern": "...", "explanation": "..." }`,
-    responseType: 'text'
+    responseType: 'json_files'
   },
   
   sql: {
@@ -84,7 +84,7 @@ const PROMPT_CONFIG = {
   json: {
     system: () => "You are a JSON repair and formatting expert. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'formattedJson' (the repaired and pretty-printed JSON string) and 'explanation' (a concise, bulleted list of what was fixed or validated).",
     user: (input) => `Input JSON: ${input}\n\nReturn JSON format: { "formattedJson": "...", "explanation": "..." }`,
-    responseType: 'text'
+    responseType: 'json_files'
   }
 };
 

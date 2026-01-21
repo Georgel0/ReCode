@@ -8,7 +8,7 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
   const [rawAnalysis, setRawAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
-
+  
   useEffect(() => {
     if (onLoadData) {
       const codeToAnalyze = onLoadData.input || '';
@@ -24,48 +24,46 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
       }
     }
   }, [onLoadData]);
-
+  
   const processAnalysisResult = (result) => {
-  if (typeof result === 'object' && result !== null) {
-    setAnalysisData(result);
-    setRawAnalysis(JSON.stringify(result, null, 2));
-    return;
-  }
-  setRawAnalysis(result);
-  try {
-    const cleanJson = result.replace(/```json/g, '').replace(/```/g, '').trim();
-    setAnalysisData(JSON.parse(cleanJson));
-  } catch (e) {
-    setAnalysisData(null);
-  }
-};
-
-
-  const handleAnalyze = async (codeOverride) => {
-  const codeToProcess = codeOverride || input;
-  if (!codeToProcess.trim()) return;
-
-  setLoading(true);
-  try {
-    const result = await convertCode('analysis', codeToProcess, '', '', qualityMode);
-    
-    if (result) {
-      processAnalysisResult(result); 
-      setLastResult({
-        type: "analysis",
-        input: codeToProcess,
-        output: result
-      });
-    } else {
-      alert("AI sent an empty response.");
+    if (typeof result === 'object' && result !== null) {
+      setAnalysisData(result);
+      setRawAnalysis(JSON.stringify(result, null, 2));
+      return;
     }
-  } catch (error) {
-    alert(`Analysis failed: ${error.message}`);
-  }
-  setLoading(false);
-};
-
-
+    setRawAnalysis(result);
+    try {
+      const cleanJson = result.replace(/```json/g, '').replace(/```/g, '').trim();
+      setAnalysisData(JSON.parse(cleanJson));
+    } catch (e) {
+      setAnalysisData(null);
+    }
+  };
+  
+  
+  const handleAnalyze = async (codeOverride) => {
+    const codeToProcess = codeOverride || input;
+    if (!codeToProcess.trim()) return;
+    
+    setLoading(true);
+    
+    try {
+      const result = await convertCode('analysis', codeToProcess, '', '', qualityMode);
+      
+      if (result && (result.summary || result.analysis)) {
+        processAnalysisResult(result);
+        setLastResult({ type: "analysis", input: codeToProcess, output: result });
+      } else {
+        throw new Error("API returned no data (check server logs for 500/429 errors)");
+      }
+    } catch (error) {
+      alert(`Analysis failed: ${error.message}`);
+    }
+    
+    setLoading(false);
+  };
+  
+  
   const handleCopy = () => {
     let textToCopy = rawAnalysis;
     if (analysisData) {
@@ -76,13 +74,13 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
       navigator.clipboard.writeText(textToCopy);
     }
   };
-
+  
   const getScoreColor = (score) => {
     if (score >= 80) return 'var(--accent)';
-    if (score >= 50) return '#ffa500';      
-    return '#ff4d4d';                       
+    if (score >= 50) return '#ffa500';
+    return '#ff4d4d';
   };
-
+  
   return (
     <div className="module-container">
       <ModuleHeader 
@@ -250,7 +248,7 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
             )}
           </div>
         </div>
-      </div>
+      </div> 
     </div>
   );
 }
