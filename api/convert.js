@@ -3,7 +3,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { z } from 'zod';
-import { PROMPT_CONFIG } from './prompts';
+import { PROMPT_CONFIG } from './prompts.js';
 
 // Firebase Initialization
 if (!admin.apps.length) {
