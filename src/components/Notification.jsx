@@ -22,7 +22,8 @@ export default function Notification({ message, duration = 3000, type = 'success
   const style = {
     position: 'fixed',
     bottom: '20px',
-    right: '20px',
+    right: '10px',
+    left: '10px',
     zIndex: 1000,
     padding: '12px 20px',
     borderRadius: '6px',
