@@ -1,8 +1,8 @@
-import Groq from "groq-sdk";
 import JSON5 from "json5";
 import admin from "firebase-admin";
 import { createOpenAI } from '@ai-sdk/openai';
-import { generateText } from 'ai';
+import { createGroq } from '@ai-sdk/groq';
+import { generateText, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 
 // Initialize Firebase Admin 
 if (!admin.apps.length) {
@@ -16,74 +16,100 @@ if (!admin.apps.length) {
   }
 }
 
+// Centralize provider configurations and API keys
+const registry = createProviderRegistry({
+  fast: createGroq({
+    apiKey: process.env.GROQ_API_KEY,
+  }),
+  
+  quality: createOpenAI({
+    apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
+    baseURL: "https://ai-gateway.vercel.sh/v1", 
+  }),
+});
+
 const PROMPT_CONFIG = {
   refactor: {
     system: (mode) => {
       const goals = {
-        clean: "Focus on readability, better variable naming, and DRY principles.",
-        perf: "Focus on algorithmic efficiency, reducing memory footprint, and optimizing loops.",
-        modern: "Focus on using the latest language features (e.g., ES6+, Python 3.10+) and removing deprecated APIs.",
-        comments: "Focus on adding comments that explain the code, make sure the code is still readable and explained well."
+        clean: "Prioritize readability, meaningful variable naming, and DRY (Don't Repeat Yourself) principles.",
+        perf: "Focus on algorithmic efficiency, minimizing memory footprint, and optimizing time complexity.",
+        modern: "Utilize the latest language-specific features and syntax while removing deprecated or legacy patterns.",
+        comments: "Provide comprehensive inline documentation that explains 'why' logic exists, not just 'what' it does."
       };
       
       const specificGoal = goals[mode] || goals.clean;
       
-      return `You are a Code Refactoring Expert.
-      Your goal: ${specificGoal}
+      return `You are a Senior Software Architect specializing in Code Refactoring.
+      Your primary objective: ${specificGoal}
       
-      CRITICAL REQUIREMENTS:
-      1. Cross-File Integrity: If files import/reference each other, ensure all references remain valid after refactoring.
-      2. Functional Parity: The logic must remain identical; do not add new features or remove existing functionality.
-      3. Environment: Use modern best practices suitable for the detected languages.
+      STRICT OPERATIONAL RULES:
+      1. Dependency Integrity: Maintain all imports, exports, and relationships between files.
+      2. Logic Preservation: You must not change the functional behavior or add new features.
+      3. Modern Standards: Apply industry-standard best practices for the detected programming language.
       
-      Input: A JSON array of files [{"name": "...", "content": "..."}].
-      Return strictly valid JSON: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }.
-      Output ONLY the JSON object. No markdown, no prose, no backticks.`;
+      INPUT FORMAT: A JSON array of files [{"name": "...", "content": "..."}].
+      OUTPUT FORMAT: Return ONLY a strictly valid JSON object. No markdown backticks, no preamble, no conversational text.
+      JSON SCHEMA: { "files": [{ "fileName": "name.ext", "content": "refactored code" }] }`;
     },
-    user: (input) => `Refactor these files while maintaining their relationships:\n\n${input}`,
+    user: (input) => `Refactor the following codebase while strictly preserving all inter-file references and functional parity:\n\n${input}`,
     responseType: 'json_files'
   },
   
   converter: {
-    system: () => "You are a code conversion engine. Output ONLY the raw code string.  Make sure the conversion is valid and the syntaxes are correct. No markdown backticks. No explanations.",
-    user: (input, src, tgt) => `Convert this ${src} code to ${tgt}:\n\n${input}`,
+    system: () => "You are a specialized Code Translation Engine. Your task is to translate source code from one language to another. Ensure the target syntax is valid and idiomatic. Output ONLY the raw code string. DO NOT include markdown code blocks (```), explanations, or notes.",
+    user: (input, src, tgt) => `Translate this ${src} source code into functionally equivalent ${tgt} code:\n\n${input}`,
     responseType: 'text'
   },
   
   generator: {
-    system: () => `You are an expert multi-file code generator. Generate the code by fallowing the user request. Return strictly valid JSON in this format: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. No markdown backticks. No explanations.`,
-    user: (input) => `Request: ${input}`,
+    system: () => `You are an Expert Software Engineer. Generate complete, production-ready code based on the user's requirements. 
+    Ensure modularity and clean structure. 
+    OUTPUT REQUIREMENT: Return a strictly valid JSON object with the structure: { "files": [{ "fileName": "filename.ext", "content": "code content" }] }. 
+    DO NOT use markdown formatting, backticks, or prose.`,
+    user: (input) => `Generate a solution for the following request, splitting logic into appropriate files if necessary:\n\n${input}`,
     responseType: 'json_files'
   },
   
   analysis: {
-    system: () => "You are a senior code auditor. Analyze the code deeply and give a deep explanation of the code. Return a strictly valid JSON object (no markdown formatting around it) with this structure: { \"summary\": \"Executive summary of what the code does\", \"score\": Number(0-100), \"complexity\": \"Time and Space complexity analysis\", \"security\": [\"List of security vulnerabilities found (empty if none)\"], \"improvements\": [\"List of performance or clean code improvements\"], \"bugs\": [\"List of potential bugs or edge cases\"] }.",
-    user: (input) => `Analyze this code:\n\n${input}`,
+    system: () => `You are a Senior Security and Performance Auditor. Conduct a deep-dive analysis of the provided code.
+    You must return a strictly valid JSON object (no markdown) with this exact structure:
+    { 
+      "summary": "Detailed overview of the architecture and purpose", 
+      "score": <Number 0-100>, 
+      "complexity": "Detailed Big O analysis of Time and Space", 
+      "security": ["List specific CVEs or vulnerabilities"], 
+      "improvements": ["Actionable refactoring suggestions"], 
+      "bugs": ["Identified logical errors or edge cases"] 
+    }`,
+    user: (input) => `Perform an exhaustive audit on this code:\n\n${input}`,
     responseType: 'analysis'
   },
   
   'css-framework': {
     system: (target) => target === 'tailwind' ?
-      `You are a CSS to Tailwind converter. Return strictly valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "class names" }] }. No markdown.` : `You are a CSS to ${target} converter. Output ONLY the raw converted code. No markdown backticks. No explanations.`,
-    user: (input, _, target) => `Convert this CSS to ${target}:\n\n${input}`,
+      `You are a CSS-to-Tailwind Specialist. Map standard CSS selectors to their equivalent utility classes. 
+      Return ONLY valid JSON: { "conversions": [{ "selector": "name", "tailwindClasses": "classes" }] }. No prose.` : 
+      `You are a CSS-to-${target} converter. Translate the syntax perfectly. Output ONLY the raw code. No markdown.`,
+    user: (input, _, target) => `Convert this CSS input to ${target} syntax:\n\n${input}`,
     responseType: (target) => target === 'tailwind' ? 'json_files' : 'text'
   },
   
   regex: {
-    system: () => "You are a Regular Expression expert. Fallow the user requirement and generate the best regex to match it. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'pattern' (the raw regex string without leading/trailing slashes) and 'explanation' (a concise, bulleted explanation of the logic).",
-    user: (input) => `Requirement: ${input}\n\nReturn JSON format: { "pattern": "...", "explanation": "..." }`,
+    system: () => "You are a Regular Expression Architect. Create an optimized regex pattern based on requirements. Return a strictly valid JSON object without markdown. Format: { \"pattern\": \"raw regex string\", \"explanation\": \"concise bullet points of the logic\" }.",
+    user: (input) => `Generate a regex pattern for: ${input}`,
     responseType: 'json_files'
   },
   
   sql: {
-    system: () => "You are an expert SQL Architect. Your task is to generate, convert, or optimize SQL queries. Return ONLY the raw SQL code. Do not use Markdown formatting (no ```sql). If comments are requested, include them inside the SQL using -- or /* */ syntax. Strictly follow the Target Dialect syntax.",
-    user: (input) => input,
+    system: () => "You are a Database Architect. Generate, optimize, or convert SQL queries according to the target dialect's best practices. Output ONLY raw SQL. Use -- for any necessary comments. No markdown blocks.",
+    user: (input) => `Process the following SQL requirement:\n\n${input}`,
     responseType: 'text'
   },
   
   json: {
-    system: () => "You are a JSON repair and formatting expert. You must return a strictly valid JSON object. Do not include markdown formatting (like ```json). The JSON must have two fields: 'formattedJson' (the repaired and pretty-printed JSON string) and 'explanation' (a concise, bulleted list of what was fixed or validated).",
-    user: (input) => `Input JSON: ${input}\n\nReturn JSON format: { "formattedJson": "...", "explanation": "..." }`,
+    system: () => "You are a JSON Validation and Repair Expert. Fix syntax errors (trailing commas, missing quotes) and format the JSON. Return a strictly valid JSON object. Format: { \"formattedJson\": \"stringified result\", \"explanation\": \"list of fixes made\" }.",
+    user: (input) => `Validate and repair this JSON: ${input}`,
     responseType: 'json_files'
   }
 };
@@ -91,26 +117,20 @@ const PROMPT_CONFIG = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   
-  const { GROQ_API_KEY } = process.env;
-  
   // Security check
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: Missing or invalid token.' });
+    return res.status(401).json({ error: 'Unauthorized: Missing token.' });
   }
   
-  const token = authHeader.split(' ')[1];
-  
   try {
+    const token = authHeader.split(' ')[1];
     await admin.auth().verifyIdToken(token);
   } catch (error) {
-    console.error("Token verification failed:", error);
     return res.status(401).json({ error: 'Unauthorized: Invalid session.' });
   }
   
-  // Extract qualityMode from request (default to 'fast')
   const { type, input, sourceLang, targetLang, mode, qualityMode = 'fast' } = req.body;
-  
   const config = PROMPT_CONFIG[type];
   if (!config) return res.status(400).json({ error: `Invalid type: ${type}` });
   
@@ -119,59 +139,28 @@ export default async function handler(req, res) {
   const finalResponseType = typeof config.responseType === 'function' ? config.responseType(targetLang) : config.responseType;
   
   try {
-    let text = "";
+    let modelInstance;
     
     if (qualityMode === 'quality') {
+      const modelId = ['generator', 'analysis', 'sql'].includes(type) 
+        ? 'deepseek/deepseek-v3.2-thinking' 
+        : 'mistral/devstral-2';
       
-      //  Determine Exact Model
-      let modelName;
-      
-      if (['generator', 'analysis', 'sql'].includes(type)) {
-        modelName = 'deepseek/deepseek-v3.2-thinking';
-      } else {
-        modelName = 'mistral/devstral-2';
-      }
-      
-      // Initialize OpenAI Provider via Vercel Gateway
-      const openai = createOpenAI({
-        apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
-        baseURL: "https://api.vercel.ai/v1",
-      });
-      
-      // Generate
-      const { text: generatedText } = await generateText({
-        model: openai(modelName),
-        messages: [
-          { role: "system", content: finalSystem },
-          { role: "user", content: finalUser }
-        ],
-        temperature: 0.2,
-      });
-      
-      text = generatedText;
-      
+      modelInstance = registry.languageModel(`quality:${modelId}`);
     } else {
-      if (!GROQ_API_KEY) return res.status(500).json({ error: "Server Error: API Key missing." });
-      
-      const groq = new Groq({ apiKey: GROQ_API_KEY });
-      
-      const completion = await groq.chat.completions.create({
-        messages: [
-          { role: "system", content: finalSystem },
-          { role: "user", content: finalUser }
-        ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.1,
-        response_format: finalResponseType === 'json_files' ? { type: "json_object" } : undefined
-      });
-      
-      text = completion.choices[0]?.message?.content || "";
+      modelInstance = registry.languageModel('fast:llama-3.3-70b-versatile');
     }
+    
+    const { text } = await generateText({
+      model: modelInstance,
+      system: finalSystem,
+      prompt: finalUser,
+      temperature: qualityMode === 'quality' ? 0.2 : 0.1,
+    });
     
     let finalResponse = {};
     
-    // Response parsing logic
-    if (finalResponseType === 'json_files' || finalResponseType === 'json' || type === 'json' || type === 'regex') {
+    if (['json_files', 'json', 'regex'].includes(finalResponseType) || type === 'json' || type === 'regex') {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       let jsonString = jsonMatch ? jsonMatch[0] : text;
       jsonString = jsonString.replace(/^```(json)?\s*|```$/g, '').trim();
@@ -182,27 +171,21 @@ export default async function handler(req, res) {
         console.error("JSON5 Parse Error:", e);
         finalResponse = { error: "Parse Failure", raw: text };
       }
-    }
-  else if (finalResponseType === 'analysis') {
-    try {
+    } else if (finalResponseType === 'analysis') {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        finalResponse = JSON5.parse(jsonMatch[0]);
-      } else {
+      try {
+        finalResponse = jsonMatch ? JSON5.parse(jsonMatch[0]) : { analysis: text };
+      } catch {
         finalResponse = { analysis: text };
       }
-    } catch {
-      finalResponse = { analysis: text };
+    } else {
+      finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
     }
-  }
-  else {
-    finalResponse = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
-  }
-  
-  return res.status(200).json(finalResponse);
-  
-} catch (error) {
-  console.error("AI Processing Failed:", error);
-  return res.status(500).json({ error: "AI Processing Failed: " + error.message });
+    
+    return res.status(200).json(finalResponse);
+    
+  } catch (error) {
+    console.error("AI Processing Failed:", error);
+    return res.status(500).json({ error: "AI Processing Failed: " + error.message });
   }
 }
