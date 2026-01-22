@@ -135,7 +135,6 @@ export default async function handler(req, res) {
       // Initialize OpenAI Provider via Vercel Gateway
       const openai = createOpenAI({
         apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
-        baseURL: "https://api.vercel.ai/v1",
       });
       
       // Generate
@@ -204,5 +203,5 @@ export default async function handler(req, res) {
 } catch (error) {
   console.error("AI Processing Failed:", error);
   return res.status(500).json({ error: "AI Processing Failed: " + error.message });
-}
+  }
 }
