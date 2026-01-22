@@ -66,7 +66,7 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
     setExplanation('');
     setErrorMsg(null);
     try {
-      const result = await convertCode('json', input, qualityMode);
+      const result = await convertCode('json', input, { qualityMode });
       if (result && (result.formattedJson || result.convertedCode)) {
         setOutputCode(result.formattedJson || '');
         setExplanation(result.explanation || '');

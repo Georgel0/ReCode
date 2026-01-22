@@ -103,7 +103,7 @@ export default function CodeConverter({ onLoadData, onSwitchModule, qualityMode 
     setOutputCode('');
     setLastResult(false);
     try {
-      const result = await convertCode('converter', input, sourceLang, targetLang, qualityMode);
+      const result = await convertCode('converter', input, { sourceLang, targetLang, qualityMode });
       if (result && result.convertedCode) {
         setOutputCode(result.convertedCode);
         setLastResult({

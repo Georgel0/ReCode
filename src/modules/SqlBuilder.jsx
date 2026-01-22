@@ -65,7 +65,7 @@ export default function SqlBuilder({ onLoadData, qualityMode }) {
    }
    
    // passing the prompt as 'input' to the backend
-   const result = await convertCode('sql', fullPrompt, '', targetDialect, qualityMode);
+   const result = await convertCode('sql', fullPrompt, { targetLang: targetDialect, qualityMode });
    
    if (result && result.convertedCode) {
     setOutputCode(result.convertedCode);

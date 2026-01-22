@@ -117,7 +117,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule, qualityMode }
         content: f.content
       })));
       
-      const result = await convertCode('refactor', inputFiles, null, refactorMode, qualityMode);
+      const result = await convertCode('refactor', inputFiles, null, { mode: refactorMode, qualityMode });
       
       if (result && result.files) {
         setOutputFiles(result.files);

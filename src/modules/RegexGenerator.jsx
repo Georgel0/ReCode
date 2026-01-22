@@ -63,7 +63,7 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
     setLastResult(false);
     
     try {
-      const result = await convertCode('regex', input, qualityMode);
+      const result = await convertCode('regex', input, { qualityMode });
       
       if (result && (result.pattern || result.convertedCode)) {
         setOutputCode(result.pattern || '');

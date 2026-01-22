@@ -41,7 +41,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode 
     setLastResult(false);
 
     try {
-      let result = await convertCode('generator', input, qualityMode);
+      let result = await convertCode('generator', input, { qualityMode });
 
       if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
         const rawContent = result.files[0].content;

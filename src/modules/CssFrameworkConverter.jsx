@@ -32,7 +32,7 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
     setData(null);
     setLastResult(false);
     try {
-      const result = await convertCode('css-framework', input, 'css', targetLang, qualityMode);
+      const result = await convertCode('css-framework', input, { sourceLang: 'css', targetLang, qualityMode });
       
       // Validation: Check if we got the expected format based on target
       const isValidTailwind = targetLang === 'tailwind' && result && result.conversions;
