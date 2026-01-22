@@ -8,9 +8,13 @@ import { PROMPT_CONFIG } from './prompts.js';
 // Firebase Initialization
 if (!admin.apps.length) {
   try {
-    const serviceAccountRaw = (process.env.FIREBASE_SERVICE_ACCOUNT || '{}').replace(/\\n/g, '\n');
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT is missing");
+    
+    const serviceAccount = JSON.parse(raw.replace(/\\n/g, '\n'));
+    
     admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(serviceAccountRaw))
+      credential: admin.credential.cert(serviceAccount)
     });
   } catch (error) {
     console.error("Firebase Admin Init Error:", error.message);
