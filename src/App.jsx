@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useTheme } from './components/ThemeContext';
 import { initializeAuth, cleanupOldHistory } from './services/firebase';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/next"
 
 import './styles/Components.css';
 import './styles/Sidebar.css';
@@ -198,6 +199,7 @@ function App() {
       
       <Notification message={notificationMessage} />
       <SpeedInsights />
+      <Analytics />
     </div>
   );
 }
