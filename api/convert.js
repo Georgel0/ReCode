@@ -39,7 +39,6 @@ const registry = createProviderRegistry({
   }),
 });
 
-// Validate incoming data
 const RequestSchema = z.object({
   type: z.string(),
   input: z.string().min(1),
@@ -48,6 +47,28 @@ const RequestSchema = z.object({
   mode: z.string().optional().default(''),
   qualityMode: z.enum(['fast', 'quality']).optional().default('fast'),
 });
+
+// Helper to reliably extract JSON from chatty model responses
+function parseGeneratedJSON(text) {
+  try {
+    // 1. Try direct parse
+    return JSON.parse(text);
+  } catch (e) {
+    // 2. Find the first '{' and the last '}'
+    const firstOpen = text.indexOf('{');
+    const lastClose = text.lastIndexOf('}');
+    
+    if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+      const jsonStr = text.substring(firstOpen, lastClose + 1);
+      try {
+        return JSON.parse(jsonStr);
+      } catch (innerE) {
+        return null; // Failed to parse extracted content
+      }
+    }
+    return null; // No JSON structure found
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
@@ -65,7 +86,6 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized: Invalid session.' });
   }
 
-  // Parse Request
   const parseResult = RequestSchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({ error: "Invalid Input", details: parseResult.error.flatten() });
@@ -77,26 +97,54 @@ export default async function handler(req, res) {
   if (!config) return res.status(400).json({ error: `Invalid processing type: ${type}` });
 
   try {
-    const systemPrompt = config.system(sourceLang || mode || targetLang, targetLang);
+    let systemPrompt = config.system(sourceLang || mode || targetLang, targetLang);
     const userPrompt = config.user(input);
 
     let finalData;
 
+    // --- LOGIC BRANCHING ---
+
     if (qualityMode === 'fast') {
+      // FAST MODE: Groq (Llama 3.3 70B)
       const modelInstance = registry.languageModel('fast:llama-3.3-70b-versatile');
       
+      // If this type expects an object (like analysis/refactor), we must force JSON
+      if (config.schema) {
+        systemPrompt += "\n\nIMPORTANT: Output ONLY valid JSON. No markdown formatting, no explanations.";
+      }
+
       const { text } = await generateText({
         model: modelInstance,
         system: systemPrompt,
         prompt: userPrompt,
-        temperature: 0.1,
+        temperature: 0.1, 
       });
 
-      finalData = { 
-        convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim(),
-        raw: text 
-      };
+      if (config.schema) {
+        // Attempt to parse strictly for object-based tools (Analysis, Refactor, Generator)
+        const parsed = parseGeneratedJSON(text);
+        
+        if (parsed) {
+          finalData = parsed;
+        } else {
+          // If parsing fails, we must return an error structure the frontend understands
+          // OR fallback to wrapping it if your frontend can handle a raw string for specific types
+          console.warn("Fast mode JSON parse failed, returning raw text as convertedCode");
+          finalData = { 
+            error: "Failed to generate structured data", 
+            convertedCode: text, // Fallback for display
+            // Mock empty fields to prevent frontend crash if it expects them
+            summary: "Error parsing AI response",
+            files: [] 
+          };
+        }
+      } else {
+        // For simple text tools (Converter, SQL)
+        finalData = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
+      }
+
     } else {
+      // QUALITY MODE: DeepSeek & Mistral
       const complexTasks = ['sql', 'generator', 'analysis', 'refactor'];
       const modelId = complexTasks.includes(type) 
         ? 'quality:deepseek/deepseek-v3.2-thinking' 
@@ -105,13 +153,30 @@ export default async function handler(req, res) {
       const modelInstance = registry.languageModel(modelId);
 
       if (config.schema) {
-        const { object } = await generateObject({
-          model: modelInstance,
-          system: systemPrompt,
-          prompt: userPrompt,
-          schema: config.schema,
-        });
-        finalData = object;
+        try {
+          const { object } = await generateObject({
+            model: modelInstance,
+            system: systemPrompt,
+            prompt: userPrompt,
+            schema: config.schema, 
+          });
+          finalData = object;
+        } catch (objError) {
+          // DeepSeek Thinking Fallback (manual extraction)
+          console.log("Standard object generation failed, attempting manual text extraction");
+          const { text } = await generateText({
+            model: modelInstance,
+            system: systemPrompt,
+            prompt: userPrompt,
+          });
+          
+          const parsed = parseGeneratedJSON(text);
+          if (parsed) {
+             finalData = parsed;
+          } else {
+             throw new Error("Model failed to return valid JSON structure");
+          }
+        }
       } else {
         const { text } = await generateText({
           model: modelInstance,
