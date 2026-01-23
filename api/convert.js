@@ -39,7 +39,7 @@ const registry = createProviderRegistry({
   }),
 });
 
-// Validate incoming data to prevent crashes
+// Validate incoming data
 const RequestSchema = z.object({
   type: z.string(),
   input: z.string().min(1),
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized: Invalid session.' });
   }
 
-  // Parse & Run
+  // Parse Request
   const parseResult = RequestSchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({ error: "Invalid Input", details: parseResult.error.flatten() });
@@ -77,38 +77,49 @@ export default async function handler(req, res) {
   if (!config) return res.status(400).json({ error: `Invalid processing type: ${type}` });
 
   try {
-    const modelId = qualityMode === 'quality' 
-      ? 'quality:deepseek/deepseek-v3.2-thinking' 
-      : 'fast:llama-3.3-70b-versatile';
-    
-    const modelInstance = registry.languageModel(modelId);
-    
-    // Resolve dynamic configs
     const systemPrompt = config.system(sourceLang || mode || targetLang, targetLang);
     const userPrompt = config.user(input);
-    const responseType = typeof config.responseType === 'function' 
-      ? config.responseType(targetLang) 
-      : config.responseType;
 
     let finalData;
 
-    if (responseType === 'object') {
-      // This uses strict JSON generation, preventing parsing crashes 
-      const { object } = await generateObject({
-        model: modelInstance,
-        system: systemPrompt,
-        prompt: userPrompt,
-        schema: config.schema, 
-      });
-      finalData = object;
-    } else {
+    if (qualityMode === 'fast') {
+      const modelInstance = registry.languageModel('fast:llama-3.3-70b-versatile');
+      
       const { text } = await generateText({
         model: modelInstance,
         system: systemPrompt,
         prompt: userPrompt,
         temperature: 0.1,
       });
-      finalData = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
+
+      finalData = { 
+        convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim(),
+        raw: text 
+      };
+    } else {
+      const complexTasks = ['sql', 'generator', 'analysis', 'refactor'];
+      const modelId = complexTasks.includes(type) 
+        ? 'quality:deepseek/deepseek-v3.2-thinking' 
+        : 'quality:mistral/devstral-2';
+
+      const modelInstance = registry.languageModel(modelId);
+
+      if (config.schema) {
+        const { object } = await generateObject({
+          model: modelInstance,
+          system: systemPrompt,
+          prompt: userPrompt,
+          schema: config.schema,
+        });
+        finalData = object;
+      } else {
+        const { text } = await generateText({
+          model: modelInstance,
+          system: systemPrompt,
+          prompt: userPrompt,
+        });
+        finalData = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
+      }
     }
 
     return res.status(200).json(finalData);
