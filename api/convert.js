@@ -142,7 +142,7 @@ export default async function handler(req, res) {
         model: modelInstance,
         system: systemPrompt + jsonForce,
         prompt: userPrompt,
-        temperature: 0.3 
+        temperature: 0.1 
       });
       
       const text = result.text;
