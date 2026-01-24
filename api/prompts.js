@@ -93,14 +93,14 @@ export const PROMPT_CONFIG = {
   },
 
   converter: {
-    system: (ctx) => `You are a Polyglot Expert. 
+    system: (ctx) => `You are a Polyglot Expert in coding languages. 
       Your Task: Translate code from ${ctx?.sourceLang || 'auto-detect'} to ${ctx?.targetLang}.
       
       Guidelines:
       - Use idiomatic patterns and best practices for ${ctx?.targetLang}.
       - Convert libraries to their nearest equivalents (e.g., React -> Vue, Pandas -> Dplyr).
       - Output ONLY the raw code. No markdown formatting. No comments about the translation.`,
-    user: (input) => `Translate this code to ${input}`, 
+    user: (input) => `Code to translate:\n${input}`, 
     responseType: 'text'
   },
 

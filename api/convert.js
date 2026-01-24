@@ -5,7 +5,6 @@ import { generateText, generateObject, experimental_createProviderRegistry as cr
 import { z } from 'zod';
 import { PROMPT_CONFIG } from './prompts.js';
 
-// 1. Improved JSON Extractor
 function extractJson(text) {
   if (!text) return null;
   try {
@@ -20,8 +19,8 @@ function extractJson(text) {
       try {
         // Basic cleanup for common AI JSON errors
         const cleanCandidate = jsonCandidate
-          .replace(/,\s*}/g, '}') // Remove trailing commas
-          .replace(/[\x00-\x1F\x7F-\x9F]/g, ""); // Remove control characters
+          .replace(/,\s*}/g, '}') 
+          .replace(/[\x00-\x1F\x7F-\x9F]/g, ""); 
         
         return JSON.parse(cleanCandidate);
       } catch (e2) {
@@ -99,14 +98,17 @@ export default async function handler(req, res) {
   if (!config) return res.status(400).json({ error: `Invalid type: ${type}` });
   
   try {
-    // 2. Pass context object to system prompts so they can adapt to Fast Mode requirements
+    // Pass context object to system prompts so they can adapt to Fast Mode requirements
     const context = { sourceLang, targetLang, mode, qualityMode };
     
     const systemPrompt = typeof config.system === 'function' ?
       config.system(context) : config.system;
     
-    const userPrompt = typeof config.prompt === 'function' ?
-      config.prompt(input) : input; // Fixed: passed input directly if no function
+    const userPrompt = typeof config.user === 'function' ?
+      config.user(input) :
+      typeof config.prompt === 'function' ?
+      config.prompt({ input, sourceLang, targetLang, mode }) :
+      input;
     
     const modelId = qualityMode === 'fast' ?
       'fast:llama-3.3-70b-versatile' :
@@ -115,7 +117,7 @@ export default async function handler(req, res) {
     const modelInstance = registry.languageModel(modelId);
     let finalData;
     
-    // 3. Robust Execution Logic
+    // Robust Execution Logic
     if (config.schema && qualityMode !== 'fast') {
       try {
         const result = await generateObject({
@@ -123,7 +125,7 @@ export default async function handler(req, res) {
           system: systemPrompt,
           prompt: userPrompt,
           schema: config.schema,
-          mode: 'json' // Enforce JSON mode explicitly
+          mode: 'json'
         });
         finalData = result.object;
       } catch (e) {
@@ -132,7 +134,7 @@ export default async function handler(req, res) {
     }
     
     if (!finalData) {
-      // 4. Force JSON instruction in Fast Mode
+      // Force JSON instruction in Fast Mode
       const jsonForce = config.schema ?
         "\n\nIMPORTANT: Output PURE JSON ONLY. No text before or after." : "";
       
@@ -140,7 +142,7 @@ export default async function handler(req, res) {
         model: modelInstance,
         system: systemPrompt + jsonForce,
         prompt: userPrompt,
-        temperature: 0.3 // Lower temp = better JSON stability
+        temperature: 0.3 
       });
       
       const text = result.text;
@@ -148,7 +150,6 @@ export default async function handler(req, res) {
       if (config.schema) {
         finalData = extractJson(text);
         if (!finalData) {
-          // Log the failure to help debug (check Vercel logs)
           console.error("JSON Extraction Failed. Raw Output:", text.slice(0, 200));
           throw new Error("AI generated invalid data format. Please try again.");
         }

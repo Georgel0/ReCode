@@ -16,9 +16,11 @@ export const convertCode = async (type, input, arg3 = '', arg4 = '', arg5 = 'fas
     mode = arg3.mode || '';
     qualityMode = arg3.qualityMode || 'fast';
   } else {
-    sourceLang = arg3;
-    targetLang = arg4;
-    qualityMode = arg5;
+    sourceLang = arg3 || '';
+    targetLang = typeof arg4 === 'string' ? arg4 : '';
+    qualityMode = arg5 || 'fast';
+    if (typeof arg4 === 'object' && arg4 !== null) 
+      mode = arg4.mode || '';
   }
 
   for (let i = 0; i < MAX_RETRIES; i++) {
