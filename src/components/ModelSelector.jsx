@@ -18,7 +18,7 @@ export default function ModelSelector({ isOpen, onClose, onSelect }) {
       <div className="card-icon"><i className="fas fa-stopwatch"></i></div>
       <div className="card-info">
        <h3>Fast Response</h3>
-       <p>Fast response but lower code quality</p>
+       <p>Use this for small-medium code snippets.</p>
        <ul className="specs">
         <li><i className="fas fa-check"></i> Instant response time</li>
         <li><i className="fas fa-check"></i> Good for simple tasks</li>
@@ -31,7 +31,7 @@ export default function ModelSelector({ isOpen, onClose, onSelect }) {
       <div className="card-icon"><i className="fas fa-gem"></i></div>
       <div className="card-info">
        <h3>High Quality</h3>
-       <p>Slower response but higher code quality</p>
+       <p>Hood for more complex taks, its much slower though.</p>
        <ul className="specs">
         <li><i className="fas fa-check"></i> Slower response time</li>
         <li><i className="fas fa-check"></i> Good for advenced tasks</li>
