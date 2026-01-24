@@ -15,24 +15,31 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
   
   // Helper to parse the JSON string from the API
   const parseResponse = (rawOutput) => {
+    // Handle direct object from server
+    if (typeof rawOutput === 'object' && rawOutput !== null) {
+      return {
+        pattern: rawOutput.pattern || '',
+        explanation: rawOutput.explanation || "AI-generated pattern."
+      };
+    }
+    
+    // Handle string fallback (if server sent a string)
     try {
-      // Remove any markdown backticks if present
-      const cleanJson = rawOutput.replace(/```json|```/g, '').trim();
+      const cleanJson = (rawOutput || '').replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
       return {
         pattern: parsed.pattern || rawOutput,
-        explanation: parsed.explanation || "AI-generated pattern logic."
+        explanation: parsed.explanation || "AI-generated pattern."
       };
     } catch (e) {
-      return { pattern: rawOutput, explanation: "AI-generated pattern logic." };
+      return { pattern: rawOutput || '', explanation: "AI-generated pattern." };
     }
   };
   
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
-      const loadedCode = onLoadData.fullOutput?.convertedCode || '';
-      const { pattern, explanation } = parseResponse(loadedCode);
+      const { pattern, explanation } = parseResponse(onLoadData.fullOutput);
       setOutputCode(pattern);
       setExplanation(explanation);
     }
@@ -64,6 +71,7 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
     
     try {
       const result = await convertCode('regex', input, { qualityMode });
+      const { pattern, explanation } = parseResponse(result);
       
       if (result && (result.pattern || result.convertedCode)) {
         setOutputCode(result.pattern || '');

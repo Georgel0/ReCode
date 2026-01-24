@@ -10,31 +10,37 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
   const [copyFeedback, setCopyFeedback] = useState('Copy');
   const [errorMsg, setErrorMsg] = useState(null);
   const [lastResult, setLastResult] = useState(false);
-
-
+  
   const parseJsonReponse = (rawOutput) => {
+    if (typeof rawOutput === 'object' && rawOutput !== null) {
+      return {
+        code: rawOutput.formattedJson || '',
+        info: rawOutput.explanation || "JSON formatted successfully."
+      };
+    }
+    
     try {
-      const cleanJson = rawOutput.replace(/```json|```/g, '').trim();
+      const cleanJson = (rawOutput || '').replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
       return {
         code: parsed.formattedJson || rawOutput,
-        info: parsed.explanation || "JSON formatted successfully."
+        info: parsed.explanation || "JSON formatted and repaired."
       };
     } catch (e) {
-      return { code: rawOutput, info: "AI formatted and repaired the JSON." };
+      return { code: rawOutput || '', info: "AI formatted the JSON." };
     }
   };
-
+  
   useEffect(() => {
     if (onLoadData) {
       setInput(onLoadData.input || '');
-      const loadedCode = onLoadData.fullOutput?.convertedCode || '';
-      const { code, info } = parseJsonReponse(loadedCode);
+      const { code, info } = parseJsonReponse(onLoadData.fullOutput);
       setOutputCode(code);
       setExplanation(info);
     }
   }, [onLoadData]);
-
+  
+  
   const handlePrettify = () => {
     if (!input.trim()) return;
     setErrorMsg(null);
@@ -46,7 +52,7 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
       setErrorMsg("Invalid JSON: Use 'AI Fix' to repair syntax errors.");
     }
   };
-
+  
   const handleMinify = () => {
     if (!input.trim()) return;
     setErrorMsg(null);
@@ -58,7 +64,7 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
       setErrorMsg("Invalid JSON: Minification requires valid syntax.");
     }
   };
-
+  
   const handleAiFix = async () => {
     if (!input.trim()) return;
     setLoading(true);
@@ -67,10 +73,11 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
     setErrorMsg(null);
     try {
       const result = await convertCode('json', input, { qualityMode });
+      const { code, info } = parseJsonReponse(result);
       if (result && (result.formattedJson || result.convertedCode)) {
         setOutputCode(result.formattedJson || '');
         setExplanation(result.explanation || '');
-
+        
         setLastResult({ type: "json", input, output: result });
       }
     } catch (error) {
@@ -78,11 +85,11 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
     }
     setLoading(false);
   };
-
+  
   const loadSample = () => {
     setInput('{\n  "status": "broken",\n  "error": "missing quotes and commas"\n  unquoted_key: 123\n  "list": [1, 2, 3,]\n}');
   };
-
+  
   const handleCopy = () => {
     if (outputCode) {
       navigator.clipboard.writeText(outputCode);
@@ -90,7 +97,7 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
       setTimeout(() => setCopyFeedback('Copy'), 2000);
     }
   };
-
+  
   return (
     <div className="module-container">
       <ModuleHeader 

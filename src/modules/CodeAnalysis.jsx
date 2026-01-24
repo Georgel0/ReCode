@@ -48,7 +48,7 @@ export default function CodeAnalysis({ onLoadData, qualityMode }) {
     setLoading(true);
     
     try {
-      const result = await convertCode('analysis', codeToProcess, { qualityMode });
+      const result = await convertCode('analysis', input, { qualityMode });
       
       if (result && (result.summary || result.analysis)) {
         processAnalysisResult(result);
