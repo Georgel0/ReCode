@@ -602,15 +602,19 @@ select option {
 }
 
 .modal-header h2 {
-  margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--text-primary);
+  color: var(--header-color);
+  background: var(--header-color);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  font-size: 1.8rem;
 }
 
 .modal-desc {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin-bottom: 2rem;
   line-height: 1.5;
 }
@@ -652,6 +656,7 @@ select option {
 .quality .card-icon { color: var(--text-primary); }
 
 .card-info h3 {
+  color: var(--accent);
   margin: 0 0 0.5rem 0;
   font-size: 1.2rem;
 }
