@@ -3,103 +3,103 @@ import { convertCode } from '../services/api';
 import ModuleHeader from '../components/ModuleHeader';
 
 const DIALECTS = [
- { value: 'Standard SQL', label: 'Standard SQL' },
- { value: 'PostgreSQL', label: 'PostgreSQL' },
- { value: 'MySQL', label: 'MySQL' },
- { value: 'SQLite', label: 'SQLite' },
- { value: 'SQL Server', label: 'SQL Server (T-SQL)' },
- { value: 'Oracle', label: 'Oracle PL/SQL' },
- { value: 'Snowflake', label: 'Snowflake' },
- { value: 'BigQuery', label: 'Google BigQuery' },
- { value: 'Redshift', label: 'AWS Redshift' },
+  { value: 'Standard SQL', label: 'Standard SQL' },
+  { value: 'PostgreSQL', label: 'PostgreSQL' },
+  { value: 'MySQL', label: 'MySQL' },
+  { value: 'SQLite', label: 'SQLite' },
+  { value: 'SQL Server', label: 'SQL Server (T-SQL)' },
+  { value: 'Oracle', label: 'Oracle PL/SQL' },
+  { value: 'Snowflake', label: 'Snowflake' },
+  { value: 'BigQuery', label: 'Google BigQuery' },
+  { value: 'Redshift', label: 'AWS Redshift' },
 ];
 
 const MODES = [
- { id: 'builder', label: 'Builder', icon: 'fa-wand-magic-sparkles' },
- { id: 'converter', label: 'Converter', icon: 'fa-right-left' },
- { id: 'optimizer', label: 'Optimizer', icon: 'fa-gauge-high' },
+  { id: 'builder', label: 'Builder', icon: 'fa-wand-magic-sparkles' },
+  { id: 'converter', label: 'Converter', icon: 'fa-right-left' },
+  { id: 'optimizer', label: 'Optimizer', icon: 'fa-gauge-high' },
 ];
 
 export default function SqlBuilder({ onLoadData, qualityMode }) {
- const [activeMode, setActiveMode] = useState('builder');
- const [input, setInput] = useState('');
- const [schema, setSchema] = useState('');
- const [showSchema, setShowSchema] = useState(false);
- 
- const [targetDialect, setTargetDialect] = useState('Standard SQL');
- const [sourceDialect, setSourceDialect] = useState('MySQL');
- 
- const [outputCode, setOutputCode] = useState('');
- const [loading, setLoading] = useState(false);
- const [copyFeedback, setCopyFeedback] = useState('Copy');
- const [lastResult, setLastResult] = useState(false);
- 
- useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   setOutputCode(onLoadData.fullOutput?.convertedCode || '');
-   if (onLoadData.targetLang) setTargetDialect(onLoadData.targetLang);
-   if (onLoadData.mode) setActiveMode(onLoadData.mode);
-  }
- }, [onLoadData]);
- 
- const handleGenerate = async () => {
-  if (!input.trim()) return;
-  setLoading(true);
-  setOutputCode('');
-  setLastResult(false);
+  const [activeMode, setActiveMode] = useState('builder');
+  const [input, setInput] = useState('');
+  const [schema, setSchema] = useState('');
+  const [showSchema, setShowSchema] = useState(false);
   
-  try {
-   let fullPrompt = '';
-   
-   if (activeMode === 'builder') {
-    fullPrompt = `Generate a ${targetDialect} query based on this requirement: "${input}".\n`;
-    if (schema) fullPrompt += `Use this Database Schema strictly: ${schema}`;
-   }
-   else if (activeMode === 'converter') {
-    fullPrompt = `Convert the following ${sourceDialect} query to ${targetDialect}.\nOriginal SQL:\n${input}`;
-   }
-   else if (activeMode === 'optimizer') {
-    fullPrompt = `Analyze and optimize this ${targetDialect} query for performance. Add comments explaining changes.\nQuery:\n${input}`;
-    if (schema) fullPrompt += `\nSchema Context: ${schema}`;
-   }
-   
-   // passing the prompt as 'input' to the backend
-   const result = await convertCode('sql', fullPrompt, { targetLang: targetDialect, qualityMode });
-   
-   if (result && result.convertedCode) {
-    setOutputCode(result.convertedCode);
-    setLastResult({
-     type: "sql",
-     mode: activeMode,
-     input: input,
-     output: result
-    });
-   } else {
-    throw new Error("Unexpected response structure.");
-   }
-  } catch (error) {
-   alert(`Generation failed: ${error.message}`);
-  }
-  setLoading(false);
- };
- 
- const handleCopy = () => {
-  if (outputCode) {
-   navigator.clipboard.writeText(outputCode);
-   setCopyFeedback('Copied!');
-   setTimeout(() => setCopyFeedback('Copy'), 2000);
-  }
- };
- 
- const clearInputs = () => {
-  setInput('');
-  setOutputCode('');
-  setSchema('');
- };
- 
- return (
-  <div className="module-container">
+  const [targetDialect, setTargetDialect] = useState('Standard SQL');
+  const [sourceDialect, setSourceDialect] = useState('MySQL');
+  
+  const [outputCode, setOutputCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState('Copy');
+  const [lastResult, setLastResult] = useState(false);
+  
+  useEffect(() => {
+    if (onLoadData) {
+      setInput(onLoadData.input || '');
+      setOutputCode(onLoadData.fullOutput?.convertedCode || '');
+      if (onLoadData.targetLang) setTargetDialect(onLoadData.targetLang);
+      if (onLoadData.mode) setActiveMode(onLoadData.mode);
+    }
+  }, [onLoadData]);
+  
+  const handleGenerate = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    setOutputCode('');
+    setLastResult(false);
+    
+    try {
+      let fullPrompt = '';
+      
+      if (activeMode === 'builder') {
+        fullPrompt = `Generate a ${targetDialect} query based on this requirement: "${input}".\n`;
+        if (schema) fullPrompt += `Use this Database Schema strictly: ${schema}`;
+      }
+      else if (activeMode === 'converter') {
+        fullPrompt = `Convert the following ${sourceDialect} query to ${targetDialect}.\nOriginal SQL:\n${input}`;
+      }
+      else if (activeMode === 'optimizer') {
+        fullPrompt = `Analyze and optimize this ${targetDialect} query for performance. Add comments explaining changes.\nQuery:\n${input}`;
+        if (schema) fullPrompt += `\nSchema Context: ${schema}`;
+      }
+      
+      // passing the prompt as 'input' to the backend
+      const result = await convertCode('sql', fullPrompt, { targetLang: targetDialect, qualityMode });
+      
+      if (result && result.convertedCode) {
+        setOutputCode(result.convertedCode);
+        setLastResult({
+          type: "sql",
+          mode: activeMode,
+          input: input,
+          output: result
+        });
+      } else {
+        throw new Error("Unexpected response structure.");
+      }
+    } catch (error) {
+      alert(`Generation failed: ${error.message}`);
+    }
+    setLoading(false);
+  };
+  
+  const handleCopy = () => {
+    if (outputCode) {
+      navigator.clipboard.writeText(outputCode);
+      setCopyFeedback('Copied!');
+      setTimeout(() => setCopyFeedback('Copy'), 2000);
+    }
+  };
+  
+  const clearInputs = () => {
+    setInput('');
+    setOutputCode('');
+    setSchema('');
+  };
+  
+  return (
+    <div className="module-container">
    <ModuleHeader 
     title="SQL Forge"
     description="Generate, convert, and optimize SQL queries for any database."
@@ -237,9 +237,9 @@ export default function SqlBuilder({ onLoadData, qualityMode }) {
             ) : (
                 <div className="placeholder-text">
                    {loading ? (
-                     <div className="loading-state">
+                     <div className="processing-state">
                        <div className="pulse-ring"></div>
-                       <span>AI is working...</span>
+                       <p>AI is building...</p>
                      </div>
                    ) : 'Result will appear here.'}
                 </div>
@@ -248,5 +248,5 @@ export default function SqlBuilder({ onLoadData, qualityMode }) {
         </div>
       </div>
     </div>
- );
+  );
 }
