@@ -20,22 +20,9 @@ export const OUTPUT_SCHEMAS = {
   analysis: z.object({
     summary: z.string(),
     score: z.number().min(0).max(100),
-    complexity: z.object({
-      time: z.string(),
-      space: z.string(),
-      runtimeAnalysis: z.string().describe("Impact on serverless execution time/memory.")
-    }),
-    security: z.array(z.object({
-      issue: z.string(),
-      level: z.enum(['low', 'medium', 'high', 'critical']),
-      evidence: z.string(),
-      remediation: z.string()
-    })),
-    performance: z.array(z.object({
-      bottleneck: z.string(),
-      impact: z.string().describe("How this affects latency or cost."),
-      suggestion: z.string()
-    })),
+    complexity: z.string(),
+    security: z.array(z.string()),
+    improvements: z.array(z.string()),
     bugs: z.array(z.string())
   }),
   regex: z.object({
@@ -135,17 +122,22 @@ export const PROMPT_CONFIG = {
   
   analysis: {
     system: () => withSchema(
-      `You are a Senior Security & Performance Auditor. Your Task: Conduct a cold, evidence-based static and performance analysis of the provided code.
-      AUDIT RULES:
-      1. EVIDENCE-BASED SECURITY: Do not report vulnerabilities unless you can trace the data flow from input to sink. Categorize unprovable risks under "Improvements."
-      2. PERFORMANCE & COST: Analyze the code for "Serverless Antipatterns" (e.g., massive dependency trees, inefficient DB queries, or excessive API calls).
-      3. CONTEXT AWARENESS: Distinguish between standard library behaviors and true vulnerabilities. (e.g., JSON.parse() is safe in Node.js).
-      4. OBJECTIVITY: Score begins at 100. Deduct only for verifiable logic flaws, security holes, or significant performance bottlenecks.
+      `You are a Senior Security & Performance Auditor. 
+      Your Task: Conduct a deep-dive static analysis of the code.
       
-      SCHEMA REQUIREMENTS:
-      - Every Security finding MUST include "evidence" (the line or logic path).
-      - Every Performance finding MUST include "impact" (e.g., increased latency, higher cloud costs).`
-      
+      Guidelines:
+      - Score: 0 (Critical Failure) to 100 (Flawless).
+      - Complexity: Calculate Time and Space complexity (Big O).
+      - Security: Look for XSS, SQLi, RCE, insecure deps, and hardcoded secrets, mention them ONLY if they exist. Do not report a vulnerability unless you can trace the exact path from input to sink. 
+      - Bugs: Find logic errors, race conditions, or unhandled null states.`,
+      `{ 
+        "summary": "string (executive summary)", 
+        "score": number, 
+        "complexity": "string", 
+        "security": ["string (specific vulnerability)"], 
+        "improvements": ["string (actionable advice)"], 
+        "bugs": ["string (potential error)"] 
+       }`
     ),
     user: (input) => `Analyze this code:\n${input}`,
     responseType: 'object',
