@@ -125,7 +125,8 @@ export default async function handler(req, res) {
           system: systemPrompt,
           prompt: userPrompt,
           schema: config.schema,
-          mode: 'json'
+          mode: 'json',
+          maxTokene: 4096,
         });
         finalData = result.object;
       } catch (e) {
