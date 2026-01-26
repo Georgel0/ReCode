@@ -194,7 +194,12 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
               </>
             ) : (
               <div className="placeholder-text">
-                {loading ? 'AI is processing...' : 'Your Regex pattern will appear here.'}
+                {loading ? (
+                   <div className="processing-state">
+                     <div className="pulse-ring"></div>
+                     <p>AI is working...</p>
+                    </div>
+                ) : 'Your Regex pattern will appear here.'}
               </div>
             )}
           </div>
