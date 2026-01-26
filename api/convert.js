@@ -126,7 +126,7 @@ export default async function handler(req, res) {
           prompt: userPrompt,
           schema: config.schema,
           mode: 'json',
-          maxTokene: 4096,
+          maxTokene: 8192,
         });
         finalData = result.object;
       } catch (e) {
