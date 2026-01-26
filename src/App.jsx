@@ -165,12 +165,6 @@ function App() {
         <meta property="og:title" content={currentMeta.title} />
         <meta property="og:description" content={currentMeta.desc} />
       </Helmet>
-      
-      <ModelSelector
-        isOpen={showModelSelector}
-        onSelect={handleModelSelect}
-        onClose={qualityMode ? () => setShowModelSelector(false) : null}
-      />
 
       <Sidebar 
         activeModule={activeModule} 
@@ -200,6 +194,12 @@ function App() {
       <Notification message={notificationMessage} />
       <SpeedInsights />
       <Analytics />
+      
+      <ModelSelector
+        isOpen={showModelSelector}
+        onSelect={handleModelSelect}
+        onClose={qualityMode ? () => setShowModelSelector(false) : null}
+      />
     </div>
   );
 }
