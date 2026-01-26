@@ -20,9 +20,22 @@ export const OUTPUT_SCHEMAS = {
   analysis: z.object({
     summary: z.string(),
     score: z.number().min(0).max(100),
-    complexity: z.string(),
-    security: z.array(z.string()),
-    improvements: z.array(z.string()),
+    complexity: z.object({
+      time: z.string(),
+      space: z.string(),
+      runtimeAnalysis: z.string().describe("Impact on serverless execution time/memory.")
+    }),
+    security: z.array(z.object({
+      issue: z.string(),
+      level: z.enum(['low', 'medium', 'high', 'critical']),
+      evidence: z.string(),
+      remediation: z.string()
+    })),
+    performance: z.array(z.object({
+      bottleneck: z.string(),
+      impact: z.string().describe("How this affects latency or cost."),
+      suggestion: z.string()
+    })),
     bugs: z.array(z.string())
   }),
   regex: z.object({
@@ -64,7 +77,7 @@ export const PROMPT_CONFIG = {
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.json
   },
-
+  
   refactor: {
     system: (ctx) => {
       const mode = ctx?.mode || 'clean';
@@ -91,7 +104,7 @@ export const PROMPT_CONFIG = {
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.refactor
   },
-
+  
   converter: {
     system: (ctx) => `You are a Polyglot Expert in coding languages. 
       Your Task: Translate code from ${ctx?.sourceLang || 'auto-detect'} to ${ctx?.targetLang}.
@@ -100,10 +113,10 @@ export const PROMPT_CONFIG = {
       - Use idiomatic patterns and best practices for ${ctx?.targetLang}.
       - Convert libraries to their nearest equivalents (e.g., React -> Vue, Pandas -> Dplyr).
       - Output ONLY the raw code. No markdown formatting. No comments about the translation.`,
-    user: (input) => `Code to translate:\n${input}`, 
+    user: (input) => `Code to translate:\n${input}`,
     responseType: 'text'
   },
-
+  
   generator: {
     system: () => withSchema(
       `You are a Lead Developer. 
@@ -119,33 +132,28 @@ export const PROMPT_CONFIG = {
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.generator
   },
-
+  
   analysis: {
     system: () => withSchema(
-      `You are a Senior Security & Performance Auditor. 
-      Your Task: Conduct a deep-dive static analysis of the code.
+      `You are a Senior Security & Performance Auditor. Your Task: Conduct a cold, evidence-based static and performance analysis of the provided code.
+      AUDIT RULES:
+      1. EVIDENCE-BASED SECURITY: Do not report vulnerabilities unless you can trace the data flow from input to sink. Categorize unprovable risks under "Improvements."
+      2. PERFORMANCE & COST: Analyze the code for "Serverless Antipatterns" (e.g., massive dependency trees, inefficient DB queries, or excessive API calls).
+      3. CONTEXT AWARENESS: Distinguish between standard library behaviors and true vulnerabilities. (e.g., JSON.parse() is safe in Node.js).
+      4. OBJECTIVITY: Score begins at 100. Deduct only for verifiable logic flaws, security holes, or significant performance bottlenecks.
       
-      Guidelines:
-      - Score: 0 (Critical Failure) to 100 (Flawless).
-      - Complexity: Calculate Time and Space complexity (Big O).
-      - Security: Look for XSS, SQLi, RCE, insecure deps, and hardcoded secrets.
-      - Bugs: Find logic errors, race conditions, or unhandled null states.`,
-      `{ 
-        "summary": "string (executive summary)", 
-        "score": number, 
-        "complexity": "string", 
-        "security": ["string (specific vulnerability)"], 
-        "improvements": ["string (actionable advice)"], 
-        "bugs": ["string (potential error)"] 
-       }`
+      SCHEMA REQUIREMENTS:
+      - Every Security finding MUST include "evidence" (the line or logic path).
+      - Every Performance finding MUST include "impact" (e.g., increased latency, higher cloud costs).`
+      
     ),
     user: (input) => `Analyze this code:\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.analysis
   },
-
+  
   'css-framework': {
-    system: (ctx) => ctx?.targetLang === 'tailwind' ? 
+    system: (ctx) => ctx?.targetLang === 'tailwind' ?
       withSchema(
         `You are a Tailwind CSS Expert. 
         Your Task: Convert standard CSS rules into Tailwind Utility Classes.
@@ -155,8 +163,7 @@ export const PROMPT_CONFIG = {
         - Use arbitrary values (e.g., text-[14px]) ONLY if no standard utility exists.
         - Group states correctly (hover:, focus:).`,
         `{ "conversions": [ { "selector": "string (e.g., .btn-primary)", "tailwindClasses": "string (e.g., px-4 py-2 bg-blue-500)" } ] }`
-      ) :
-      `You are a CSS Preprocessor Expert. Convert the input to valid, idiomatic ${ctx?.targetLang}.
+      ) : `You are a CSS Preprocessor Expert. Convert the input to valid, idiomatic ${ctx?.targetLang}.
        - Nest selectors where appropriate.
        - Use variables for repeated colors/sizes.
        - Output ONLY the raw code.`,
@@ -164,7 +171,7 @@ export const PROMPT_CONFIG = {
     responseType: (ctx) => ctx?.targetLang === 'tailwind' ? 'object' : 'text',
     schema: OUTPUT_SCHEMAS['css-framework-json']
   },
-
+  
   regex: {
     system: () => withSchema(
       `You are a Regex Architect. 
@@ -181,7 +188,7 @@ export const PROMPT_CONFIG = {
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.regex
   },
-
+  
   sql: {
     system: () => `You are a Database Administrator specializing in Query Optimization.
       Your Task: Generate or Optimize SQL queries.

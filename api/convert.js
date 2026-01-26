@@ -112,7 +112,7 @@ export default async function handler(req, res) {
     
     const modelId = qualityMode === 'fast' ?
       'fast:llama-3.3-70b-versatile' :
-      'quality:mistral/devstral-2';
+      (type === 'analysis' ?  'quality:deepseek/deepseek-v3.2-thinking' : 'quality:mistral/devstral-2');
     
     const modelInstance = registry.languageModel(modelId);
     let finalData;
