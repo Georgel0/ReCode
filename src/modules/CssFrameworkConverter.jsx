@@ -176,7 +176,12 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
           ) : (
             <div className="placeholder-text">
      
-              {loading ? 'Analyzing and converting...' : 'Output will appear here...'}
+              {loading ? (
+                 <div className="processing-state">
+                   <div className="pulse-ring"></div>
+                   <p>Converting...</p>
+                  </div>
+              ) : 'Output will appear here...'}
             </div>
           )}
         </div>

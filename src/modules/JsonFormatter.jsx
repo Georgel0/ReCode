@@ -161,7 +161,12 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
                 </>
             ) : (
                 <div className="placeholder-text">
-                   {loading ? 'AI is repairing your JSON...' : 'Clean JSON will appear here.'}
+                   {loading ? (
+                      <div className="processing-state">
+                        <div className="pulse-ring"></div>
+                        <p>AI is optimizing your JSON...</p>
+                      </div>
+                   ) : 'Clean JSON will appear here.'}
                 </div>
             )}
           </div>
