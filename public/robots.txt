@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://recode-alpha.vercel.app/sitemap.xml

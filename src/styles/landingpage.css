@@ -1,0 +1,240 @@
+:root {
+  --lp-bg: #000000;
+  --lp-blue: #38bdf8;
+  --lp-blue-glow: rgba(56, 189, 248, 0.15);
+  --lp-text-main: #ffffff;
+  --lp-text-muted: #94a3b8;
+  --lp-card-bg: #0a0a0a;
+}
+
+.lp-wrapper {
+  background-color: var(--lp-bg);
+  min-height: 100vh;
+  color: var(--lp-text-main);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.lp-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 20px 60px;
+}
+
+.lp-badge {
+  background: var(--lp-blue-glow);
+  color: var(--lp-blue);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+
+.lp-title {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.text-blue {
+  color: var(--lp-blue);
+  text-shadow: 0 0 30px var(--lp-blue-glow);
+}
+
+.lp-description {
+  max-width: 600px;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--lp-text-muted);
+  margin-bottom: 3rem;
+}
+
+.lp-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--lp-blue);
+  color: #000;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 20px var(--lp-blue-glow);
+}
+
+.lp-cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 40px var(--lp-blue-glow);
+  background: #ffffff;
+}
+
+.lp-grid-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 20px;
+}
+
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.lp-card {
+  position: relative;
+  background: var(--lp-card-bg);
+  padding: 32px;
+  border-radius: 24px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.lp-card:hover {
+  background: #111;
+  transform: translateY(-8px);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.lp-card-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(56, 189, 248, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.lp-card-icon i {
+  color: var(--lp-blue);
+  font-size: 1.5rem;
+}
+
+.lp-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.lp-card p {
+  color: var(--lp-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: fadeInUp 0.8s forwards; }
+.animate-slide-up { opacity: 0; animation: fadeInUp 0.6s forwards; }
+
+.lp-footer {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.footer-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.2), transparent);
+  margin-bottom: 30px;
+}
+
+.footer-content {
+  color: #444;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+  .lp-grid {
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px;
+  }
+  
+  .lp-hero {
+    padding: 100px 40px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lp-hero {
+    padding: 80px 24px 40px;
+  }
+
+  .lp-title {
+    font-size: 3rem; 
+    margin-bottom: 1rem;
+  }
+
+  .lp-description {
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .lp-cta {
+    width: 100%; 
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .lp-grid-section {
+    padding: 40px 20px;
+  }
+
+  .lp-grid {
+    grid-template-columns: 1fr; 
+    gap: 16px;
+  }
+
+  .lp-card {
+    padding: 24px;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 480px) {
+  .lp-title {
+    font-size: 2.4rem;
+  }
+  
+  .lp-badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+  }
+
+  .lp-footer {
+    padding: 40px 20px;
+  }
+
+  .footer-content {
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-height: 1000px) {
+  .lp-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .lp-grid-section {
+    flex: 1;
+  }
+}

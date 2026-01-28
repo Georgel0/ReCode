@@ -1,0 +1,147 @@
+import { NextResponse } from 'next/server';
+import admin from "firebase-admin";
+import { createOpenAI } from '@ai-sdk/openai';
+import { createGroq } from '@ai-sdk/groq';
+import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
+import { z } from 'zod';
+import { PROMPT_CONFIG } from '@/lib/prompts.js';
+
+// --- Helper: Extract JSON safely ---
+function extractJson(text) {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) {
+      const jsonCandidate = text.substring(start, end + 1);
+      try {
+        const cleanCandidate = jsonCandidate.replace(/,\s*}/g, '}').replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+        return JSON.parse(cleanCandidate);
+      } catch (e2) {
+        const cleanMarkdown = text.replace(/```json|```/g, '').trim();
+        try { return JSON.parse(cleanMarkdown); } catch (e3) { return null; }
+      }
+    }
+    return null;
+  }
+}
+
+// --- Helper: Parse Service Account (Handles JSON or Base64) ---
+function getServiceAccount() {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) return null;
+  
+  try {
+    // 1. Try parsing as raw JSON
+    return JSON.parse(raw);
+  } catch (e) {
+    // 2. If that fails, try decoding from Base64
+    try {
+      const decoded = Buffer.from(raw, 'base64').toString('utf-8');
+      return JSON.parse(decoded);
+    } catch (e2) {
+      console.error("Firebase Service Account format error: Not valid JSON or Base64.");
+      return null;
+    }
+  }
+}
+
+// --- Firebase Initialization ---
+if (!admin.apps.length) {
+  const serviceAccount = getServiceAccount();
+  
+  if (serviceAccount && serviceAccount.project_id) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      console.log("Firebase Admin Initialized Successfully");
+    } catch (error) {
+      console.error("Firebase Init Error:", error);
+    }
+  } else {
+    console.warn("⚠️ FIREBASE_SERVICE_ACCOUNT missing or invalid. Auth checks may fail.");
+  }
+}
+
+// --- AI Provider Setup ---
+// Debug Log (Don't show the full key, just if it exists)
+console.log("Groq Key Status:", process.env.GROQ_API_KEY ? "Loaded" : "MISSING");
+
+const registry = createProviderRegistry({
+  groq: createGroq({ apiKey: process.env.GROQ_API_KEY }),
+  openai: createOpenAI({ apiKey: process.env.OPENAI_API_KEY }),
+});
+
+// --- API Route ---
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { type, input, sourceLang, targetLang, mode, qualityMode } = body;
+
+    // 1. Validate Input
+    if (!input) return NextResponse.json({ error: 'Input code is required' }, { status: 400 });
+
+    // 2. Auth Check (Optional: Add your verifyIdToken logic here if needed)
+    
+    // 3. Setup Prompt
+    const config = PROMPT_CONFIG[type];
+    if (!config) return NextResponse.json({ error: 'Invalid operation type' }, { status: 400 });
+
+    const systemPrompt = config.system(sourceLang, targetLang, mode);
+    const userPrompt = config.user(input);
+
+    // 4. Select Model
+    let modelId = 'groq:llama-3.3-70b-versatile'; 
+    if (qualityMode === 'quality') modelId = 'openai:gpt-4o'; 
+
+    const modelInstance = registry.languageModel(modelId);
+    let finalData;
+
+    // 5. Generate
+    if (config.schema && qualityMode !== 'fast') {
+      try {
+        const result = await generateObject({
+          model: modelInstance,
+          system: systemPrompt,
+          prompt: userPrompt,
+          schema: config.schema,
+          mode: 'json',
+          maxTokens: 8192,
+        });
+        finalData = result.object;
+      } catch (e) {
+        console.warn("Structured output failed, falling back to text.");
+      }
+    }
+
+    if (!finalData) {
+      const jsonForce = config.schema ? "\n\nIMPORTANT: Output PURE JSON ONLY." : "";
+      const result = await generateText({
+        model: modelInstance,
+        system: systemPrompt + jsonForce,
+        prompt: userPrompt,
+        temperature: 0.1 
+      });
+
+      const text = result.text;
+      if (config.schema) {
+        finalData = extractJson(text);
+        if (!finalData) throw new Error("AI generated invalid JSON format.");
+      } else {
+        finalData = { convertedCode: text.replace(/^```[a-z]*\s*|```$/g, '').trim() };
+      }
+    }
+
+    return NextResponse.json(finalData);
+
+  } catch (error) {
+    console.error("API Processing Error:", error);
+    return NextResponse.json({ 
+      error: error.message || "Internal Server Error", 
+      details: error.toString() 
+    }, { status: 500 });
+  }
+}
