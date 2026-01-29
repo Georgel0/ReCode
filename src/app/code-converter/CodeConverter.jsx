@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
+import { useApp } from '@/context/AppContext'; 
 
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -28,7 +29,7 @@ const LANGUAGES = [
   { value: 'lua', label: 'Lua', ext: '.lua' },
 ];
 
-export default function CodeConverter({ onLoadData, onSwitchModule, qualityMode }) {
+export default function CodeConverter({ onSwitchModule, qualityMode }) {
   const [sourceLang, setSourceLang] = useState('javascript');
   const [targetLang, setTargetLang] = useState('python');
   const [input, setInput] = useState('');
@@ -39,15 +40,16 @@ export default function CodeConverter({ onLoadData, onSwitchModule, qualityMode 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const fileInputRef = useRef(null);
   const [lastResult, setLastResult] = useState(false);
+  const { moduleData } = useApp();
   
   useEffect(() => {
-    if (onLoadData) {
-      setInput(onLoadData.input || '');
-      setOutputCode(onLoadData.fullOutput?.convertedCode || '');
-      if (onLoadData.sourceLang) setSourceLang(onLoadData.sourceLang);
-      if (onLoadData.targetLang) setTargetLang(onLoadData.targetLang);
+    if (moduleData && moduleData.type === 'converter') {
+      setInput(moduleData.input || '');
+      setOutputCode(moduleData.fullOutput?.convertedCode || '');
+      if (moduleData.sourceLang) setSourceLang(moduleData.sourceLang);
+      if (moduleData.targetLang) setTargetLang(moduleData.targetLang);
     }
-  }, [onLoadData]);
+  }, [moduleData]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
