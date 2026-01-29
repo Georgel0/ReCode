@@ -23,7 +23,7 @@ const MODES = [
  { id: 'optimizer', label: 'Optimizer', icon: 'fa-gauge-high' },
 ];
 
-export default function SqlBuilder({ onLoadData, qualityMode }) {
+export default function SqlBuilder({ qualityMode }) {
  const [activeMode, setActiveMode] = useState('builder');
  const [input, setInput] = useState('');
  const [schema, setSchema] = useState('');
@@ -39,13 +39,13 @@ export default function SqlBuilder({ onLoadData, qualityMode }) {
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   setOutputCode(onLoadData.fullOutput?.convertedCode || '');
-   if (onLoadData.targetLang) setTargetDialect(onLoadData.targetLang);
-   if (onLoadData.mode) setActiveMode(onLoadData.mode);
+  if (moduleData) {
+   setInput(moduleData.input || '');
+   setOutputCode(moduleData.fullOutput?.convertedCode || '');
+   if (moduleData.targetLang) setTargetDialect(moduleData.targetLang);
+   if (moduleData.mode) setActiveMode(moduleData.mode);
   }
- }, [onLoadData]);
+ }, [moduleData]);
  
  const handleGenerate = async () => {
   if (!input.trim()) return;

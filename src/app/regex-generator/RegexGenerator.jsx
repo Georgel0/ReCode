@@ -5,7 +5,7 @@ import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext'; 
 
-export default function RegexGenerator({ onLoadData, qualityMode }) {
+export default function RegexGenerator({ qualityMode }) {
  const [input, setInput] = useState('');
  const [outputCode, setOutputCode] = useState('');
  const [explanation, setExplanation] = useState('');
@@ -16,6 +16,15 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [lastResult, setLastResult] = useState(false);
  const { moduleData } = useApp();
+ 
+ useEffect(() => {
+ if (moduleData) {
+  setInput(moduleData.input || '');
+  const { pattern, explanation } = parseResponse(moduleData.fullOutput);
+  setOutputCode(pattern);
+  setExplanation(explanation);
+ }
+}, [moduleData]);
  
  // Helper to parse the JSON string from the API
  const parseResponse = (rawOutput) => {
@@ -39,16 +48,6 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
   }
  };
  
- useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   const { pattern, explanation } = parseResponse(onLoadData.fullOutput);
-   setOutputCode(pattern);
-   setExplanation(explanation);
-  }
- }, [onLoadData]);
- 
- // Real-time Regex Testing Logic
  useEffect(() => {
   if (!outputCode || !testString) {
    setTestResult(null);

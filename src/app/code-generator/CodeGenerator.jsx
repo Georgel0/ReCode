@@ -9,7 +9,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useApp } from '@/context/AppContext'; 
 
-export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode }) {
+export default function CodeGenerator({ onSwitchModule, qualityMode }) {
  const [input, setInput] = useState('');
  const [files, setFiles] = useState([]);
  const [activeFileIndex, setActiveFileIndex] = useState(0);
@@ -18,13 +18,13 @@ export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode 
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   const savedFiles = onLoadData.fullOutput?.files || [];
+  if (moduleData) {
+   setInput(moduleData.input || '');
+   const savedFiles = moduleData.fullOutput?.files || [];
    setFiles(savedFiles);
    setActiveFileIndex(0);
   }
- }, [onLoadData]);
+ }, [moduleData]);
  
  const getLanguage = (fileName) => {
   if (!fileName) return 'javascript';

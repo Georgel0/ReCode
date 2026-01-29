@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
-import { useApp } from '@/context/AppContext'; 
+import { useApp } from '@/context/AppContext';
 
-export default function JsonFormatter({ onLoadData, qualityMode }) {
+export default function JsonFormatter({ qualityMode }) {
  const [input, setInput] = useState('');
  const [outputCode, setOutputCode] = useState('');
  const [explanation, setExplanation] = useState('');
@@ -14,6 +14,15 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
  const [errorMsg, setErrorMsg] = useState(null);
  const [lastResult, setLastResult] = useState(false);
  const { moduleData } = useApp();
+ 
+ useEffect(() => {
+  if (moduleData) {
+   setInput(moduleData.input || '');
+   const { code, info } = parseJsonReponse(moduleData.fullOutput);
+   setOutputCode(code);
+   setExplanation(info);
+  }
+ }, [moduleData]);
  
  const parseJsonReponse = (rawOutput) => {
   if (typeof rawOutput === 'object' && rawOutput !== null) {
@@ -34,16 +43,6 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
    return { code: rawOutput || '', info: "AI formatted the JSON." };
   }
  };
- 
- useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   const { code, info } = parseJsonReponse(onLoadData.fullOutput);
-   setOutputCode(code);
-   setExplanation(info);
-  }
- }, [onLoadData]);
- 
  
  const handlePrettify = () => {
   if (!input.trim()) return;

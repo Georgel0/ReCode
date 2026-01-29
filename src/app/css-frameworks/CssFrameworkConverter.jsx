@@ -12,7 +12,7 @@ const TARGET_FRAMEWORKS = [
  { value: 'less', label: 'LESS' },
 ];
 
-export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tailwind', onSwitchModule, qualityMode }) {
+export default function CssFrameworkConverter({ preSetTarget = 'tailwind', onSwitchModule, qualityMode }) {
  const [input, setInput] = useState('');
  const [targetLang, setTargetLang] = useState(preSetTarget);
  const [data, setData] = useState(null);
@@ -21,16 +21,17 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (onLoadData) {
-   setInput(onLoadData.input || '');
-   setData(onLoadData.fullOutput || null);
-   if (onLoadData.targetLang) setTargetLang(onLoadData.targetLang);
+  if (moduleData) {
+   setInput(moduleData.input || '');
+   setData(moduleData.fullOutput || null);
+   if (moduleData.targetLang) setTargetLang(moduleData.targetLang);
   } else {
    setTargetLang(preSetTarget);
    setInput('');
    setData(null);
   }
- }, [onLoadData, preSetTarget]);
+ }, [moduleData, preSetTarget]);
+ 
  const handleConvert = async () => {
   if (!input.trim()) return;
   setLoading(true);

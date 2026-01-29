@@ -30,7 +30,7 @@ const REFACTOR_MODES = [
  { id: 'comments', label: 'Add Comments', desc: 'Adds documentation and explanatory comments.' },
 ];
 
-export default function CodeRefactor({ onLoadData, onSwitchModule, qualityMode }) {
+export default function CodeRefactor({ onSwitchModule, qualityMode }) {
  const [files, setFiles] = useState([{ id: 1, name: 'main.js', language: 'javascript', content: '' }]);
  const [activeTab, setActiveTab] = useState(1);
  const [outputFiles, setOutputFiles] = useState([]);
@@ -41,11 +41,11 @@ export default function CodeRefactor({ onLoadData, onSwitchModule, qualityMode }
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (onLoadData && onLoadData.type === 'refactor') {
-   if (onLoadData.inputFiles) setFiles(onLoadData.inputFiles);
-   if (onLoadData.fullOutput?.files) setOutputFiles(onLoadData.fullOutput.files);
+  if (moduleData && moduleData.type === 'refactor') {
+   if (moduleData.inputFiles) setFiles(moduleData.inputFiles);
+   if (moduleData.fullOutput?.files) setOutputFiles(moduleData.fullOutput.files);
   }
- }, [onLoadData]);
+ }, [moduleData]);
  
  // Sync index helper
  const activeFileIndex = files.findIndex(f => f.id === activeTab);
