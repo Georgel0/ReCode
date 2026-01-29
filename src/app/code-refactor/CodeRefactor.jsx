@@ -7,6 +7,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { useApp } from '@/context/AppContext'; 
 
 const LANGUAGES = [
  { value: 'javascript', label: 'JavaScript', ext: '.js' },

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
+import { useApp } from '@/context/AppContext'; 
 
 const TARGET_FRAMEWORKS = [
  { value: 'tailwind', label: 'Tailwind CSS' },

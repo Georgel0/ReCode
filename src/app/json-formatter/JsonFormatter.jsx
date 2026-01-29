@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
+import { useApp } from '@/context/AppContext'; 
 
 export default function JsonFormatter({ onLoadData, qualityMode }) {
  const [input, setInput] = useState('');
