@@ -10,9 +10,16 @@ import '@/styles/Sidebar.css';
 import '@/styles/Modules.css';
 
 export const metadata = {
-  title: 'ReCode - AI Development Tools',
-  description: 'Convert, Analyze, and Generate code with AI.',
+  title: {
+    default: 'ReCode - Developer Tools',
+    template: '%s | ReCode' 
+  },
+  description: 'AI-powered productivity suite for modern developers.',
+  icons: {
+    icon: '/favicon.ico',
+  }
 };
+
 
 export default function RootLayout({ children }) {
   return (
