@@ -11,14 +11,13 @@ import '@/styles/Modules.css';
 
 export const metadata = {
   title: {
-    default: 'ReCode - Developer Tools',
-    template: '%s | ReCode' 
+    default: 'ReCode | AI Developer Suite',
+    template: 'ReCode | %s' 
   },
-  description: 'AI-powered productivity suite for modern developers.',
-  icons: {
-    icon: '/favicon.ico',
-  }
+  description: 'Advanced AI tools for code conversion, refactoring, and generation.',
+  keywords: ['Code Converter', 'Code Refactor', 'Code Analysis', 'Code Generator', 'CSS Converter', 'Regex Generator', 'SQL Generator', 'JSON Formatter'],
 };
+
 
 
 export default function RootLayout({ children }) {
