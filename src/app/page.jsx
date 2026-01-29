@@ -9,10 +9,10 @@ export default function LandingPage() {
     { name: 'Code Refactor', path: '/code-refactor', icon: 'fa-wand-magic-sparkles', desc: 'Clean, optimize, and modernize your snippets.' },
     { name: 'Code Analysis', path: '/code-analysis', icon: 'fa-magnifying-glass-chart', desc: 'Deep-dive into complexity and security.' },
     { name: 'Code Generator', path: '/code-generator', icon: 'fa-code', desc: 'Generate boilerplate from natural language.' },
-    { name: 'CSS Converter', path: '/css-frameworks', icon: 'fa-css3-alt', desc: 'Convert raw CSS to Tailwind or modern frameworks.' },
+    { name: 'CSS Converter', path: '/css-frameworks', icon: 'fa-css-alt', desc: 'Convert raw CSS to Tailwind or modern frameworks.' },
     { name: 'SQL Builder', path: '/sql-builder', icon: 'fa-database', desc: 'Design complex queries with AI precision.' },
     { name: 'Regex Generator', path: '/regex-generator', icon: 'fa-arrow-right-to-bracket', desc: 'Pattern matching made human-readable.' },
-    { name: 'JSON Formatter', path: '/json-formatter', icon: 'fa-brackets-curly', desc: 'Fix and beautify messy data structures.' },
+    { name: 'JSON Formatter', path: '/json-formatter', icon: 'fa-brackets', desc: 'Fix and beautify messy data structures.' },
   ];
 
   return (
@@ -55,7 +55,7 @@ export default function LandingPage() {
       <footer className="lp-footer">
         <div className="footer-line"></div>
         <div className="footer-content">
-          <span>&copy; 2026 ReCode AI. All rights reserved.</span>
+          <span>&copy; 2026 ReCode AI</span>
         </div>
       </footer>
     </div>
