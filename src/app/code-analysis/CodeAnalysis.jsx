@@ -3,29 +3,31 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
+import { useApp } from '@/context/AppContext'; 
 
-export default function CodeAnalysis({ onLoadData, qualityMode }) {
-  const [input, setInput] = useState('');
-  const [analysisData, setAnalysisData] = useState(null);
-  const [rawAnalysis, setRawAnalysis] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [lastResult, setLastResult] = useState(false);
-  
-  useEffect(() => {
-    if (onLoadData) {
-      const codeToAnalyze = onLoadData.input || '';
-      setInput(codeToAnalyze);
-      
-      if (onLoadData.fullOutput?.analysis) {
-        processAnalysisResult(onLoadData.fullOutput.analysis);
-      } else if (onLoadData.sourceModule === 'converter' && codeToAnalyze) {
-        handleAnalyze(codeToAnalyze);
-      } else {
-        setAnalysisData(null);
-        setRawAnalysis('');
-      }
-    }
-  }, [onLoadData]);
+export default function CodeAnalysis({ qualityMode }) {
+ const [input, setInput] = useState('');
+ const [analysisData, setAnalysisData] = useState(null);
+ const [rawAnalysis, setRawAnalysis] = useState('');
+ const [loading, setLoading] = useState(false);
+ const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
+ 
+ useEffect(() => {
+  if (moduleData && moduleData.type === 'analysis') {
+   const codeToAnalyze = moduleData.input || '';
+   setInput(codeToAnalyze);
+   
+   if (moduleData.fullOutput?.analysis) {
+    processAnalysisResult(moduleData.fullOutput.analysis);
+   } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
+    handleAnalyze(codeToAnalyze);
+   } else {
+    setAnalysisData(null);
+    setRawAnalysis('');
+   }
+  }
+ }, [moduleData]);
   
   const processAnalysisResult = (result) => {
     if (typeof result === 'object' && result !== null) {
