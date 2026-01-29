@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 
+export const metadata = {
+  title: 'JSON Formatter',
+  description: 'Format, validate, and use AI to fix structural errors in broken JSON strings.',
+};
+
 export default function JsonFormatter({ onLoadData, qualityMode }) {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');

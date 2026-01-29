@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 
+export const metadata = {
+  title: 'SQL Builder',
+  description: 'Convert plain English instructions into complex, optimized SQL queries.',
+};
+
 const DIALECTS = [
   { value: 'Standard SQL', label: 'Standard SQL' },
   { value: 'PostgreSQL', label: 'PostgreSQL' },

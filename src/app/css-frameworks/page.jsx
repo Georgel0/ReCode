@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 
+export const metadata = {
+  title: 'CSS Framework Converter',
+  description: 'Automatically convert raw CSS into utility classes for modern frameworks.',
+};
+
 const TARGET_FRAMEWORKS = [
   { value: 'tailwind', label: 'Tailwind CSS' },
   { value: 'bootstrap', label: 'Bootstrap' },

@@ -8,6 +8,11 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
+export const metadata = {
+  title: 'Code Generator',
+  description: 'Generate small to big code snippets, components, styles and more.',
+};
+
 export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState([]);

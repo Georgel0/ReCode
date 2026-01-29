@@ -8,6 +8,11 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
+export const metadata = {
+  title: 'Code Refactor',
+  description: 'Clean up technical debt, improve readability, and optimize your logic with AI.',
+};
+
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
   { value: 'typescript', label: 'TypeScript', ext: '.ts' },

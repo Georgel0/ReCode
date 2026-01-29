@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 
+export const metadata = {
+  title: 'Code Analysis',
+  description: 'Get an overall analysis of your code, prevent bugs, performance issues and security problems.',
+};
+
 export default function CodeAnalysis({ onLoadData, qualityMode }) {
   const [input, setInput] = useState('');
   const [analysisData, setAnalysisData] = useState(null);

@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 
+export const metadata = {
+  title: 'Regex Generator',
+  description: 'Create complex regular expressions by describing your matching patterns in natural language.',
+};
+
 export default function RegexGenerator({ onLoadData, qualityMode }) {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');

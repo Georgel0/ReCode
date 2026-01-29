@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/services/api';
 import ModuleHeader from '@/components/ModuleHeader';
 
+export const metadata = {
+  title: 'Code Converter',
+  description: 'Translate code between Python, JavaScript, Java, C++, and 15+ other languages.',
+};
+
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
   { value: 'typescript', label: 'TypeScript', ext: '.ts' },
