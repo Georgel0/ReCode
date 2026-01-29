@@ -15,6 +15,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode 
  const [activeFileIndex, setActiveFileIndex] = useState(0);
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
  
  useEffect(() => {
   if (onLoadData) {

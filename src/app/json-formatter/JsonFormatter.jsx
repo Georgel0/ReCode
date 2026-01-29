@@ -13,6 +13,7 @@ export default function JsonFormatter({ onLoadData, qualityMode }) {
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [errorMsg, setErrorMsg] = useState(null);
  const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
  
  const parseJsonReponse = (rawOutput) => {
   if (typeof rawOutput === 'object' && rawOutput !== null) {

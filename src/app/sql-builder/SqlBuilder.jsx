@@ -36,6 +36,7 @@ export default function SqlBuilder({ onLoadData, qualityMode }) {
  const [loading, setLoading] = useState(false);
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
  
  useEffect(() => {
   if (onLoadData) {

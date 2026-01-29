@@ -15,6 +15,7 @@ export default function RegexGenerator({ onLoadData, qualityMode }) {
  const [loading, setLoading] = useState(false);
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
  
  // Helper to parse the JSON string from the API
  const parseResponse = (rawOutput) => {

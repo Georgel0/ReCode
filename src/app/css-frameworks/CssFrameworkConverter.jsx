@@ -18,6 +18,7 @@ export default function CssFrameworkConverter({ onLoadData, preSetTarget = 'tail
  const [data, setData] = useState(null);
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
  
  useEffect(() => {
   if (onLoadData) {

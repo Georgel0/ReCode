@@ -38,6 +38,7 @@ export default function CodeRefactor({ onLoadData, onSwitchModule, qualityMode }
  const [refactorMode, setRefactorMode] = useState('clean');
  const fileInputRef = useRef(null);
  const [lastResult, setLastResult] = useState(false);
+ const { moduleData } = useApp();
  
  useEffect(() => {
   if (onLoadData && onLoadData.type === 'refactor') {
