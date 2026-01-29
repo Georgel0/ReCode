@@ -13,7 +13,6 @@ const THEMES_DATA = [
 
 const ThemeContext = createContext();
 
-//Custom Hook for easy access to the theme context
 export const useTheme = () => useContext(ThemeContext);
 
 // Theme provider component
