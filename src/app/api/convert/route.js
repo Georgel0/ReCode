@@ -3,10 +3,8 @@ import admin from "firebase-admin";
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
-import { z } from 'zod';
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
-// --- Helper: Extract JSON safely ---
 function extractJson(text) {
   if (!text) return null;
   try {
@@ -28,16 +26,13 @@ function extractJson(text) {
   }
 }
 
-// --- Helper: Parse Service Account (Handles JSON or Base64) ---
 function getServiceAccount() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) return null;
   
   try {
-    // 1. Try parsing as raw JSON
     return JSON.parse(raw);
   } catch (e) {
-    // 2. If that fails, try decoding from Base64
     try {
       const decoded = Buffer.from(raw, 'base64').toString('utf-8');
       return JSON.parse(decoded);
@@ -48,7 +43,7 @@ function getServiceAccount() {
   }
 }
 
-// --- Firebase Initialization ---
+// Firebase Initialization
 if (!admin.apps.length) {
   const serviceAccount = getServiceAccount();
   
@@ -62,45 +57,47 @@ if (!admin.apps.length) {
       console.error("Firebase Init Error:", error);
     }
   } else {
-    console.warn("⚠️ FIREBASE_SERVICE_ACCOUNT missing or invalid. Auth checks may fail.");
+    console.warn("FIREBASE_SERVICE_ACCOUNT missing or invalid. Auth checks may fail.");
   }
 }
 
-// --- AI Provider Setup ---
-// Debug Log (Don't show the full key, just if it exists)
-console.log("Groq Key Status:", process.env.GROQ_API_KEY ? "Loaded" : "MISSING");
-
 const registry = createProviderRegistry({
-  groq: createGroq({ apiKey: process.env.GROQ_API_KEY }),
-  openai: createOpenAI({ apiKey: process.env.OPENAI_API_KEY }),
+  // Fast Mode 
+  groq: createGroq({ 
+    apiKey: process.env.GROQ_API_KEY 
+  }),
+  // Quality Mode
+  gateway: createOpenAI({
+    baseURL: 'https://gateway.ai.vercel.dev/v1',
+    apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
+    name: 'vercel-gateway',
+  }),
 });
 
-// --- API Route ---
 export async function POST(request) {
   try {
     const body = await request.json();
     const { type, input, sourceLang, targetLang, mode, qualityMode } = body;
 
-    // 1. Validate Input
+    // Validate Input
     if (!input) return NextResponse.json({ error: 'Input code is required' }, { status: 400 });
-
-    // 2. Auth Check (Optional: Add your verifyIdToken logic here if needed)
     
-    // 3. Setup Prompt
+    // Setup Prompt
     const config = PROMPT_CONFIG[type];
     if (!config) return NextResponse.json({ error: 'Invalid operation type' }, { status: 400 });
 
     const systemPrompt = config.system(sourceLang, targetLang, mode);
     const userPrompt = config.user(input);
 
-    // 4. Select Model
     let modelId = 'groq:llama-3.3-70b-versatile'; 
-    if (qualityMode === 'quality') modelId = 'openai:gpt-4o'; 
+    if (qualityMode === 'quality') {
+      modelId = 'gateway:mistral/codestral-2'; 
+    }
 
     const modelInstance = registry.languageModel(modelId);
     let finalData;
 
-    // 5. Generate
+    // Try Structured Output
     if (config.schema && qualityMode !== 'fast') {
       try {
         const result = await generateObject({
@@ -113,10 +110,11 @@ export async function POST(request) {
         });
         finalData = result.object;
       } catch (e) {
-        console.warn("Structured output failed, falling back to text.");
+        console.warn("Structured output failed, falling back to text.", e);
       }
     }
 
+    // Fallback to Text Generation
     if (!finalData) {
       const jsonForce = config.schema ? "\n\nIMPORTANT: Output PURE JSON ONLY." : "";
       const result = await generateText({
