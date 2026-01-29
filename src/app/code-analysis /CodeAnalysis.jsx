@@ -6,7 +6,7 @@ import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext'; 
 
 
-export default function CodeAnalysis({ qualityMode }) {
+export default function CodeAnalysis({ qualityMode, onLoadData }) {
   const [input, setInput] = useState('');
   const [analysisData, setAnalysisData] = useState(null);
   const [rawAnalysis, setRawAnalysis] = useState('');
