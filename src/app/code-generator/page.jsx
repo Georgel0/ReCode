@@ -200,7 +200,7 @@ export default function CodeGenerator({ onLoadData, onSwitchModule, qualityMode 
                     <i className="fa-regular fa-copy"></i> Copy
                   </button> 
                   
-                  <div style={{ flex: 1 }}></div>
+                <div style={{ flex: 1 }}></div>
 
                   <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
                     <i className="fa-solid fa-download"></i> File
