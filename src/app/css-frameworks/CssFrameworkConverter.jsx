@@ -21,7 +21,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind', onSwi
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (moduleData) {
+  if (moduleData && moduleData.type === 'css-framework') {
    setInput(moduleData.input || '');
    setData(moduleData.fullOutput || null);
    if (moduleData.targetLang) setTargetLang(moduleData.targetLang);

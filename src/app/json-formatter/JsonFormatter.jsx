@@ -16,7 +16,7 @@ export default function JsonFormatter({ qualityMode }) {
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (moduleData) {
+  if (moduleData && moduleData.type === 'json') {
    setInput(moduleData.input || '');
    const { code, info } = parseJsonReponse(moduleData.fullOutput);
    setOutputCode(code);

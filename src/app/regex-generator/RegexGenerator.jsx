@@ -18,7 +18,7 @@ export default function RegexGenerator({ qualityMode }) {
  const { moduleData } = useApp();
  
  useEffect(() => {
- if (moduleData) {
+ if (moduleData && moduleData.type === 'regex') {
   setInput(moduleData.input || '');
   const { pattern, explanation } = parseResponse(moduleData.fullOutput);
   setOutputCode(pattern);

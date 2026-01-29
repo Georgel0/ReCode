@@ -18,7 +18,7 @@ export default function CodeGenerator({ onSwitchModule, qualityMode }) {
  const { moduleData } = useApp();
  
  useEffect(() => {
-  if (moduleData) {
+  if (moduleData && moduleData.type === 'generator') {
    setInput(moduleData.input || '');
    const savedFiles = moduleData.fullOutput?.files || [];
    setFiles(savedFiles);
