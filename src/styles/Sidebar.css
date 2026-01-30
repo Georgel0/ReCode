@@ -557,6 +557,56 @@
   animation: slide-up-down 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
+.sidebar.collapsed {
+  width: 70px; 
+  padding: 1rem 0.5rem;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0.8rem;
+}
+
+.sidebar.collapsed .nav-item i {
+  margin-right: 0;
+  font-size: 1.1rem;
+}
+
+.sidebar.collapsed .model-trigger-btn span,
+.sidebar.collapsed .theme-selector-section,
+.sidebar.collapsed .about-trigger-wrapper {
+  display: none;
+}
+
+.sidebar.collapsed .model-trigger-btn {
+  justify-content: center;
+  border-radius: var(--radius);
+  border-right: 1px solid var(--border);
+}
+
+.sidebar.collapsed .second-model-trigger-btn {
+  display: none; 
+}
+
+.desktop-only {
+  display: none;
+}
+
+.landing-header {
+  background-color: #000 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.app-wrapper.landing-mode {
+  background-color: #000;
+}
+
+.mobile-header {
+  z-index: 50; 
+  min-height: 60px;
+}
+
+
 @keyframes slide-up-down {
   0% {
     transform: translateY(20px);
@@ -589,5 +639,20 @@
   
   .close-btn {
     display: block;
+  }
+  
+  .desktop-only {
+    display: block;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  
+  .desktop-only:hover {
+    color: var(--accent);
+    border-color: var(--accent);
   }
 }

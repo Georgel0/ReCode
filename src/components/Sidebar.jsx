@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { getHistory, deleteHistoryItem, clearAllHistory } from '@/lib/firebase';
@@ -7,15 +7,19 @@ import { useTheme } from './ThemeContext';
 import Link from 'next/link';
 import About from "./About";
 
-export default function Sidebar({ isOpen, toggleSidebar, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
-  const pathname = usePathname(); 
+export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
+  const pathname = usePathname();
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
   const [autoSave, setAutoSave] = useState(() => {
-    return localStorage.getItem('recode_autoSave') === 'true';
+  
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('recode_autoSave') === 'true';
+    }
+    return false;
   });
   
   const refreshHistory = async () => {
@@ -41,6 +45,7 @@ export default function Sidebar({ isOpen, toggleSidebar, loadFromHistory, openMo
     }
   }, [isOpen, pathname]);
   
+  // Close sidebar on mobile when clicking outside
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (isOpen && window.innerWidth < 768 && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -97,22 +102,33 @@ export default function Sidebar({ isOpen, toggleSidebar, loadFromHistory, openMo
   ];
   
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`} ref={sidebarRef}>
+    <aside className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`} ref={sidebarRef}>
+      
       <div className="sidebar-header">
-        <div className="logo-group">
-          <div className="logo-image" />
-          <h2>ReCode</h2>
-        </div>
+        {!isCollapsed && (
+          <div className="logo-group">
+            <div className="logo-image" />
+            <h2>ReCode</h2>
+          </div>
+        )}
+        
+        {isCollapsed && <div className="logo-image" style={{ margin: '0 auto'}} />}
+        
         <button className="close-btn" onClick={toggleSidebar}>✕</button>
+        
+        <button className="collapse-toggle-btn desktop-only" onClick={toggleCollapse}>
+          <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+        </button>
       </div>
 
       <div className="about-trigger-wrapper">
         <button 
           className={`about-toggle-btn ${showAbout ? 'active' : ''}`}
           onClick={() => setShowAbout(!showAbout)}
+          title="About ReCode"
         >
           <i className={showAbout ? "fas fa-arrow-left" : "fas fa-info-circle"}></i>
-          {showAbout ? 'Back to Modules' : 'About ReCode'}
+          {!isCollapsed && (showAbout ? 'Back to Modules' : 'About ReCode')}
         </button>
       </div>
 
@@ -121,112 +137,128 @@ export default function Sidebar({ isOpen, toggleSidebar, loadFromHistory, openMo
           <About />
         ) : (
           <nav className="nav-menu">
-            <h3>Modules</h3>
+            {!isCollapsed && <h3>Modules</h3>}
             {modules.map(module => (
               <Link
                 key={module.id}
                 href={module.path}
                 className={`nav-item ${pathname === module.path ? 'active' : ''}`}
+                title={isCollapsed ? module.label : ''}
                 onClick={() => {
                   if (window.innerWidth < 768) toggleSidebar(); 
                 }}
               >
                  <i className={module.icon}></i>
-                 {module.label}
+                 {!isCollapsed && module.label}
               </Link>
             ))}
           </nav>
         )}
         
         <div className="model-trigger-section">
-          <button className="model-trigger-btn" onClick={openModelSelector}>
+          <button className="model-trigger-btn" onClick={openModelSelector} title="AI Model Mode">
             <i className="fas fa-microchip"></i>
-            <span>AI Model Mode</span>
+            {!isCollapsed && <span>AI Model Mode</span>}
           </button>
-          <button className="second-model-trigger-btn"
-          onClick={toggleQuality}>
-            <div className="mode-icon-slide" key={qualityMode}>
-              {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
-            </div>
-            
-          </button>
+          
+          {/* Hide quality toggle in mini mode to save space, or stack it */}
+          {!isCollapsed && (
+            <button className="second-model-trigger-btn" onClick={toggleQuality}>
+              <div className="mode-icon-slide" key={qualityMode}>
+                {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
+              </div>
+            </button>
+          )}
         </div>
         
-        <div className="theme-selector-section">
-          <h3>Theme:</h3>
-          <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
-            {Object.entries(groupedThemes).map(([group, themes]) => (
-              <optgroup key={group} label={group}>
-                {themes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
+        {!isCollapsed && (
+          <div className="theme-selector-section">
+            <h3>Theme:</h3>
+            <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
+              {Object.entries(groupedThemes).map(([group, themes]) => (
+                <optgroup key={group} label={group}>
+                  {themes.map((theme) => (
+                    <option key={theme.id} value={theme.id}>
+                      {theme.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="history-section">
-          <div className="history-header" >
-            <div className="history-sub-header">
-              <h3>History</h3>
-              <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save is ON" : "Auto-Save is OFF"} style={{ color: autoSave ? "var(--accent-color)" : "var(--text-secondary)" }} >
-                <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
-              {autoSave ? "Auto save" : "Auto save"}
-              </button>
-            </div>
-            
-            {historyItems.length > 0 && (
-              <button 
-                className="refresh-btn" 
-                onClick={handleClearAll}
-                disabled={isDeleting}
-                title="Clear All History"
-                style={{ color: 'var(--danger)' }}
-              >
-                <i className="fas fa-trash"></i>
-              </button>
-            )}
+          <div className="history-header" style={{ justifyContent: isCollapsed ? 'center' : 'space-between' }}>
+             {!isCollapsed ? (
+                // Full Header (Text + Toggle + Clear)
+                <>
+                  <div className="history-sub-header">
+                    <h3>History</h3>
+                    <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save ON" : "Auto-Save OFF"}>
+                      <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                    </button>
+                  </div>
+                  {historyItems.length > 0 && (
+                    <button 
+                      className="refresh-btn" 
+                      onClick={handleClearAll}
+                      disabled={isDeleting}
+                      title="Clear All History"
+                      style={{ color: 'var(--danger)' }}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  )}
+                </>
+             ) : (
+                // Collapsed Header (Toggle Only)
+                <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title="Toggle Auto-Save">
+                    <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                </button>
+             )}
           </div>
           
-          <div className="history-list">
-            {historyItems.length === 0 ? (
-              <p className="empty-state">No history yet.</p>
-            ) : (
-              historyItems.map(item => (
-                <div key={item.id} className="history-card" onClick={() => loadFromHistory(item)}>
-                  <div className="history-card-content">
-                    <span className="history-type">
-                      {item.type === 'converter' 
-                        ? `${item.sourceLang?.toUpperCase()} to ${item.targetLang?.toUpperCase()}`
-                        : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                    </span>
-                    
-                    {item.input && (
-                      <span className="history-snippet">
-                        {item.input.substring(0, 35)}{item.input.length > 35 ? '...' : ''}
+          {/* List - Only show if sidebar is OPEN */}
+          {!isCollapsed && (
+            <div className="history-list">
+              {historyItems.length === 0 ? (
+                <p className="empty-state">No history yet.</p>
+              ) : (
+                historyItems.map(item => (
+                  <div key={item.id} className="history-card" onClick={() => loadFromHistory(item)}>
+                    <div className="history-card-content">
+                      <span className="history-type">
+                        {item.type === 'converter' 
+                          ? `${item.sourceLang?.toUpperCase()} to ${item.targetLang?.toUpperCase()}`
+                          : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                       </span>
-                    )}
+                      
+                      {item.input && (
+                        <span className="history-snippet">
+                          {item.input.substring(0, 35)}{item.input.length > 35 ? '...' : ''}
+                        </span>
+                      )}
 
-                    <span className="history-date">
-                      {item.createdAt?.seconds 
-                        ? new Date(item.createdAt.seconds * 1000).toLocaleString([], { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          }) 
-                        : 'N/A'}
-                    </span>
+                      <span className="history-date">
+                        {item.createdAt?.seconds 
+                          ? new Date(item.createdAt.seconds * 1000).toLocaleString([], { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            }) 
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    <button className="delete-item-btn" onClick={(e) => handleDelete(e, item.id)} disabled={isDeleting}>
+                      <i className="fas fa-trash"></i>
+                    </button>
                   </div>
-                  <button className="delete-item-btn" onClick={(e) => handleDelete(e, item.id)} disabled={isDeleting}>
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     </aside>

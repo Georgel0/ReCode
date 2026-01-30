@@ -99,6 +99,20 @@ body {
   opacity: 0.8;
 }
 
+.app-wrapper {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .app-wrapper {
+    flex-direction: column;
+  }
+}
 
 .theme-dark-black-gold {
   --bg-primary: #000000;
