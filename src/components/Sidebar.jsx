@@ -218,6 +218,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
              ) : (
                 // Collapsed Header (Toggle Only)
               <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title="Toggle Auto-Save">
+                AutoSave 
                 <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
               </button>
              )}
