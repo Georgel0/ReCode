@@ -101,7 +101,7 @@
   overflow-y: hidden;
   display: flex;
   flex-direction: column;
-  padding-top: 1rem;
+  padding-top: 0.5rem;
 }
 
 .theme-dark-black-gold .history-section,
@@ -273,7 +273,7 @@
   padding: 1rem;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   margin-top: 1rem;
 }
 
