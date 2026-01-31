@@ -12,7 +12,7 @@ export default function LandingPage() {
     { name: 'CSS Converter', path: '/css-frameworks', icon: 'fab fa-css3-alt', desc: 'Convert raw CSS to Tailwind or modern frameworks.' },
     { name: 'SQL Builder', path: '/sql-builder', icon: 'fas fa-database', desc: 'Design complex queries with AI precision.' },
     { name: 'Regex Generator', path: '/regex-generator', icon: 'fas fa-arrow-right-to-bracket', desc: 'Pattern matching made human-readable.' },
-    { name: 'JSON Formatter', path: '/json-formatter', icon: 'fas fa-file-alt', desc: 'Fix and beautify messy data structures.' },
+    { name: 'JSON Formatter', path: '/json-formatter', icon: 'fas fa-list-alt', desc: 'Fix and beautify messy data structures.' },
   ];
 
   return (
