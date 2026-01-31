@@ -18,8 +18,10 @@ export const convertCode = async (type, input, arg3 = '', arg4 = '', arg5 = 'fas
     sourceLang = arg3 || '';
     targetLang = typeof arg4 === 'string' ? arg4 : '';
     qualityMode = arg5 || 'fast';
-    if (typeof arg4 === 'object' && arg4 !== null) 
+    if (typeof arg4 === 'object' && arg4 !== null) {
       mode = arg4.mode || '';
+      if (arg4.qualityMode) qualityMode = arg4.qualityMode; 
+    }
   }
 
   for (let i = 0; i < MAX_RETRIES; i++) {
