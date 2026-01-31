@@ -200,6 +200,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
                   <div className="history-sub-header">
                     <h3>History</h3>
                     <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title={autoSave ? "Auto-Save ON" : "Auto-Save OFF"}>
+                      AutoSave
                       <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
                     </button>
                   </div>
@@ -218,7 +219,6 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
              ) : (
                 // Collapsed Header (Toggle Only)
               <button onClick={toggleAutoSave} className={`autosave-btn ${autoSave ? "active" : ""}`} title="Toggle Auto-Save">
-                AutoSave 
                 <i className={`fas ${autoSave ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
               </button>
              )}
