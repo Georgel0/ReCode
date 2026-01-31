@@ -112,8 +112,6 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
           </div>
         )}
         
-        {isCollapsed && <div className="logo-image" style={{ margin: '0 auto'}} />}
-        
         <button className="close-btn" onClick={toggleSidebar}>✕</button>
         
         <button className="collapse-toggle-btn desktop-only" onClick={toggleCollapse}>
@@ -219,7 +217,6 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
              )}
           </div>
           
-          {/* List - Only show if sidebar is OPEN */}
           {!isCollapsed && (
             <div className="history-list">
               {historyItems.length === 0 ? (
