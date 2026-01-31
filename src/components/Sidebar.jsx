@@ -160,11 +160,13 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
             {!isCollapsed && <span>AI Model Mode</span>}
             </button>
           )}
+          {isCollapsed && (
           <button className="second-model-trigger-btn" onClick={toggleQuality}>
             <div className="mode-icon-slide" key={qualityMode}>
                 {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
             </div>
           </button>
+          )}
         </div>
         
         {!isCollapsed && (
