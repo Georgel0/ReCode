@@ -91,7 +91,7 @@ export async function POST(request) {
 
     let modelId = 'groq:llama-3.3-70b-versatile'; 
     if (qualityMode === 'quality') {
-      modelId = 'gateway:mistral/codestral-2'; 
+      modelId = 'gateway:mistral/devstral-2'; 
     }
 
     const modelInstance = registry.languageModel(modelId);
