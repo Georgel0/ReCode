@@ -112,11 +112,13 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
           </div>
         )}
         
-        {!isCollapsed && ( <button className="close-btn" onClick={toggleSidebar}>✕</button> )}
+        <div className="sidebar-subheader">
+          {!isCollapsed && ( <button className="close-btn" onClick={toggleSidebar}>✕</button> )}
         
-        <button className="collapse-toggle-btn desktop-only" onClick={toggleCollapse}>
-          <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
-        </button>
+          <button className="collapse-toggle-btn desktop-only" onClick={toggleCollapse}>
+            <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+          </button>
+        </div>
       </div>
 
       {!isCollapsed && (<div className="about-trigger-wrapper">

@@ -20,9 +20,16 @@
 
 .sidebar-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+}
+
+.sidebar-subheader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
 }
 
 .sidebar h2 {
