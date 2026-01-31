@@ -677,6 +677,12 @@ select option {
   gap: 8px;
 }
 
+.launch-app-btn {
+  padding: 6px 12px; 
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
 
 @keyframes glint {
   to {

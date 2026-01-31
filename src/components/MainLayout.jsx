@@ -68,7 +68,7 @@ export default function MainLayout({ children }) {
                     <span style={{ color: '#fff' }}>ReCode</span>
                   </div>
                 </Link>
-                <Link href="/code-converter" className="primary-button" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                <Link href="/code-converter" className="primary-button launch-app-btn">
                   Launch App
                 </Link>
              </>
