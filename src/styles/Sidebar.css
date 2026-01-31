@@ -560,20 +560,19 @@
   font-size: 1.1rem;
 }
 
-.sidebar.collapsed .model-trigger-btn span,
-.sidebar.collapsed .theme-selector-section,
-.sidebar.collapsed .about-trigger-wrapper {
-  display: none;
-}
-
-.sidebar.collapsed .model-trigger-btn {
-  justify-content: center;
-  border-radius: var(--radius);
-  border-right: 1px solid var(--border);
-}
-
 .sidebar.collapsed .second-model-trigger-btn {
-  display: none; 
+  display: flex;
+  justify-content: center;
+  width: 100%;          
+  border-radius: var(--radius);
+  border: 1px solid var(--border); 
+  padding: 0.75rem 0;     
+}
+
+.sidebar.collapsed .mode-icon-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .desktop-only {

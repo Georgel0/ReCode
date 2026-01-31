@@ -15,7 +15,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
   const [autoSave, setAutoSave] = useState(() => {
-  
+    
     if (typeof window !== 'undefined') {
       return localStorage.getItem('recode_autoSave') === 'true';
     }
@@ -155,19 +155,24 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
         
         <div className="model-trigger-section">
           {!isCollapsed && (
-            <button className="model-trigger-btn" onClick={openModelSelector} title="AI Model Mode">
+          <button className="model-trigger-btn" onClick={openModelSelector}>
             <i className="fas fa-microchip"></i>
-            {!isCollapsed && <span>AI Model Mode</span>}
+            <span>AI Model Mode</span>
             </button>
           )}
           {isCollapsed && (
           <button className="second-model-trigger-btn" onClick={toggleQuality}>
             <div className="mode-icon-slide" key={qualityMode}>
-                {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
+              {qualityMode === 'fast' ? (
+              <i className="fas fa-stopwatch" title="Fast Mode"></i>
+              ) : (
+              <i className="fas fa-gem" title="Quality Mode"></i>
+              )}
             </div>
           </button>
           )}
         </div>
+
         
         {!isCollapsed && (
           <div className="theme-selector-section">
