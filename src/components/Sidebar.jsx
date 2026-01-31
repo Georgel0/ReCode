@@ -112,7 +112,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
           </div>
         )}
         
-        <button className="close-btn" onClick={toggleSidebar}>✕</button>
+        {!isCollapsed && ( <button className="close-btn" onClick={toggleSidebar}>✕</button> )}
         
         <button className="collapse-toggle-btn desktop-only" onClick={toggleCollapse}>
           <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
