@@ -160,7 +160,6 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
             <span>AI Model Mode</span>
             </button>
           )}
-          {isCollapsed && (
           <button className="second-model-trigger-btn" onClick={toggleQuality}>
             <div className="mode-icon-slide" key={qualityMode}>
               {qualityMode === 'fast' ? (
@@ -170,7 +169,6 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
               )}
             </div>
           </button>
-          )}
         </div>
 
         
