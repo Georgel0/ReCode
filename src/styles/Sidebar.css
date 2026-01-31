@@ -129,7 +129,7 @@
   background: transparent;
   color: var(--accent-color);
   border-radius: 4px;
-  padding: 2px;
+  padding: 3px;
   font-size: 0.75em;
   cursor: pointer;
   display: flex;
