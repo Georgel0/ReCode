@@ -550,6 +550,12 @@
   padding: 1rem 0.5rem;
 }
 
+.sidebar.collapsed .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sidebar.collapsed .nav-item {
   justify-content: center;
   padding: 0.8rem;
