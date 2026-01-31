@@ -154,19 +154,17 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
         )}
         
         <div className="model-trigger-section">
-          <button className="model-trigger-btn" onClick={openModelSelector} title="AI Model Mode">
+          {!isCollapsed && (
+            <button className="model-trigger-btn" onClick={openModelSelector} title="AI Model Mode">
             <i className="fas fa-microchip"></i>
             {!isCollapsed && <span>AI Model Mode</span>}
-          </button>
-          
-          {/* Hide quality toggle in mini mode to save space, or stack it */}
-          {!isCollapsed && (
-            <button className="second-model-trigger-btn" onClick={toggleQuality}>
-              <div className="mode-icon-slide" key={qualityMode}>
-                {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
-              </div>
             </button>
           )}
+          <button className="second-model-trigger-btn" onClick={toggleQuality}>
+            <div className="mode-icon-slide" key={qualityMode}>
+                {qualityMode === 'fast' ? (<i className="fas fa-stopwatch"></i>) : (<i className="fas fa-gem"></i>)}
+            </div>
+          </button>
         </div>
         
         {!isCollapsed && (
