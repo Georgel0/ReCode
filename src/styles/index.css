@@ -100,6 +100,14 @@ body {
   opacity: 0.8;
 }
 
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .app-wrapper {
   display: flex;
   height: 100vh;
@@ -107,6 +115,19 @@ body {
   overflow: hidden;
   background-color: var(--bg-primary);
   transition: background-color 0.3s ease;
+}
+
+.app-wrapper.landing-mode {
+  height: auto;              
+  min-height: 100vh;      
+  overflow: visible;      
+  width: 100%;              
+}
+
+.app-wrapper.landing-mode .main-content {
+  height: auto;
+  overflow: visible;
+  flex: 1;
 }
 
 @media (max-width: 768px) {

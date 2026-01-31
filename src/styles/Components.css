@@ -70,14 +70,6 @@ textarea:focus {
   position: relative;
 }
 
-.main-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
 .module-header {
   display: flex;
   justify-content: space-between;
