@@ -5,13 +5,13 @@ import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext'; 
 
-export default function CodeAnalysis({ qualityMode }) {
+export default function CodeAnalysis() {
  const [input, setInput] = useState('');
  const [analysisData, setAnalysisData] = useState(null);
  const [rawAnalysis, setRawAnalysis] = useState('');
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'analysis') {

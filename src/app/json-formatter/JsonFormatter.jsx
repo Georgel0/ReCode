@@ -5,7 +5,7 @@ import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 
-export default function JsonFormatter({ qualityMode }) {
+export default function JsonFormatter() {
  const [input, setInput] = useState('');
  const [outputCode, setOutputCode] = useState('');
  const [explanation, setExplanation] = useState('');
@@ -13,7 +13,7 @@ export default function JsonFormatter({ qualityMode }) {
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [errorMsg, setErrorMsg] = useState(null);
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'json') {

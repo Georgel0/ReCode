@@ -30,7 +30,7 @@ const REFACTOR_MODES = [
  { id: 'comments', label: 'Add Comments', desc: 'Adds documentation and explanatory comments.' },
 ];
 
-export default function CodeRefactor({ onSwitchModule, qualityMode }) {
+export default function CodeRefactor({ onSwitchModule }) {
  const [files, setFiles] = useState([{ id: 1, name: 'main.js', language: 'javascript', content: '' }]);
  const [activeTab, setActiveTab] = useState(1);
  const [outputFiles, setOutputFiles] = useState([]);
@@ -38,7 +38,7 @@ export default function CodeRefactor({ onSwitchModule, qualityMode }) {
  const [refactorMode, setRefactorMode] = useState('clean');
  const fileInputRef = useRef(null);
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'refactor') {

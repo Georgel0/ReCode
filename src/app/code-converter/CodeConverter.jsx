@@ -29,7 +29,7 @@ const LANGUAGES = [
   { value: 'lua', label: 'Lua', ext: '.lua' },
 ];
 
-export default function CodeConverter({ onSwitchModule, qualityMode }) {
+export default function CodeConverter({ onSwitchModule }) {
   const [sourceLang, setSourceLang] = useState('javascript');
   const [targetLang, setTargetLang] = useState('python');
   const [input, setInput] = useState('');
@@ -40,7 +40,7 @@ export default function CodeConverter({ onSwitchModule, qualityMode }) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const fileInputRef = useRef(null);
   const [lastResult, setLastResult] = useState(false);
-  const { moduleData } = useApp();
+  const { moduleData, qualityMode } = useApp();
   
   useEffect(() => {
     if (moduleData && moduleData.type === 'converter') {

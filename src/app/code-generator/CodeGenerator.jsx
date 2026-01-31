@@ -9,13 +9,13 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useApp } from '@/context/AppContext'; 
 
-export default function CodeGenerator({ onSwitchModule, qualityMode }) {
+export default function CodeGenerator({ onSwitchModule }) {
  const [input, setInput] = useState('');
  const [files, setFiles] = useState([]);
  const [activeFileIndex, setActiveFileIndex] = useState(0);
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'generator') {

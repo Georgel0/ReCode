@@ -12,13 +12,13 @@ const TARGET_FRAMEWORKS = [
  { value: 'less', label: 'LESS' },
 ];
 
-export default function CssFrameworkConverter({ preSetTarget = 'tailwind', onSwitchModule, qualityMode }) {
+export default function CssFrameworkConverter({ preSetTarget = 'tailwind', onSwitchModule }) {
  const [input, setInput] = useState('');
  const [targetLang, setTargetLang] = useState(preSetTarget);
  const [data, setData] = useState(null);
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'css-framework') {

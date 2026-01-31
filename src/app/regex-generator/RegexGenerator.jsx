@@ -5,7 +5,7 @@ import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext'; 
 
-export default function RegexGenerator({ qualityMode }) {
+export default function RegexGenerator() {
  const [input, setInput] = useState('');
  const [outputCode, setOutputCode] = useState('');
  const [explanation, setExplanation] = useState('');
@@ -15,7 +15,7 @@ export default function RegexGenerator({ qualityMode }) {
  const [loading, setLoading] = useState(false);
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
  if (moduleData && moduleData.type === 'regex') {

@@ -23,7 +23,7 @@ const MODES = [
  { id: 'optimizer', label: 'Optimizer', icon: 'fa-gauge-high' },
 ];
 
-export default function SqlBuilder({ qualityMode }) {
+export default function SqlBuilder() {
  const [activeMode, setActiveMode] = useState('builder');
  const [input, setInput] = useState('');
  const [schema, setSchema] = useState('');
@@ -36,7 +36,7 @@ export default function SqlBuilder({ qualityMode }) {
  const [loading, setLoading] = useState(false);
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [lastResult, setLastResult] = useState(false);
- const { moduleData } = useApp();
+ const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
   if (moduleData) {
