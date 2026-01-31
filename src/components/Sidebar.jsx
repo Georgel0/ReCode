@@ -119,7 +119,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
         </button>
       </div>
 
-      <div className="about-trigger-wrapper">
+      {!isCollapsed && (<div className="about-trigger-wrapper">
         <button 
           className={`about-toggle-btn ${showAbout ? 'active' : ''}`}
           onClick={() => setShowAbout(!showAbout)}
@@ -129,6 +129,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
           {!isCollapsed && (showAbout ? 'Back to Modules' : 'About ReCode')}
         </button>
       </div>
+      )}
 
       <div className="sidebar-scroll-area">
         {showAbout ? (
