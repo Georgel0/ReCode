@@ -9,7 +9,7 @@
 
 .lp-wrapper {
   background-color: var(--lp-bg);
-  min-height: 100vh;
+  min-height: 100%;
   color: var(--lp-text-main);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
