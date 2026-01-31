@@ -16,14 +16,14 @@ export default function About() {
       <section className="about-info-block">
         <h3 className="about-sub-title">The Proprietary Engine</h3>
         <p className="about-description">
-          Our specialized AI workflow utilizes the <strong>Grok-Llama hybrid architecture</strong>. By processing code through an optimized Node.js microservice layer, ReCode performs deep-path analysis and structured JSON synthesis. This ensures that every line of code generated is not just functional, but architecturally sound and production-ready.
+          Our specialized AI workflow utilizes the <strong>Grok-Llama and mistral hybrid architecture</strong>. By processing code through an optimized Node.js microservice layer, ReCode performs deep-path analysis and structured JSON synthesis. This ensures that every line of code generated is not just functional, but architecturally sound and production-ready.
         </p>
       </section>
 
       <section className="about-info-block">
         <h3 className="about-sub-title">Enterprise Infrastructure</h3>
         <p className="about-description">
-          Built for speed and reliability, ReCode leverages a modern stack featuring <strong>React + Vite</strong> for performance, <strong>Firebase Firestore</strong> for real-time state synchronization, and global distribution via <strong>Vercel’s Edge Network</strong>.
+          Built for speed and reliability, ReCode leverages a modern stack featuring <strong>Next.js</strong> for performance, <strong>Firebase Firestore</strong> for real-time state synchronization, and global distribution via <strong>Vercel’s Edge Network</strong>.
         </p>
       </section>
 
