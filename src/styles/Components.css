@@ -683,6 +683,31 @@ select option {
   text-decoration: none;
 }
 
+.icon-btn {
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+}
+
+.icon-btn:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.landing-header {
+  background-color: #000 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.app-wrapper.landing-mode {
+  background-color: #000;
+}
+
+.mobile-header {
+  z-index: 50; 
+  min-height: 60px;
+}
 
 @keyframes glint {
   to {
