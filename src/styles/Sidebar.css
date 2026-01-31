@@ -272,6 +272,7 @@
 .theme-selector-section {
   padding: 1rem;
   border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
   margin-top: 1rem;
 }
