@@ -98,7 +98,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
     { id: 'css-tailwind', label: 'CSS Frameworks', icon: 'fab fa-css3-alt', path: '/css-frameworks' },
     { id: 'regex', label: 'Regex Generator', icon: 'fas fa-search', path: '/regex-generator' },
     { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database', path: '/sql-builder' },
-    { id: 'json', label: 'JSON Formatter', icon: 'fas fa-file-code', path: '/json-formatter' },
+    { id: 'json', label: 'JSON Formatter', icon: 'fas fa-code', path: '/json-formatter' },
   ];
   
   return (

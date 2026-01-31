@@ -5,14 +5,14 @@ import '@/styles/landingpage.css';
 
 export default function LandingPage() {
   const tools = [
-    { name: 'Code Converter', path: '/code-converter', icon: 'fa-rotate', desc: 'Translate logic across languages instantly.' },
-    { name: 'Code Refactor', path: '/code-refactor', icon: 'fa-wand-magic-sparkles', desc: 'Clean, optimize, and modernize your snippets.' },
-    { name: 'Code Analysis', path: '/code-analysis', icon: 'fa-magnifying-glass-chart', desc: 'Deep-dive into complexity and security.' },
-    { name: 'Code Generator', path: '/code-generator', icon: 'fa-code', desc: 'Generate boilerplate from natural language.' },
-    { name: 'CSS Converter', path: '/css-frameworks', icon: 'fa-css-alt', desc: 'Convert raw CSS to Tailwind or modern frameworks.' },
-    { name: 'SQL Builder', path: '/sql-builder', icon: 'fa-database', desc: 'Design complex queries with AI precision.' },
-    { name: 'Regex Generator', path: '/regex-generator', icon: 'fa-arrow-right-to-bracket', desc: 'Pattern matching made human-readable.' },
-    { name: 'JSON Formatter', path: '/json-formatter', icon: 'fa-brackets', desc: 'Fix and beautify messy data structures.' },
+    { name: 'Code Converter', path: '/code-converter', icon: 'fas fa-rotate', desc: 'Translate logic across languages instantly.' },
+    { name: 'Code Refactor', path: '/code-refactor', icon: 'fas fa-wand-magic-sparkles', desc: 'Clean, optimize, and modernize your snippets.' },
+    { name: 'Code Analysis', path: '/code-analysis', icon: 'fas fa-magnifying-glass-chart', desc: 'Deep-dive into complexity and security.' },
+    { name: 'Code Generator', path: '/code-generator', icon: 'fas fa-code', desc: 'Generate boilerplate from natural language.' },
+    { name: 'CSS Converter', path: '/css-frameworks', icon: 'fab fa-css3-alt', desc: 'Convert raw CSS to Tailwind or modern frameworks.' },
+    { name: 'SQL Builder', path: '/sql-builder', icon: 'fas fa-database', desc: 'Design complex queries with AI precision.' },
+    { name: 'Regex Generator', path: '/regex-generator', icon: 'fas fa-arrow-right-to-bracket', desc: 'Pattern matching made human-readable.' },
+    { name: 'JSON Formatter', path: '/json-formatter', icon: 'fas fa-file-alt', desc: 'Fix and beautify messy data structures.' },
   ];
 
   return (
@@ -42,7 +42,7 @@ export default function LandingPage() {
           {tools.map((tool, i) => (
             <Link href={tool.path} key={i} className="lp-card animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="lp-card-icon">
-                <i className={`fa-solid ${tool.icon}`}></i>
+                <i className={`${tool.icon}`}></i>
               </div>
               <h3>{tool.name}</h3>
               <p>{tool.desc}</p>
