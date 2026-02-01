@@ -68,7 +68,7 @@ const registry = createProviderRegistry({
   }),
   // Quality Mode
   gateway: createOpenAI({
-    baseURL: 'https://gateway.ai.vercel.dev/v1',
+    baseURL: 'https://ai-gateway.vercel.sh/v1',
     apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
     name: 'vercel-gateway',
   }),
