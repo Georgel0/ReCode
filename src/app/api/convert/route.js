@@ -70,7 +70,6 @@ const registry = createProviderRegistry({
   gateway: createOpenAI({
     baseURL: 'https://ai-gateway.vercel.sh/v1',
     apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
-    name: 'vercel-gateway',
   }),
 });
 
