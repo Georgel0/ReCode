@@ -15,7 +15,7 @@ export default function MainLayout({ children }) {
   const [notification, setNotification] = useState(null);
   const [showModelSelector, setShowModelSelector] = useState(false);
   
-  const { qualityMode, toggleQualityMode, setModuleData } = useApp();
+  const { qualityMode, setQualityMode, toggleQualityMode, setModuleData } = useApp();
   const { currentTheme } = useTheme();
   
   const pathname = usePathname();
@@ -94,8 +94,12 @@ export default function MainLayout({ children }) {
       <ModelSelector
         isOpen={showModelSelector}
         onSelect={(mode) => {
-            toggleQualityMode();
-            setShowModelSelector(false);
+          if (mode === "quality" || mode === "fast") {
+            setQualityMode(mode);
+            localStorage.setItem('recode_quality_mode', mode);
+          } else toggleQualityMode();
+          
+          setShowModelSelector(false);
         }}
         onClose={() => setShowModelSelector(false)}
       />
