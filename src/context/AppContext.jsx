@@ -13,10 +13,12 @@ export function AppProvider({ children }) {
     if (savedMode) setQualityMode(savedMode);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('recode_quality_mode', qualityMode);
+  }, [qualityMode]);
+
   const toggleQualityMode = () => {
-    const newMode = qualityMode === 'fast' ? 'quality' : 'fast';
-    setQualityMode(newMode);
-    localStorage.setItem('recode_quality_mode', newMode);
+    setQualityMode(prev => prev === 'fast' ? 'quality' : 'fast');
   };
 
   return (
