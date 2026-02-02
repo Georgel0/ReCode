@@ -195,6 +195,10 @@
   font-weight: bold;
 }
 
+.info-popup-content>h4, .info-popup-content>i {
+  color: var(--lp-blue);
+}
+
 .info-trigger {
   border: none;
   background: none;
