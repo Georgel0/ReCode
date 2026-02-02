@@ -68,3 +68,8 @@ Validate, beautify, and fix messy JSON data structures.
 * [Firebase](https://firebase.google.com/) (Firestore Database, Anonymous Auth)
 * [Vercel](https://vercel.com/) (Hosting, Analytics, Speed Insights)
 * [OpenAI / Gemini API](https://openai.com/) (AI Logic Layer)
+* 
+
+---
+
+By Georgel07
