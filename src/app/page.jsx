@@ -122,8 +122,8 @@ export default function LandingPage() {
           <h4>{activeInfo.name}</h4>
           <p>{activeInfo.info}</p>
           <button onClick={() => setActiveInfo(null)}>✕</button>
-          </div>
         </div>
+      </div>
       )}
 
     </div>
