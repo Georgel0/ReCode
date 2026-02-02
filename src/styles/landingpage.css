@@ -132,6 +132,8 @@
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--lp-blue);
+  display: inline-block;
+  margin-right: 5px;
 }
 
 .lp-card p {
@@ -204,6 +206,7 @@
   border: none;
   background: none;
   color: var(--lp-blue);
+  display: inline-block;
 }
 
 

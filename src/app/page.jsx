@@ -93,12 +93,13 @@ export default function LandingPage() {
           <div key={i} className="lp-card">
             <Link href={tool.path}>
               <div className="lp-card-icon"><i className={tool.icon}></i></div>
-              <h3>{tool.name}</h3> <button 
-              className="info-trigger" 
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveInfo(tool);
-              }} >
+              <h3>{tool.name}</h3> 
+              <button 
+                className="info-trigger" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveInfo(tool);
+                }} >
                 <i className="fas fa-circle-info"></i>
               </button>
               <p>{tool.desc}</p>
