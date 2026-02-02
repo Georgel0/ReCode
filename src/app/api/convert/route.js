@@ -85,7 +85,7 @@ export async function POST(request) {
     const config = PROMPT_CONFIG[type];
     if (!config) return NextResponse.json({ error: 'Invalid operation type' }, { status: 400 });
 
-    const systemPrompt = config.system(sourceLang, targetLang, mode);
+    const systemPrompt = config.system({ sourceLang, targetLang, mode });
     const userPrompt = config.user(input);
 
     let modelId = 'groq:llama-3.3-70b-versatile'; 
