@@ -1,9 +1,9 @@
-'use client'; 
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
-import { useApp } from '@/context/AppContext'; 
+import { useApp } from '@/context/AppContext';
 
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -41,16 +41,19 @@ export default function CodeConverter({ onSwitchModule }) {
   const fileInputRef = useRef(null);
   const [lastResult, setLastResult] = useState(false);
   const { moduleData, qualityMode } = useApp();
+  const initialSyncRef = useRef(false);
   
   useEffect(() => {
-    if (moduleData && moduleData.type === 'converter') {
-      setInput(moduleData.input || '');
-      setOutputCode(moduleData.fullOutput?.convertedCode || '');
+    if (moduleData?.type === 'converter' && !initialSyncRef.current) {
+      if (moduleData.input) setInput(moduleData.input);
+      if (moduleData.fullOutput?.convertedCode) setOutputCode(moduleData.fullOutput.convertedCode);
       if (moduleData.sourceLang) setSourceLang(moduleData.sourceLang);
       if (moduleData.targetLang) setTargetLang(moduleData.targetLang);
+      
+      initialSyncRef.current = true;
     }
   }, [moduleData]);
-
+  
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -70,7 +73,7 @@ export default function CodeConverter({ onSwitchModule }) {
     };
     reader.readAsText(file);
   };
-
+  
   const handleDownload = () => {
     if (!outputCode) return;
     const targetExt = LANGUAGES.find(l => l.value === targetLang)?.ext || '.txt';
@@ -91,7 +94,7 @@ export default function CodeConverter({ onSwitchModule }) {
     setInput(outputCode);
     setOutputCode('');
   };
-
+  
   const handleClear = () => {
     setInput('');
     setOutputCode('');
@@ -100,7 +103,7 @@ export default function CodeConverter({ onSwitchModule }) {
       fileInputRef.current.value = "";
     }
   };
-
+  
   const handleConvert = async () => {
     if (!input.trim()) return;
     setLoading(true);
