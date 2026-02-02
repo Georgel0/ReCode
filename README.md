@@ -1,13 +1,10 @@
-# ReCode ⚡️
+# ReCode 
 
-![ReCode Banner](https://via.placeholder.com/1200x300/000000/38bdf8?text=ReCode+|+AI-Powered+Developer+Suite)
-
-> **Write better code. Faster than ever.** > The ultimate AI-powered playground for developers to convert, analyze, refactor, and generate code.
+> **Write better code. Faster than ever.** The ultimate AI-powered playground for developers to convert, analyze, refactor, and generate code.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-white?logo=vercel)](https://recode-alpha.vercel.app/)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-orange)](https://firebase.google.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
 
