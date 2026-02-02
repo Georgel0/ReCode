@@ -195,7 +195,7 @@
   font-weight: bold;
 }
 
-.info-popup-content>h4, .info-popup-content>i {
+.info-popup-content>h3, .info-popup-content>i {
   color: var(--lp-blue);
 }
 

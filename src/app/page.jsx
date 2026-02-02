@@ -119,7 +119,7 @@ export default function LandingPage() {
       {activeInfo && (
       <div className="info-popup-overlay" onClick={() => setActiveInfo(null)}>
         <div className="info-popup-content" onClick={e => e.stopPropagation()}>
-          <h4><i className={tool.icon}></i> {activeInfo.name}</h4>
+          <h3><i className={tool.icon}></i> {activeInfo.name}</h3>
           <p>{activeInfo.info}</p>
           <button onClick={() => setActiveInfo(null)}>✕</button>
         </div>
