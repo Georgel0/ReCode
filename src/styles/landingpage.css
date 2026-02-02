@@ -7,6 +7,10 @@
   --lp-card-bg: #0a0a0a;
 }
 
+* {
+  text-decoration: none;
+}
+
 .lp-wrapper {
   background-color: var(--lp-bg);
   min-height: 100%;
@@ -135,8 +139,14 @@
   line-height: 1.5;
 }
 
-.animate-fade-in { animation: fadeInUp 0.8s forwards; }
-.animate-slide-up { opacity: 0; animation: fadeInUp 0.6s forwards; }
+.animate-fade-in {
+  animation: fadeInUp 0.8s forwards;
+}
+
+.animate-slide-up {
+  opacity: 0;
+  animation: fadeInUp 0.6s forwards;
+}
 
 .lp-footer {
   padding: 60px 20px;
@@ -160,12 +170,12 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.85); 
-  backdrop-filter: blur(4px); 
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;            
+  z-index: 9999;
 }
 
 .info-popup-content {
@@ -175,18 +185,38 @@
   border-radius: 12px;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.info-popup-content>button {
+  border: none;
+  background: none;
+  color: var(--lp-blue);
+  font-weight: bold;
+}
+
+.info-trigger {
+  border: none;
+  background: none;
+  color: var(--lp-blue);
 }
 
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1024px) {
   .lp-grid {
-    grid-template-columns: repeat(2, 1fr); 
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
   
@@ -199,39 +229,46 @@
   .lp-hero {
     padding: 80px 24px 40px;
   }
-
+  
   .lp-title {
-    font-size: 3rem; 
+    font-size: 3rem;
     margin-bottom: 1rem;
   }
-
+  
   .lp-description {
     font-size: 1rem;
     margin-bottom: 2.5rem;
   }
-
+  
   .lp-cta {
-    width: 100%; 
+    width: 100%;
     justify-content: center;
     padding: 18px;
   }
-
+  
   .lp-grid-section {
     padding: 40px 20px;
   }
-
+  
   .lp-grid {
-    grid-template-columns: 1fr; 
+    grid-template-columns: 1fr;
     gap: 16px;
   }
-
+  
   .lp-card {
     padding: 24px;
   }
-
+  
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
@@ -244,11 +281,11 @@
     font-size: 0.75rem;
     padding: 4px 12px;
   }
-
+  
   .lp-footer {
     padding: 40px 20px;
   }
-
+  
   .footer-content {
     font-size: 0.75rem;
   }
@@ -259,6 +296,7 @@
     display: flex;
     flex-direction: column;
   }
+  
   .lp-grid-section {
     flex: 1;
   }

@@ -121,7 +121,7 @@ export default function LandingPage() {
         <div className="info-popup-content" onClick={e => e.stopPropagation()}>
           <h4>{activeInfo.name}</h4>
           <p>{activeInfo.info}</p>
-          <button onClick={() => setActiveInfo(null)}>Close</button>
+          <button onClick={() => setActiveInfo(null)}>✕</button>
           </div>
         </div>
       )}
