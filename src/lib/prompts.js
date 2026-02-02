@@ -33,7 +33,8 @@ export const OUTPUT_SCHEMAS = {
     conversions: z.array(z.object({
       selector: z.string(),
       tailwindClasses: z.string()
-    }))
+    })).optional(),
+    convertedCode: z.string().optional()
   })
 };
 
@@ -145,22 +146,23 @@ export const PROMPT_CONFIG = {
   },
   
   'css-framework': {
-    system: (ctx) => ctx?.targetLang === 'tailwind' ?
-      withSchema(
-        `You are a Tailwind CSS Expert. 
-        Your Task: Convert standard CSS rules into Tailwind Utility Classes.
-        
-        Guidelines:
-        - Analyze the CSS property-by-property.
-        - Use arbitrary values (e.g., text-[14px]) ONLY if no standard utility exists.
-        - Group states correctly (hover:, focus:).`,
-        `{ "conversions": [ { "selector": "string (e.g., .btn-primary)", "tailwindClasses": "string (e.g., px-4 py-2 bg-blue-500)" } ] }`
-      ) : `You are a CSS Preprocessor Expert. Convert the input to valid, idiomatic ${ctx?.targetLang}.
-       - Nest selectors where appropriate.
-       - Use variables for repeated colors/sizes.
-       - Output ONLY the raw code.`,
+    system: (ctx) => {
+      if (ctx?.targetLang === 'tailwind') {
+        return withSchema(
+          `You are a Tailwind CSS Expert. Convert CSS/SASS to Tailwind utility classes.`,
+          `{ "conversions": [{ "selector": "string", "tailwindClasses": "string" }] }`
+        );
+      }
+      
+      return withSchema(
+        `You are a CSS Preprocessor Expert. Convert the input to valid ${ctx?.targetLang || 'SASS'}.
+         - Nest selectors where appropriate.
+         - Use variables for colors.`,
+        `{ "convertedCode": "string" }`
+      );
+    },
     user: (input) => `Convert these styles:\n${input}`,
-    responseType: (ctx) => ctx?.targetLang === 'tailwind' ? 'object' : 'text',
+    responseType: 'object',
     schema: OUTPUT_SCHEMAS['css-framework-json']
   },
   
