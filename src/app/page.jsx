@@ -112,12 +112,13 @@ export default function LandingPage() {
             </ScrollAnimation>
             
             <ScrollAnimation direction="right">
-              <div className="lp-placeholder-img">
+              <div className="lp-image-container">
                <img 
                 src="/architecture.png" 
                 alt="ReCode Hybrid Engine Architecture"
-                className="lp-actual-img"
+                className="lp-feature-img"
               />
+              <div className="lp-image-overlay"></div>
               </div>
             </ScrollAnimation>
           </div>
@@ -180,12 +181,13 @@ export default function LandingPage() {
             </ScrollAnimation>
 
             <ScrollAnimation direction="left">
-              <div className="lp-placeholder-img">
+              <div className="lp-image-container">
                 <img 
                   src="/infrastructure.jpg" 
                   alt="ReCode Infrastructure Preview" 
-                  className="lp-actual-img"
+                  className="lp-feature-img"
                 />
+                <div className="lp-image-overlay"></div>
               </div>
             </ScrollAnimation>
           </div>
