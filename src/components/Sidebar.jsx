@@ -106,11 +106,13 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
       
       <div className="sidebar-header">
         {!isCollapsed && (
-          <div className="logo-group">
-            <div className="logo-image" />
-            <h2>ReCode</h2>
-          </div>
-        )}
+           <Link href="/" className="logo-link">
+              <div className="logo-group">
+                <div className="logo-image"/>
+                <span>ReCode</span>
+              </div>
+            </Link>
+          )}
         
         <div className="sidebar-subheader">
           {!isCollapsed && ( <button className="close-btn" onClick={toggleSidebar}>✕</button> )}
