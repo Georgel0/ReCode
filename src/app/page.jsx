@@ -219,20 +219,18 @@ export default function LandingPage() {
             <div className="footer-brand">
               <h3>ReCode AI</h3>
               <p>Engineering better futures through intelligent automation.</p>
-              <span className="copyright">&copy; 2026 ReCode AI</span>
-            </div>
-            
-            <div className="footer-links">
-              <h4>Connect with the Developer</h4>
-              <p className="footer-sub">Available for strategic partnerships and custom implementations.</p>
-              <div className="social-row">
-                <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer" title="GitHub"><i className="fab fa-github"></i></a>
-                <a href="https://www.linkedin.com/in/georgel-garabajiu-297a052a8" target="_blank" rel="noreferrer" title="LinkedIn"><i className="fab fa-linkedin"></i></a>
-                <a href="mailto:georgelgarabajiu07@gmail.com" title="Email"><i className="fas fa-envelope"></i></a>
+              <div className="footer-links">
+                <div className="social-row">
+                  <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer" title="GitHub"><i className="fab fa-github"></i></a>
+                  <a href="https://www.linkedin.com/in/georgel-garabajiu-297a052a8" target="_blank" rel="noreferrer" title="LinkedIn"><i className="fab fa-linkedin"></i></a>
+                  <a href="mailto:georgelgarabajiu07@gmail.com" title="Email"><i className="fas fa-envelope"></i></a>
+                </div>
+                <a href="https://github.com/Georgel0/ReCode" target="_blank" rel="noreferrer" className="source-link">
+                  <i className="fas fa-code-branch"></i> View Source Code
+                </a>
               </div>
-              <a href="https://github.com/Georgel0/ReCode" target="_blank" rel="noreferrer" className="source-link">
-                 <i className="fas fa-code-branch"></i> View Source Code
-              </a>
+              
+              <span className="copyright">&copy; 2026 ReCode AI</span>
             </div>
           </div>
         </div>
