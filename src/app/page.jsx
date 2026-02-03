@@ -98,7 +98,7 @@ export default function LandingPage() {
             <ScrollAnimation direction="left">
               <div className="lp-text-block">
                 <h2 className="section-title">The Proprietary Engine</h2>
-                <h3 className="section-subtitle">Grok-Llama Hybrid Architecture</h3>
+                <h3 className="section-subtitle">AI Architecture</h3>
                 <p>
                   Our specialized AI workflow utilizes a hybrid architecture. By processing code 
                   through an optimized Node.js microservice layer, ReCode performs deep-path 
@@ -113,11 +113,11 @@ export default function LandingPage() {
             
             <ScrollAnimation direction="right">
               <div className="lp-placeholder-img">
-                <div className="placeholder-content">
-                  <i className="fas fa-network-wired"></i>
-                  <span>Architecture Diagram Placeholder</span>
-                  <small>(16:10 Aspect Ratio)</small>
-                </div>
+               <img 
+                src="/architecture.png" 
+                alt="ReCode Hybrid Engine Architecture"
+                className="lp-actual-img"
+              />
               </div>
             </ScrollAnimation>
           </div>
@@ -164,7 +164,7 @@ export default function LandingPage() {
           <div className="lp-split reverse">
             <ScrollAnimation direction="right">
               <div className="lp-text-block">
-                <h2 className="section-title">Enterprise Infrastructure</h2>
+                <h2 className="section-title">TechStack Infrastructure</h2>
                 <h3 className="section-subtitle">Built for Speed & Reliability</h3>
                 <p>
                   ReCode leverages a modern stack featuring <strong>Next.js</strong> for performance, 
@@ -181,11 +181,11 @@ export default function LandingPage() {
 
             <ScrollAnimation direction="left">
               <div className="lp-placeholder-img">
-                <div className="placeholder-content">
-                  <i className="fas fa-server"></i>
-                  <span>Infrastructure/Sidebar Preview</span>
-                  <small>(Square or 4:3 Aspect Ratio)</small>
-                </div>
+                <img 
+                  src="/infrastructure.jpg" 
+                  alt="ReCode Infrastructure Preview" 
+                  className="lp-actual-img"
+                />
               </div>
             </ScrollAnimation>
           </div>
