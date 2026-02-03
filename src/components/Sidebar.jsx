@@ -5,13 +5,11 @@ import { getHistory, deleteHistoryItem, clearAllHistory } from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeContext';
 import Link from 'next/link';
-import About from "./About";
 
 export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
   const pathname = usePathname();
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
   const [autoSave, setAutoSave] = useState(() => {
@@ -123,40 +121,24 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
         </div>
       </div>
 
-      {!isCollapsed && (<div className="about-trigger-wrapper">
-        <button 
-          className={`about-toggle-btn ${showAbout ? 'active' : ''}`}
-          onClick={() => setShowAbout(!showAbout)}
-          title="About ReCode"
-        >
-          <i className={showAbout ? "fas fa-arrow-left" : "fas fa-info-circle"}></i>
-          {!isCollapsed && (showAbout ? 'Back to Modules' : 'About ReCode')}
-        </button>
-      </div>
-      )}
-
       <div className="sidebar-scroll-area">
-        {showAbout ? (
-          <About />
-        ) : (
-          <nav className="nav-menu">
-            {!isCollapsed && <h3>Modules</h3>}
-            {modules.map(module => (
-              <Link
-                key={module.id}
-                href={module.path}
-                className={`nav-item ${pathname === module.path ? 'active' : ''}`}
-                title={isCollapsed ? module.label : ''}
-                onClick={() => {
-                  if (window.innerWidth < 768) toggleSidebar(); 
-                }}
-              >
-                 <i className={module.icon}></i>
-                 {!isCollapsed && module.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        <nav className="nav-menu">
+          {!isCollapsed && <h3>Modules</h3>}
+          {modules.map(module => (
+            <Link
+              key={module.id}
+              href={module.path}
+              className={`nav-item ${pathname ===
+              module.path ? 'active' : ''}`}
+              title={isCollapsed ? module.label : ''}
+              onClick={() => {
+                if (window.innerWidth < 768) toggleSidebar(); 
+              }} >
+                <i className={module.icon}></i>
+               {!isCollapsed && module.label}
+            </Link>
+          ))}
+        </nav>
         
         <div className="model-trigger-section">
           {!isCollapsed && (
