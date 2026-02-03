@@ -321,6 +321,9 @@
   padding: 80px 0 40px;
   background: #000;
   border-top: 1px solid var(--lp-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .footer-grid {
