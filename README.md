@@ -19,7 +19,7 @@
 
 ### Key Highlights
 * **Modern UI/UX:** Features a collapsible "Mini Sidebar" for desktop, fully responsive mobile layout, and custom animations.
-* **Theme Engine:** Built-in theming system including *Dark Default*, *Black & Gold*, and *Light Quartz*.
+* **Theme Engine:** Built-in theming system including 3 custom *dark* and *light* themes.
 * **Smart History:** Automatically saves your work using Firebase Firestore with auto-save toggles.
 * **Dual AI Modes:** Switch between **Fast Mode** (Speed optimized) and **Quality Mode** (Reasoning optimized) for complex tasks.
 
