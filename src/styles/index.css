@@ -1,7 +1,7 @@
 :root {
-  --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --bg-tertiary: #21262D;
+  --bg-primary: black;
+  --bg-secondary: black;
+  --bg-tertiary: black;
   --text-primary: #c9d1d9;
   --text-secondary: #8b949e;
   --text-on-accent: #FFFFFF;
@@ -9,7 +9,7 @@
   --accent-hover: #0ea5e9;
   --danger: #ff4d4d;
   --danger-hover: #cc0000;
-  --border: #30363d;
+  --border: black;
   --shadow-subtle: 0 4px 6px rgba(0, 0, 0, 0.2);
   --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   --radius: 6px;
