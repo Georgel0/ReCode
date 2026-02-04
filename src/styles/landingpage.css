@@ -140,6 +140,7 @@ html, body {
   background-color: var(--lp-bg-alt);
   border-top: 1px solid var(--lp-border);
   border-bottom: 1px solid var(--lp-border);
+  z-index: 1;
 }
 
 .section-header {
