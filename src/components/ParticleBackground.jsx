@@ -137,7 +137,7 @@ export default function ParticleBackground() {
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: -1,
+        zIndex: 0,
         background: '#000000',
         pointerEvents: 'none',
       }}
