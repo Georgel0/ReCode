@@ -159,6 +159,7 @@ html, body {
   background: linear-gradient(to right, #fff, #999);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: white;
 }
 
 .section-subtitle {
