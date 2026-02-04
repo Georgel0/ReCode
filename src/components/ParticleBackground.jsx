@@ -7,51 +7,57 @@ export default function ParticleBackground() {
  const mouse = useRef({ x: null, y: null });
  const particles = useRef([]);
  const animationFrameId = useRef(null);
+ const resizeTimeout = useRef(null);
  
  useEffect(() => {
   const canvas = canvasRef.current;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
-  let lastWidth = window.innerWidth;
+  const PARTICLE_DENSITY_AREA = 15000;
+  const MIN_PARTICLES = 40;
+  const MAX_PARTICLES = 180;
   
   let particleCount = 100;
   let connectionDistance = 150;
+  let connectionDistanceSq = connectionDistance * connectionDistance;
+  
   let speedFactor = 1.0;
   const mouseDistance = 150;
   const lineOpacityFactor = 0.7;
   
   class Particle {
-   constructor() {
-    this.init();
-   }
-   
-   init() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
-    
+   constructor(width, height) {
+    this.x = Math.random() * width;
+    this.y = Math.random() * height;
     this.vx = (Math.random() - 0.5) * speedFactor;
     this.vy = (Math.random() - 0.5) * speedFactor;
-    
     this.size = Math.random() * 2 + 1;
    }
    
-   update() {
+   update(width, height) {
     this.x += this.vx;
     this.y += this.vy;
     
     // Bounce off edges
-    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    if (this.x < 0 || this.x > width) this.vx *= -1;
+    if (this.y < 0 || this.y > height) this.vy *= -1;
     
     // Mouse interaction
     if (mouse.current.x !== null) {
-     let dx = mouse.current.x - this.x;
-     let dy = mouse.current.y - this.y;
-     let dist = Math.sqrt(dx * dx + dy * dy);
-     if (dist < mouseDistance) {
-      this.x -= (dx / dist) * 2;
-      this.y -= (dy / dist) * 2;
+     const dx = mouse.current.x - this.x;
+     const dy = mouse.current.y - this.y;
+     const distSq = dx * dx + dy * dy;
+     
+     if (distSq < mouseDistance * mouseDistance) {
+      const dist = Math.sqrt(distSq);
+      if (dist > 0) { 
+       const force = (mouseDistance - dist) / mouseDistance;
+       const moveX = (dx / dist) * force * 2;
+       const moveY = (dy / dist) * force * 2;
+       this.x -= moveX;
+       this.y -= moveY;
+      }
      }
     }
    }
@@ -64,57 +70,81 @@ export default function ParticleBackground() {
    }
   }
   
-  const initParticles = () => {
+  const initParticles = (width, height) => {
    particles.current = [];
    for (let i = 0; i < particleCount; i++) {
-    particles.current.push(new Particle());
+    particles.current.push(new Particle(width, height));
    }
   };
   
   const handleResize = () => {
-   canvas.width = window.innerWidth;
-   canvas.height = window.innerHeight;
+   // Get Device Pixel Ratio (DPI)
+   const dpr = window.devicePixelRatio || 1;
    
-   if (window.innerWidth < 768) {
-    particleCount = 40; 
-    connectionDistance = 80; 
-    speedFactor = 0.5; 
+   // Set actual size in memory (scaled to account for extra pixel density)
+   canvas.width = window.innerWidth * dpr;
+   canvas.height = window.innerHeight * dpr;
+   
+   // Normalize coordinate system to use CSS pixels
+   ctx.scale(dpr, dpr);
+   
+   // Calculate Logic Width/Height (CSS Pixels)
+   const width = window.innerWidth;
+   const height = window.innerHeight;
+   
+   // Smart Particle Count based on Screen Area
+   const area = width * height;
+   const calculatedParticles = Math.floor(area / PARTICLE_DENSITY_AREA);
+   
+   // Clamp particle count between reasonable min and max
+   particleCount = Math.min(Math.max(calculatedParticles, MIN_PARTICLES), MAX_PARTICLES);
+   
+   if (width < 768) {
+    connectionDistance = 80;
+    speedFactor = 0.5;
    } else {
-    particleCount = 100;
     connectionDistance = 150;
-    speedFactor = 1.2;
+    speedFactor = 1.0;
    }
    
-   // This prevents the a "reset" when the mobile address bar slides away.
-   const widthChanged = Math.abs(window.innerWidth - lastWidth) > 50;
+   connectionDistanceSq = connectionDistance * connectionDistance;
    
-   if (widthChanged || particles.current.length === 0) {
-    lastWidth = window.innerWidth;
-    initParticles();
-   }
+   // Re-init particles with new bounds
+   initParticles(width, height);
   };
   
   const animate = () => {
-   ctx.clearRect(0, 0, canvas.width, canvas.height);
+   const width = window.innerWidth;
+   const height = window.innerHeight;
+   
+   ctx.clearRect(0, 0, width, height);
    
    const pArray = particles.current;
-   for (let i = 0; i < pArray.length; i++) {
-    pArray[i].update();
-    pArray[i].draw();
+   const len = pArray.length;
+   
+   for (let i = 0; i < len; i++) {
+    const p1 = pArray[i];
+    p1.update(width, height);
+    p1.draw();
     
-    for (let j = i + 1; j < pArray.length; j++) {
-     let dx = pArray[i].x - pArray[j].x;
-     let dy = pArray[i].y - pArray[j].y;
-     let dist = Math.sqrt(dx * dx + dy * dy);
+    // Only look at particles "ahead" in the array to avoid double checking pairs
+    for (let j = i + 1; j < len; j++) {
+     const p2 = pArray[j];
+     const dx = p1.x - p2.x;
+     const dy = p1.y - p2.y;
      
-     if (dist < connectionDistance) {
-      // Fading lines
+     const distSq = dx * dx + dy * dy;
+     
+     if (distSq < connectionDistanceSq) {
+      // Only calculate actual root if we are drawing the line
+      const dist = Math.sqrt(distSq);
       const opacity = (1 - dist / connectionDistance) * lineOpacityFactor;
+      
       ctx.strokeStyle = `rgba(56, 189, 248, ${opacity})`;
       ctx.lineWidth = 0.5;
       ctx.beginPath();
-      ctx.moveTo(pArray[i].x, pArray[i].y);
-      ctx.lineTo(pArray[j].x, pArray[j].y);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
      }
     }
@@ -132,18 +162,26 @@ export default function ParticleBackground() {
    mouse.current.y = null;
   };
   
-  window.addEventListener('resize', handleResize);
+  // Debounced Resize Wrapper
+  const onResize = () => {
+   clearTimeout(resizeTimeout.current);
+   resizeTimeout.current = setTimeout(handleResize, 100);
+  };
+  
+  window.addEventListener('resize', onResize);
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mouseout', handleMouseOut);
   
+  // Initial setup
   handleResize();
   animate();
   
   return () => {
-   window.removeEventListener('resize', handleResize);
+   window.removeEventListener('resize', onResize);
    window.removeEventListener('mousemove', handleMouseMove);
    window.removeEventListener('mouseout', handleMouseOut);
    cancelAnimationFrame(animationFrameId.current);
+   clearTimeout(resizeTimeout.current);
   };
  }, []);
  
@@ -157,7 +195,7 @@ export default function ParticleBackground() {
         width: '100%',
         height: '100%',
         zIndex: 0,
-        background: '#000000',
+        background: '#000000', 
         pointerEvents: 'none',
       }}
     />
