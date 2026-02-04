@@ -13,12 +13,13 @@ export default function ParticleBackground() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
+  let lastWidth = window.innerWidth;
+  
   let particleCount = 100;
   let connectionDistance = 150;
+  let speedFactor = 1.0;
   const mouseDistance = 150;
-  
-  // Opacity Factor
-  const lineOpacityFactor = 0.5;
+  const lineOpacityFactor = 0.7;
   
   class Particle {
    constructor() {
@@ -28,8 +29,10 @@ export default function ParticleBackground() {
    init() {
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
-    this.vx = (Math.random() - 0.5) * 1.2;
-    this.vy = (Math.random() - 0.5) * 1.2;
+    
+    this.vx = (Math.random() - 0.5) * speedFactor;
+    this.vy = (Math.random() - 0.5) * speedFactor;
+    
     this.size = Math.random() * 2 + 1;
    }
    
@@ -54,7 +57,7 @@ export default function ParticleBackground() {
    }
    
    draw() {
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
@@ -68,19 +71,27 @@ export default function ParticleBackground() {
    }
   };
   
-  const resizeCanvas = () => {
+  const handleResize = () => {
    canvas.width = window.innerWidth;
    canvas.height = window.innerHeight;
    
    if (window.innerWidth < 768) {
     particleCount = 40; 
-    connectionDistance = 80;
+    connectionDistance = 80; 
+    speedFactor = 0.5; 
    } else {
     particleCount = 100;
     connectionDistance = 150;
+    speedFactor = 1.2;
    }
    
-   initParticles();
+   // This prevents the a "reset" when the mobile address bar slides away.
+   const widthChanged = Math.abs(window.innerWidth - lastWidth) > 50;
+   
+   if (widthChanged || particles.current.length === 0) {
+    lastWidth = window.innerWidth;
+    initParticles();
+   }
   };
   
   const animate = () => {
@@ -91,16 +102,14 @@ export default function ParticleBackground() {
     pArray[i].update();
     pArray[i].draw();
     
-    // Draw connections
     for (let j = i + 1; j < pArray.length; j++) {
      let dx = pArray[i].x - pArray[j].x;
      let dy = pArray[i].y - pArray[j].y;
      let dist = Math.sqrt(dx * dx + dy * dy);
      
      if (dist < connectionDistance) {
-      // Calculate opacity based on distance AND the factor
+      // Fading lines
       const opacity = (1 - dist / connectionDistance) * lineOpacityFactor;
-      
       ctx.strokeStyle = `rgba(56, 189, 248, ${opacity})`;
       ctx.lineWidth = 0.5;
       ctx.beginPath();
@@ -113,7 +122,6 @@ export default function ParticleBackground() {
    animationFrameId.current = requestAnimationFrame(animate);
   };
   
-  // Event Listeners
   const handleMouseMove = (e) => {
    mouse.current.x = e.clientX;
    mouse.current.y = e.clientY;
@@ -124,23 +132,20 @@ export default function ParticleBackground() {
    mouse.current.y = null;
   };
   
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('resize', handleResize);
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mouseout', handleMouseOut);
   
-  // Start
-  resizeCanvas();
+  handleResize();
   animate();
   
-  // Cleanup
   return () => {
-   window.removeEventListener('resize', resizeCanvas);
+   window.removeEventListener('resize', handleResize);
    window.removeEventListener('mousemove', handleMouseMove);
    window.removeEventListener('mouseout', handleMouseOut);
    cancelAnimationFrame(animationFrameId.current);
   };
  }, []);
- 
  
  return (
   <canvas
