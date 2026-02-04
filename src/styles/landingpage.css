@@ -140,7 +140,6 @@ html, body {
   background-color: var(--lp-bg-alt);
   border-top: 1px solid var(--lp-border);
   border-bottom: 1px solid var(--lp-border);
-  z-index: 1;
 }
 
 .section-header {
@@ -150,7 +149,6 @@ html, body {
 
 .section-header.center {
   text-align: center;
-  z-index: 1;
 }
 
 .section-title {
@@ -159,7 +157,6 @@ html, body {
   background: linear-gradient(to right, #fff, #999);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: white;
 }
 
 .section-subtitle {

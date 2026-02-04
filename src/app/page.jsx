@@ -130,10 +130,12 @@ export default function LandingPage() {
 
       <section className="lp-section bg-alt">
         <div className="lp-container">
-          <div className="section-header center">
-            <h2 className="section-title">The Developer Suite</h2>
-            <p className="section-desc">Modular utilities to accelerate your workflow without losing control.</p>
-          </div>
+          <ScrollAnimation direction="up">
+            <div className="section-header center">
+              <h2 className="section-title">The Developer Suite</h2>
+              <p className="section-desc">Modular utilities to accelerate your workflow without losing control.</p>
+            </div>
+          </ScrollAnimation>
           
           <div className="lp-grid">
             {tools.map((tool, i) => (
