@@ -223,7 +223,6 @@ html, body {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(56, 189, 248, 0.2);
   box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
   aspect-ratio: 16 / 10;
   z-index: 1;
@@ -404,7 +403,7 @@ html, body {
   color: var(--lp-blue);
   font-size: 0.9rem;
   font-weight: 600;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
 }
