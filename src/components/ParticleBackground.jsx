@@ -13,10 +13,12 @@ export default function ParticleBackground() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
-  // Configuration
-  const particleCount = 100;
-  const connectionDistance = 150;
+  let particleCount = 100;
+  let connectionDistance = 150;
   const mouseDistance = 150;
+  
+  // Opacity Factor
+  const lineOpacityFactor = 0.5;
   
   class Particle {
    constructor() {
@@ -52,7 +54,7 @@ export default function ParticleBackground() {
    }
    
    draw() {
-    ctx.fillStyle = '#38bdf8';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
@@ -69,11 +71,19 @@ export default function ParticleBackground() {
   const resizeCanvas = () => {
    canvas.width = window.innerWidth;
    canvas.height = window.innerHeight;
+   
+   if (window.innerWidth < 768) {
+    particleCount = 40; 
+    connectionDistance = 80;
+   } else {
+    particleCount = 100;
+    connectionDistance = 150;
+   }
+   
    initParticles();
   };
   
   const animate = () => {
-   // Clear the canvas
    ctx.clearRect(0, 0, canvas.width, canvas.height);
    
    const pArray = particles.current;
@@ -88,7 +98,10 @@ export default function ParticleBackground() {
      let dist = Math.sqrt(dx * dx + dy * dy);
      
      if (dist < connectionDistance) {
-      ctx.strokeStyle = `rgba(56, 189, 248, ${1 - dist / connectionDistance})`;
+      // Calculate opacity based on distance AND the factor
+      const opacity = (1 - dist / connectionDistance) * lineOpacityFactor;
+      
+      ctx.strokeStyle = `rgba(56, 189, 248, ${opacity})`;
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       ctx.moveTo(pArray[i].x, pArray[i].y);
@@ -127,6 +140,7 @@ export default function ParticleBackground() {
    cancelAnimationFrame(animationFrameId.current);
   };
  }, []);
+ 
  
  return (
   <canvas
