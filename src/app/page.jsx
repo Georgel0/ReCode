@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import '@/styles/landingpage.css';
+import ParticleBackground from '@/components/ParticleBackground';
 
 export default function LandingPage() {
   const [activeInfo, setActiveInfo] = useState(null);
@@ -68,6 +69,8 @@ export default function LandingPage() {
 
   return (
     <div className="lp-wrapper">
+      
+      <ParticleBackground />
       
       <section className="lp-hero">
         <div className="lp-hero-content animate-fade-in">

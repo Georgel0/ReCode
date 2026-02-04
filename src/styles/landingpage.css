@@ -15,7 +15,7 @@
 }
 
 .lp-wrapper {
-  background-color: var(--lp-bg);
+  background-color: transparent;
   min-height: 100vh;
   color: var(--lp-text-main);
   font-family: 'Inter', system-ui, sans-serif;
@@ -35,7 +35,7 @@
   justify-content: center;
   text-align: center;
   padding: 100px 20px;
-  background: radial-gradient(circle at center, #0f1623 0%, #000000 70%);
+  background: transparent;
 }
 
 .lp-hero-content {
