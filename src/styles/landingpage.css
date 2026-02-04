@@ -150,6 +150,7 @@ html, body {
 
 .section-header.center {
   text-align: center;
+  z-index: 1;
 }
 
 .section-title {
