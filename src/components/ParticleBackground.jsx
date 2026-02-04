@@ -74,7 +74,7 @@ export default function ParticleBackground() {
   
   const animate = () => {
    // Clear the canvas
-   ctx.fillRect(0, 0, canvas.width, canvas.height);
+   ctx.clearRect(0, 0, canvas.width, canvas.height);
    
    const pArray = particles.current;
    for (let i = 0; i < pArray.length; i++) {
