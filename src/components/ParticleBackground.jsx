@@ -19,7 +19,7 @@ export default function ParticleBackground() {
   const MAX_PARTICLES = 180;
   
   let particleCount = 100;
-  let connectionDistance = 150;
+  let connectionDistance = 200;
   let connectionDistanceSq = connectionDistance * connectionDistance;
   
   let speedFactor = 1.0;
@@ -162,7 +162,6 @@ export default function ParticleBackground() {
    mouse.current.y = null;
   };
   
-  // Debounced Resize Wrapper
   const onResize = () => {
    clearTimeout(resizeTimeout.current);
    resizeTimeout.current = setTimeout(handleResize, 100);
@@ -172,7 +171,6 @@ export default function ParticleBackground() {
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mouseout', handleMouseOut);
   
-  // Initial setup
   handleResize();
   animate();
   
@@ -187,17 +185,17 @@ export default function ParticleBackground() {
  
  return (
   <canvas
-      ref={canvasRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: 0,
-        background: '#000000', 
-        pointerEvents: 'none',
-      }}
-    />
+   ref={canvasRef}
+   style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
+    background: '#000000', 
+    pointerEvents: 'none',
+   }}
+  />
  );
 }
