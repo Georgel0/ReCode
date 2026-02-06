@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getHistory, deleteHistoryItem, clearAllHistory } from '@/lib/firebase';
+import { getHistory, deleteHistoryItem, clearAllHistory, subscribeToHistory } from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeContext';
 import Link from 'next/link';
@@ -12,22 +12,13 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
   const [isDeleting, setIsDeleting] = useState(false);
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
   const sidebarRef = useRef(null);
+  
   const [autoSave, setAutoSave] = useState(() => {
-    
     if (typeof window !== 'undefined') {
       return localStorage.getItem('recode_autoSave') === 'true';
     }
     return false;
   });
-  
-  const refreshHistory = async () => {
-    try {
-      const data = await getHistory();
-      setHistoryItems(data);
-    } catch (error) {
-      console.error("Failed to refresh history:", error);
-    }
-  };
   
   const toggleAutoSave = () => {
     const newState = !autoSave;
@@ -38,10 +29,14 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
   };
   
   useEffect(() => {
-    if (isOpen) {
-      refreshHistory();
-    }
-  }, [isOpen, pathname]);
+    // Subscribe to real-time updates when the component mounts
+    // This automatically handles updates, deletions, and new items
+    const unsubscribe = subscribeToHistory((data) => {
+      setHistoryItems(data);
+    });
+    
+    return () => unsubscribe();
+  }, []);
   
   // Close sidebar on mobile when clicking outside
   useEffect(() => {

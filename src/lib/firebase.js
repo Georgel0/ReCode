@@ -1,23 +1,24 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInAnonymously, 
-  onAuthStateChanged 
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
 } from "firebase/auth";
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  query, 
-  orderBy, 
-  limit, 
-  getDocs, 
-  deleteDoc, 
-  doc, 
-  writeBatch, 
-  Timestamp, 
-  where, 
-  serverTimestamp 
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  deleteDoc,
+  doc,
+  writeBatch,
+  Timestamp,
+  where,
+  serverTimestamp,
+  onSnapshot
 } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -51,6 +52,24 @@ const commitBatchInChunks = async (docs) => {
   }
 };
 
+export const subscribeToHistory = (callback) => {
+  const historyRef = getHistoryRef();
+  if (!historyRef) return () => {};
+  
+  const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
+  
+  // onSnapshot listens for real-time updates
+  return onSnapshot(q, (snapshot) => {
+    const items = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    callback(items);
+  }, (error) => {
+    console.error("Error subscribing to history:", error);
+  });
+};
+
 export const initializeAuth = () => {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, (user) => {
@@ -71,7 +90,7 @@ export const initializeAuth = () => {
 export const cleanupOldHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
-
+  
   try {
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
@@ -91,11 +110,11 @@ export const cleanupOldHistory = async () => {
 export const clearAllHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
-
+  
   try {
     const snapshot = await getDocs(query(historyRef));
     if (snapshot.empty) return;
-
+    
     await commitBatchInChunks(snapshot.docs);
     console.log(`Clear All: Deleted ${snapshot.size} items.`);
   } catch (error) {
@@ -118,17 +137,17 @@ export const deleteHistoryItem = async (docId) => {
 export const saveHistory = async (type, input, output, sourceLang = null, targetLang = null) => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
-
+  
   try {
     const data = {
       type,
-      input, 
-      fullOutput: output, 
-      createdAt: serverTimestamp(), 
+      input,
+      fullOutput: output,
+      createdAt: serverTimestamp(),
       ...(sourceLang && { sourceLang }),
       ...(targetLang && { targetLang })
     };
-
+    
     await addDoc(historyRef, data);
   } catch (e) {
     console.error("Error adding document: ", e);
@@ -138,9 +157,9 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
 export const getHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return [];
-
+  
   const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
-
+  
   try {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
