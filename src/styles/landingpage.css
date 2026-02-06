@@ -225,7 +225,6 @@ body {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
   aspect-ratio: 16 / 10;
   z-index: 1;
 }
