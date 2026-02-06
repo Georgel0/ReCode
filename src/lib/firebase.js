@@ -53,21 +53,41 @@ const commitBatchInChunks = async (docs) => {
 };
 
 export const subscribeToHistory = (callback) => {
-  const historyRef = getHistoryRef();
-  if (!historyRef) return () => {};
+  let unsubscribeSnapshot = null;
   
-  const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
-  
-  // onSnapshot listens for real-time updates
-  return onSnapshot(q, (snapshot) => {
-    const items = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    callback(items);
-  }, (error) => {
-    console.error("Error subscribing to history:", error);
+  // Listen for the Auth state to change (Wait for user login)
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    // Clean up any previous listener if the user changes
+    if (unsubscribeSnapshot) {
+      unsubscribeSnapshot();
+      unsubscribeSnapshot = null;
+    }
+    
+    if (user) {
+      // User is now logged in, Set up the Firestore listener
+      const historyRef = collection(db, "users", user.uid, "history");
+      const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
+      
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        callback(items);
+      }, (error) => {
+        console.error("Error subscribing to history:", error);
+      });
+    } else {
+      // User is not logged in, clear the list
+      callback([]);
+    }
   });
+  
+  // Return a cleanup function that handles both Auth and Firestore listeners
+  return () => {
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    unsubscribeAuth();
+  };
 };
 
 export const initializeAuth = () => {
