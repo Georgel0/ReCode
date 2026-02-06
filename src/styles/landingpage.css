@@ -237,16 +237,6 @@ body {
   display: block;
 }
 
-.lp-image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent 80%, rgba(0, 0, 0, 0.4));
-  pointer-events: none;
-}
-
 .lp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

@@ -121,7 +121,6 @@ export default function LandingPage() {
                 alt="ReCode Hybrid Engine Architecture"
                 className="lp-feature-img"
               />
-              <div className="lp-image-overlay"></div>
               </div>
             </ScrollAnimation>
           </div>
@@ -192,7 +191,6 @@ export default function LandingPage() {
                   alt="ReCode Infrastructure Preview" 
                   className="lp-feature-img"
                 />
-                <div className="lp-image-overlay"></div>
               </div>
             </ScrollAnimation>
           </div>
