@@ -1,4 +1,6 @@
 import RegexGenerator from './RegexGenerator';
+import ToolFooter from '@/components/ToolFooter';
+import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
   title: 'Regex Generator',
@@ -6,5 +8,13 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <RegexGenerator />
+  const footerContent = getToolContent('code-analysis');
+  
+  return (
+   <>
+    <RegexGenerator />
+    
+   <ToolFooter content={footerContent} />
+  </>
+ );
 }

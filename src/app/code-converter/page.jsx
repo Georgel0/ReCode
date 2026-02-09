@@ -8,5 +8,13 @@ export const metadata = {
 };
 
 export default function Page() {
- return <CodeConverter />
+ const footerContent = getToolContent('code-analysis');
+ 
+ return (
+  <>
+   <CodeConverter />
+   
+   <ToolFooter content={footerContent} />
+  </>
+ );
 }

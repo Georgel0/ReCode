@@ -8,5 +8,13 @@ export const metadata = {
 };
 
 export default function Page() {
- return <CodeRefactor />
+ const footerContent = getToolContent('code-analysis');
+ 
+ return ( 
+  <>
+   <CodeRefactor />
+   
+   <ToolFooter content={footerContent} />
+  </>
+ );
 }

@@ -1,4 +1,6 @@
 import JsonFormatter from './JsonFormatter';
+import ToolFooter from '@/components/ToolFooter';
+import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
  title: 'JSON Formatter',
@@ -6,5 +8,13 @@ export const metadata = {
 };
 
 export default function Page() {
- return <JsonFormatter />
+ const footerContent = getToolContent('code-analysis');
+ 
+ return (
+  <>
+   <JsonFormatter />
+   
+   <ToolFooter content={footerContent} />
+  </>
+ );
 }

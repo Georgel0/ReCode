@@ -1,4 +1,6 @@
 import CssFrameworkConverter from './CssFrameworkConverter';
+import ToolFooter from '@/components/ToolFooter';
+import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
  title: 'CSS Framework Converter',
@@ -6,5 +8,13 @@ export const metadata = {
 };
 
 export default function Page() {
- return <CssFrameworkConverter />
+ const footerContent = getToolContent('code-analysis');
+ 
+ return (
+  <>
+   <CssFrameworkConverter />
+   
+   <ToolFooter content={footerContent} />
+  </>
+ );
 }
