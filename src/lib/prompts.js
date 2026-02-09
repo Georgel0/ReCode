@@ -149,7 +149,7 @@ export const PROMPT_CONFIG = {
     system: (ctx) => {
       if (ctx?.targetLang === 'tailwind') {
         return withSchema(
-          `You are a Tailwind CSS Expert. Convert CSS/SASS to Tailwind utility classes.`,
+          `You are a Tailwind CSS Expert. Convert CSS/SASS to Tailwind utility classes. Extract the style from inline code and if missing add class names for them`,
           `{ "conversions": [{ "selector": "string", "tailwindClasses": "string" }] }`
         );
       }
