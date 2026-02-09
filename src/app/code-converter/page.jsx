@@ -1,4 +1,6 @@
 import CodeConverter from './CodeConverter';
+import ToolFooter from '@/components/ToolFooter'; 
+import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
   title: 'Code Converter',
