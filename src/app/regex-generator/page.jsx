@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default function Page() {
-  const footerContent = getToolContent('code-analysis');
+  const footerContent = getToolContent('regex-generator');
   
   return (
    <>
