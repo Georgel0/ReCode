@@ -116,7 +116,7 @@ export const toolsContent = [
  ],
  faq: [
   { question: 'Which languages are supported?', answer: 'We support over 20 languages including Rust, Go, Swift, Mojo, and Kotlin.' },
-  { question: 'Does it keep my comments?', answer: 'Yes, you can save your code snippets to thebhistry section and access then anytime.' }
+  { question: 'Does it keep my prompts?', answer: 'Yes, you can save your code snippets to the history section and access then anytime.' }
  ]
 }];
 
