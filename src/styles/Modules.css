@@ -1,4 +1,5 @@
 .module-container {
+  margin-bottom: 1rem;
   padding: 2rem;
   min-height: 100%;
   display: flex;
