@@ -25,6 +25,7 @@
     "next": "latest",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-json-view": "^1.21.3",
     "react-syntax-highlighter": "^16.1.0",
     "zod": "^4.3.5"
   },
