@@ -5,7 +5,8 @@ import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 import JSON5 from 'json5';
-import ReactJson from 'react-json-view'; 
+import JsonView from 'react18-json-view'
+import 'react18-json-view/src/style.css'
 
 export default function JsonFormatter() {
  const [input, setInput] = useState('');
@@ -241,7 +242,7 @@ export default function JsonFormatter() {
            </>
           ) : (
            <div className="tree-view-container">
-            <ReactJson 
+            <JsonView 
              src={getJsonForTree()} 
              theme={isDarkMode ? "ocean" : "rjv-default"}
              iconStyle="triangle"
