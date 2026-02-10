@@ -61,12 +61,12 @@
 .feature-grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 
 @media (min-width: 600px) {
   .feature-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
   
   .footer-content {
