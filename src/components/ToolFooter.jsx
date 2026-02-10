@@ -6,12 +6,13 @@ export default function ToolFooter({ content }) {
  
  return (
   <footer className="tool-footer">
+   
+   <section className="visible-intro">
+    <h2>{content.heading}</h2>
+    <p>{content.description}</p>
+   </section>
+   
    <div className="footer-content">
-        
-    <section className="visible-intro">
-     <h2>{content.heading}</h2>
-     <p>{content.description}</p>
-    </section>
         
     <details className="seo-details">
      <summary>
