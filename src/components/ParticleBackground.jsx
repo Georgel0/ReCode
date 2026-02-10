@@ -24,7 +24,7 @@ export default function ParticleBackground() {
   
   let speedFactor = 1.0;
   const mouseDistance = 150;
-  const lineOpacityFactor = 0.7;
+  const lineOpacityFactor = 0.5;
   
   class Particle {
    constructor(width, height) {
@@ -63,7 +63,7 @@ export default function ParticleBackground() {
    }
    
    draw() {
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
