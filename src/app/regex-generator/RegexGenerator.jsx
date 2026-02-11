@@ -9,21 +9,49 @@ const CHEATSHEET = {
  "Anchors": [
   { token: "^", desc: "Start of string" },
   { token: "$", desc: "End of string" },
-  { token: "\\b", desc: "Word boundary" }
+  { token: "\\b", desc: "Word boundary" },
+  { token: "\\B", desc: "Non-word boundary" }
  ],
  "Quantifiers": [
   { token: "*", desc: "0 or more" },
   { token: "+", desc: "1 or more" },
-  { token: "?", desc: "0 or 1" },
-  { token: "{3}", desc: "Exactly 3" }
+  { token: "?", desc: "0 or 1 (Optional)" },
+  { token: "{3}", desc: "Exactly 3" },
+  { token: "{3,}", desc: "3 or more" },
+  { token: "{3,5}", desc: "Between 3 and 5" },
+  { token: "*?", desc: "Lazy quantifier (matches as little as possible)" }
  ],
  "Character Classes": [
-  { token: "\\d", desc: "Digit" },
-  { token: "\\w", desc: "Word char" },
-  { token: "\\s", desc: "Whitespace" },
-  { token: ".", desc: "Any char" }
+  { token: "\\d", desc: "Digit [0-9]" },
+  { token: "\\D", desc: "Not a digit" },
+  { token: "\\w", desc: "Word char [A-Za-z0-9_]" },
+  { token: "\\W", desc: "Not a word char" },
+  { token: "\\s", desc: "Whitespace (space, tab, newline)" },
+  { token: "\\S", desc: "Not whitespace" },
+  { token: ".", desc: "Any character except newline" },
+  { token: "[aeiou]", desc: "Custom set (any vowel)" },
+  { token: "[^aeiou]", desc: "Negated set (any non-vowel)" }
+ ],
+ "Groups & Logic": [
+  { token: "|", desc: "OR operator" },
+  { token: "(...)", desc: "Capturing group" },
+  { token: "(?:...)", desc: "Non-capturing group" },
+  { token: "\\1", desc: "Backreference to group #1" }
+ ],
+ "Lookarounds": [
+  { token: "(?=...)", desc: "Positive Lookahead (followed by...)" },
+  { token: "(?!...)", desc: "Negative Lookahead (not followed by...)" },
+  { token: "(?<=...)", desc: "Positive Lookbehind (preceded by...)" },
+  { token: "(?<!...)", desc: "Negative Lookbehind (not preceded by...)" }
+ ],
+ "Flags": [
+  { token: "g", desc: "Global search" },
+  { token: "i", desc: "Case-insensitive" },
+  { token: "m", desc: "Multiline" },
+  { token: "s", desc: "Dotall (dot matches newlines)" }
  ]
 };
+
 
 export default function RegexGenerator() {
  const { moduleData, qualityMode } = useApp();
@@ -31,7 +59,7 @@ export default function RegexGenerator() {
  const [input, setInput] = useState('');
  const [refineMode, setRefineMode] = useState(false);
  const [flavor, setFlavor] = useState('JavaScript');
- const [flags, setFlags] = useState({ g: true, i: true, m: false });
+ const [flags, setFlags] = useState({ g: true, i: true, m: false, s: false });
  
  const [outputCode, setOutputCode] = useState('');
  const [summary, setSummary] = useState('');
