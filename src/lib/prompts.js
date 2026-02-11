@@ -26,8 +26,12 @@ export const OUTPUT_SCHEMAS = {
     bugs: z.array(z.string())
   }),
   regex: z.object({
-    pattern: z.string(),
-    explanation: z.string()
+    pattern: z.string().describe("The raw regex string without delimiting slashes"),
+    summary: z.string().describe("A one sentence summary of what this does"),
+    breakdown: z.array(z.object({
+      token: z.string().describe("The specific part of the regex code"),
+      description: z.string().describe("What this specific token does")
+    })).describe("Breakdown of the regex logic token by token")
   }),
   'css-framework-json': z.object({
     conversions: z.array(z.object({
@@ -171,18 +175,24 @@ export const PROMPT_CONFIG = {
   },
   
   regex: {
-    system: () => withSchema(
+    system: (ctx) => withSchema(
       `You are a Regex Architect. 
       Your Task: Generate a strictly valid Regular Expression.
       
-      CRITICAL VALIDATION:
-      1. Return ONLY the pattern string. 
-      2. DO NOT include the bounding slashes (e.g., return "^[a-z]+$" NOT "/^[a-z]+$/").
-      3. DO NOT include flags (g, i, m) in the pattern string.
-      4. Escape backslashes correctly for JSON (e.g., "\\d" becomes "\\\\d").`,
-      `{ "pattern": "string (the raw regex pattern)", "explanation": "string (how it works)" }`
+      Target Flavor: ${ctx?.targetLang || 'JavaScript'}
+      
+      Guidelines:
+      1. Return ONLY the pattern string (no bounding slashes).
+      2. If "Refining", use the previous pattern as context to improve the new one.
+      3. Create a granular breakdown of the logic for the 'breakdown' array.`,
+      `{ 
+         "pattern": "string (raw pattern)", 
+         "summary": "string (explanation)",
+         "breakdown": [{ "token": "string", "description": "string" }] 
+       }`
     ),
-    user: (input) => `Generate a regex pattern for: ${input}`,
+    
+    user: (input) => input,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.regex
   },
