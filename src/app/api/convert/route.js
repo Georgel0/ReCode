@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import admin from "firebase-admin";
 import { createOpenAI } from '@ai-sdk/openai';
-import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
@@ -82,11 +81,6 @@ if (!admin.apps.length) {
 }
 
 const registry = createProviderRegistry({
-  // Fast Mode 
-  groq: createGroq({
-    apiKey: process.env.GROQ_API_KEY
-  }),
-  // Quality Mode
   gateway: createOpenAI({
     baseURL: 'https://ai-gateway.vercel.sh/v1',
     apiKey: process.env.VERCEL_AI_GATEWAY_KEY,
@@ -108,7 +102,8 @@ export async function POST(request) {
     const systemPrompt = config.system({ sourceLang, targetLang, mode });
     const userPrompt = config.user(input);
     
-    let modelId = 'groq:llama-3.3-70b-versatile';
+    let modelId = 'gateway:mistral/devstral-2'; 
+    
     if (qualityMode === 'quality') {
       modelId = 'gateway:deepseek/deepseek-v3.2-thinking';
     }
