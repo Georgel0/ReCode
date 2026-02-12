@@ -58,6 +58,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
   const handleDelete = async (e, itemId) => {
     e.stopPropagation();
     setIsDeleting(true);
+    
     try {
       await deleteHistoryItem(itemId);
       setHistoryItems(historyItems.filter(item => item.id !== itemId));
@@ -70,8 +71,10 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
   
   const handleClearAll = async () => {
     if (historyItems.length === 0) return;
+   
     if (window.confirm('Are you sure you want to delete all history items? This cannot be undone.')) {
       setIsDeleting(true);
+      
       try {
         await clearAllHistory();
         setHistoryItems([]);

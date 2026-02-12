@@ -1,12 +1,20 @@
 'use client';
 
+import { useRouter } from 'next/navigation'; 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import '@/styles/landingpage.css';
 import ParticleBackground from '@/components/ParticleBackground';
 
 export default function LandingPage() {
+  const router = useRouter();
   const [activeInfo, setActiveInfo] = useState(null);
+  
+  const handleGetStarted = (e) => {
+    e.preventDefault();
+    const lastModule = localStorage.getItem('recode_last_module');
+    router.push(lastModule || '/code-converter');
+  };
 
   const tools = [
     {
@@ -85,7 +93,10 @@ export default function LandingPage() {
             and focus on high-level innovation.
           </p>
           <div className="hero-actions">
-            <Link href="/code-converter" className="lp-cta">
+            <Link 
+              href="/code-converter" 
+              onClick={handleGetStarted} 
+              className="lp-cta">
               Get Started <i className="fa-solid fa-arrow-right"></i>
             </Link>
             <a href="#platform-video" className="lp-secondary-cta">

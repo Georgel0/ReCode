@@ -20,6 +20,12 @@ export default function MainLayout({ children }) {
   
   const pathname = usePathname();
   const router = useRouter();
+  
+  useEffect(() => {
+    if (pathname && pathname !== '/') {
+      localStorage.setItem('recode_last_module', pathname);
+    }
+  }, [pathname]);
 
   const isLandingPage = pathname === '/';
 
@@ -39,6 +45,12 @@ export default function MainLayout({ children }) {
     setModuleData(historyItem);
     setNotification(`Loaded ${historyItem.type} from history`);
     router.push(targetPath);
+  };
+  
+  const handleLaunchApp = (e) => {
+    e.preventDefault();
+    const lastModule = localStorage.getItem('recode_last_module');
+    router.push(lastModule || '/code-converter');
   };
 
   return (
@@ -68,7 +80,10 @@ export default function MainLayout({ children }) {
                     <span style={{ color: '#fff' }}>ReCode</span>
                   </div>
                 </Link>
-                <Link href="/code-converter" className="primary-button launch-app-btn">
+                <Link 
+                  href="/code-converter" 
+                  onClick={handleLaunchApp} 
+                  className="primary-button launch-app-btn">
                   Launch App
                 </Link>
              </>
