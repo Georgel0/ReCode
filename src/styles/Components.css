@@ -703,7 +703,7 @@ select option {
 
 .flag-group {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   margin-top: 8px;
 }
 
@@ -759,7 +759,6 @@ select option {
 .custom-check .label-text {
   user-select: none;
   font-weight: 500;
-  text-transform: uppercase;
 }
 
 
