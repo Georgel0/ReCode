@@ -29,7 +29,9 @@ const LANGUAGES = [
   { value: 'lua', label: 'Lua', ext: '.lua' },
 ];
 
-export default function CodeConverter({ onSwitchModule }) {
+export default function CodeConverter() {
+  const { moduleData, qualityMode, setModuleData } = useApp();
+  
   const [sourceLang, setSourceLang] = useState('javascript');
   const [targetLang, setTargetLang] = useState('python');
   const [input, setInput] = useState('');
@@ -40,7 +42,6 @@ export default function CodeConverter({ onSwitchModule }) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const fileInputRef = useRef(null);
   const [lastResult, setLastResult] = useState(false);
-  const { moduleData, qualityMode } = useApp();
   const initialSyncRef = useRef(false);
   
   useEffect(() => {
@@ -239,8 +240,7 @@ export default function CodeConverter({ onSwitchModule }) {
                 <div className="action-row">
                   <button 
                     className="primary-button secondary-action-btn" 
-                    onClick={() => onSwitchModule('analysis', { input: outputCode, sourceModule: 'converter' })}
-                  >
+                    onClick={() => setModuleData({ type: 'analysis', input: outputCode, sourceModule: 'converter' })}>
                     <i className="fa-solid fa-magnifying-glass-chart"></i> Analyze Result
                   </button>
                 </div>
