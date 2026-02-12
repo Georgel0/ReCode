@@ -3,31 +3,31 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
-import { useApp } from '@/context/AppContext'; 
+import { useApp } from '@/context/AppContext';
 
 export default function CodeAnalysis() {
- const [input, setInput] = useState('');
- const [analysisData, setAnalysisData] = useState(null);
- const [rawAnalysis, setRawAnalysis] = useState('');
- const [loading, setLoading] = useState(false);
- const [lastResult, setLastResult] = useState(false);
- const { moduleData, qualityMode } = useApp();
- 
- useEffect(() => {
-  if (moduleData && moduleData.type === 'analysis') {
-   const codeToAnalyze = moduleData.input || '';
-   setInput(codeToAnalyze);
-   
-   if (moduleData.fullOutput?.analysis) {
-    processAnalysisResult(moduleData.fullOutput.analysis);
-   } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
-    handleAnalyze(codeToAnalyze);
-   } else {
-    setAnalysisData(null);
-    setRawAnalysis('');
-   }
-  }
- }, [moduleData]);
+  const [input, setInput] = useState('');
+  const [analysisData, setAnalysisData] = useState(null);
+  const [rawAnalysis, setRawAnalysis] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState(false);
+  const { moduleData, qualityMode } = useApp();
+  
+  useEffect(() => {
+    if (moduleData && moduleData.type === 'analysis') {
+      const codeToAnalyze = moduleData.input || '';
+      setInput(codeToAnalyze);
+      
+      if (moduleData.fullOutput?.analysis) {
+        processAnalysisResult(moduleData.fullOutput.analysis);
+      } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
+        handleAnalyze(codeToAnalyze);
+      } else {
+        setAnalysisData(null);
+        setRawAnalysis('');
+      }
+    }
+  }, [moduleData]);
   
   const processAnalysisResult = (result) => {
     if (typeof result === 'object' && result !== null) {
@@ -44,15 +44,13 @@ export default function CodeAnalysis() {
     }
   };
   
-  
   const handleAnalyze = async (codeOverride) => {
     const codeToProcess = codeOverride || input;
     if (!codeToProcess.trim()) return;
     
     setLoading(true);
-    
     try {
-      const result = await convertCode('analysis', input, { qualityMode });
+      const result = await convertCode('analysis', codeToProcess, { qualityMode });
       
       if (result && (result.summary || result.analysis)) {
         processAnalysisResult(result);
@@ -66,7 +64,6 @@ export default function CodeAnalysis() {
     
     setLoading(false);
   };
-  
   
   const handleCopy = () => {
     let textToCopy = rawAnalysis;
