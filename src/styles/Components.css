@@ -701,6 +701,68 @@ select option {
   min-height: 60px;
 }
 
+.flag-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
+}
+
+.custom-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.custom-check input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.custom-check .box {
+  height: 18px;
+  width: 18px;
+  background-color: var(--text-on-accent);
+  border: 2px solid var(--text-primary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-check .box i {
+  color: var(--text-on-accent);
+  font-size: 10px;
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.12, 0.4, 0.29, 1.46);
+}
+
+.custom-check:hover .box {
+  border-color: var(--text-primary);
+  background-color: var(--text-on-accent);
+}
+
+.custom-check input:checked ~ .box {
+  background-color: var(--accent); 
+  border-color: var(--accent);
+}
+
+.custom-check input:checked ~ .box i {
+  transform: scale(1);
+}
+
+.custom-check .label-text {
+  user-select: none;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+
 @keyframes glint {
   to {
     left: 200%;

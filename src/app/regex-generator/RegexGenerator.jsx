@@ -268,16 +268,19 @@ export default function RegexGenerator() {
      </div>
             
      <div className="control-field">
-       <label className="label-text">Flags</label>
-       <div style={{display: 'flex', gap: '15px'}}>
-        {['g', 'i', 'm'].map(flag => (
-        <label key={flag} style={{display:'flex', alignItems:'center', gap:'5px', cursor:'pointer'}}>
+      <label className="label-text">Flags</label>
+      <div className="flag-group">
+       {['g', 'i', 'm', 's'].map(flag => (
+        <label key={flag} className="custom-check">
          <input 
           type="checkbox" 
           checked={flags[flag]} 
           onChange={() => setFlags({...flags, [flag]: !flags[flag]})}
          />
-         <span className="label-text" style={{margin:0}}>{flag}</span>
+        <span className="box">
+         <i className="fas fa-check"></i>
+        </span>
+        <span className="label-text">{flag}</span>
        </label>
       ))}
      </div>
