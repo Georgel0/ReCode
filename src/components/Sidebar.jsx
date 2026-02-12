@@ -110,10 +110,12 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
             </Link>
           )}
         
-        <div className="sidebar-subheader">
-          {!isCollapsed && ( <button className="close-btn" onClick={toggleSidebar}>✕</button> )}
+       <div className="sidebar-actions">
+          <button className="header-icon-btn mobile-only" onClick={toggleSidebar} title="Close Menu">
+            <i className="fas fa-times"></i>
+          </button>
         
-          <button className="collapse-toggle-btn desktop-only" onClick={toggleCollapse}>
+          <button className="header-icon-btn desktop-only" onClick={toggleCollapse} title={isCollapsed ? "Expand" : "Collapse"}>
             <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
           </button>
         </div>
