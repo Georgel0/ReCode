@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
+import { useRouter } from 'next/navigation';
 
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -43,6 +44,7 @@ export default function CodeConverter() {
   const fileInputRef = useRef(null);
   const [lastResult, setLastResult] = useState(false);
   const initialSyncRef = useRef(false);
+  const router = useRouter();
   
   useEffect(() => {
     if (moduleData?.type === 'converter' && !initialSyncRef.current) {
@@ -240,7 +242,10 @@ export default function CodeConverter() {
                 <div className="action-row">
                   <button 
                     className="primary-button secondary-action-btn" 
-                    onClick={() => setModuleData({ type: 'analysis', input: outputCode, sourceModule: 'converter' })}>
+                    onClick={() => {
+                      setModuleData({ type: 'analysis', input: outputCode, sourceModule: 'converter' });
+                      router.push('/code-analysis');
+                    }}>
                     <i className="fa-solid fa-magnifying-glass-chart"></i> Analyze Result
                   </button>
                 </div>
