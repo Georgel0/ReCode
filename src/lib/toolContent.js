@@ -41,7 +41,9 @@ export const toolsContent = [
  ],
  faq: [
   { question: 'Is the regex tested for performance?', answer: 'The AI aims for efficient patterns to avoid catastrophic backtracking issues.' },
-  { question: 'Can it handle complex lookaheads?', answer: 'Yes, it can generate advanced patterns including lookaheads, lookbehinds, and non-capturing groups.' }
+  { question: 'Can it handle complex lookaheads?', answer: 'Yes, it can generate advanced patterns including lookaheads, lookbehinds, and non-capturing groups.' },
+  { question: "What is the cheatsheet for if we ask the AI to generate the regex anyway?",
+   answer: "So you can actually learn something..." }
  ]
 },
 {
