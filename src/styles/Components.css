@@ -809,4 +809,8 @@ select option {
   .model-options-grid {
     grid-template-columns: 1fr;
   }
+  
+  .modal-content {
+    min-width: 0;
+  }
 }
