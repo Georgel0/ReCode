@@ -465,6 +465,7 @@ select option {
   border-radius: var(--radius);
   padding: 2rem;
   max-width: 500px;
+  min-width: 1000px;
   width: 100%;
   box-shadow: var(--shadow-subtle);
 }
