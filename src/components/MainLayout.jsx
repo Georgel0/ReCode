@@ -106,7 +106,7 @@ export default function MainLayout({ children }) {
 
       <Notification message={notification} />
       
-      <ModelSelector
+      {!isLandingPage && <ModelSelector
         isOpen={showModelSelector}
         onSelect={(mode) => {
           if (mode === "quality" || mode === "fast") {
@@ -117,7 +117,7 @@ export default function MainLayout({ children }) {
           setShowModelSelector(false);
         }}
         onClose={() => setShowModelSelector(false)}
-      />
+      />}
     </div>
   );
 }
