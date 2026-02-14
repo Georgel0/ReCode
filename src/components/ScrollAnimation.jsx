@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
+
 export default function ScrollAnimation({ children, direction = 'up', delay = 0 }) {
  const [isVisible, setIsVisible] = useState(false);
  const domRef = useRef();
