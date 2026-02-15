@@ -22,6 +22,14 @@ export default function MainLayout({ children }) {
   const router = useRouter();
   
   useEffect(() => {
+    if (!isLandingPage) {
+      const hasQualityModeSet = localStorage.getItem('recode_quality_mode');
+      
+      if (!hasQualityModeSet) setShowModelSelector(true);
+    }
+  }, [isLandingPage]);
+  
+  useEffect(() => {
     if (pathname && pathname !== '/') {
       localStorage.setItem('recode_last_module', pathname);
     }
