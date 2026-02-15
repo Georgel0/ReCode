@@ -21,6 +21,8 @@ export default function MainLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   
+  const isLandingPage = pathname === '/';
+  
   useEffect(() => {
     if (isLandingPage) return;
     
@@ -29,8 +31,6 @@ export default function MainLayout({ children }) {
     const hasQualityModeSet = localStorage.getItem('recode_quality_mode');
     if (!hasQualityModeSet) setShowModelSelector(true);
   }, [pathname, isLandingPage]);
-
-  const isLandingPage = pathname === '/';
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleDesktopCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
