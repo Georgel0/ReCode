@@ -111,7 +111,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                 type="file"
                 ref={fileInputRef}
                 className="hidden-input"
-                accept=".css,.html,.txt"
+                accept=".css,.html,.txt,.jsx,.tsx"
                 onChange={handleFileUpload}
               />
               <button
@@ -143,7 +143,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
               className={`tab-item ${activeInputTab === 'css' ? 'active' : ''}`}
               onClick={() => setActiveInputTab('css')}
             >
-              <i className="fa-brands fa-css3-alt"></i> CSS
+              <i className="fab fa-css3-alt"></i> CSS
             </button>
             <button
               className={`tab-item ${activeInputTab === 'context' ? 'active' : ''}`}
