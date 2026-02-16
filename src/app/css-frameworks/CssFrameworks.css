@@ -86,7 +86,6 @@
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 500;
   transition: all 0.2s;
   display: flex;
   align-items: center;
