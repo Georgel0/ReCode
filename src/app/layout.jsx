@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
         
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://recode-alpha.vercel.app/" />
-        <meta property="og:title" content="ReCode | AI-Powered Code Converter" />
+        <meta property="og:title" content="ReCode | AI Developer Suite" />
         <meta property="og:description" content="Instantly translate source code between multiple languages. Simplify your migration and boost productivity with AI." />
         <meta property="og:image" content="https://recode-alpha.vercel.app/og-image.png" />
         <meta property="twitter:card" content="summary_large_image" />
