@@ -264,6 +264,16 @@ textarea:focus {
   font-size: 0.9em;
 }
 
+.tab-item i, 
+.mode-btn i {
+  font-family: inherit;
+  font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", "Font Awesome 6 Free", sans-serif !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .tab-btn.active i {
   opacity: 1;
   color: var(--accent);
@@ -762,20 +772,28 @@ select option {
   font-weight: 500;
 }
 
-.tab-item i, 
-.mode-btn i {
-  font-family: inherit;
-  font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", "Font Awesome 6 Free", sans-serif !important;
-  font-weight: 400 !important;
-  font-style: normal !important;
-  display: inline-block;
-  vertical-align: middle;
-}
-
 .fa-css3-alt {
   display: inline-block !important;
 }
 
+.fa-solid, .fas, .fa-brands, .fab {
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  display: inline-block !important;
+  font-family: inherit; 
+}
+
+.fa-solid, .fas {
+  font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", sans-serif !important;
+  font-weight: 900 !important;
+}
+
+.fa-brands, .fab {
+  font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", sans-serif !important;
+  font-weight: 400 !important; 
+}
 
 
 @keyframes glint {
