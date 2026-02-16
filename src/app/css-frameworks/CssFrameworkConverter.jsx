@@ -7,6 +7,8 @@ import PreviewPane from './PreviewPane';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 
+import './CssFrameworks.css'
+
 export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   const { qualityMode } = useApp();
   const fileInputRef = useRef(null);
