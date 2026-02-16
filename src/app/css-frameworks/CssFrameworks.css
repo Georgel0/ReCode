@@ -141,23 +141,6 @@
   opacity: 0.4;
 }
 
-.results-scroll-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.result-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-  height: auto;
-}
-
 .result-header {
   padding: 0.5rem 1rem;
   background: rgba(0,0,0,0.1);
@@ -170,15 +153,37 @@
   align-items: center;
 }
 
+.result-card {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: min-content;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
 .result-code-block {
   padding: 1rem;
   margin: 0;
+  height: auto;
+  min-height: 1.5rem;
+  white-space: pre-wrap;
+  word-break: break-all;   
   font-family: 'Fira Code', monospace;
   font-size: 0.85rem;
-  color: var(--text-primary);
-  white-space: pre-wrap;
-  word-break: break-all;
-  position: relative;
+  line-height: 1.5;
+}
+
+.results-scroll-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .copy-icon-btn {
