@@ -6,7 +6,7 @@ export const TARGET_FRAMEWORKS = [
 ];
 
 export const MODES = [
- { id: 'css', label: 'CSS Only', icon: 'fa-code' },
+ { id: 'css', label: 'CSS Only', icon: 'fab fa-css3-alt' },
  { id: 'html', label: 'HTML + CSS', icon: 'fa-brands fa-html5' }
 ];
 
