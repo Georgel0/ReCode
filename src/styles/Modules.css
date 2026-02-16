@@ -84,34 +84,6 @@
   font-size: 0.85rem;
 }
 
-.tailwind-code {
-  background: var(--bg-tertiary);
-  padding: 0.75rem;
-  border-radius: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid var(--border);
-}
-
-.theme-dark-black-gold .tailwind-code,
-.theme-light-quartz .tailwind-code {
-  border-image: var(--gradient-gold) 1;
-  border-image-slice: 1;
-  border-style: solid;
-  border-width: 1px;
-}
-
-.tailwind-code code,
-.code-pre {
-  color: var(--accent);
-  font-family: monospace;
-  word-break: break-all;
-  white-space: pre-wrap;
-  flex-grow: 1;
-  margin: 0;
-}
-
 .copy-btn {
   background: var(--accent);
   color: var(--bg-primary);

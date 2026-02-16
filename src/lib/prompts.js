@@ -5,18 +5,21 @@ export const OUTPUT_SCHEMAS = {
     formattedJson: z.string().describe("The fixed and valid JSON string"),
     explanation: z.string().describe("Bulleted list of specific syntax errors fixed")
   }),
+  
   refactor: z.object({
     files: z.array(z.object({
       fileName: z.string(),
       content: z.string()
     }))
   }),
+  
   generator: z.object({
     files: z.array(z.object({
       fileName: z.string(),
       content: z.string()
     }))
   }),
+  
   analysis: z.object({
     summary: z.string(),
     score: z.number().min(0).max(100),
@@ -25,6 +28,7 @@ export const OUTPUT_SCHEMAS = {
     improvements: z.array(z.string()),
     bugs: z.array(z.string())
   }),
+  
   regex: z.object({
     pattern: z.string().describe("The raw regex string without delimiting slashes"),
     summary: z.string().describe("A one sentence summary of what this does"),
@@ -33,12 +37,21 @@ export const OUTPUT_SCHEMAS = {
       description: z.string().describe("What this specific token does")
     })).describe("Breakdown of the regex logic token by token")
   }),
+  
   'css-framework-json': z.object({
+    // Used for "CSS Only" mode
     conversions: z.array(z.object({
-      selector: z.string(),
-      tailwindClasses: z.string()
+      selector: z.string().describe("The original CSS selector"),
+      tailwindClasses: z.string().describe("The equivalent utility classes")
     })).optional(),
-    convertedCode: z.string().optional()
+    
+    // Used for "HTML + CSS" mode
+    convertedHtml: z.string().optional().describe("The full HTML string with framework classes applied"),
+    
+    // Used for SASS/LESS/Stylus
+    convertedCode: z.string().optional().describe("The refactored stylesheet code"),
+    
+    explanation: z.string().optional().describe("Technical notes about complex mappings or custom values used")
   })
 };
 
@@ -155,21 +168,50 @@ export const PROMPT_CONFIG = {
   
   'css-framework': {
     system: (ctx) => {
-      if (ctx?.targetLang === 'tailwind') {
+      const { targetLang, mode, qualityMode } = ctx || {};
+      
+      const contextInstruction = "If the user provided 'EXTRA CONTEXT' or a config snippet, prioritize using those specific tokens, colors, or spacing scales.";
+      
+      // SCENARIO 1: Tailwind CSS
+      if (targetLang === 'tailwind') {
+        if (mode === 'html') {
+          return withSchema(
+            `You are a Tailwind CSS Expert. 
+           Task: Rewrite the provided HTML by applying Tailwind utility classes directly to elements.
+           - ${contextInstruction}
+           - Use arbitrary values (e.g., w-[13.5px]) only when standard classes don't fit.
+           - Remove original <style> tags and class names that are now redundant.`,
+            `{ "convertedHtml": "string", "explanation": "string" }`
+          );
+        }
         return withSchema(
-          `You are a Tailwind CSS Expert. Convert CSS/SASS to Tailwind utility classes. Extract the style from inline code and if missing add class names for them`,
-          `{ "conversions": [{ "selector": "string", "tailwindClasses": "string" }] }`
+          `You are a Tailwind CSS Expert. Convert CSS selectors into utility class strings.
+         - ${contextInstruction}
+         - Handle hover:, focus:, and media queries as Tailwind prefixes.`,
+          `{ "conversions": [{ "selector": "string", "tailwindClasses": "string" }], "explanation": "string" }`
         );
       }
       
+      // SCENARIO 2: Bootstrap 5
+      if (targetLang === 'bootstrap') {
+        return withSchema(
+          `You are a Bootstrap 5 Expert. 
+         - Convert the input to use standard Bootstrap 5 utility classes and components.
+         - If mode is 'html', return the full HTML string in 'convertedHtml'.
+         - If mode is 'css', provide the mapping in 'conversions'.`,
+          `{ "convertedHtml": "string", "conversions": "array", "explanation": "string" }`
+        );
+      }
+      
+      // SCENARIO 3: Preprocessors (SASS/LESS)
       return withSchema(
-        `You are a CSS Preprocessor Expert. Convert the input to valid ${ctx?.targetLang || 'SASS'}.
-         - Nest selectors where appropriate.
-         - Use variables for colors.`,
-        `{ "convertedCode": "string" }`
+        `You are a CSS Architecture Expert. Convert the input to valid ${targetLang || 'SASS'}.
+       - Use modern syntax (nesting, variables, mixins).
+       - Extract repeated values into a variable block at the top.`,
+        `{ "convertedCode": "string", "explanation": "string" }`
       );
     },
-    user: (input) => `Convert these styles:\n${input}`,
+    user: (input) => `INPUT TO CONVERT:\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS['css-framework-json']
   },
