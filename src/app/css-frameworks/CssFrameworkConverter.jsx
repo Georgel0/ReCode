@@ -22,33 +22,6 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   const { status, error, data, convert, reset, setData } = useConverter(qualityMode);
   
-  const lastLoadedId = useRef(null);
-  
-  useEffect(() => {
-    if (moduleData && moduleData.type === "css-frameworks" && lastLoadedId.current !== moduleData.id) {
-      
-      lastLoadedId.current = moduleData.id; 
-      
-      setTargetLang(moduleData.targetLang || preSetTarget);
-      setActiveInputTab(moduleData.activeInputTab || 'css');
-      setActiveOutputTab(moduleData.activeOutputTab || 'code');
-      
-      if (moduleData.rawInputs) {
-        setInputs(moduleData.rawInputs);
-      } else if (typeof moduleData.input === 'string') {
-        try {
-          setInputs(JSON.parse(moduleData.input));
-        } catch (e) {
-          setInputs({ css: moduleData.input, html: '', context: '' });
-        }
-      }
-      
-      if (moduleData.output) {
-        setData(moduleData.output);
-      }
-    }
-  }, [moduleData, setData]);
-  
   useEffect(() => {
     setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
     reset();
