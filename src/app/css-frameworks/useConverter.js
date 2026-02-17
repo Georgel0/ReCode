@@ -69,6 +69,7 @@ export function useConverter(qualityMode) {
   error,
   data,
   convert,
-  reset
+  reset,
+  setData
  };
 }

@@ -10,31 +10,44 @@ import { useApp } from '@/context/AppContext';
 import './CssFrameworks.css'
 
 export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
-  const { qualityMode } = useApp();
+  const { moduleData, qualityMode } = useApp();
   const fileInputRef = useRef(null);
-
+  
   const [activeMode, setActiveMode] = useState('css');
   const [targetLang, setTargetLang] = useState(preSetTarget);
   const [activeInputTab, setActiveInputTab] = useState('css');
   const [activeOutputTab, setActiveOutputTab] = useState('code');
-
+  
   const [inputs, setInputs] = useState({ css: '', html: '', context: '' });
-
-  const { status, error, data, convert, reset } = useConverter(qualityMode);
-
+  
+  const { status, error, data, convert, reset, setData } = useConverter(qualityMode);
+  
+  useEffect(() => {
+    if (moduleData && (moduleData.type === "css-frameworks" || moduleData.type === "css-tailwind")) {
+      
+      setTargetLang(moduleData.targetLang || preSetTarget);
+      setActiveInputTab(moduleData.activeInputTab || 'css');
+      setActiveOutputTab(moduleData.activeOutputTab || 'code');
+    
+      if (moduleData.inputs) setInputs(moduleData.inputs);
+      
+      if (moduleData.output && typeof reset === 'function') setData(moduleData.output);
+    }
+  }, [moduleData, setData]);
+  
   useEffect(() => {
     setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
     reset();
   }, [activeMode]);
-
+  
   const handleInputChange = (field, value) => {
     setInputs(prev => ({ ...prev, [field]: value }));
   };
-
+  
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+    
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target.result;
@@ -48,18 +61,18 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
     reader.readAsText(file);
     e.target.value = null;
   };
-
+  
   const handleConvert = () => {
     convert({ activeMode, inputs, targetLang });
     if (activeMode === 'html') setActiveOutputTab('preview');
   };
-
+  
   const copyToClipboard = (text) => {
     if (text) navigator.clipboard.writeText(text);
   };
-
+  
   const targetLabel = TARGET_FRAMEWORKS.find(f => f.value === targetLang)?.label || 'Framework';
-
+  
   return (
     <div className="module-container">
       <ModuleHeader
