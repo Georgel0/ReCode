@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useConverter } from './useConverter';
 import { TARGET_FRAMEWORKS, MODES } from './constants';
 import PreviewPane from './PreviewPane';
@@ -24,12 +24,22 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   useEffect(() => {
     if (moduleData && moduleData.type === "css-frameworks") {
-      
       setTargetLang(moduleData.targetLang || preSetTarget);
       setActiveInputTab(moduleData.activeInputTab || 'css');
       setActiveOutputTab(moduleData.activeOutputTab || 'code');
       
-      if (moduleData.inputs) setInputs(moduleData.inputs);
+      if (moduleData.rawInputs) {
+        setInputs(moduleData.rawInputs);
+      } else if (typeof moduleData.input === 'string') {
+        try {
+          setInputs(JSON.parse(moduleData.input));
+        } catch (e) {
+          console.error("Could not parse history input", e);
+          setInputs({ css: moduleData.input, html: '', context: '' });
+        }
+      } else if (moduleData.inputs) {
+        setInputs(moduleData.inputs);
+      }
       
       if (moduleData.output && typeof reset === 'function') setData(moduleData.output);
     }
@@ -73,15 +83,18 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   const targetLabel = TARGET_FRAMEWORKS.find(f => f.value === targetLang)?.label || 'Framework';
   
-  const historyData = data ? {
-    type: "css-frameworks",
-    input: inputs,
-    output: data,
-    sourceLang: 'css',
-    targetLang: targetLang,
-    activeInputTab: activeInputTab,
-    activeOutputTab: activeOutputTab
-  } : null;
+  const historyData = useMemo(() => {
+    if (!data) return null;
+    return {
+      type: "css-frameworks",
+      input: JSON.stringify(inputs),
+      output: data,
+      targetLang: targetLang,
+      activeInputTab: activeInputTab,
+      activeOutputTab: activeOutputTab,
+      rawInputs: inputs
+    };
+  }, [data, inputs, targetLang, activeInputTab, activeOutputTab]);
   
   return (
     <div className="module-container">
