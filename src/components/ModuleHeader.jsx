@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 
 import { useState, useEffect } from 'react';
 import { saveHistory } from '@/lib/firebase';
@@ -6,9 +6,12 @@ import { saveHistory } from '@/lib/firebase';
 export default function ModuleHeader({ title, description, resultData }) {
  const [saving, setSaving] = useState(false);
  const [saved, setSaved] = useState(false);
- const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(
-  localStorage.getItem('recode_autoSave') === "true"
- );
+ const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);
+ 
+ useEffect(() => {
+  const savedSetting = localStorage.getItem('recode_autoSave') === "true";
+  setIsAutoSaveEnabled(savedSetting);
+ }, []);
  
  useEffect(() => {
   const handleSettingChange = (e) => {
