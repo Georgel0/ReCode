@@ -60,25 +60,11 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   const targetLabel = TARGET_FRAMEWORKS.find(f => f.value === targetLang)?.label || 'Framework';
   
-  const historyData = useMemo(() => {
-    if (!data) return null;
-    return {
-      type: "css-frameworks",
-      input: JSON.stringify(inputs),
-      output: data,
-      targetLang: targetLang,
-      activeInputTab: activeInputTab,
-      activeOutputTab: activeOutputTab,
-      rawInputs: inputs
-    };
-  }, [data, inputs, targetLang, activeInputTab, activeOutputTab]);
-  
   return (
     <div className="module-container">
       <ModuleHeader
         title="CSS Framework Converter"
         description="Transform standard CSS/HTML into utility classes or other framework formats."
-        resultData={historyData}
       />
 
       <div className="framework-toolbar-container">
