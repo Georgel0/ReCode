@@ -23,6 +23,8 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   const { status, error, data, convert, reset, setData } = useConverter(qualityMode);
   
+  const isRestoring = useRef(false);
+  
   useEffect(() => {
     if (moduleData && moduleData.type === "css-framework") {
       
@@ -44,12 +46,14 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
           conversions: moduleData.conversions,
         });
       }
+      
+      setTimeout(() => { isRestoring.current = false; }, 100);
     }
   }, [moduleData, setData]);
   
   useEffect(() => {
     setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
-    reset();
+    if (!isRestoring.current) reset();
   }, [activeMode]);
   
   useEffect(() => {
