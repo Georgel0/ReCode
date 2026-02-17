@@ -48,7 +48,15 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       
       setInputs(savedInputs || { css: '', html: '', context: '' });
       
-      const output = moduleData.output || moduleData.fullOutput || moduleData;
+      let output = moduleData.output || moduleData.fullOutput || moduleData;
+      
+      if (typeof output === 'string') {
+        try {
+          output = JSON.parse(output);
+        } catch (e) {
+          console.error("Could not parse history output:", e);
+        }
+      }
       
       if (output.convertedCode || output.conversions || output.convertedHtml) {
         setData({
