@@ -27,25 +27,24 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   useEffect(() => {
     if (moduleData && moduleData.type === "css-framework") {
-      
       isRestoring.current = true;
       
       setActiveMode(moduleData.activeMode || "css");
       setTargetLang(moduleData.targetLang || "tailwind");
-      
-      // Restore UI tabs
       if (moduleData.activeInputTab) setActiveInputTab(moduleData.activeInputTab);
       if (moduleData.activeOutputTab) setActiveOutputTab(moduleData.activeOutputTab);
       
-      // Restore Inputs
-      setInputs(moduleData.input || { css: '', html: '', context: '' });
+      const savedInputs = typeof moduleData.input === 'string' ?
+        JSON.parse(moduleData.input) :
+        moduleData.input;
+      setInputs(savedInputs || { css: '', html: '', context: '' });
       
-      // Restore the Output Data 
-      if (moduleData.convertedCode || moduleData.conversions || moduleData.convertedHtml) {
+      const output = moduleData.output || moduleData;
+      if (output.convertedCode || output.conversions || output.convertedHtml) {
         setData({
-          convertedCode: moduleData.convertedCode,
-          convertedHtml: moduleData.convertedHtml,
-          conversions: moduleData.conversions,
+          convertedCode: output.convertedCode,
+          convertedHtml: output.convertedHtml,
+          conversions: output.conversions,
         });
       }
       
@@ -54,23 +53,24 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   }, [moduleData, setData]);
   
   useEffect(() => {
-    setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
-    if (!isRestoring.current) reset();
-  }, [activeMode]);
-  
-  useEffect(() => {
     if (data) {
       setLastResult({
         type: "css-framework",
         activeInputTab,
         activeOutputTab,
-        input: inputs,
+        input: JSON.stringify(inputs),
         output: data,
+        sourceLang: 'css',
         targetLang: targetLang,
         qualityMode
       });
     }
-  }, [data, activeInputTab, activeOutputTab, inputs, targetLang, qualityMode]);
+  }, [data, activeMode, targetLang]);
+  
+  useEffect(() => {
+    setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
+    if (!isRestoring.current) reset();
+  }, [activeMode]);
   
   const handleInputChange = (field, value) => {
     setInputs(prev => ({ ...prev, [field]: value }));
