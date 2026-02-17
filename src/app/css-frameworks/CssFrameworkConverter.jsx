@@ -27,7 +27,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   // This pastes the history items
   useEffect(() => {
-    if (moduleData && moduleData.type === "css-framework") {
+    if (moduleData && (moduleData.type === "css-framework" || moduleData.type === "css-tailwind")) {
       isRestoring.current = true;
       
       const savedMode = moduleData.sourceLang || moduleData.activeMode || "css";
@@ -96,6 +96,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       const content = event.target.result;
       if (file.name.endsWith('.html')) {
         handleInputChange('html', content);
+        
         if (activeMode !== 'html') {
           setActiveMode('html');
           reset();
@@ -110,6 +111,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   const handleConvert = () => {
     convert({ activeMode, inputs, targetLang });
+    
     if (activeMode === 'html') setActiveOutputTab('preview');
   };
   
