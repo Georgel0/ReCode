@@ -34,9 +34,8 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       if (moduleData.activeInputTab) setActiveInputTab(moduleData.activeInputTab);
       if (moduleData.activeOutputTab) setActiveOutputTab(moduleData.activeOutputTab);
       
-      const savedInputs = typeof moduleData.input === 'string' ?
-        JSON.parse(moduleData.input) :
-        moduleData.input;
+      const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
+        
       setInputs(savedInputs || { css: '', html: '', context: '' });
       
       const output = moduleData.output || moduleData;
@@ -62,6 +61,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
         output: data,
         sourceLang: 'css',
         targetLang: targetLang,
+        activeMode: activeMode,
         qualityMode
       });
     }
