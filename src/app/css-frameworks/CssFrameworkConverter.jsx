@@ -81,7 +81,6 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   useEffect(() => {
     setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
-    if (!isRestoring.current) reset();
   }, [activeMode]);
   
   const handleInputChange = (field, value) => {
@@ -97,7 +96,10 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       const content = event.target.result;
       if (file.name.endsWith('.html')) {
         handleInputChange('html', content);
-        if (activeMode !== 'html') setActiveMode('html');
+        if (activeMode !== 'html') {
+          setActiveMode('html');
+          reset();
+        }
       } else {
         handleInputChange('css', content);
       }
@@ -133,8 +135,10 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
               <button
                 key={mode.id}
                 className={`mode-btn ${activeMode === mode.id ? 'selected' : ''}`}
-                onClick={() => setActiveMode(mode.id)}
-              >
+                onClick={() => {
+                  setActiveMode(mode.id);
+                  reset();
+                }} >
                 <i className={mode.icon} style={{ marginRight: '6px' }}></i>
                 {mode.label}
               </button>
