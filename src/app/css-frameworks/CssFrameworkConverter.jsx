@@ -28,6 +28,8 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   useEffect(() => {
     if (moduleData && moduleData.type === "css-framework") {
       
+      isRestoring.current = true;
+      
       setActiveMode(moduleData.activeMode || "css");
       setTargetLang(moduleData.targetLang || "tailwind");
       
