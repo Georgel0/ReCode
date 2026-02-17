@@ -48,7 +48,8 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       
       setInputs(savedInputs || { css: '', html: '', context: '' });
       
-      const output = moduleData.output || moduleData;
+      const output = moduleData.output || moduleData.fullOutput || moduleData;
+      
       if (output.convertedCode || output.conversions || output.convertedHtml) {
         setData({
           convertedCode: output.convertedCode,
