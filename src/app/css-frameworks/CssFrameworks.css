@@ -255,7 +255,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  height: 500px;
+  min-height: 500px;
+  height: auto;
 }
 
 .preview-pane {
