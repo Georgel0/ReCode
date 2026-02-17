@@ -39,7 +39,7 @@ export default function SqlBuilder() {
  const { moduleData, qualityMode } = useApp();
  
  useEffect(() => {
-  if (moduleData) {
+  if (moduleData && moduleData.type === 'sql') {
    setInput(moduleData.input || '');
    setOutputCode(moduleData.fullOutput?.convertedCode || '');
    if (moduleData.targetLang) setTargetDialect(moduleData.targetLang);
