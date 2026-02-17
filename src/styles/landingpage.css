@@ -243,7 +243,7 @@ body {
 }
 
 .lp-card {
-  background: var(--lp-card-bg);
+  background: var(--lp-bg);
   padding: 30px;
   border-radius: 20px;
   border: 1px solid var(--lp-border);
