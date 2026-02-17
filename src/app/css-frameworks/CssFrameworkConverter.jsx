@@ -17,15 +17,54 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   const [targetLang, setTargetLang] = useState(preSetTarget);
   const [activeInputTab, setActiveInputTab] = useState('css');
   const [activeOutputTab, setActiveOutputTab] = useState('code');
+  const [lastResult, setLastResult] = useState(false);
   
   const [inputs, setInputs] = useState({ css: '', html: '', context: '' });
   
   const { status, error, data, convert, reset, setData } = useConverter(qualityMode);
   
   useEffect(() => {
+    if (moduleData && moduleData.type === "css-framework") {
+      
+      setActiveMode(moduleData.activeMode || "css");
+      setTargetLang(moduleData.targetLang || "tailwind");
+      
+      // Restore UI tabs
+      if (moduleData.activeInputTab) setActiveInputTab(moduleData.activeInputTab);
+      if (moduleData.activeOutputTab) setActiveOutputTab(moduleData.activeOutputTab);
+      
+      // Restore Inputs
+      setInputs(moduleData.input || { css: '', html: '', context: '' });
+      
+      // Restore the Output Data 
+      if (moduleData.convertedCode || moduleData.conversions || moduleData.convertedHtml) {
+        setData({
+          convertedCode: moduleData.convertedCode,
+          convertedHtml: moduleData.convertedHtml,
+          conversions: moduleData.conversions,
+        });
+      }
+    }
+  }, [moduleData, setData]);
+  
+  useEffect(() => {
     setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
     reset();
   }, [activeMode]);
+  
+  useEffect(() => {
+    if (data) {
+      setLastResult({
+        type: "css-framework",
+        ...data,
+        activeInputTab,
+        activeOutputTab,
+        input: inputs,
+        targetLang,
+        qualityMode
+      });
+    }
+  }, [data, activeInputTab, activeOutputTab, inputs, targetLang, qualityMode]);
   
   const handleInputChange = (field, value) => {
     setInputs(prev => ({ ...prev, [field]: value }));
@@ -65,6 +104,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       <ModuleHeader
         title="CSS Framework Converter"
         description="Transform standard CSS/HTML into utility classes or other framework formats."
+        resultData={lastResult}
       />
 
       <div className="framework-toolbar-container">
