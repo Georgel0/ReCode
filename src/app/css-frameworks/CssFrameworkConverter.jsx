@@ -62,11 +62,11 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
     if (data) {
       setLastResult({
         type: "css-framework",
-        ...data,
         activeInputTab,
         activeOutputTab,
         input: inputs,
-        targetLang,
+        output: data,
+        targetLang: targetLang,
         qualityMode
       });
     }
