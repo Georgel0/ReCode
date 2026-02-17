@@ -22,8 +22,13 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   
   const { status, error, data, convert, reset, setData } = useConverter(qualityMode);
   
+  const lastLoadedId = useRef(null);
+  
   useEffect(() => {
-    if (moduleData && moduleData.type === "css-frameworks") {
+    if (moduleData && moduleData.type === "css-frameworks" && lastLoadedId.current !== moduleData.id) {
+      
+      lastLoadedId.current = moduleData.id; 
+      
       setTargetLang(moduleData.targetLang || preSetTarget);
       setActiveInputTab(moduleData.activeInputTab || 'css');
       setActiveOutputTab(moduleData.activeOutputTab || 'code');
@@ -34,14 +39,13 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
         try {
           setInputs(JSON.parse(moduleData.input));
         } catch (e) {
-          console.error("Could not parse history input", e);
           setInputs({ css: moduleData.input, html: '', context: '' });
         }
-      } else if (moduleData.inputs) {
-        setInputs(moduleData.inputs);
       }
       
-      if (moduleData.output && typeof reset === 'function') setData(moduleData.output);
+      if (moduleData.output) {
+        setData(moduleData.output);
+      }
     }
   }, [moduleData, setData]);
   
