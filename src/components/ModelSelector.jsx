@@ -30,7 +30,7 @@ export default function ModelSelector({ isOpen, onClose, onSelect, currentMode }
  
  return (
   <div className="modal-overlay">
-   <div className="modal-content model-selector-modal">
+   <div className="modal-content">
     <div className="modal-header">
      <h2><i className="fas fa-microchip"></i> Select AI Model</h2>
      {onClose && <button className="close-btn" onClick={onClose}>✕</button>}
