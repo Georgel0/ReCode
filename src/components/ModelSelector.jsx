@@ -8,14 +8,14 @@ const MODEL_OPTIONS = [
  title: 'Turbo Speed',
  icon: 'fa-bolt',
  desc: 'Best for quick edits and basic syntax checks.',
- specs: ['Near-zero latency', 'Light resource usage', 'Ideal for simple refactors']
+ specs: ['Near-zero latency', 'Light resource usage', 'Ideal for simple tasks']
 },
 {
  id: 'fast',
  title: 'Balanced',
  icon: 'fa-stopwatch',
  desc: 'The sweet spot between speed and logic.',
- specs: ['Quick response time', 'Reliable for daily coding', 'Handles medium snippets']
+ specs: ['Quick response time', 'Reliable for daily coding', 'Handles code better']
 },
 {
  id: 'quality',

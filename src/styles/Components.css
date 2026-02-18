@@ -456,6 +456,7 @@ select option {
   justify-content: center;
   z-index: 1000;
   padding: 2rem 1rem; 
+  overflow: auto;
 }
 
 .modal-content {
@@ -469,7 +470,6 @@ select option {
   min-width: 0;
   box-shadow: var(--shadow-subtle);
   position: relative;
-  overflow: auto;
 }
 
 .modal-content h2 {
