@@ -469,7 +469,6 @@ select option {
   min-width: 0;
   box-shadow: var(--shadow-subtle);
   position: relative;
-  overflow: auto;
 }
 
 .modal-content h2 {
@@ -619,6 +618,7 @@ select option {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+  overflow: auto;
 }
 
 .model-card {
