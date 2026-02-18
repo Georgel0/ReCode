@@ -715,15 +715,24 @@
 .output-actions {
   display: inline;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
+}
+
+.controls-wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
 }
 
 .action-btn {
   border: none;
   background: none;
+  padding: 0.25rem 0.75rem;
   font-weight: 700;
   color: var(--accent);
   cursor: pointer;
+  font-size: 0.8rem;
 }
 
 .action-btn:hover {

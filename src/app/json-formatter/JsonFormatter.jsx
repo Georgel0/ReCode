@@ -198,22 +198,24 @@ export default function JsonFormatter() {
      <div className="panel">
       <div className="panel-header-row">
        <h3>Formatted Output</h3>
-       <div className="view-mode-toggles">
-        <button 
-         className={`view-toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
-         onClick={() => setViewMode('code')}>
-         <i className="fa-solid fa-code"></i> Code
-        </button>
-        <button 
-         className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-         onClick={() => setViewMode('tree')}
-         disabled={!outputCode}>
-         <i className="fa-solid fa-folder-tree"></i> Tree
-        </button>
-       </div>
-       <div className="output-actions">
-        <button className="action-btn" onClick={handleMinify} disabled={loading || !outputCode}><i className="fa-solid fa-compress"></i></button>
-        <button className="action-btn" onClick={handlePrettify} disabled={loading || !outputCode}><i className="fa-solid fa-align-left"></i></button>
+       <div className="controls-wrapper">
+        <div className="view-mode-toggles">
+         <button 
+          className={`view-toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
+          onClick={() => setViewMode('code')}>
+          <i className="fa-solid fa-code"></i> Code
+         </button>
+         <button 
+          className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
+          onClick={() => setViewMode('tree')}
+          disabled={!outputCode}>
+          <i className="fa-solid fa-folder-tree"></i> Tree
+         </button>
+        </div>
+        <div className="output-actions">
+         <button className="action-btn" onClick={handleMinify} disabled={loading || !outputCode}><i className="fa-solid fa-compress"></i></button>
+         <button className="action-btn" onClick={handlePrettify} disabled={loading || !outputCode}><i className="fa-solid fa-align-left"></i></button>
+        </div>
        </div>
       </div>
           
