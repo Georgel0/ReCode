@@ -1,4 +1,4 @@
-# ReCode 
+# ReCode | AI Developer Suite
 
 > **Write better code. Faster than ever.** The ultimate AI-powered playground for developers to convert, analyze, refactor, and generate code.
 
@@ -9,7 +9,7 @@
 ---
 
 ## Live Demo
-🚀 **[View the Live Application](https://recode-alpha.vercel.app/)**
+**[View the Live Application](https://recode-alpha.vercel.app/)**
 
 ---
 
