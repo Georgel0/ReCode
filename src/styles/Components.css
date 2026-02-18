@@ -458,7 +458,6 @@ select option {
   z-index: 1000;
   padding: 1rem;
   overflow: auto;
-  height: 80vh;
 }
 
 .modal-content {
@@ -467,7 +466,7 @@ select option {
   border-radius: var(--radius);
   padding: 2rem;
   max-width: 500px;
-  min-width: 1000px;
+  min-width: 1500px;
   width: 100%;
   box-shadow: var(--shadow-subtle);
 }
