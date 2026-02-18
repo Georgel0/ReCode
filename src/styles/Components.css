@@ -454,23 +454,22 @@ select option {
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
+  align-items: flex-start; 
   z-index: 1000;
-  padding: 2rem 1rem;
-  overflow: hidden;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 .modal-content {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 2rem;
-  margin: auto 0; 
+  padding: 1.5rem;
+  margin: 2rem auto;
   width: 95%; 
   max-width: 1500px;
-  min-width: 0;
   box-shadow: var(--shadow-subtle);
   position: relative;
-  overflow: auto;
 }
 
 .modal-content h2 {
@@ -609,11 +608,9 @@ select option {
 }
 
 .model-options-grid {
-  max-height: 80vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  overflow: auto;
 }
 
 .model-card {
@@ -820,9 +817,15 @@ select option {
   
   .model-options-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .modal-content {
-    min-width: 0;
+    margin: 1rem auto;
+    padding: 1rem;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.4rem;
   }
 }
