@@ -112,7 +112,7 @@ export async function POST(request) {
     } else if (qualityMode === 'fast') {
       modelId = 'gateway:mistral/devstral-2';
     } else if (qualityMode === 'turbo') {
-      modelId = 'llama-3.3-70b-versatile';
+      modelId = 'groq:llama-3.3-70b-versatile';
     }
     
     const modelInstance = registry.languageModel(modelId);
