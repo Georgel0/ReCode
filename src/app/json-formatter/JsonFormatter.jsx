@@ -56,40 +56,35 @@ export default function JsonFormatter() {
  };
  
  const handlePrettify = () => {
-  if (!input.trim()) return;
-  setErrorMsg(null);
+  if (!outputCode.trim()) return;
   
+  setErrorMsg(null);
   try {
-   // Try Strict Parse first
-   const parsed = JSON.parse(input);
+   const parsed = JSON.parse(outputCode);
    
    setOutputCode(JSON.stringify(parsed, null, 2));
    setExplanation("Valid JSON: Formatted successfully.");
   } catch (strictError) {
-   // Try Loose Parse (JSON5) - Functional Enhancement
    try {
-    const looseParsed = JSON5.parse(input);
+    const looseParsed = JSON5.parse(outputCode);
     
     setOutputCode(JSON.stringify(looseParsed, null, 2));
-    setExplanation("Loose JSON detected: Keys quoted and structure fixed via Client-side Logic (JSON5).");
+    setExplanation("Loose JSON fixed via Client-side Logic (JSON5).");
    } catch (looseError) {
-    // Fail with specific location
     const msg = looseError.message || strictError.message;
-    // Attempt to extract line number for UX
     const match = msg.match(/line (\d+) column (\d+)/) || msg.match(/position (\d+)/);
     const loc = match ? ` at ${match[0]}` : '';
-    
     setErrorMsg(`Invalid JSON${loc}: Use 'AI Fix' to repair syntax errors.`);
    }
   }
  };
  
  const handleMinify = () => {
-  if (!input.trim()) return;
+  if (!outputCode.trim()) return;
+  
   setErrorMsg(null);
   try {
-   // JSON5 to allow minifying loose objects
-   const parsed = JSON5.parse(input);
+   const parsed = JSON5.parse(outputCode);
    
    setOutputCode(JSON.stringify(parsed));
    setExplanation("JSON minified to a single line.");
@@ -193,12 +188,6 @@ export default function JsonFormatter() {
       {errorMsg && <div className="error-message"><i className="fa-solid fa-circle-exclamation"></i> {errorMsg}</div>}
           
       <div className="action-row">
-       <button className="primary-button secondary-action-btn" onClick={handleMinify} disabled={loading}>
-        <i className="fa-solid fa-compress"></i> Minify
-       </button>
-       <button className="primary-button secondary-action-btn" onClick={handlePrettify} disabled={loading}>
-        <i className="fa-solid fa-align-left"></i> Prettify
-       </button>
        <button className="primary-button" onClick={handleAiFix} disabled={loading}>
         <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}></i>
         {loading ? 'Repairing...' : 'AI Fix & Format'}
@@ -220,6 +209,14 @@ export default function JsonFormatter() {
          onClick={() => setViewMode('tree')}
          disabled={!outputCode}>
          <i className="fa-solid fa-folder-tree"></i> Tree
+        </button>
+       </div>
+       <div className="output-actions">
+        <button className="primary-button secondary-action-btn" onClick={handleMinify} disabled={loading || !outputCode}>
+        <i className="fa-solid fa-compress"></i>
+        </button>
+        <button className="primary-button secondary-action-btn" onClick={handlePrettify} disabled={loading || !outputCode}>
+         <i className="fa-solid fa-align-left"></i>
         </button>
        </div>
       </div>
