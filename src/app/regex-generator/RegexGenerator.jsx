@@ -236,7 +236,7 @@ export default function RegexGenerator() {
          <h4 style={{color: 'var(--accent)', margin: '0 0 10px 0'}}>{category}</h4>
          {items.map(item => (
           <div key={item.token} className="tailwind-code" style={{marginBottom:'5px'}}>
-           <code>{item.token}</code>
+           <code>{item.token} </code>
            <span style={{fontSize: '0.8rem', color: 'var(--text-secondary)'}}>{item.desc}</span>
           </div>
          ))}
