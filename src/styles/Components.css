@@ -469,6 +469,7 @@ select option {
   min-width: 0;
   box-shadow: var(--shadow-subtle);
   position: relative;
+  overflow: auto;
 }
 
 .modal-content h2 {
