@@ -457,6 +457,8 @@ select option {
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  overflow: auto;
+  height: 80vh;
 }
 
 .modal-content {
