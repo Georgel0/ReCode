@@ -712,6 +712,24 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+.output-actions {
+  display: inline;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-btn {
+  border: none;
+  background: none;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  color: var(--accent-hover);
+}
+
 .hidden-input {
   display: none;
 }

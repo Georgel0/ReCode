@@ -212,12 +212,8 @@ export default function JsonFormatter() {
         </button>
        </div>
        <div className="output-actions">
-        <button className="primary-button secondary-action-btn" onClick={handleMinify} disabled={loading || !outputCode}>
-        <i className="fa-solid fa-compress"></i>
-        </button>
-        <button className="primary-button secondary-action-btn" onClick={handlePrettify} disabled={loading || !outputCode}>
-         <i className="fa-solid fa-align-left"></i>
-        </button>
+        <button className="action-btn" onClick={handleMinify} disabled={loading || !outputCode}><i className="fa-solid fa-compress"></i></button>
+        <button className="action-btn" onClick={handlePrettify} disabled={loading || !outputCode}><i className="fa-solid fa-align-left"></i></button>
        </div>
       </div>
           
