@@ -638,8 +638,23 @@ select option {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
 }
 
+.model-card.turbo:hover { border-color: var(--border);}
 .model-card.fast:hover { border-color: var(--border) } 
 .model-card.quality:hover { border-color: var(--border) } 
+
+.model-card.active {
+  border-color: var(--primary-color);
+  background-color: var(--active-bg);
+  transform: translateY(-2px);
+}
+
+.model-card.turbo.active {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); 
+}
+
+.model-card.quality.active {
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+}
 
 .card-icon {
   font-size: 2rem;

@@ -151,9 +151,11 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
             <div className="mode-icon-slide" key={qualityMode}>
               {qualityMode === 'fast' ? (
               <i className="fas fa-stopwatch" title="Fast Mode"></i>
-              ) : (
+              ) : (qualityMode === 'quality' ? (
               <i className="fas fa-gem" title="Quality Mode"></i>
-              )}
+              ) : (
+              <i className="fas fa-bolt" title="Turbo Mode"></i>
+              ))}
             </div>
           </button>
         </div>

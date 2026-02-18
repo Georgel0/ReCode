@@ -110,13 +110,10 @@ export default function MainLayout({ children }) {
       <Notification message={notification} />
       
       {!isLandingPage && <ModelSelector
+        currentMode={qualityMode}
         isOpen={showModelSelector}
         onSelect={(mode) => {
-          if (mode === "quality" || mode === "fast") {
-            setQualityMode(mode);
-            localStorage.setItem('recode_quality_mode', mode);
-          } else toggleQualityMode();
-          
+          setQualityMode(mode);
           setShowModelSelector(false);
         }}
         onClose={() => setShowModelSelector(false)}
