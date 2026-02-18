@@ -737,6 +737,7 @@
 
 .action-btn:hover {
   color: var(--accent-hover);
+  transform: scale(1.1);
 }
 
 .hidden-input {
