@@ -119,7 +119,7 @@ export async function POST(request) {
     let finalData;
     
     // Try Structured Output
-    if (config.schema && qualityMode !== 'fast') {
+    if (config.schema && qualityMode !== 'turbo') {
       try {
         const result = await generateObject({
           model: modelInstance,
