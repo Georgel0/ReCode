@@ -285,7 +285,7 @@ body {
 .info-trigger {
   background: transparent;
   border: none;
-  color: var(--lp-border);
+  color: var(--lp-blue-glow);
   cursor: pointer;
   transition: color 0.2s;
   font-size: 1.1rem;
