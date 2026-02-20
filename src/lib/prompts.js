@@ -8,8 +8,9 @@ export const OUTPUT_SCHEMAS = {
   
   refactor: z.object({
     files: z.array(z.object({
-      fileName: z.string(),
-      content: z.string()
+      sourceId: z.union([z.string(), z.number()]).describe("The original unique ID provided in the input"),
+      fileName: z.string().describe("The name of the file (can be updated if refactoring suggests better naming)"),
+      content: z.string().describe("The full refactored code")
     }))
   }),
   
@@ -91,22 +92,23 @@ export const PROMPT_CONFIG = {
     system: (ctx) => {
       const mode = ctx?.mode || 'clean';
       const goals = {
-        clean: "Maximum readability, standard naming conventions (camelCase/snake_case contextually), and DRY principles.",
+        clean: "Maximum readability, standard naming conventions, and DRY principles.",
         perf: "Algorithmic efficiency (reduce Big O), memory management, and loop optimization.",
         modern: "Modern syntax features (ES2024+, async/await) and removing deprecated patterns.",
-        comments: "Comprehensive JSDoc/Docstring documentation explaining the 'Why' and 'How'."
+        comments: "Comprehensive documentation explaining the 'Why' and 'How'."
       };
       
       return withSchema(
         `You are a Principal Software Architect. 
-        Your Task: Refactor the provided code focusing strictly on: ${goals[mode]}
+        Your Task: Refactor the provided project source code.
+        Focus Mode: ${goals[mode]}
         
         Guidelines:
-        - The input is a JSON representation of a file system.
-        - You MUST process every single file provided.
-        - Preserve all imports, exports, and logic parity (unless optimizing).
-        - Do not hallucinate new files unless necessary for the refactor.`,
-        `{ "files": [ { "fileName": "string", "content": "string (the full refactored code)" } ] }`
+        - Input format: An array of objects containing { "sourceId": ID, "name": string, "content": string }.
+        - CRITICAL: Every file in the output MUST include the exact "sourceId" provided in the input. This is used to map files back to the UI.
+        - Dependency Awareness: If you rename a file or an exported member in one file, you MUST update the corresponding imports in all other files in the set.
+        - Preserve logic parity unless specifically optimizing for Performance mode.`,
+        `{ "files": [ { "sourceId": "string/number", "fileName": "string", "content": "string" } ] }`
       );
     },
     user: (input) => `Refactor this project source code:\n${input}`,

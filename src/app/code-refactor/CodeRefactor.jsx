@@ -1,317 +1,316 @@
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useApp } from '@/context/AppContext';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { useApp } from '@/context/AppContext'; 
+import debounce from 'lodash/debounce';
+import { sanitizeFilename, validateFile, suggestRefactorMode, LANGUAGES } from './utils';
+import { FileTabs, RefactorControls, OutputPanel } from './components';
+import './codeRefactor.css';
 
-const LANGUAGES = [
- { value: 'javascript', label: 'JavaScript', ext: '.js' },
- { value: 'typescript', label: 'TypeScript', ext: '.ts' },
- { value: 'python', label: 'Python', ext: '.py' },
- { value: 'java', label: 'Java', ext: '.java' },
- { value: 'c', label: 'C', ext: '.c' },
- { value: 'csharp', label: 'C#', ext: '.cs' },
- { value: 'cpp', label: 'C++', ext: '.cpp' },
- { value: 'go', label: 'Go', ext: '.go' },
- { value: 'rust', label: 'Rust', ext: '.rs' },
- { value: 'php', label: 'PHP', ext: '.php' },
- { value: 'plaintext', label: 'Plain Text', ext: '.txt' }
-];
-
-const REFACTOR_MODES = [
- { id: 'clean', label: 'Clean & Readability', desc: 'Improves naming, structure, and formatting.' },
- { id: 'perf', label: 'Performance', desc: 'Optimizes loops, memory usage, and complexity.' },
- { id: 'modern', label: 'Modernize Syntax', desc: 'Updates legacy code (e.g., var to const, async/await).' },
- { id: 'comments', label: 'Add Comments', desc: 'Adds documentation and explanatory comments.' },
-];
-
-export default function CodeRefactor({ onSwitchModule }) {
- const [files, setFiles] = useState([{ id: 1, name: 'main.js', language: 'javascript', content: '' }]);
- const [activeTab, setActiveTab] = useState(1);
- const [outputFiles, setOutputFiles] = useState([]);
- const [loading, setLoading] = useState(false);
- const [refactorMode, setRefactorMode] = useState('clean');
- const fileInputRef = useRef(null);
- const [lastResult, setLastResult] = useState(false);
- const { moduleData, qualityMode } = useApp();
- 
- useEffect(() => {
-  if (moduleData && moduleData.type === 'refactor') {
-   if (moduleData.inputFiles) setFiles(moduleData.inputFiles);
-   if (moduleData.fullOutput?.files) setOutputFiles(moduleData.fullOutput.files);
-  }
- }, [moduleData]);
- 
- // Sync index helper
- const activeFileIndex = files.findIndex(f => f.id === activeTab);
- const safeIndex = activeFileIndex === -1 ? 0 : activeFileIndex;
- 
- const handleFileUpload = async (e) => {
-  const uploadedFiles = Array.from(e.target.files);
-  if (uploadedFiles.length === 0) return;
+export default function CodeRefactor() {
+  const { moduleData, qualityMode } = useApp();
+  const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '' }]);
+  const [activeTabId, setActiveTabId] = useState(files[0].id);
+  const [outputFiles, setOutputFiles] = useState([]);
+  const [lastResult, setLastResult] = useState(false);
   
-  setOutputFiles([]);
+  const [loadingStage, setLoadingStage] = useState('idle');
+  const [refactorMode, setRefactorMode] = useState('clean');
+  const [suggestedMode, setSuggestedMode] = useState(null);
+  const [viewMode, setViewMode] = useState('final');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [storageWarning, setStorageWarning] = useState(false);
+  const fileInputRef = useRef(null);
+  const isRestoring = useRef(false);
   
-  const newFilesPromises = uploadedFiles.map(file => {
-   return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-     let name = file.name;
-     let extension = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
-     let matchedLang = LANGUAGES.find(l => l.ext === extension);
-     
-     if (!matchedLang) {
-      name = name + (extension ? '' : '.txt');
-      matchedLang = LANGUAGES.find(l => l.value === 'plaintext');
-     }
-     
-     resolve({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      language: matchedLang ? matchedLang.value : 'javascript',
-      content: event.target.result
-     });
-    };
-    reader.readAsText(file);
-   });
-  });
+  useEffect(() => {
+    if (moduleData && moduleData.type === "code-refactor") {
+      isRestoring.current = true;
+      try {
+        const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
+        const savedOutput = typeof moduleData.output === 'string' ? JSON.parse(moduleData.output) : moduleData.output;
+        
+        if (savedInputs) setFiles(savedInputs);
+        if (savedOutput) setOutputFiles(savedOutput);
+        if (moduleData.refactorMode) setRefactorMode(moduleData.refactorMode);
+      } catch (e) {
+        console.error("Failed to restore history", e);
+      }
+      setTimeout(() => { isRestoring.current = false; }, 100);
+    }
+  }, [moduleData]);
   
-  const newFiles = await Promise.all(newFilesPromises);
-  setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
-  setActiveTab(newFiles[0].id);
-  if (fileInputRef.current) fileInputRef.current.value = "";
- };
- 
- const updateFile = (id, field, value) => {
-  setFiles(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
- };
- 
- const removeFile = (e, idToRemove) => {
-  e.stopPropagation();
-  if (files.length === 1) {
-   handleClear();
-   return;
-  }
-  const newFiles = files.filter(f => f.id !== idToRemove);
-  setFiles(newFiles);
-  setOutputFiles([]);
-  if (idToRemove === activeTab) setActiveTab(newFiles[0].id);
- };
- 
- const handleClear = () => {
-  setFiles([{ id: Date.now(), name: 'untitled.js', language: 'javascript', content: '' }]);
-  setActiveTab(files[0]?.id || 1);
-  setOutputFiles([]);
-  if (fileInputRef.current) fileInputRef.current.value = "";
- };
- 
- const handleRefactor = async () => {
-  if (files.every(f => !f.content.trim())) return;
-  setLoading(true);
-  setOutputFiles([]);
-  setLastResult(false);
-  try {
-   const inputFiles = JSON.stringify(files.map(f => ({
-    name: f.name,
-    content: f.content
-   })));
-   
-   const result = await convertCode('refactor', inputFiles, { mode: refactorMode, qualityMode });
-   
-   if (result && result.files) {
-    setOutputFiles(result.files);
-    setLastResult({
-     type: "refactor",
-     input: inputFiles,
-     output: result
-    });
-   } else if (result.error) {
-    console.error("AI error: " + result.error);
-   }
-  } catch (error) {
-   console.error("Refactor failed:", error);
-   alert("Failed to refactor code. Please try again.");
-  } finally {
-   setLoading(false);
-  }
- };
- 
- const downloadSingleFile = (file) => {
-  if (!file) return;
-  const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
-  saveAs(blob, file.fileName || file.name);
- };
- 
- const downloadZip = async () => {
-  const zip = new JSZip();
-  outputFiles.forEach(file => {
-   zip.file(file.fileName || 'file.txt', file.content);
-  });
-  const content = await zip.generateAsync({ type: "blob" });
-  saveAs(content, "refactored_project.zip");
- };
- 
- const getLanguage = (name) => {
-  if (!name) return 'javascript';
-  const ext = `.${name.split('.').pop().toLowerCase()}`;
-  return LANGUAGES.find(l => l.ext === ext)?.value || 'javascript';
- };
- 
- const currentFile = files[safeIndex];
- const currentOutputFile = outputFiles[safeIndex];
- 
- return (
-  <div className="module-container">
+  useEffect(() => {
+    if (outputFiles.length > 0 && !isRestoring.current) {
+      setLastResult({
+        type: "code-refactor",
+        input: JSON.stringify(files),
+        output: outputFiles,
+        refactorMode,
+        qualityMode
+      });
+    }
+  }, [outputFiles, files, refactorMode, qualityMode]);
+  
+  useEffect(() => {
+    const draft = localStorage.getItem('refactorDraft');
+    if (draft) {
+      if (window.confirm("Continue from your previous unsaved draft?")) {
+        const parsedDraft = JSON.parse(draft);
+        setFiles(parsedDraft);
+        setActiveTabId(parsedDraft[0]?.id);
+      } else {
+        localStorage.removeItem('refactorDraft');
+      }
+    }
+  }, []);
+  
+  const saveDraft = useCallback(
+    debounce((currentFiles) => {
+      if (currentFiles.some(f => f.content.trim())) {
+        try {
+          const data = JSON.stringify(currentFiles);
+          localStorage.setItem('refactorDraft', data);
+          setStorageWarning(false);
+        } catch (e) {
+          console.error("Storage full, could not save draft", e);
+          setStorageWarning(true);
+        }
+      }
+    }, 1500),
+    []
+  );
+  
+  useEffect(() => {
+    saveDraft(files);
+    return () => saveDraft.cancel();
+  }, [files, saveDraft]);
+  
+  useEffect(() => {
+    const activeFile = files.find(f => f.id === activeTabId);
+    if (activeFile) {
+      setSuggestedMode(suggestRefactorMode(activeFile.content));
+    }
+  }, [activeTabId, files]);
+  
+  const handleKeyDown = useCallback((e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleRefactor();
+  }, [files, refactorMode]);
+  
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+  
+  const handleFileUpload = async (e) => {
+    setErrorMsg('');
+    const uploadedFiles = Array.from(e.target.files);
+    if (uploadedFiles.length === 0) return;
+    
+    const validFiles = [];
+    for (const file of uploadedFiles) {
+      const { valid, error } = validateFile(file);
+      if (!valid) {
+        setErrorMsg(error);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    const newFilesPromises = validFiles.map(file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const name = sanitizeFilename(file.name);
+        const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+        const matchedLang = LANGUAGES.find(l => l.ext === ext) || LANGUAGES.find(l => l.value === 'plaintext');
+        
+        resolve({
+          id: crypto.randomUUID(),
+          name: name,
+          language: matchedLang.value,
+          content: event.target.result
+        });
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    }));
+    
+    try {
+      const newFiles = await Promise.all(newFilesPromises);
+      if (newFiles.length > 0) {
+        setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
+        setActiveTabId(newFiles[0].id);
+      }
+    } catch (err) {
+      setErrorMsg("Failed to read one or more files.");
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+  
+  const updateFile = (id, content) => {
+    setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
+  };
+  
+  const removeFile = (idToRemove) => {
+    const newFiles = files.filter(f => f.id !== idToRemove);
+    if (newFiles.length === 0) {
+      const newId = crypto.randomUUID();
+      setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '' }]);
+      setActiveTabId(newId);
+    } else {
+      setFiles(newFiles);
+      if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
+    }
+  };
+  
+  const handleRefactor = async () => {
+    if (files.every(f => !f.content.trim())) return;
+    setLoadingStage('analyzing');
+    setErrorMsg('');
+    
+    try {
+      setTimeout(() => setLoadingStage('optimizing'), 1500);
+      setTimeout(() => setLoadingStage('validating'), 3000);
+      
+      const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
+      const result = await convertCode('refactor', inputPayload, { mode: refactorMode, qualityMode });
+      
+      if (result && Array.isArray(result.files)) {
+        setOutputFiles(result.files);
+      } else {
+        setErrorMsg(result?.error || "Invalid format returned from the API.");
+      }
+    } catch (error) {
+      setErrorMsg("Failed to refactor code. Please check your connection.");
+    } finally {
+      setLoadingStage('idle');
+    }
+  };
+  
+  const downloadSingleFile = (file) => {
+    const blob = new Blob([file.content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.fileName || 'refactored-file.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+  
+  const downloadZip = async () => {
+    const zip = new JSZip();
+    outputFiles.forEach(file => zip.file(sanitizeFilename(file.fileName || 'file.txt'), file.content));
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, "refactored_project.zip");
+  };
+  
+  const MemoizedOutputPanel = useMemo(() => (
+    <OutputPanel 
+      activeSourceFile={files.find(f => f.id === activeTabId)}
+      outputFiles={outputFiles}
+      viewMode={viewMode}
+      setViewMode={setViewMode}
+      loadingStage={loadingStage}
+      downloadSingleFile={downloadSingleFile}
+    />
+  ), [files, activeTabId, outputFiles, viewMode, loadingStage]);
+  
+  return (
+    <div className="module-container">
       <ModuleHeader 
-        title="Code Refactor"
-        description="Refactor and optimize multiple files into modern, clean code simultaneously."
-        resultData={lastResult}
+        title="AI Code Refactor" 
+        description="Optimize, clean, or document your project files with context-aware AI."
+        resultData={lastResult} 
       />
-        <div className="refactor-options">
-            <span className="label-text">Refactor Goal:</span>
-            <div className="mode-selector">
-                {REFACTOR_MODES.map(mode => (
-                    <button 
-                        key={mode.id}
-                        className={`mode-btn ${refactorMode === mode.id ? 'selected' : ''}`}
-                        onClick={() => setRefactorMode(mode.id)}
-                        title={mode.desc}
-                    >
-                        {mode.label}
-                    </button>
-                ))}
-            </div>
+
+      {errorMsg && (
+        <div className="error-banner">
+          <i className="fa-solid fa-triangle-exclamation"></i>
+          {errorMsg}
         </div>
+      )}
+      
+      {storageWarning && (
+        <div className="warning-banner">
+          <i className="fa-solid fa-hard-drive"></i>
+          Storage is full. Drafts will not be saved.
+        </div>
+      )}
 
       <div className="converter-grid">
         <div className="panel">
           <div className="panel-header-row">
-            <h3>Source Code</h3>
+            <h3><i className="fa-solid fa-file-code"></i> Source Files</h3>
             <div className="header-actions">
-              <button className="file-upload-btn" onClick={() => fileInputRef.current.click()}>
-                Upload Files
+              <button className="secondary-button" onClick={() => fileInputRef.current.click()}>
+                <i className="fa-solid fa-upload"></i> Upload
               </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
-                multiple 
-                onChange={handleFileUpload}
-                accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.txt,text/plain"
-              />
+              <button 
+                className="secondary-button" 
+                onClick={() => {
+                  const newFile = { id: crypto.randomUUID(), name: 'new-file.js', language: 'javascript', content: '' };
+                  setFiles([...files, newFile]);
+                  setActiveTabId(newFile.id);
+                }}
+              >
+                <i className="fa-solid fa-plus"></i> Add File
+              </button>
             </div>
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple hidden />
           </div>
 
-          <div className="tabs-container">
-            {files.map(file => (
-              <div 
-                key={file.id} 
-                className={`tab-btn ${activeTab === file.id ? 'active' : ''}`} 
-                onClick={() => setActiveTab(file.id)}
-              >
-                <span className="tab-name">{file.name || 'untitled'}</span>
-                <span className="close-tab" onClick={(e) => removeFile(e, file.id)}>×</span>
-              </div>
-            ))}
-          </div>
-          
+          <RefactorControls 
+            refactorMode={refactorMode} 
+            setRefactorMode={setRefactorMode} 
+            suggestedMode={suggestedMode} 
+          />
+
+          <FileTabs 
+            files={files} 
+            activeTabId={activeTabId} 
+            setActiveTabId={setActiveTabId}
+            removeFile={removeFile}
+          />
+
           <div className="editor-container">
-            <textarea 
-                className="code-editor"
-                value={currentFile?.content || ''}
-                onChange={(e) => updateFile(currentFile.id, 'content', e.target.value)}
-                placeholder="Paste your code here or upload files..."
-                spellCheck="false"
+            <textarea
+              className="code-editor"
+              value={files.find(f => f.id === activeTabId)?.content || ''}
+              onChange={(e) => updateFile(activeTabId, e.target.value)}
+              placeholder="Paste your code here..."
+              spellCheck="false"
             />
           </div>
 
           <div className="action-row">
             <button 
-              className="primary-button action-btn" 
+              className="primary-button full-width" 
               onClick={handleRefactor} 
-              disabled={loading || files.every(f => !f.content.trim())}
+              disabled={loadingStage !== 'idle' || files.every(f => !f.content.trim())}
             >
-              {loading ? 'Processing...' : 'Refactor Project'}
-            </button>
-            <button className="secondary-button clear-btn" onClick={handleClear}>
-                Clear
+              <i className={loadingStage !== 'idle' ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-wand-magic-sparkles"}></i>
+              {loadingStage !== 'idle' ? `Processing...` : 'Refactor Project'}
             </button>
           </div>
         </div>
 
         <div className="panel">
           <div className="panel-header-row">
-            <h3>Refactored Result</h3>
+            <h3><i className="fa-solid fa-square-check"></i> Refactored Result</h3>
             {outputFiles.length > 0 && (
-               <div className="header-actions">
-                  <button className="file-upload-btn download-btn" onClick={downloadZip}>Download All (ZIP)</button>
-               </div>
+              <button className="secondary-button" onClick={downloadZip}>
+                <i className="fa-solid fa-file-zipper"></i> Download ZIP
+              </button>
             )}
           </div>
-
-          {outputFiles.length > 0 ? (
-            <>
-              <div className="tabs-container">
-                {outputFiles.map((file, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`tab-btn ${safeIndex === idx ? 'active' : ''}`} 
-                    onClick={() => files[idx] && setActiveTab(files[idx].id)}
-                    style={{ cursor: files[idx] ? 'pointer' : 'not-allowed', opacity: files[idx] ? 1 : 0.5 }}
-                  >
-                    {file.fileName}
-                  </div>
-                ))}
-              </div>
-
-              <div className="highlighter-wrapper flex-grow">
-                {currentOutputFile ? (
-                    <SyntaxHighlighter 
-                      language={getLanguage(currentOutputFile.fileName)} 
-                      style={vscDarkPlus}
-                      showLineNumbers={true}
-                      customStyle={{ margin: 0, height: '100%', borderRadius: '0 0 8px 8px', fontSize: '0.85rem' }}
-                    >
-                      {currentOutputFile.content}
-                    </SyntaxHighlighter>
-                ) : (
-                    <div className="placeholder-text">Select a source file to view its result.</div>
-                )}
-              </div>
-
-              <div className="action-row">
-                <button className="primary-button secondary-action-btn" onClick={() => downloadSingleFile(currentOutputFile)}>
-                  Download File
-                </button>
-                <button className="primary-button" onClick={() => {
-                  navigator.clipboard.writeText(currentOutputFile.content);
-                }}>
-                  Copy
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="placeholder-container-inner">
-                {loading ? (
-                   <div className="processing-state">
-                       <div className="pulse-ring"></div>
-                       <p>AI is optimizing your files...</p>
-                       <small>Mode: {REFACTOR_MODES.find(m => m.id === refactorMode)?.label}</small>
-                   </div>
-               ) : (
-                   <div className="empty-state">
-                       <p>Better code will appear here after refactoring...</p>
-                   </div>
-               )}
-            </div>
-          )}
+          
+          {MemoizedOutputPanel}
         </div>
       </div>
     </div>
- );
+  );
 }
