@@ -266,7 +266,7 @@ textarea:focus {
 
 .tab-btn.active i {
   opacity: 1;
-  color: var(--accent);
+  background-color: var(--accent);
 }
 
 .close-tab {

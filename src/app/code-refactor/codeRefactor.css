@@ -113,29 +113,12 @@
   margin-bottom: 0.5rem;
 }
 
-.close-tab {
-  opacity: 0.5;
-  margin-left: 8px;
-  font-size: 16px;
-  transition: opacity 0.2s;
-  background: none;
-  color: white;
-}
-
-.close-tab:hover {
-  opacity: 1;
-  color: #ff4d4d;
-}
-
 @media (max-width: 768px) {
   .split-view {
     grid-template-columns: 1fr;
   }
   
   .suggested-badge {
-    font-size: 0.4rem;
-    padding: 0.1rem 0.4rem;
-    margin-left: 0.4rem;
-    font-weight: 700;
+    display: none;
   }
 }
