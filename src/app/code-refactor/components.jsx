@@ -1,7 +1,6 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { REFACTOR_MODES } from './utils';
-import './codeRefactor.css';
 
 export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => (
   <nav role="tablist" className="tabs-container" aria-label="Open files">
