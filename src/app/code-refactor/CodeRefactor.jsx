@@ -6,7 +6,7 @@ import { useApp } from '@/context/AppContext';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
-import { sanitizeFilename, validateFile, suggestRefactorMode, LANGUAGES } from './utils';
+import { sanitizeFilename, validateFile,  suggestRefactorMode, LANGUAGES } from './utils';
 import { FileTabs, RefactorControls, OutputPanel } from './components';
 import './codeRefactor.css';
 
