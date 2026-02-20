@@ -275,7 +275,7 @@ textarea:focus {
   font-size: 16px;
   transition: opacity 0.2s;
   background: none;
-  color: white;
+  color: black;
 }
 
 .close-tab:hover {
