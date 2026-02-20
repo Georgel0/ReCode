@@ -274,6 +274,7 @@ textarea:focus {
   margin-left: 8px;
   font-size: 16px;
   transition: opacity 0.2s;
+  background: none;
 }
 
 .close-tab:hover {
