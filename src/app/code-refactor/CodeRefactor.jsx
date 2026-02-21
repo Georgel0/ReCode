@@ -16,6 +16,8 @@ import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-python';
 
+import { get, set } from 'idb-keyval';
+
 import './codeRefactor.css';
 
 export default function CodeRefactor() {
@@ -77,20 +79,32 @@ export default function CodeRefactor() {
   }, []);
   
   const saveDraft = useCallback(
-    debounce((currentFiles) => {
+    debounce(async (currentFiles) => {
       if (currentFiles.some(f => f.content.trim())) {
         try {
-          const data = JSON.stringify(currentFiles);
-          localStorage.setItem('refactorDraft', data);
+          // Store the array directly as an object
+          await set('refactor-draft-files', currentFiles);
           setStorageWarning(false);
         } catch (e) {
-          console.error("Storage full, could not save draft", e);
+          console.error("IndexedDB Error:", e);
           setStorageWarning(true);
         }
       }
     }, 1500),
     []
   );
+  
+  useEffect(() => {
+    // Loading the draft on mount
+    const loadDraft = async () => {
+      const saved = await get('refactor-draft-files');
+      if (saved && window.confirm("Continue from your previous draft?")) {
+        setFiles(saved);
+        setActiveTabId(saved[0]?.id);
+      }
+    };
+    loadDraft();
+  }, []);
   
   useEffect(() => {
     saveDraft(files);
