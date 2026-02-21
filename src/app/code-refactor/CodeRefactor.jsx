@@ -1,18 +1,26 @@
 'use client';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
-import { sanitizeFilename, validateFile,  suggestRefactorMode, LANGUAGES } from './utils';
+import { sanitizeFilename, validateFile, suggestRefactorMode, LANGUAGES } from './utils';
 import { FileTabs, RefactorControls, OutputPanel } from './components';
+
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-python';
+
 import './codeRefactor.css';
 
 export default function CodeRefactor() {
   const { moduleData, qualityMode } = useApp();
-  const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '' }]);
+  const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
   const [activeTabId, setActiveTabId] = useState(files[0].id);
   const [outputFiles, setOutputFiles] = useState([]);
   const [lastResult, setLastResult] = useState(false);
@@ -96,9 +104,43 @@ export default function CodeRefactor() {
     }
   }, [activeTabId, files]);
   
+  const handleRefactor = async () => {
+    if (files.every(f => !f.content.trim())) return;
+    setLoadingStage('analyzing');
+    setErrorMsg('');
+    
+    let optTimeout, valTimeout; // Track timeouts
+    try {
+      optTimeout = setTimeout(() => setLoadingStage('optimizing'), 1500);
+      valTimeout = setTimeout(() => setLoadingStage('validating'), 3000);
+      
+      const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
+      const result = await convertCode('refactor', inputPayload, { mode: refactorMode, qualityMode });
+      
+      if (result && Array.isArray(result.files)) {
+        setOutputFiles(result.files);
+      } else {
+        setErrorMsg(result?.error || "Invalid format returned from the API.");
+      }
+    } catch (error) {
+      setErrorMsg("Failed to refactor code. Please check your connection.");
+    } finally {
+      clearTimeout(optTimeout); // Clear memory leak
+      clearTimeout(valTimeout);
+      setLoadingStage('idle');
+    }
+  };
+  
   const handleKeyDown = useCallback((e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleRefactor();
-  }, [files, refactorMode]);
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleRefactor();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveDraft(files); // Manual save override
+    }
+  }, [files, refactorMode, handleRefactor, saveDraft]);
   
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -131,7 +173,8 @@ export default function CodeRefactor() {
           id: crypto.randomUUID(),
           name: name,
           language: matchedLang.value,
-          content: event.target.result
+          content: event.target.result,
+          size: file.size // Track size for the UI
         });
       };
       reader.onerror = reject;
@@ -159,35 +202,11 @@ export default function CodeRefactor() {
     const newFiles = files.filter(f => f.id !== idToRemove);
     if (newFiles.length === 0) {
       const newId = crypto.randomUUID();
-      setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '' }]);
+      setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
       setActiveTabId(newId);
     } else {
       setFiles(newFiles);
       if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
-    }
-  };
-  
-  const handleRefactor = async () => {
-    if (files.every(f => !f.content.trim())) return;
-    setLoadingStage('analyzing');
-    setErrorMsg('');
-    
-    try {
-      setTimeout(() => setLoadingStage('optimizing'), 1500);
-      setTimeout(() => setLoadingStage('validating'), 3000);
-      
-      const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
-      const result = await convertCode('refactor', inputPayload, { mode: refactorMode, qualityMode });
-      
-      if (result && Array.isArray(result.files)) {
-        setOutputFiles(result.files);
-      } else {
-        setErrorMsg(result?.error || "Invalid format returned from the API.");
-      }
-    } catch (error) {
-      setErrorMsg("Failed to refactor code. Please check your connection.");
-    } finally {
-      setLoadingStage('idle');
     }
   };
   
@@ -196,28 +215,18 @@ export default function CodeRefactor() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = file.fileName || 'refactored-file.txt';
+    // Fallback cascade to ensure valid filename
+    link.download = file.fileName || file.name || 'refactored-file.js';
     link.click();
     URL.revokeObjectURL(url);
   };
   
   const downloadZip = async () => {
     const zip = new JSZip();
-    outputFiles.forEach(file => zip.file(sanitizeFilename(file.fileName || 'file.txt'), file.content));
+    outputFiles.forEach(file => zip.file(sanitizeFilename(file.fileName || file.name || 'file.txt'), file.content));
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, "refactored_project.zip");
   };
-  
-  const MemoizedOutputPanel = useMemo(() => (
-    <OutputPanel 
-      activeSourceFile={files.find(f => f.id === activeTabId)}
-      outputFiles={outputFiles}
-      viewMode={viewMode}
-      setViewMode={setViewMode}
-      loadingStage={loadingStage}
-      downloadSingleFile={downloadSingleFile}
-    />
-  ), [files, activeTabId, outputFiles, viewMode, loadingStage]);
   
   return (
     <div className="module-container">
@@ -252,7 +261,7 @@ export default function CodeRefactor() {
               <button 
                 className="secondary-button" 
                 onClick={() => {
-                  const newFile = { id: crypto.randomUUID(), name: 'new-file.js', language: 'javascript', content: '' };
+                  const newFile = { id: crypto.randomUUID(), name: 'new-file.js', language: 'javascript', content: '', size: 0 };
                   setFiles([...files, newFile]);
                   setActiveTabId(newFile.id);
                 }}
@@ -277,12 +286,17 @@ export default function CodeRefactor() {
           />
 
           <div className="editor-container">
-            <textarea
-              className="code-editor"
+             <Editor
               value={files.find(f => f.id === activeTabId)?.content || ''}
-              onChange={(e) => updateFile(activeTabId, e.target.value)}
+              onValueChange={(code) => updateFile(activeTabId, code)}
+              highlight={code => highlight(code, languages.javascript || languages.clike, 'javascript')}
+              padding={15}
+              className="code-editor"
               placeholder="Paste your code here..."
-              spellCheck="false"
+              style={{
+                fontFamily: '"Fira Code", "Courier New", monospace',
+                fontSize: 14,
+              }}
             />
           </div>
 
@@ -308,7 +322,14 @@ export default function CodeRefactor() {
             )}
           </div>
           
-          {MemoizedOutputPanel}
+          <OutputPanel 
+            activeSourceFile={files.find(f => f.id === activeTabId)}
+            outputFiles={outputFiles}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            loadingStage={loadingStage}
+            downloadSingleFile={downloadSingleFile}
+          />
         </div>
       </div>
     </div>

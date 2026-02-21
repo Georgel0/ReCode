@@ -1,32 +1,51 @@
+import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { REFACTOR_MODES } from './utils';
+import { REFACTOR_MODES, formatBytes } from './utils';
 
-export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => (
-  <nav role="tablist" className="tabs-container" aria-label="Open files">
-    {files.map(file => (
-      <div 
-        key={file.id} 
-        role="tab"
-        aria-selected={activeTabId === file.id}
-        tabIndex={0}
-        className={`tab-btn ${activeTabId === file.id ? 'active' : ''}`} 
-        onClick={() => setActiveTabId(file.id)}
-        onKeyDown={(e) => e.key === 'Enter' && setActiveTabId(file.id)}
-      >
-        <i className="fa-solid fa-file-code"></i>
-        <span className="tab-name">{file.name || 'untitled'}</span>
-        <button 
-          className="close-tab" 
-          aria-label={`Close ${file.name}`}
-          onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
+export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
+  // Arrow Key Navigation
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'ArrowRight') {
+      const next = files[(index + 1) % files.length];
+      setActiveTabId(next.id);
+    } else if (e.key === 'ArrowLeft') {
+      const prev = files[(index - 1 + files.length) % files.length];
+      setActiveTabId(prev.id);
+    } else if (e.key === 'Enter') {
+      setActiveTabId(files[index].id);
+    }
+  };
+  
+  return (
+    <nav role="tablist" className="tabs-container" aria-label="Open files">
+      {files.map((file, index) => (
+        <div 
+          key={file.id} 
+          role="tab"
+          aria-selected={activeTabId === file.id}
+          tabIndex={0}
+          className={`tab-btn ${activeTabId === file.id ? 'active' : ''}`} 
+          onClick={() => setActiveTabId(file.id)}
+          onKeyDown={(e) => handleKeyDown(e, index)}
         >
-          <i className="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-    ))}
-  </nav>
-);
+          <i className="fa-solid fa-file-code"></i>
+          <span className="tab-name">
+             {file.name || 'untitled'}
+             {file.size > 0 && <small className="file-size-badge"> ({formatBytes(file.size)})</small>}
+          </span>
+          <button 
+            className="close-tab" 
+            aria-label={`Close ${file.name}`}
+            onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
+          >
+            <i className="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      ))}
+    </nav>
+  );
+};
 
 export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode }) => (
   <div className="refactor-options">
@@ -49,8 +68,20 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
   </div>
 );
 
-export const OutputPanel = ({ activeSourceFile, outputFiles, viewMode, setViewMode, downloadSingleFile }) => {
-  const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id);
+export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode, setViewMode, downloadSingleFile, loadingStage }) => {
+  // Broadened match criteria in case API drops sourceId
+  const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
+  
+  if (loadingStage !== 'idle') {
+    return (
+      <div className="placeholder-container-inner">
+        <div className="empty-state" aria-live="polite">
+          <i className="fa-solid fa-wand-magic-sparkles fa-bounce"></i>
+          <span>{loadingStage === 'analyzing' ? 'Analyzing code...' : loadingStage === 'optimizing' ? 'Applying optimizations...' : 'Validating changes...'}</span>
+        </div>
+      </div>
+    );
+  }
   
   if (!activeOutput) return (
     <div className="placeholder-container-inner">
@@ -105,4 +136,4 @@ export const OutputPanel = ({ activeSourceFile, outputFiles, viewMode, setViewMo
       </div>
     </div>
   );
-};
+});

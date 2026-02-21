@@ -2,7 +2,7 @@ import { auth, initializeAuth } from '@/lib/firebase';
 
 export const convertCode = async (type, input, arg3 = '', arg4 = '', arg5 = 'fast') => {
   let lastError;
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 2;
 
   let sourceLang = '';
   let targetLang = '';
