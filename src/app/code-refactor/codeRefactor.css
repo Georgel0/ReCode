@@ -192,6 +192,24 @@
   animation: pulse-border 2s infinite;
 }
 
+.code-editor textarea, 
+.code-editor pre {
+  margin: 0 !important;
+  padding: 15px !important; 
+  tab-size: 2;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+}
+
+.code-editor textarea {
+  outline: none;
+}
+
+.code-editor textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
 @media (max-width: 768px) {
   .split-view {
     grid-template-columns: 1fr;

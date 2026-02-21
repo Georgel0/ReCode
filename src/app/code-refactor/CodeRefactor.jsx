@@ -65,19 +65,6 @@ export default function CodeRefactor() {
     }
   }, [outputFiles, files, refactorMode, qualityMode]);
   
-  useEffect(() => {
-    const draft = localStorage.getItem('refactorDraft');
-    if (draft) {
-      if (window.confirm("Continue from your previous unsaved draft?")) {
-        const parsedDraft = JSON.parse(draft);
-        setFiles(parsedDraft);
-        setActiveTabId(parsedDraft[0]?.id);
-      } else {
-        localStorage.removeItem('refactorDraft');
-      }
-    }
-  }, []);
-  
   const saveDraft = useCallback(
     debounce(async (currentFiles) => {
       if (currentFiles.some(f => f.content.trim())) {
@@ -95,12 +82,21 @@ export default function CodeRefactor() {
   );
   
   useEffect(() => {
-    // Loading the draft on mount
     const loadDraft = async () => {
-      const saved = await get('refactor-draft-files');
-      if (saved && window.confirm("Continue from your previous draft?")) {
-        setFiles(saved);
-        setActiveTabId(saved[0]?.id);
+      try {
+        const saved = await get('refactor-draft-files');
+        // Added a check to ensure 'saved' actually has content
+        if (saved && saved.length > 0 && saved.some(f => f.content.trim())) {
+          if (window.confirm("Continue from your previous draft?")) {
+            setFiles(saved);
+            setActiveTabId(saved[0]?.id);
+          } else {
+            // If the user say no, clear the draft so it doesn't keep asking
+            await set('refactor-draft-files', null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load IndexedDB draft", err);
       }
     };
     loadDraft();
@@ -242,6 +238,9 @@ export default function CodeRefactor() {
     saveAs(content, "refactored_project.zip");
   };
   
+  const activeFile = files.find(f => f.id === activeTabId);
+  const currentLang = activeFile?.language === 'python' ? languages.python : languages.javascript;
+  
   return (
     <div className="module-container">
       <ModuleHeader 
@@ -303,7 +302,7 @@ export default function CodeRefactor() {
              <Editor
               value={files.find(f => f.id === activeTabId)?.content || ''}
               onValueChange={(code) => updateFile(activeTabId, code)}
-              highlight={code => highlight(code, languages.javascript || languages.clike, 'javascript')}
+              highlight={code => highlight(code, currentLang || languages.clike, activeFile?.language || 'javascript')}
               padding={15}
               className="code-editor"
               placeholder="Paste your code here..."

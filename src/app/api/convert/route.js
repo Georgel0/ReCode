@@ -5,6 +5,11 @@ import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
+/**
+ * Extracts JSON from a text string using multiple fallback strategies.
+ * @param {string} text - The input text potentially containing JSON.
+ * @returns {object|null} - The parsed JSON object or null if parsing fails.
+ */
 function extractJson(text) {
   if (!text) return null;
   
@@ -46,6 +51,11 @@ function extractJson(text) {
   }
 }
 
+/**
+ * Retrieves and parses the Firebase service account credentials from environment variables.
+ * Supports both direct JSON and Base64-encoded JSON formats.
+ * @returns {object|null} - The parsed service account object or null if parsing fails.
+ */
 function getServiceAccount() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) return null;
@@ -81,6 +91,10 @@ if (!admin.apps.length) {
   }
 }
 
+/**
+ * Creates a provider registry for AI models with configured API keys.
+ * @type {import('ai').ProviderRegistry}
+ */
 const registry = createProviderRegistry({
   gateway: createOpenAI({
     baseURL: 'https://ai-gateway.vercel.sh/v1',
@@ -91,6 +105,11 @@ const registry = createProviderRegistry({
   }),
 });
 
+/**
+ * Handles POST requests for code conversion operations.
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} - The response containing converted code or error.
+ */
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -106,6 +125,10 @@ export async function POST(request) {
     const systemPrompt = config.system({ sourceLang, targetLang, mode });
     const userPrompt = config.user(input);
     
+    /**
+     * Determines the model ID based on the quality mode.
+     * @type {string}
+     */
     let modelId = '';
     if (qualityMode === 'quality') {
       modelId = 'gateway:deepseek/deepseek-v3.2-thinking';
