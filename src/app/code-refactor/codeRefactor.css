@@ -87,7 +87,7 @@
 .pane-header {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-bottom: 0.75rem;
+  margin: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
