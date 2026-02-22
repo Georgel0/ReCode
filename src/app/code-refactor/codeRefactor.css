@@ -160,7 +160,6 @@
 
 .tab-btn.active {
   border-bottom: 2px solid var(--accent);
-  background-color: var(--bg-secondary);
 }
 
 .code-editor {
