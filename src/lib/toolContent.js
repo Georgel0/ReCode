@@ -1,3 +1,5 @@
+/* Each tool has a footer, we store its data here so we dont have to hardcode anything in each tool. */
+
 export const toolsContent = [
 {
  slug: 'code-analysis',
@@ -122,6 +124,7 @@ export const toolsContent = [
  ]
 }];
 
+/** @returns {Object|null} */
 export const getToolContent = (slug) => {
  return toolsContent.find(tool => tool.slug === slug) || null;
 };

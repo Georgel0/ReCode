@@ -1,3 +1,8 @@
+/**
+ * FIREBASE CONFIGURATION & INITIALIZATION
+ * * Handles connection to Firebase services (Auth, Firestore).
+ * Uses a singleton pattern to prevent re-initialization in environments like Next.js where Hot Module Replacement (HMR) occurs.
+ */
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getAuth,
@@ -30,18 +35,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
+// Singleton: Initialize Firebase only if an instance doesn't already exist
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Gets the reference to the current user's history collection
+/**
+ * HELPER: Gets a reference to the 'history' sub-collection for the current user.
+ * Pattern: users/{uid}/history
+ * @returns {CollectionReference|null}
+ */
 const getHistoryRef = () => {
   if (!auth.currentUser) return null;
   return collection(db, "users", auth.currentUser.uid, "history");
 };
 
-// Handle Firestore's 500-document limit for batches
+/**
+ * UTILITY: Handles Firestore's 500-operation limit for write batches.
+ * Splits an array of documents into chunks and commits them sequentially.
+ * @param {QueryDocumentSnapshot[]} docs - Array of documents to delete.
+ */
 const commitBatchInChunks = async (docs) => {
   const CHUNK_SIZE = 500;
   for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
@@ -52,19 +66,25 @@ const commitBatchInChunks = async (docs) => {
   }
 };
 
+/**
+ * Real-time listener for the user's history.
+ * 1. Waits for Authentication state.
+ * 2. Sets up a Firestore snapshot listener.
+ * 3. Handles cleanup of both listeners to prevent memory leaks.
+ * @param {Function} callback - Function called with the updated list of items.
+ * @returns {Function} Cleanup function to unsubscribe.
+ */
 export const subscribeToHistory = (callback) => {
   let unsubscribeSnapshot = null;
   
-  // Listen for the Auth state to change (Wait for user login)
   const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-    // Clean up any previous listener if the user changes
+    // Kill the previous Firestore listener if the user ID changed
     if (unsubscribeSnapshot) {
       unsubscribeSnapshot();
       unsubscribeSnapshot = null;
     }
     
     if (user) {
-      // User is now logged in, Set up the Firestore listener
       const historyRef = collection(db, "users", user.uid, "history");
       const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
       
@@ -78,18 +98,21 @@ export const subscribeToHistory = (callback) => {
         console.error("Error subscribing to history:", error);
       });
     } else {
-      // User is not logged in, clear the list
-      callback([]);
+      callback([]); // Reset UI if logged out
     }
   });
   
-  // Return a cleanup function that handles both Auth and Firestore listeners
   return () => {
     if (unsubscribeSnapshot) unsubscribeSnapshot();
     unsubscribeAuth();
   };
 };
 
+/**
+ * Ensures the user is authenticated. 
+ * If no user exists, it performs an anonymous sign-in.
+ * @returns {Promise<User>}
+ */
 export const initializeAuth = () => {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, (user) => {
@@ -106,6 +129,7 @@ export const initializeAuth = () => {
     });
   });
 };
+
 
 export const cleanupOldHistory = async () => {
   const historyRef = getHistoryRef();
@@ -127,6 +151,7 @@ export const cleanupOldHistory = async () => {
   }
 };
 
+
 export const clearAllHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
@@ -143,6 +168,7 @@ export const clearAllHistory = async () => {
   }
 };
 
+
 export const deleteHistoryItem = async (docId) => {
   if (!auth.currentUser) return;
   try {
@@ -154,6 +180,14 @@ export const deleteHistoryItem = async (docId) => {
   }
 };
 
+/**
+ * Saves a new interaction to the database.
+ * @param {string} type - The category of history (e.g., 'analysis', 'generation').
+ * @param {string} input - User input.
+ * @param {string} output - System response.
+ * @param {string} [sourceLang] - Optional source language code.
+ * @param {string} [targetLang] - Optional target language code.
+ */
 export const saveHistory = async (type, input, output, sourceLang = null, targetLang = null) => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
@@ -163,7 +197,7 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
       type,
       input,
       fullOutput: output,
-      createdAt: serverTimestamp(),
+      createdAt: serverTimestamp(), // Use server time for consistency
       ...(sourceLang && { sourceLang }),
       ...(targetLang && { targetLang })
     };
@@ -173,6 +207,7 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
     console.error("Error adding document: ", e);
   }
 };
+
 
 export const getHistory = async () => {
   const historyRef = getHistoryRef();

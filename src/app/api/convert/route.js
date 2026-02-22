@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Next.js API route for AI-powered code conversion and generation.
+ * Utilizes the AI SDK to route requests to various LLMs 
+ * based on the requested quality mode and following a strict schema from '@/lib/prompts.js'. Integrates with Firebase Admin for auth/logging.
+ */
+
 import { NextResponse } from 'next/server';
 import admin from "firebase-admin";
 import { createOpenAI } from '@ai-sdk/openai';
@@ -6,9 +12,8 @@ import { generateText, generateObject, experimental_createProviderRegistry as cr
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
 /**
- * Extracts JSON from a text string using multiple fallback strategies.
- * @param {string} text - The input text potentially containing JSON.
- * @returns {object|null} - The parsed JSON object or null if parsing fails.
+ * Robust JSON extraction from LLM strings. 
+ * Strategy: Delimiters -> JSON.parse -> Markdown Strip -> Bracket Heuristics.
  */
 function extractJson(text) {
   if (!text) return null;
@@ -73,7 +78,7 @@ function getServiceAccount() {
   }
 }
 
-// Firebase Initialization
+// Firebase Initialization. Initialized in the global scope to persist the connection across serverless cold starts.
 if (!admin.apps.length) {
   const serviceAccount = getServiceAccount();
   
@@ -106,12 +111,25 @@ const registry = createProviderRegistry({
 });
 
 /**
+ * @typedef {Object} CodeConversionRequest
+ * @property {string} type - The type of operation (must match a key in PROMPT_CONFIG).
+ * @property {string} input - The raw source code to be processed.
+ * @property {string} [sourceLang] - The programming language of the input code.
+ * @property {string} [targetLang] - The programming language to convert to.
+ * @property {string} [mode] - Specific processing mode (e.g., 'explain', 'refactor').
+ * @property {'quality'|'fast'|'turbo'} qualityMode - Determines the AI model used.
+ */
+
+/**
  * Handles POST requests for code conversion operations.
  * @param {Request} request - The incoming request object.
- * @returns {Promise<NextResponse>} - The response containing converted code or error.
+ * @returns {Promise<NextResponse>} - Returns status 200 with the converted JSON data/code, 
+ * status 400 for bad input, or 500 for server errors.
  */
 export async function POST(request) {
   try {
+    /** @type {CodeConversionRequest} */
+    
     const body = await request.json();
     const { type, input, sourceLang, targetLang, mode, qualityMode } = body;
     
@@ -125,10 +143,7 @@ export async function POST(request) {
     const systemPrompt = config.system({ sourceLang, targetLang, mode });
     const userPrompt = config.user(input);
     
-    /**
-     * Determines the model ID based on the quality mode.
-     * @type {string}
-     */
+    
     let modelId = '';
     if (qualityMode === 'quality') {
       modelId = 'gateway:deepseek/deepseek-v3.2-thinking';

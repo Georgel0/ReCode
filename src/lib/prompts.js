@@ -1,5 +1,19 @@
+/**
+ * @fileoverview AI Prompt Configuration & Schema Registry.
+ * * This module defines the system personas, prompt templates, and Zod validation 
+ * schemas for all AI-driven features in the application. It ensures type-safety 
+ * between the LLM outputs and the application UI.
+ * * @module lib/prompts
+ */
+
 import { z } from 'zod';
 
+/**
+ * Zod schemas defining the expected JSON structure from the AI.
+ * These are used by `generateObject` for structured output and 
+ * by `extractJson` for fallback parsing.
+ * * @type {Object.<string, import('zod').ZodObject>}
+ */
 export const OUTPUT_SCHEMAS = {
   json: z.object({
     formattedJson: z.string().describe("The fixed and valid JSON string"),
@@ -56,6 +70,13 @@ export const OUTPUT_SCHEMAS = {
   })
 };
 
+
+/**
+ * Enhances a base system prompt with strict JSON output instructions.
+ * * @param {string} basePrompt - The persona and task instructions.
+ * @param {string} schemaDesc - A string representation of the JSON schema for the AI to follow.
+ * @returns {string} The complete system prompt with boundary tags and formatting rules.
+ */
 const withSchema = (basePrompt, schemaDesc) => {
   return `${basePrompt}
   
@@ -71,6 +92,17 @@ const withSchema = (basePrompt, schemaDesc) => {
   5. Escape all double quotes inside string values.`
 };
 
+
+/**
+ * Configuration registry for all AI tasks.
+ * Each key represents an operation 'type' sent from the client.
+ * * @typedef {Object} TaskConfig
+ * @property {Function} system - Generates the system prompt. Receives a context object {sourceLang, targetLang, mode}.
+ * @property {Function} user - Generates the user prompt based on the code input.
+ * @property {'object'|'text'} responseType - Determines if the AI should return structured JSON or raw text.
+ * @property {import('zod').ZodSchema} [schema] - The Zod schema for validation (required if responseType is 'object').
+ */
+/** @type {Object.<string, TaskConfig>} */
 export const PROMPT_CONFIG = {
   json: {
     system: () => withSchema(
