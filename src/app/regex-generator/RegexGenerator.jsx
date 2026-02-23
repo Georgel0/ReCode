@@ -385,7 +385,7 @@ export default function RegexGenerator() {
      <div className="selector-card regex-test-bench">
       <div className="panel-header-row" style={{marginBottom: '10px'}}>
        <div className="selector-name"><i className="fa-solid fa-vial"></i> 
-        Test Cases 
+         Test Cases 
         <button className="info-trigger" onClick={() => setShowTestInfo(true)}><i className="fas fa-circle-info"></i></button>
        </div>
        <button className="icon-btn" onClick={addTestCase} title="Add Test Case">

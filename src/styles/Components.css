@@ -776,14 +776,14 @@ select option {
 .info-trigger {
   background: transparent;
   border: none;
-  color: var(--lp-blue-glow);
+  color: var(--accent-hover);
   cursor: pointer;
   transition: color 0.2s;
   font-size: 1.1rem;
 }
 
 .info-trigger:hover {
-  color: var(--lp-blue);
+  color: var(--text-on-accent);
 }
 
 
