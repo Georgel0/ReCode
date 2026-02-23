@@ -266,8 +266,8 @@ export default function RegexGenerator() {
       <p>Type example text in the center. Matches are highlighted in real-time.</p>
       <strong><i className="fa-solid fa-square-poll-vertical"></i> Read the Verdict (Right Icon)</strong>
       <ul>
-        <li><i className="fa-solid fa-check"></i> <b>Success:</b> The regex performed as expected.</li>
-        <li><i className="fa-solid fa-xmark"></i> <b>Fail:</b> Unexpected match or miss.</li>
+       <li><i className="fa-solid fa-check"></i> <b>Success:</b> The regex performed as expected.</li>
+       <li><i className="fa-solid fa-xmark"></i> <b>Fail:</b> Unexpected match or miss.</li>
       </ul>
       <div className="regex-status-neutral">
        <i className="fa-solid fa-triangle-exclamation"></i>
@@ -384,8 +384,8 @@ export default function RegexGenerator() {
 
      <div className="selector-card regex-test-bench">
       <div className="panel-header-row" style={{marginBottom: '10px'}}>
-       <div className="selector-name"><i className="fa-solid fa-vial"></i> 
-         Test Cases 
+       <div className="selector-name"><i className="fa-solid fa-vial"> </i> 
+          Test Cases 
         <button className="info-trigger" onClick={() => setShowTestInfo(true)}><i className="fas fa-circle-info"></i></button>
        </div>
        <button className="icon-btn" onClick={addTestCase} title="Add Test Case">

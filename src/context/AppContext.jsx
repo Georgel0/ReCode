@@ -5,8 +5,11 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [qualityMode, setQualityMode] = useState('fast');
   const [moduleData, setModuleData] = useState(null);
+  
+  const [qualityMode, setQualityMode] = useState(() => {
+    return localStorage.getItem("recode_quality_mode") || "fast";
+  });
   
   useEffect(() => {
     localStorage.setItem('recode_quality_mode', qualityMode);
