@@ -75,7 +75,7 @@ export const toolsContent = [
  ],
  faq: [
   { question: 'Does it support inline styles?', answer: 'Yes, you can paste HTML with inline styles and it will extract and convert them.' },
-  { question: 'Is the Tailwind output customizable?', answer: 'The tool uses standard Tailwind v3 defaults for mapping classes.' }
+  { question: 'Is the Tailwind output customizable?', answer: 'The tool uses standard Tailwind v3 defaults for mapping classes. You can also set context for the AI for special requests.' }
  ]
 },
 {
