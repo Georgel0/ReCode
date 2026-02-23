@@ -5,7 +5,7 @@ import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 
-import 'regexGenerator.css';
+import './regexGenerator.css';
 
 const CHEATSHEET = {
  "Anchors": [
