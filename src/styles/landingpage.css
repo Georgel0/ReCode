@@ -282,19 +282,6 @@ body {
   font-size: 1.2rem;
 }
 
-.info-trigger {
-  background: transparent;
-  border: none;
-  color: var(--lp-blue-glow);
-  cursor: pointer;
-  transition: color 0.2s;
-  font-size: 1.1rem;
-}
-
-.info-trigger:hover {
-  color: var(--lp-blue);
-}
-
 .lp-card h3 {
   font-size: 1.2rem;
   font-weight: 700;

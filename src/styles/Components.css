@@ -773,6 +773,19 @@ select option {
   font-weight: 500;
 }
 
+.info-trigger {
+  background: transparent;
+  border: none;
+  color: var(--lp-blue-glow);
+  cursor: pointer;
+  transition: color 0.2s;
+  font-size: 1.1rem;
+}
+
+.info-trigger:hover {
+  color: var(--lp-blue);
+}
+
 
 @keyframes glint {
   to {

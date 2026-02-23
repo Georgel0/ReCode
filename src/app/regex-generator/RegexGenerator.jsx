@@ -75,6 +75,7 @@ export default function RegexGenerator() {
  const [loading, setLoading] = useState(false);
  const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [showCheatsheet, setShowCheatsheet] = useState(false);
+ const [showTestInfo, setShowTestInfo] = useState(false);
  const [lastResult, setLastResult] = useState(null);
  
  useEffect(() => {
@@ -249,6 +250,34 @@ export default function RegexGenerator() {
     </div>
    </div>
   )}
+  
+  {showTestInfo && (
+   <div className="modal-overlay" onClick={() => setShowTestInfo(false)}>
+    <div className="modal-content" onClick={e => e.stopPropagation()}>
+     <h3>Test Cases Info</h3>
+     <div className="ext-grid">
+      <strong><i className="fa-solid fa-toggle-on"></i> Set Your Goal (Left Icon)</strong>
+      <p>Toggle to define what should happen:</p>
+      <ul>
+       <li><i className="fa-solid fa-check"></i> <b>Match:</b> The string must match the regex.</li>
+       <li><i className="fa-solid fa-ban"></i> <b>Ban:</b> The string must not match.</li>
+      </ul>
+      <strong><i className="fa-solid fa-keyboard"></i> Input Test Strings</strong>
+      <p>Type example text in the center. Matches are highlighted in real-time.</p>
+      <strong><i className="fa-solid fa-square-poll-vertical"></i> Read the Verdict (Right Icon)</strong>
+      <ul>
+        <li><i className="fa-solid fa-check"></i> <b>Success:</b> The regex performed as expected.</li>
+        <li><i className="fa-solid fa-xmark"></i> <b>Fail:</b> Unexpected match or miss.</li>
+      </ul>
+      <div className="regex-status-neutral">
+       <i className="fa-solid fa-triangle-exclamation"></i>
+       <strong> Note:</strong> Testing runs in-browser (JS). Python/PCRE tokens may show errors here even if valid for the target engine.
+      </div>
+     </div>
+      <button className="secondary-button modal-close-btn" onClick={() => setShowTestInfo(false)}>Close</button>
+    </div>
+   </div>
+  )}
 
   <div className="converter-grid">
    <div className="panel">
@@ -355,11 +384,14 @@ export default function RegexGenerator() {
 
      <div className="selector-card regex-test-bench">
       <div className="panel-header-row" style={{marginBottom: '10px'}}>
-       <div className="selector-name"><i className="fa-solid fa-vial"></i> Test Cases</div>
-        <button className="icon-btn" onClick={addTestCase} title="Add Test Case">
-         <i className="fa-solid fa-plus"></i>
-        </button>
+       <div className="selector-name"><i className="fa-solid fa-vial"></i> 
+        Test Cases 
+        <button className="info-trigger" onClick={() => setShowTestInfo(true)}><i className="fas fa-circle-info"></i></button>
        </div>
+       <button className="icon-btn" onClick={addTestCase} title="Add Test Case">
+        <i className="fa-solid fa-plus"></i>
+       </button>
+      </div>
 
        <div className="test-cases-list">
         {testCases.map((test) => {
