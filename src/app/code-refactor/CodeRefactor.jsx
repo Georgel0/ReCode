@@ -43,7 +43,11 @@ export default function CodeRefactor() {
         const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
         const savedOutput = typeof moduleData.fullOutput === 'string' ? JSON.parse(moduleData.fullOutput) : moduleData.fullOutput;
         
-        if (savedInputs) setFiles(savedInputs);
+        if (savedInputs && savedInputs.length > 0) {
+          setFiles(savedInputs);
+          setActiveTabId(savedInputs[0].id);
+        }
+        
         if (savedOutput) setOutputFiles(savedOutput);
         if (moduleData.refactorMode) setRefactorMode(moduleData.refactorMode);
       } catch (e) {
@@ -66,11 +70,10 @@ export default function CodeRefactor() {
   }, [outputFiles, files, refactorMode]);
   
   const saveDraft = useCallback(
-    debounce(async (currentFiles) => {
-      if (currentFiles.some(f => f.content.trim())) {
+    debounce(async (draftData) => {
+      if (draftData.files.some(f => f.content.trim())) {
         try {
-          // Store the array directly as an object
-          await set('refactor-draft-files', currentFiles);
+          await set('refactor-draft-data', draftData);
           setStorageWarning(false);
         } catch (e) {
           console.error("IndexedDB Error:", e);
@@ -84,15 +87,18 @@ export default function CodeRefactor() {
   useEffect(() => {
     const loadDraft = async () => {
       try {
-        const saved = await get('refactor-draft-files');
-        // Check to ensure 'saved' actually has content
-        if (saved && saved.length > 0 && saved.some(f => f.content.trim())) {
+        const saved = await get('refactor-draft-data');
+        
+        if (saved && saved.files && saved.files.length > 0 && saved.files.some(f => f.content.trim())) {
           if (window.confirm("Continue from your previous draft?")) {
-            setFiles(saved);
-            setActiveTabId(saved[0]?.id);
+            setFiles(saved.files);
+            setActiveTabId(saved.files[0]?.id);
+            
+            if (saved.outputFiles && saved.outputFiles.length > 0) {
+              setOutputFiles(saved.outputFiles);
+            }
           } else {
-            // If the user say no, clear the draft so it doesn't keep asking
-            await set('refactor-draft-files', null);
+            await set('refactor-draft-data', null);
           }
         }
       } catch (err) {
@@ -103,9 +109,9 @@ export default function CodeRefactor() {
   }, []);
   
   useEffect(() => {
-    saveDraft(files);
+    saveDraft({ files, outputFiles });
     return () => saveDraft.cancel();
-  }, [files, saveDraft]);
+  }, [files, outputFiles, saveDraft]);
   
   useEffect(() => {
     const activeFile = files.find(f => f.id === activeTabId);
