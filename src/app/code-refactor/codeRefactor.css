@@ -209,6 +209,13 @@
   opacity: 0.5;
 }
 
+.editor-toolbar {
+  display: flex; 
+  justify-content: flex-end; 
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
 @media (max-width: 768px) {
   .split-view {
     grid-template-columns: 1fr;

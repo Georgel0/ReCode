@@ -132,14 +132,15 @@ export const PROMPT_CONFIG = {
       
       return withSchema(
         `You are a Principal Software Architect. 
-        Your Task: Refactor the provided project source code.
-        Focus Mode: ${goals[mode]}
-        
-        Guidelines:
-        - Input format: An array of objects containing { "sourceId": ID, "name": string, "content": string }.
-        - CRITICAL: Every file in the output MUST include the exact "sourceId" provided in the input. This is used to map files back to the UI.
-        - Dependency Awareness: If you rename a file or an exported member in one file, you MUST update the corresponding imports in all other files in the set.
-        - Preserve logic parity unless specifically optimizing for Performance mode.`,
+          Your Task: Refactor the provided project source code.
+          Focus Mode: ${goals[mode]}
+          
+          Guidelines:
+          - Input format: An array of objects containing { "sourceId": ID, "name": string, "content": string }.
+          - LANGUAGE INTEGRITY: You MUST maintain the original programming language of each file based on its file extension (e.g., .c stays C, .py stays Python). Do NOT translate between languages.
+          - CRITICAL: Every file in the output MUST include the exact "sourceId" provided in the input.
+          - Dependency Awareness: If you rename a file or an exported member, update imports across the set.
+          - Preserve logic parity unless specifically optimizing for Performance mode.`,
         `{ "files": [ { "sourceId": "string/number", "fileName": "string", "content": "string" } ] }`
       );
     },

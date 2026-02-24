@@ -15,6 +15,10 @@ import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-csharp';
+import 'prismjs/components/prism-java';
 
 import { get, set } from 'idb-keyval';
 
@@ -62,12 +66,12 @@ export default function CodeRefactor() {
       setLastResult({
         type: "code-refactor",
         input: JSON.stringify(files),
-        fullOutput: outputFiles,
+        output: outputFiles,
         refactorMode,
         qualityMode
       });
     }
-  }, [outputFiles, files, refactorMode]);
+  }, [outputFiles, files, refactorMode, qualityMode]);
   
   const saveDraft = useCallback(
     debounce(async (draftData) => {
@@ -147,6 +151,25 @@ export default function CodeRefactor() {
     }
   };
   
+  const handleLanguageChange = (id, newLangValue) => {
+    const selectedLang = LANGUAGES.find(l => l.value === newLangValue);
+    if (!selectedLang) return;
+    
+    setFiles(prev => prev.map(f => {
+      if (f.id === id) {
+        const nameWithoutExt = f.name.includes('.') ?
+          f.name.substring(0, f.name.lastIndexOf('.')) : f.name;
+        
+        return {
+          ...f,
+          language: selectedLang.value,
+          name: `${nameWithoutExt}${selectedLang.ext}`
+        }
+      };
+      return f;
+    }));
+  };
+  
   const handleKeyDown = useCallback((e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -154,7 +177,7 @@ export default function CodeRefactor() {
     }
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      saveDraft(files); // Manual save override
+      saveDraft(files, outputFiles);
     }
   }, [files, refactorMode, handleRefactor, saveDraft]);
   
@@ -248,7 +271,12 @@ export default function CodeRefactor() {
   };
   
   const activeFile = files.find(f => f.id === activeTabId);
-  const currentLang = activeFile?.language === 'python' ? languages.python : languages.javascript;
+  
+  const getEditorLanguage = (lang) => {
+    if (languages[lang]) return languages[lang];
+    if (lang === 'c' || lang === 'cpp') return languages.clike; // Fallback
+    return languages.javascript;
+  };
   
   return (
     <div className="module-container">
@@ -283,11 +311,12 @@ export default function CodeRefactor() {
               <button 
                 className="secondary-button" 
                 onClick={() => {
-                  const newFile = { id: crypto.randomUUID(), name: 'new-file.js', language: 'javascript', content: '', size: 0 };
+                  const currentExt = activeFile?.language ? LANGUAGES.find(l => l.value === activeFile.language)?.ext : '.js';
+                  const currentLang = activeFile?.language || 'javascript';
+                  const newFile = { id: crypto.randomUUID(), name: `new-file${currentExt}`, language: currentLang, content: '', size: 0 };
                   setFiles([...files, newFile]);
                   setActiveTabId(newFile.id);
-                }}
-              >
+                }} >
                 <i className="fa-solid fa-plus"></i> Add File
               </button>
             </div>
@@ -308,10 +337,21 @@ export default function CodeRefactor() {
           />
 
           <div className="editor-container">
-             <Editor
-              value={files.find(f => f.id === activeTabId)?.content || ''}
+            
+            <div className="editor-toolbar">
+              <select 
+                value={activeFile?.language || 'javascript'} 
+                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)} >
+                {LANGUAGES.map(lang => (
+                  <option key={lang.value} value={lang.value}>{lang.label}</option>
+                ))}
+              </select>
+            </div>
+            
+            <Editor
+              value={activeFile?.content || ''}
               onValueChange={(code) => updateFile(activeTabId, code)}
-              highlight={code => highlight(code, currentLang || languages.clike, activeFile?.language || 'javascript')}
+              highlight={code => highlight(code, getEditorLanguage(activeFile?.language), activeFile?.language || 'javascript')}
               padding={15}
               className="code-editor"
               placeholder="Paste your code here..."
