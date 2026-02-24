@@ -197,7 +197,7 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
       type,
       input,
       fullOutput: output,
-      createdAt: serverTimestamp(), // Use server time for consistency
+      createdAt: serverTimestamp(),
       ...(sourceLang && { sourceLang }),
       ...(targetLang && { targetLang })
     };
