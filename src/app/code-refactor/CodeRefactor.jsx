@@ -64,7 +64,7 @@ export default function CodeRefactor() {
   useEffect(() => {
     if (outputFiles.length > 0 && !isRestoring.current) {
       setLastResult({
-        type: "code-refactor",
+        type: "refactor",
         input: JSON.stringify(files),
         output: outputFiles,
         refactorMode,
