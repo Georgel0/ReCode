@@ -41,7 +41,7 @@ export default function CodeRefactor() {
   const isRestoring = useRef(false);
   
   useEffect(() => {
-    if (moduleData && moduleData.type === "code-refactor") {
+    if (moduleData && moduleData.type === "refactor") {
       isRestoring.current = true;
       try {
         const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
@@ -328,6 +328,16 @@ export default function CodeRefactor() {
             setRefactorMode={setRefactorMode} 
             suggestedMode={suggestedMode} 
           />
+          
+           <div className="editor-toolbar">
+            <select 
+              value={activeFile?.language || 'javascript'} 
+              onChange={(e) => handleLanguageChange(activeTabId, e.target.value)} >
+              {LANGUAGES.map(lang => (
+                <option key={lang.value} value={lang.value}>{lang.label}</option>
+              ))}
+            </select>
+          </div>
 
           <FileTabs 
             files={files} 
@@ -337,17 +347,6 @@ export default function CodeRefactor() {
           />
 
           <div className="editor-container">
-            
-            <div className="editor-toolbar">
-              <select 
-                value={activeFile?.language || 'javascript'} 
-                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)} >
-                {LANGUAGES.map(lang => (
-                  <option key={lang.value} value={lang.value}>{lang.label}</option>
-                ))}
-              </select>
-            </div>
-            
             <Editor
               value={activeFile?.content || ''}
               onValueChange={(code) => updateFile(activeTabId, code)}
