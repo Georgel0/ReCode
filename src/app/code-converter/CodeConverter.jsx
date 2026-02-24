@@ -188,7 +188,7 @@ export default function CodeConverter() {
           />
 
           <div className="action-row">
-            <button className="primary-button action-btn" onClick={handleConvert} disabled={loading || !input.trim()}>
+            <button className="primary-button" onClick={handleConvert} disabled={loading || !input.trim()}>
               {loading ? (
                  <><i className="fa-solid fa-spinner fa-spin"></i> Converting...</>
               ) : (

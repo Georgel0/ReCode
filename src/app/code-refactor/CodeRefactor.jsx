@@ -41,7 +41,7 @@ export default function CodeRefactor() {
       isRestoring.current = true;
       try {
         const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
-        const savedOutput = typeof moduleData.output === 'string' ? JSON.parse(moduleData.output) : moduleData.output;
+        const savedOutput = typeof moduleData.fullOutput === 'string' ? JSON.parse(moduleData.fullOutput) : moduleData.fullOutput;
         
         if (savedInputs) setFiles(savedInputs);
         if (savedOutput) setOutputFiles(savedOutput);
@@ -58,12 +58,12 @@ export default function CodeRefactor() {
       setLastResult({
         type: "code-refactor",
         input: JSON.stringify(files),
-        output: outputFiles,
+        fullOutput: outputFiles,
         refactorMode,
         qualityMode
       });
     }
-  }, [outputFiles, files, refactorMode, qualityMode]);
+  }, [outputFiles, files, refactorMode]);
   
   const saveDraft = useCallback(
     debounce(async (currentFiles) => {
@@ -85,7 +85,7 @@ export default function CodeRefactor() {
     const loadDraft = async () => {
       try {
         const saved = await get('refactor-draft-files');
-        // Added a check to ensure 'saved' actually has content
+        // Check to ensure 'saved' actually has content
         if (saved && saved.length > 0 && saved.some(f => f.content.trim())) {
           if (window.confirm("Continue from your previous draft?")) {
             setFiles(saved);
@@ -174,9 +174,12 @@ export default function CodeRefactor() {
     
     const newFilesPromises = validFiles.map(file => new Promise((resolve, reject) => {
       const reader = new FileReader();
+      
       reader.onload = (event) => {
         const name = sanitizeFilename(file.name);
+        
         const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+        
         const matchedLang = LANGUAGES.find(l => l.ext === ext) || LANGUAGES.find(l => l.value === 'plaintext');
         
         resolve({
