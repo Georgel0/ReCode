@@ -12,6 +12,7 @@ import { FileTabs, RefactorControls, OutputPanel } from './components';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css'; 
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
