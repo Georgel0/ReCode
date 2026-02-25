@@ -3,6 +3,9 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { REFACTOR_MODES, formatBytes } from './utils';
 
+import { diffLines } from 'diff';
+import ReactDiffViewer from 'react-diff-viewer-continued';
+
 export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
   // Arrow Key Navigation
   const handleKeyDown = (e, index) => {
@@ -69,9 +72,9 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
 );
 
 export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode, setViewMode, downloadSingleFile, loadingStage }) => {
-  // Broadened match criteria in case API drops sourceId
   const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
   
+  // 1. Safety Checks First
   if (loadingStage !== 'idle') {
     return (
       <div className="placeholder-container-inner">
@@ -109,21 +112,42 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
         </button>
       </div>
 
-      <div className={`highlighter-wrapper ${viewMode === 'split' ? 'split-view' : ''}`}>
-        {viewMode === 'split' && (
-          <div className="split-pane original-pane">
-            <div className="pane-header"><i className="fa-solid fa-clock-rotate-left"></i> Original</div>
-            <SyntaxHighlighter language={activeSourceFile.language} style={vscDarkPlus} showLineNumbers>
-              {activeSourceFile.content}
-            </SyntaxHighlighter>
-          </div>
-        )}
-        <div className="split-pane new-pane">
-          {viewMode === 'split' && <div className="pane-header"><i className="fa-solid fa-wand-magic-sparkles"></i> Refactored</div>}
-          <SyntaxHighlighter language={activeSourceFile.language} style={vscDarkPlus} showLineNumbers>
+      <div className="diff-container">
+        {viewMode === 'final' ? (
+          <SyntaxHighlighter 
+            language={activeSourceFile.language || 'javascript'} 
+            style={vscDarkPlus}
+            showLineNumbers
+            customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
+          >
             {activeOutput.content}
           </SyntaxHighlighter>
-        </div>
+        ) : (
+          <ReactDiffViewer
+            oldValue={activeSourceFile.content}
+            newValue={activeOutput.content}
+            splitView={true}
+            useDarkTheme={true}
+            compareMethod="diffLines"
+            leftTitle="Original"
+            rightTitle="Refactored"
+            styles={{
+              variables: {
+                diffViewerBackground: '#1e1e1e',
+                addedBackground: 'rgba(46, 160, 67, 0.15)',
+                addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
+                removedBackground: 'rgba(248, 81, 73, 0.15)',
+                removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
+                wordAddedBackground: 'rgba(46, 160, 67, 0.35)',
+                wordRemovedBackground: 'rgba(248, 81, 73, 0.35)',
+              },
+              contentText: {
+                fontSize: '13px',
+                lineHeight: '20px'
+              }
+            }}
+          />
+        )}
       </div>
 
       <div className="action-row">
