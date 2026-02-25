@@ -1,4 +1,6 @@
 import React from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { REFACTOR_MODES, formatBytes } from './utils';
@@ -7,6 +9,7 @@ import { diffLines } from 'diff';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 
 export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
+  
   // Arrow Key Navigation
   const handleKeyDown = (e, index) => {
     if (e.key === 'ArrowRight') {
