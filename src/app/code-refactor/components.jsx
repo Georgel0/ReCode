@@ -72,9 +72,17 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
 );
 
 export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode, setViewMode, downloadSingleFile, loadingStage }) => {
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
   
-  // 1. Safety Checks First
   if (loadingStage !== 'idle') {
     return (
       <div className="placeholder-container-inner">
@@ -126,7 +134,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
           <ReactDiffViewer
             oldValue={activeSourceFile.content}
             newValue={activeOutput.content}
-            splitView={true}
+            splitView={isMobile ? false : viewMode === 'split'}
             useDarkTheme={true}
             compareMethod="diffLines"
             leftTitle="Original"

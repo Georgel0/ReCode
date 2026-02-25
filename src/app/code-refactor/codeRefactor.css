@@ -224,9 +224,24 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.diff-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+
+.diff-container table {
+  min-width: 600px;
+}
+
 @media (max-width: 768px) {
   .split-view {
     grid-template-columns: 1fr;
+  }
+  
+  .diff-container table {
+    min-width: 500px; 
   }
   
   .suggested-badge {
