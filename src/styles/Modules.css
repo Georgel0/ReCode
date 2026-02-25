@@ -21,6 +21,30 @@
   margin-top: 1.5rem;
 }
 
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 15px;
+}
+
+.header-content h1 {
+  color: var(--header-color);
+  background: var(--header-color);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.header-content p {
+  margin: 5px 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
 .placeholder-text {
   flex: 1;
   display: flex;
@@ -192,14 +216,6 @@
   margin: 0 !important;
   border-radius: 0 !important;
   font-family: 'Fira Code', 'Consolas', monospace !important;
-}
-
-.refactor-options {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
-  margin-bottom: 20px;
 }
 
 .editor-container {

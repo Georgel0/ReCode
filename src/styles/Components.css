@@ -70,30 +70,6 @@ textarea:focus {
   position: relative;
 }
 
-.module-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 15px;
-}
-
-.header-content h1 {
-  color: var(--header-color);
-  background: var(--header-color);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 0;
-  font-size: 1.8rem;
-}
-
-.header-content p {
-  margin: 5px 0 0 0;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
 .primary-button {
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius);
@@ -702,15 +678,6 @@ select option {
 .landing-header {
   background-color: #000 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.app-wrapper.landing-mode {
-  background-color: #000;
-}
-
-.mobile-header {
-  z-index: 50; 
-  min-height: 60px;
 }
 
 .flag-group {

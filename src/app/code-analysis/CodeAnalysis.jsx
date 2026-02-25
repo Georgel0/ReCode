@@ -6,84 +6,84 @@ import ModuleHeader from '@/components/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 
 export default function CodeAnalysis() {
-  const [input, setInput] = useState('');
-  const [analysisData, setAnalysisData] = useState(null);
-  const [rawAnalysis, setRawAnalysis] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [lastResult, setLastResult] = useState(false);
-  const { moduleData, qualityMode } = useApp();
+ const [input, setInput] = useState('');
+ const [analysisData, setAnalysisData] = useState(null);
+ const [rawAnalysis, setRawAnalysis] = useState('');
+ const [loading, setLoading] = useState(false);
+ const [lastResult, setLastResult] = useState(false);
+ const { moduleData, qualityMode } = useApp();
+ 
+ useEffect(() => {
+  if (moduleData && moduleData.type === 'analysis') {
+   const codeToAnalyze = moduleData.input || '';
+   setInput(codeToAnalyze);
+   
+   if (moduleData.fullOutput?.analysis) {
+    processAnalysisResult(moduleData.fullOutput.analysis);
+   } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
+    handleAnalyze(codeToAnalyze);
+   } else {
+    setAnalysisData(null);
+    setRawAnalysis('');
+   }
+  }
+ }, [moduleData]);
+ 
+ const processAnalysisResult = (result) => {
+  if (typeof result === 'object' && result !== null) {
+   setAnalysisData(result);
+   setRawAnalysis(JSON.stringify(result, null, 2));
+   return;
+  }
+  setRawAnalysis(result);
+  try {
+   const cleanJson = result.replace(/```json/g, '').replace(/```/g, '').trim();
+   setAnalysisData(JSON.parse(cleanJson));
+  } catch (e) {
+   setAnalysisData(null);
+  }
+ };
+ 
+ const handleAnalyze = async (codeOverride) => {
+  const codeToProcess = codeOverride || input;
+  if (!codeToProcess.trim()) return;
   
-  useEffect(() => {
-    if (moduleData && moduleData.type === 'analysis') {
-      const codeToAnalyze = moduleData.input || '';
-      setInput(codeToAnalyze);
-      
-      if (moduleData.fullOutput?.analysis) {
-        processAnalysisResult(moduleData.fullOutput.analysis);
-      } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
-        handleAnalyze(codeToAnalyze);
-      } else {
-        setAnalysisData(null);
-        setRawAnalysis('');
-      }
-    }
-  }, [moduleData]);
+  setLoading(true);
+  try {
+   const result = await convertCode('analysis', codeToProcess, { qualityMode });
+   
+   if (result && (result.summary || result.analysis)) {
+    processAnalysisResult(result);
+    setLastResult({ type: "analysis", input: codeToProcess, output: result });
+   } else {
+    throw new Error("API returned no data (check server logs for 500/429 errors)");
+   }
+  } catch (error) {
+   alert(`Analysis failed: ${error.message}`);
+  }
   
-  const processAnalysisResult = (result) => {
-    if (typeof result === 'object' && result !== null) {
-      setAnalysisData(result);
-      setRawAnalysis(JSON.stringify(result, null, 2));
-      return;
-    }
-    setRawAnalysis(result);
-    try {
-      const cleanJson = result.replace(/```json/g, '').replace(/```/g, '').trim();
-      setAnalysisData(JSON.parse(cleanJson));
-    } catch (e) {
-      setAnalysisData(null);
-    }
-  };
+  setLoading(false);
+ };
+ 
+ const handleCopy = () => {
+  let textToCopy = rawAnalysis;
+  if (analysisData) {
+   textToCopy = `CODE ANALYSIS REPORT\n\nSCORE: ${analysisData.score}/100\n\nSUMMARY:\n${analysisData.summary}\n\nCOMPLEXITY:\n${analysisData.complexity}\n\nSECURITY:\n${analysisData.security?.join('\n- ')}\n\nIMPROVEMENTS:\n${analysisData.improvements?.join('\n- ')}`;
+  }
   
-  const handleAnalyze = async (codeOverride) => {
-    const codeToProcess = codeOverride || input;
-    if (!codeToProcess.trim()) return;
-    
-    setLoading(true);
-    try {
-      const result = await convertCode('analysis', codeToProcess, { qualityMode });
-      
-      if (result && (result.summary || result.analysis)) {
-        processAnalysisResult(result);
-        setLastResult({ type: "analysis", input: codeToProcess, output: result });
-      } else {
-        throw new Error("API returned no data (check server logs for 500/429 errors)");
-      }
-    } catch (error) {
-      alert(`Analysis failed: ${error.message}`);
-    }
-    
-    setLoading(false);
-  };
-  
-  const handleCopy = () => {
-    let textToCopy = rawAnalysis;
-    if (analysisData) {
-      textToCopy = `CODE ANALYSIS REPORT\n\nSCORE: ${analysisData.score}/100\n\nSUMMARY:\n${analysisData.summary}\n\nCOMPLEXITY:\n${analysisData.complexity}\n\nSECURITY:\n${analysisData.security?.join('\n- ')}\n\nIMPROVEMENTS:\n${analysisData.improvements?.join('\n- ')}`;
-    }
-    
-    if (textToCopy) {
-      navigator.clipboard.writeText(textToCopy);
-    }
-  };
-  
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'var(--accent)';
-    if (score >= 50) return '#ffa500';
-    return '#ff4d4d';
-  };
-  
-  return (
-    <div className="module-container">
+  if (textToCopy) {
+   navigator.clipboard.writeText(textToCopy);
+  }
+ };
+ 
+ const getScoreColor = (score) => {
+  if (score >= 80) return 'var(--accent)';
+  if (score >= 50) return '#ffa500';
+  return '#ff4d4d';
+ };
+ 
+ return (
+  <div className="module-container">
       <ModuleHeader 
         title="Code Auditor"
         description="Deep scan for vulnerabilities, complexity (Big O), and code quality."
@@ -250,6 +250,6 @@ export default function CodeAnalysis() {
           </div>
         </div>
       </div> 
-    </div>
-  );
+  </div>
+ );
 }
