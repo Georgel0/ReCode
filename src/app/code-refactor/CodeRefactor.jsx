@@ -129,7 +129,7 @@ export default function CodeRefactor() {
     setLoadingStage('analyzing');
     setErrorMsg('');
     
-    let optTimeout, valTimeout; // Track timeouts
+    let optTimeout, valTimeout;
     try {
       optTimeout = setTimeout(() => setLoadingStage('optimizing'), 1500);
       valTimeout = setTimeout(() => setLoadingStage('validating'), 3000);
@@ -216,7 +216,7 @@ export default function CodeRefactor() {
           name: name,
           language: matchedLang.value,
           content: event.target.result,
-          size: file.size // Track size for the UI
+          size: file.size
         });
       };
       reader.onerror = reject;
@@ -244,7 +244,7 @@ export default function CodeRefactor() {
     const newFiles = files.filter(f => f.id !== idToRemove);
     if (newFiles.length === 0) {
       const newId = crypto.randomUUID();
-      setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
+      setFiles([{ id: newId, name: 'untitled.txt', language: 'plaintext', content: '', size: 0 }]);
       setActiveTabId(newId);
     } else {
       setFiles(newFiles);
@@ -258,7 +258,7 @@ export default function CodeRefactor() {
     const link = document.createElement('a');
     link.href = url;
     // Fallback cascade to ensure valid filename
-    link.download = file.fileName || file.name || 'refactored-file.js';
+    link.download = file.fileName || file.name || 'refactored-file.txt';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -274,8 +274,8 @@ export default function CodeRefactor() {
   
   const getEditorLanguage = (lang) => {
     if (languages[lang]) return languages[lang];
-    if (lang === 'c' || lang === 'cpp') return languages.clike; // Fallback
-    return languages.javascript;
+    if (lang === 'c' || lang === 'cpp') return languages.clike;
+    return languages.plaintext;
   };
   
   return (

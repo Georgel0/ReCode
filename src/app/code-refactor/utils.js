@@ -14,7 +14,7 @@ export const validateFile = (file) => {
 export const suggestRefactorMode = (code) => {
   if (!code) return 'clean';
   if (code.includes('var ') || code.includes('.then(') || code.includes('require(')) return 'modern';
-  if (code.match(/for\s*\(.*for\s*\(/)) return 'perf'; // Detects nested loops
+  if (code.match(/for\s*\(.*for\s*\(/)) return 'perf';
   if (!code.includes('//') && !code.includes('/*')) return 'comments';
   return 'clean';
 };
