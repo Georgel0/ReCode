@@ -201,16 +201,16 @@ export default function CodeGenerator({ onSwitchModule }) {
                   >
                     {activeFile ? formatContent(activeFile.content) : ''}
                   </SyntaxHighlighter>
-                </div>
-                
-                <div className="action-row">
-                   <button 
-                    className="secondary-button" 
+                  <button 
+                    className="primary-button copy-btn copy-btn-absolute" 
                     onClick={() => navigator.clipboard.writeText(activeFile?.content || '')}
                     title="Copy to clipboard"
                   >
                     <i className="fa-regular fa-copy"></i> Copy
-                  </button> 
+                  </button>
+                </div>
+                
+                <div className="action-row">
                   
                 <div style={{ flex: 1 }}></div>
 

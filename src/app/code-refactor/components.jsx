@@ -125,6 +125,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
 
       <div className="diff-container">
         {viewMode === 'final' ? (
+        <>
           <SyntaxHighlighter 
             language={activeSourceFile.language || 'javascript'} 
             style={vscDarkPlus}
@@ -133,6 +134,10 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
           >
             {activeOutput.content}
           </SyntaxHighlighter>
+          <button className="primary-button copy-btn copy-btn-absolute" onClick={() => navigator.clipboard.writeText(activeOutput.content)}>
+          <i className="fa-regular fa-copy"></i> Copy
+        </button>
+        </>
         ) : (
           <ReactDiffViewer
             oldValue={activeSourceFile.content}
@@ -164,9 +169,6 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
       <div className="action-row">
         <button className="primary-button" onClick={() => downloadSingleFile(activeOutput)}>
           <i className="fa-solid fa-download"></i> Download File
-        </button>
-        <button className="secondary-button" onClick={() => navigator.clipboard.writeText(activeOutput.content)}>
-          <i className="fa-regular fa-copy"></i> Copy to Clipboard
         </button>
       </div>
     </div>
