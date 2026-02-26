@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useApp } from '../context/AppContext';
+import { useApp } from '@/context/AppContext';
 import { useTheme } from '@/components/FunctionalComponents/ThemeContext';
 import Sidebar from './Sidebar';
 import Notification from './Notification';
