@@ -1,5 +1,5 @@
 import CodeRefactor from './CodeRefactor';
-import ToolFooter from '@/components/ToolFooter';
+import ToolFooter from '@/components/UIComponents/ToolFooter';
 import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {

@@ -1,5 +1,5 @@
 import JsonFormatter from './JsonFormatter';
-import ToolFooter from '@/components/ToolFooter';
+import ToolFooter from '@/components/UIComponents/ToolFooter';
 import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {

@@ -1,5 +1,5 @@
 import CodeGenerator from './CodeGenerator';
-import ToolFooter from '@/components/ToolFooter';
+import ToolFooter from '@/components/UIComponents/ToolFooter';
 import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
