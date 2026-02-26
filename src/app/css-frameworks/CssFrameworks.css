@@ -164,6 +164,11 @@
   border-radius: 6px;
 }
 
+.result-card > h4 {
+  margin-bottom: 1rem;
+  color: var(--accent)
+}
+
 .result-code-block {
   padding: 1rem;
   margin: 0;
