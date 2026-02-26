@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation'; 
+import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import '@/styles/landingpage.css';
@@ -9,17 +9,17 @@ import ScrollAnimation from '@/components/ScrollAnimation';
 import { tools } from '@/lib/toolContent'
 
 export default function LandingPage() {
-  const router = useRouter();
-  const [activeInfo, setActiveInfo] = useState(null);
-  
-  const handleGetStarted = (e) => {
-    e.preventDefault();
-    const lastModule = localStorage.getItem('recode_last_module');
-    router.push(lastModule || '/code-converter');
-  };
-
-  return (
-    <div className="lp-wrapper">
+ const router = useRouter();
+ const [activeInfo, setActiveInfo] = useState(null);
+ 
+ const handleGetStarted = (e) => {
+  e.preventDefault();
+  const lastModule = localStorage.getItem('recode_last_module');
+  router.push(lastModule || '/code-converter');
+ };
+ 
+ return (
+  <div className="lp-wrapper">
       
       <ParticleBackground />
       
@@ -218,5 +218,5 @@ export default function LandingPage() {
       )}
 
     </div>
-  );
+ );
 }
