@@ -65,6 +65,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
      convertedCode: output.convertedCode,
      convertedHtml: output.convertedHtml,
      conversions: output.conversions,
+     extra: output.extra
     });
    }
    
@@ -276,7 +277,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
            <button
             className={`view-btn ${activeOutputTab === 'extra' ? 'active' : ''}`}
             onClick={() => setActiveOutputTab('extra')}
-            disabled={!data?.explanation} > 
+            disabled={!data?.extra} > 
             Extra
            </button>
           </div>
