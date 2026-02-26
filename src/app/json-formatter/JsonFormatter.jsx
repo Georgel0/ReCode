@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
-import ModuleHeader from '@/components/ModuleHeader';
+import ModuleHeader from '@/components/UIComponents/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 import JSON5 from 'json5';
 import JsonView from 'react18-json-view'

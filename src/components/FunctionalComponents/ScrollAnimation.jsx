@@ -24,7 +24,7 @@ export default function ScrollAnimation({ children, direction = 'up', delay = 0 
   if (direction === 'right') return 'translateX(50px)';
   return 'translateY(50px)';
  };
- 
+  
  return (
   <div
       ref={domRef}

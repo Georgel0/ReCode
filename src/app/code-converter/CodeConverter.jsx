@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
-import ModuleHeader from '@/components/ModuleHeader';
+import ModuleHeader from '@/components/UIComponents/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 

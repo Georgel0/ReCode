@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useConverter } from './useConverter';
 import { TARGET_FRAMEWORKS, MODES } from './constants';
 import PreviewPane from './PreviewPane';
-import ModuleHeader from '@/components/ModuleHeader';
+import ModuleHeader from '@/components/UIComponents/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 
 import './CssFrameworks.css'

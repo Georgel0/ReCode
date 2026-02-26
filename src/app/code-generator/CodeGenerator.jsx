@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
-import ModuleHeader from '@/components/ModuleHeader';
+import ModuleHeader from '@/components/UIComponents/ModuleHeader';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { useApp } from '@/context/AppContext'; 
+import { useApp } from '@/context/AppContext';
 
 export default function CodeGenerator({ onSwitchModule }) {
  const [input, setInput] = useState('');
@@ -122,127 +122,127 @@ export default function CodeGenerator({ onSwitchModule }) {
  
  return (
   <div className="module-container">
-      <ModuleHeader 
-        title="Code Generator"
-        description="Describe your code snippet or project requirements and the AI will scaffold a multi-file solution for you."
-        resultData={lastResult}
-      />
-      <p>Make sure your description its as detailed as possible.</p>
+   <ModuleHeader 
+    title="Code Generator"
+    description="Describe your code snippet or project requirements and the AI will scaffold a multi-file solution for you."
+    resultData={lastResult}
+   />
+   <p>Make sure your description its as detailed as possible.</p>
 
-      <div className="converter-grid">
-        <div className="panel">
-          <h3>
-            <i className="fa-solid fa-layer-group" style={{ marginRight: '8px' }}></i>
-            Requirements
-          </h3>
-          <textarea 
-            className="flex-grow"
-            value={input} 
-            onChange={(e) => setInput(e.target.value)} 
-            placeholder="E.g., Create a React button component and a CSS file for styling..." 
-            spellCheck="false"
-          /> 
-          <div className="action-row">
-            <button className="secondary-button clear-btn" onClick={handleClearAll} disabled={loading || !input}>
-              <i className="fa-solid fa-trash-can"></i> Clear
-            </button>
-            <button 
-              className="primary-button" 
-              onClick={handleGenerate} 
-              disabled={loading || !input.trim()}
-            >
-              {loading ? (
-                <><i className="fa-solid fa-circle-notch fa-spin"></i> Generating...</>
-              ) : (
-                <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate Code</>
-              )}
-            </button> 
-          </div>
-        </div>
-
-        <div className="panel">
-          <h3>
-            <i className="fa-solid fa-code" style={{ marginRight: '8px' }}></i>
-            Generated Output
-          </h3>
-          
-          <div className="results-container">
-            {files.length > 0 ? (
-              <div className="code-output-container">
-                
-                <div className="tabs-container">
-                  {files.map((file, idx) => (
-                    <button 
-                      key={idx} 
-                      className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
-                      onClick={() => setActiveFileIndex(idx)}
-                      title={file.fileName}
-                    >
-                      <i className="fa-regular fa-file-code"></i> {file.fileName}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="highlighter-wrapper">
-                  <SyntaxHighlighter 
-                    language={getLanguage(activeFile?.fileName)} 
-                    style={vscDarkPlus} 
-                    customStyle={{ 
-                      margin: 0, 
-                      height: '100%', 
-                      background: 'transparent',
-                      fontSize: '0.9rem',
-                      whiteSpace: 'pre-wrap', 
-                      wordBreak: 'break-word'   
-                    }}
-                    showLineNumbers={true}
-                    wrapLines={true}
-                    wrapLongLines={true}  
-                  >
-                    {activeFile ? formatContent(activeFile.content) : ''}
-                  </SyntaxHighlighter>
-                  <button 
-                    className="primary-button copy-btn copy-btn-absolute" 
-                    onClick={() => navigator.clipboard.writeText(activeFile?.content || '')}
-                    title="Copy to clipboard"
-                  >
-                    <i className="fa-regular fa-copy"></i> Copy
-                  </button>
-                </div>
-                
-                <div className="action-row">
-                  
-                <div style={{ flex: 1 }}></div>
-
-                  <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
-                    <i className="fa-solid fa-download"></i> File
-                  </button>
-                  
-                  {files.length > 1 && (
-                    <button className="primary-button" onClick={downloadZip}>
-                      <i className="fa-solid fa-file-zipper"></i> Download ZIP
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="placeholder-text">
-                {loading ? (
-                  <div className="analyzing-state">
-                    <div className="spinner"></div>
-                    <p>AI is building your solution...</p>
-                  </div>
-                ) : (
-                  <div className="analyzing-state">
-                    <i className="fa-solid fa-laptop-code" style={{ fontSize: '2.5rem', marginBottom: '0.3rem', opacity: 0.7 }}></i>
-                    <p>Enter your requirements to generate project files.</p>
-                  </div>
-                )}
-              </div> 
-            )}
-          </div>
-        </div>
-      </div>
+   <div className="converter-grid">
+    <div className="panel">
+     <h3>
+      <i className="fa-solid fa-layer-group" style={{ marginRight: '8px' }}></i>
+      Requirements
+     </h3>
+     <textarea 
+      className="flex-grow"
+      value={input} 
+      onChange={(e) => setInput(e.target.value)} 
+      placeholder="E.g., Create a React button component and a CSS file for styling..." 
+      spellCheck="false"
+     /> 
+     <div className="action-row">
+      <button className="secondary-button clear-btn" onClick={handleClearAll} disabled={loading || !input}>
+       <i className="fa-solid fa-trash-can"></i> Clear
+      </button>
+      <button 
+       className="primary-button" 
+       onClick={handleGenerate} 
+       disabled={loading || !input.trim()}
+      >
+       {loading ? (
+        <><i className="fa-solid fa-circle-notch fa-spin"></i> Generating...</>
+       ) : (
+        <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate Code</>
+       )}
+      </button> 
+     </div>
     </div>
+
+    <div className="panel">
+     <h3>
+      <i className="fa-solid fa-code" style={{ marginRight: '8px' }}></i>
+      Generated Output
+     </h3>
+          
+     <div className="results-container">
+      {files.length > 0 ? (
+       <div className="code-output-container">
+             
+        <div className="tabs-container">
+         {files.map((file, idx) => (
+          <button 
+           key={idx} 
+           className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
+           onClick={() => setActiveFileIndex(idx)}
+           title={file.fileName}
+          >
+           <i className="fa-regular fa-file-code"></i> {file.fileName}
+          </button>
+         ))}
+        </div>
+
+        <div className="highlighter-wrapper">
+         <SyntaxHighlighter 
+          language={getLanguage(activeFile?.fileName)} 
+          style={vscDarkPlus} 
+          customStyle={{ 
+           margin: 0, 
+           height: '100%', 
+           background: 'transparent',
+           fontSize: '0.9rem',
+           whiteSpace: 'pre-wrap', 
+           wordBreak: 'break-word'   
+          }}
+          showLineNumbers={true}
+          wrapLines={true}
+          wrapLongLines={true}  
+         >
+          {activeFile ? formatContent(activeFile.content) : ''}
+         </SyntaxHighlighter>
+         <button 
+          className="primary-button copy-btn copy-btn-absolute" 
+          onClick={() => navigator.clipboard.writeText(activeFile?.content || '')}
+          title="Copy to clipboard"
+         >
+          <i className="fa-regular fa-copy"></i> Copy
+         </button>
+        </div>
+                
+        <div className="action-row">
+                  
+        <div style={{ flex: 1 }}></div>
+
+        <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
+         <i className="fa-solid fa-download"></i> File
+        </button>
+                  
+        {files.length > 1 && (
+         <button className="primary-button" onClick={downloadZip}>
+          <i className="fa-solid fa-file-zipper"></i> Download ZIP
+         </button>
+        )}
+       </div>
+      </div>
+     ) : (
+      <div className="placeholder-text">
+       {loading ? (
+        <div className="analyzing-state">
+         <div className="spinner"></div>
+          <p>AI is building your solution...</p>
+         </div>
+        ) : (
+         <div className="analyzing-state">
+          <i className="fa-solid fa-laptop-code" style={{ fontSize: '2.5rem', marginBottom: '0.3rem', opacity: 0.7 }}></i>
+          <p>Enter your requirements to generate project files.</p>
+         </div>
+        )}
+       </div> 
+      )}
+     </div>
+    </div>
+   </div>
+  </div>
  );
 }

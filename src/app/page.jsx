@@ -3,10 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import '@/styles/landingpage.css';
-import ParticleBackground from '@/components/ParticleBackground';
-import ScrollAnimation from '@/components/ScrollAnimation';
+import ParticleBackground from '@/components/FunctionalComponents/ParticleBackground';
+import ScrollAnimation from '@/components/FunctionalComponents/ScrollAnimation';
 import { tools } from '@/lib/toolContent'
+import '@/styles/landingpage.css';
 
 export default function LandingPage() {
  const router = useRouter();
