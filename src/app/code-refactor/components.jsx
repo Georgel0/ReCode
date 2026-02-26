@@ -9,22 +9,22 @@ import { diffLines } from 'diff';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 
 export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
-  
-  // Arrow Key Navigation
-  const handleKeyDown = (e, index) => {
-    if (e.key === 'ArrowRight') {
-      const next = files[(index + 1) % files.length];
-      setActiveTabId(next.id);
-    } else if (e.key === 'ArrowLeft') {
-      const prev = files[(index - 1 + files.length) % files.length];
-      setActiveTabId(prev.id);
-    } else if (e.key === 'Enter') {
-      setActiveTabId(files[index].id);
-    }
-  };
-  
-  return (
-    <nav role="tablist" className="tabs-container" aria-label="Open files">
+ 
+ // Arrow Key Navigation
+ const handleKeyDown = (e, index) => {
+  if (e.key === 'ArrowRight') {
+   const next = files[(index + 1) % files.length];
+   setActiveTabId(next.id);
+  } else if (e.key === 'ArrowLeft') {
+   const prev = files[(index - 1 + files.length) % files.length];
+   setActiveTabId(prev.id);
+  } else if (e.key === 'Enter') {
+   setActiveTabId(files[index].id);
+  }
+ };
+ 
+ return (
+  <nav role="tablist" className="tabs-container" aria-label="Open files">
       {files.map((file, index) => (
         <div 
           key={file.id} 
@@ -50,11 +50,11 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
         </div>
       ))}
     </nav>
-  );
+ );
 };
 
 export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode }) => (
-  <div className="refactor-options">
+ <div className="refactor-options">
     <span className="label-text"><i className="fa-solid fa-bullseye"></i> Refactor Goal:</span>
     <div className="mode-selector" role="radiogroup">
       {REFACTOR_MODES.map(mode => (
@@ -75,39 +75,39 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
 );
 
 export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode, setViewMode, downloadSingleFile, loadingStage }) => {
-  
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
-  
-  if (loadingStage !== 'idle') {
-    return (
-      <div className="placeholder-container-inner">
+ 
+ const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+ 
+ useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 768);
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+ }, []);
+ 
+ const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
+ 
+ if (loadingStage !== 'idle') {
+  return (
+   <div className="placeholder-container-inner">
         <div className="empty-state" aria-live="polite">
           <i className="fa-solid fa-wand-magic-sparkles fa-bounce"></i>
           <span>{loadingStage === 'analyzing' ? 'Analyzing code...' : loadingStage === 'optimizing' ? 'Applying optimizations...' : 'Validating changes...'}</span>
         </div>
       </div>
-    );
-  }
-  
-  if (!activeOutput) return (
-    <div className="placeholder-container-inner">
+  );
+ }
+ 
+ if (!activeOutput) return (
+  <div className="placeholder-container-inner">
       <div className="empty-state" aria-live="polite">
         <i className="fa-solid fa-code"></i>
         <span>Better code will appear here...</span>
       </div>
     </div>
-  );
-  
-  return (
-    <div className="output-panel-content flex-grow">
+ );
+ 
+ return (
+  <div className="output-panel-content flex-grow">
       <div className="view-toggle">
         <button 
           onClick={() => setViewMode('final')} 
@@ -170,5 +170,5 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
         </button>
       </div>
     </div>
-  );
+ );
 });
