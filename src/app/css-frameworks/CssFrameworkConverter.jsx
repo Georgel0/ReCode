@@ -312,7 +312,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
              </div>
             ) : activeOutputTab === "extra" ? (
              <div className="results-scroll-area">
-              <div className="result-card">
+              <div className="result-card" style={{ padding: '5px'}}>
                 <h4>Implementation Notes & Leftovers</h4>
                 {data.extra || "No extra implementation details provided."}
               </div>
