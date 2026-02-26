@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistory, deleteHistoryItem, clearAllHistory, subscribeToHistory } from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
-import { useTheme } from '@components/FunctionalComponents/ThemeContext';
+import { useTheme } from '@/components/FunctionalComponents/ThemeContext';
 import Link from 'next/link';
 
 export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
