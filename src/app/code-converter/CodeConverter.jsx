@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
-import ModuleHeader from '@/components/UIComponents/ModuleHeader';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
+import ModuleHeader from '@/components/UIComponents/ModuleHeader';
+import CopyButton from '@/components/UIComponents/CopyButton';
 
 const LANGUAGES = [
  { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -38,7 +39,6 @@ export default function CodeConverter() {
  const [input, setInput] = useState('');
  const [outputCode, setOutputCode] = useState('');
  const [loading, setLoading] = useState(false);
- const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [fileName, setFileName] = useState('');
  const [showInfoModal, setShowInfoModal] = useState(false);
  const fileInputRef = useRef(null);
@@ -130,14 +130,6 @@ export default function CodeConverter() {
    alert(`Conversion failed: ${error.message}`);
   }
   setLoading(false);
- };
- 
- const handleCopy = () => {
-  if (outputCode) {
-   navigator.clipboard.writeText(outputCode);
-   setCopyFeedback('Copied!');
-   setTimeout(() => setCopyFeedback('Copy'), 2000);
-  }
  };
  
  return (
@@ -233,9 +225,7 @@ export default function CodeConverter() {
          readOnly 
          spellCheck="false"
         />
-        <button className="primary-button copy-btn copy-btn-absolute" onClick={handleCopy}>
-         <i className={copyFeedback === 'Copied!' ? "fa-solid fa-check" : "fa-regular fa-copy"}></i> {copyFeedback}
-        </button>
+       <CopyButton codeToCopy={outputCode} />
        </div>
                 
        <div className="action-row">

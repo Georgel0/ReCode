@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/UIComponents/ModuleHeader';
+import CopyButton from '@/components/UIComponents/CopyButton';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
@@ -201,13 +202,8 @@ export default function CodeGenerator({ onSwitchModule }) {
          >
           {activeFile ? formatContent(activeFile.content) : ''}
          </SyntaxHighlighter>
-         <button 
-          className="primary-button copy-btn copy-btn-absolute" 
-          onClick={() => navigator.clipboard.writeText(activeFile?.content || '')}
-          title="Copy to clipboard"
-         >
-          <i className="fa-regular fa-copy"></i> Copy
-         </button>
+         
+         <CopyButton codeToCopy={activeFile?.content || ''} />
         </div>
                 
         <div className="action-row">

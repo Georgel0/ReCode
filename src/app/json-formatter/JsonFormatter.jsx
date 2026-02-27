@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/UIComponents/ModuleHeader';
+import CopyButton from '@/components/UIComponents/CopyButton';
 import { useApp } from '@/context/AppContext';
 import JSON5 from 'json5';
 import JsonView from 'react18-json-view'
@@ -13,7 +14,6 @@ export default function JsonFormatter() {
  const [outputCode, setOutputCode] = useState('');
  const [explanation, setExplanation] = useState('');
  const [loading, setLoading] = useState(false);
- const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [errorMsg, setErrorMsg] = useState(null);
  const [lastResult, setLastResult] = useState(false);
  const [viewMode, setViewMode] = useState('code');
@@ -134,14 +134,6 @@ export default function JsonFormatter() {
   e.target.value = '';
  };
  
- const handleCopy = () => {
-  if (outputCode) {
-   navigator.clipboard.writeText(outputCode);
-   setCopyFeedback('Copied!');
-   setTimeout(() => setCopyFeedback('Copy'), 2000);
-  }
- };
- 
  const getJsonForTree = () => {
   try {
    return outputCode ? JSON.parse(outputCode) : {};
@@ -176,7 +168,7 @@ export default function JsonFormatter() {
         <button className="mode-btn" onClick={loadSample}>Load Sample</button>
        </div>
       </div>
-      
+
       <textarea 
        value={input} 
        onChange={(e) => setInput(e.target.value)} 
@@ -184,7 +176,7 @@ export default function JsonFormatter() {
        spellCheck="false"
        className={errorMsg ? 'has-error json-textarea' : 'json-textarea'}
       />
-      
+
       {errorMsg && <div className="error-message"><i className="fa-solid fa-circle-exclamation"></i> {errorMsg}</div>}
           
       <div className="action-row">
@@ -218,7 +210,7 @@ export default function JsonFormatter() {
         </div>
        </div>
       </div>
-          
+
       <div className="results-container">
        {outputCode ? (
         <>
@@ -231,9 +223,8 @@ export default function JsonFormatter() {
              className="output-textarea json-textarea"
              spellCheck="false"
             />
-            <button className="copy-btn copy-btn-absolute" onClick={handleCopy}>
-             <i className="fa-solid fa-copy"></i> {copyFeedback}
-            </button>
+           
+            <CopyButton codeToCopy={outputCode} />
            </>
           ) : (
            <div className="tree-view-container">

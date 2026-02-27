@@ -12,7 +12,7 @@ import { FileTabs, RefactorControls, OutputPanel } from './components';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css'; 
+import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
@@ -280,6 +280,14 @@ export default function CodeRefactor() {
   return languages.plaintext;
  };
  
+ const handleAddFile = () => {
+  const currentExt = activeFile?.language ? LANGUAGES.find(l => l.value === activeFile.language)?.ext : '.js';
+  const currentLang = activeFile?.language || 'javascript';
+  const newFile = { id: crypto.randomUUID(), name: `new-file${currentExt}`, language: currentLang, content: '', size: 0 };
+  setFiles([...files, newFile]);
+  setActiveTabId(newFile.id);
+ };
+ 
  return (
   <div className="module-container">
    <ModuleHeader 
@@ -312,13 +320,7 @@ export default function CodeRefactor() {
        </button>
        <button 
         className="secondary-button" 
-        onClick={() => {
-        const currentExt = activeFile?.language ? LANGUAGES.find(l => l.value === activeFile.language)?.ext : '.js';
-        const currentLang = activeFile?.language || 'javascript';
-        const newFile = { id: crypto.randomUUID(), name: `new-file${currentExt}`, language: currentLang, content: '', size: 0 };
-        setFiles([...files, newFile]);
-        setActiveTabId(newFile.id);
-        }} >
+        onClick={handleAddFile} >
         <i className="fa-solid fa-plus"></i> Add File
        </button>
       </div>

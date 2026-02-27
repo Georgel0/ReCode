@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
 import ModuleHeader from '@/components/UIComponents/ModuleHeader';
-import { useApp } from '@/context/AppContext'; 
+import CopyButton from '@/components/UIComponents/CopyButton';
+import { useApp } from '@/context/AppContext';
 
 const DIALECTS = [
  { value: 'Standard SQL', label: 'Standard SQL' },
@@ -34,7 +35,6 @@ export default function SqlBuilder() {
  
  const [outputCode, setOutputCode] = useState('');
  const [loading, setLoading] = useState(false);
- const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [lastResult, setLastResult] = useState(false);
  const { moduleData, qualityMode } = useApp();
  
@@ -88,14 +88,6 @@ export default function SqlBuilder() {
   setLoading(false);
  };
  
- const handleCopy = () => {
-  if (outputCode) {
-   navigator.clipboard.writeText(outputCode);
-   setCopyFeedback('Copied!');
-   setTimeout(() => setCopyFeedback('Copy'), 2000);
-  }
- };
- 
  const clearInputs = () => {
   setInput('');
   setOutputCode('');
@@ -111,146 +103,144 @@ export default function SqlBuilder() {
    />
 
    <div className="tabs-container">
-        {MODES.map(m => (
-          <button
-            key={m.id}
-            className={`tab-btn ${activeMode === m.id ? 'active' : ''}`}
-            onClick={() => { setActiveMode(m.id); setOutputCode(''); }}
-          >
-            <i className={`fa-solid ${m.icon}`}></i> {m.label}
-          </button>
-        ))}
+    {MODES.map(m => (
+     <button
+      key={m.id}
+      className={`tab-btn ${activeMode === m.id ? 'active' : ''}`}
+      onClick={() => { setActiveMode(m.id); setOutputCode(''); }}
+     >
+      <i className={`fa-solid ${m.icon}`}></i> {m.label}
+     </button>
+    ))}
+   </div>
+
+   <div className="converter-grid">
+    <div className="panel">
+     <div className="panel-header-row">
+      <h3>
+       {activeMode === 'builder' && 'Requirement'}
+       {activeMode === 'converter' && 'Source Query'}
+       {activeMode === 'optimizer' && 'Slow Query'}
+      </h3>
+      <button className="mode-btn" onClick={clearInputs}>
+        <i className="fa-solid fa-eraser"></i> Clear
+       </button>
       </div>
 
-      <div className="converter-grid">
-        <div className="panel">
-          <div className="panel-header-row">
-            <h3>
-              {activeMode === 'builder' && 'Requirement'}
-              {activeMode === 'converter' && 'Source Query'}
-              {activeMode === 'optimizer' && 'Slow Query'}
-            </h3>
-            <button className="mode-btn" onClick={clearInputs}>
-              <i className="fa-solid fa-eraser"></i> Clear
-            </button>
+       <div className="controls-group">
+        {activeMode === 'converter' ? (
+         <div className="ext-grid">
+          <div className="control-field">
+           <span className="label-text">From:</span>
+           <select 
+            value={sourceDialect} 
+            onChange={(e) => setSourceDialect(e.target.value)}
+            className="lang-select full-width"
+           >
+            {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+           </select>
           </div>
+          <div className="control-field">
+           <span className="label-text">To:</span>
+           <select 
+            value={targetDialect} 
+            onChange={(e) => setTargetDialect(e.target.value)}
+            className="lang-select full-width"
+           >
+           {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+          </select>
+         </div>
+        </div>
+       ) : (
+        <div className="action-row start center-y" style={{ marginBottom: '1rem' }}>
+         <span className="label-text">Dialect:</span>
+         <select 
+          value={targetDialect} 
+          onChange={(e) => setTargetDialect(e.target.value)}
+          className="lang-select"
+         >
+          {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+        </select>
+       </div>
+      )}
 
-          <div className="controls-group">
-            {activeMode === 'converter' ? (
-              <div className="ext-grid">
-                <div className="control-field">
-                  <span className="label-text">From:</span>
-                  <select 
-                    value={sourceDialect} 
-                    onChange={(e) => setSourceDialect(e.target.value)}
-                    className="lang-select full-width"
-                  >
-                    {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
-                <div className="control-field">
-                  <span className="label-text">To:</span>
-                  <select 
-                    value={targetDialect} 
-                    onChange={(e) => setTargetDialect(e.target.value)}
-                    className="lang-select full-width"
-                  >
-                    {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
-              </div>
-            ) : (
-              <div className="action-row start center-y" style={{ marginBottom: '1rem' }}>
-                <span className="label-text">Dialect:</span>
-                <select 
-                  value={targetDialect} 
-                  onChange={(e) => setTargetDialect(e.target.value)}
-                  className="lang-select"
-                >
-                  {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                </select>
-              </div>
-            )}
-
-            {activeMode !== 'converter' && (
-              <div className="schema-wrapper">
-                <button 
-                  className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
-                  onClick={() => setShowSchema(!showSchema)}
-                >
-                  <i className="fa-solid fa-database"></i> 
-                  {showSchema ? 'Hide Database Schema' : 'Add Database Schema (Context)'}
-                </button>
+      {activeMode !== 'converter' && (
+       <div className="schema-wrapper">
+        <button 
+         className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
+         onClick={() => setShowSchema(!showSchema)}
+        >
+         <i className="fa-solid fa-database"></i> 
+         {showSchema ? 'Hide Database Schema' : 'Add Database Schema (Context)'}
+        </button>
                 
-                {showSchema && (
-                  <textarea 
-                    className="schema-input"
-                    placeholder="CREATE TABLE users (id INT, name TEXT...);"
-                    value={schema}
-                    onChange={(e) => setSchema(e.target.value)}
-                    spellCheck="false"
-                  />
-                )}
-              </div>
-            )}
-          </div>
+        {showSchema && (
+         <textarea 
+          className="schema-input"
+          placeholder="CREATE TABLE users (id INT, name TEXT...);"
+          value={schema}
+          onChange={(e) => setSchema(e.target.value)}
+          spellCheck="false"
+         />
+        )}
+       </div>
+      )}
+     </div>
 
-          <textarea 
-            value={input} 
-            onChange={(e) => setInput(e.target.value)} 
-            placeholder={
-              activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
-              activeMode === 'converter' ? "Paste your SQL here to convert it..." :
-              "Paste your slow query here..."
-            }
-            spellCheck="false"
-            className="main-input"
-          />
-          
-          <div className="action-row">
-             <button className="primary-button" onClick={handleGenerate} disabled={loading}>
-              {loading ? (
-                <>
-                  <i className="fa-solid fa-spinner fa-spin"></i> Processing...
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-gears"></i> 
-                  {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="panel">
-          <h3>Generated SQL ({targetDialect})</h3>
-          <div className="results-container">
-            {outputCode ? (
-                <div className="output-wrapper"> 
-                    <textarea 
-                        value={outputCode} 
-                        readOnly 
-                        className="output-textarea"
-                        spellCheck="false"
-                    />
-                    <button className="copy-btn copy-btn-absolute" onClick={handleCopy}>
-                      {copyFeedback === 'Copied!' ? <i className="fa-solid fa-check"></i> : <i className="fa-regular fa-copy"></i>} {copyFeedback}
-                    </button>
-                </div>
-            ) : (
-                <div className="placeholder-text">
-                   {loading ? (
-                     <div className="processing-state">
-                       <div className="pulse-ring"></div>
-                       <p>AI is building...</p>
-                     </div>
-                   ) : 'Result will appear here.'}
-                </div>
-            )}
-          </div>
-        </div>
-      </div>
+     <textarea 
+      value={input} 
+      onChange={(e) => setInput(e.target.value)} 
+      placeholder={
+       activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
+       activeMode === 'converter' ? "Paste your SQL here to convert it..." :
+       "Paste your slow query here..." }
+      spellCheck="false"
+      className="main-input"
+     />
+     
+     <div className="action-row">
+      <button className="primary-button" onClick={handleGenerate} disabled={loading}>
+       {loading ? (
+        <>
+         <i className="fa-solid fa-spinner fa-spin"></i> Processing...
+        </>
+       ) : (
+        <>
+         <i className="fa-solid fa-gears"></i> 
+         {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}
+        </>
+       )}
+      </button>
+     </div>
     </div>
+
+    <div className="panel">
+     <h3>Generated SQL ({targetDialect})</h3>
+     <div className="results-container">
+      {outputCode ? (
+       <div className="output-wrapper"> 
+        <textarea 
+         value={outputCode} 
+         readOnly 
+         className="output-textarea"
+         spellCheck="false"
+        />
+        
+        <CopyButton codeToCopy={outputCode} />
+       </div>
+      ) : (
+       <div className="placeholder-text">
+        {loading ? (
+         <div className="processing-state">
+          <div className="pulse-ring"></div>
+          <p>AI is building...</p>
+         </div>
+        ) : 'Result will appear here.'}
+       </div>
+      )}
+     </div>
+    </div>
+   </div>
+  </div>
  );
 }
