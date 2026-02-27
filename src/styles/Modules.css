@@ -100,14 +100,6 @@
   margin-bottom: 1rem;
 }
 
-.selector-name {
-  color: var(--text-secondary);
-  font-family: monospace;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-}
-
 .copy-btn {
   background: var(--accent);
   color: var(--bg-primary);
