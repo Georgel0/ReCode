@@ -233,6 +233,7 @@
 .selector-name {
   display: flex;
   justify-content: center;
+  align-items: center;
   color: var(--text-secondary);
   font-family: monospace;
   font-weight: 600;
