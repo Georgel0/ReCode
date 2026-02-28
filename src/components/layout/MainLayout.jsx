@@ -3,11 +3,9 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useApp } from '@/context/AppContext';
-import { useTheme } from '@/components/FunctionalComponents/ThemeContext';
+import { useApp, useTheme } from '@/context';
 import Sidebar from './Sidebar';
-import Notification from './Notification';
-import ModelSelector from './ModelSelector';
+import { Notification, ModelSelector } from '@/components/ui';
 
 export function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -49,12 +47,6 @@ export function MainLayout({ children }) {
     setNotification(`Loaded ${historyItem.type} from history`);
     router.push(targetPath);
   };
-  
-  const handleLaunchApp = (e) => {
-    e.preventDefault();
-    const lastModule = localStorage.getItem('recode_last_module');
-    router.push(lastModule || '/code-converter');
-  };
 
   return (
     <div className={`app-wrapper ${isLandingPage ? 'landing-mode' : `theme-${currentTheme}`}`}>
@@ -84,8 +76,7 @@ export function MainLayout({ children }) {
                   </div>
                 </Link>
                 <Link 
-                  href="/code-converter" 
-                  onClick={handleLaunchApp} 
+                  href={localStorage.getItem('recode_last_module') || '/code-converter'} 
                   className="primary-button launch-app-btn">
                   Launch App
                 </Link>

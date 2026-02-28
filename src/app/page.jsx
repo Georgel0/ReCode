@@ -3,20 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import ParticleBackground from '@/components/effects/ParticleBackground';
-import ScrollAnimation from '@/components/effects/ScrollAnimation';
+import { ParticleBackground, ScrollAnimation } from '@/components/effects';
 import { tools } from '@/lib/toolContent'
 import '@/styles/landingpage.css';
 
 export default function LandingPage() {
  const router = useRouter();
  const [activeInfo, setActiveInfo] = useState(null);
- 
- const handleGetStarted = (e) => {
-  e.preventDefault();
-  const lastModule = localStorage.getItem('recode_last_module');
-  router.push(lastModule || '/code-converter');
- };
  
  return (
   <div className="lp-wrapper">
@@ -37,8 +30,7 @@ export default function LandingPage() {
           </p>
           <div className="hero-actions">
             <Link 
-              href="/code-converter" 
-              onClick={handleGetStarted} 
+              href={localStorage.getItem('recode_last_module') || '/code-converter'}
               className="lp-cta">
               Get Started <i className="fa-solid fa-arrow-right"></i>
             </Link>

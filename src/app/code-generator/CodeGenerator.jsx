@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
-import ModuleHeader from '@/components/UIComponents/ModuleHeader';
-import CopyButton from '@/components/UIComponents/CopyButton';
+import { useApp } from '@/context/AppContext';
+import { CopyButton, ModuleHeader } from '@/components/ui';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { useApp } from '@/context/AppContext';
+
 
 export default function CodeGenerator({ onSwitchModule }) {
  const [input, setInput] = useState('');

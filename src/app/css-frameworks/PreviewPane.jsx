@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { generatePreviewDoc, TARGET_FRAMEWORKS } from './constants';
 
-export default function PreviewPane({ inputHtml, inputCss, outputHtml, targetLang, loading }) {
+export function PreviewPane({ inputHtml, inputCss, outputHtml, targetLang, loading }) {
   const [fullScreenView, setFullScreenView] = useState(null); 
   const targetLabel = TARGET_FRAMEWORKS.find(t => t.value === targetLang)?.label;
 

@@ -1,8 +1,7 @@
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { ThemeProvider } from '@/context/ThemeContext';
-import { AppProvider } from '@/context/AppContext'; 
-import MainLayout from '@/components/UIComponents/MainLayout'; 
+import { AppProvider, ThemeProvider } from '@/context/ThemeContext';
+import { MainLayout } from '@/components/ui'; 
 
 import '@/styles/index.css';
 import '@/styles/Components.css';

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistory, deleteHistoryItem, clearAllHistory, subscribeToHistory } from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
-import { useTheme } from '@/components/FunctionalComponents/ThemeContext';
+import { useTheme } from '@/context';
 import Link from 'next/link';
 
 const modules = [
@@ -18,6 +18,7 @@ const modules = [
 ];
 
 export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
+  
   const pathname = usePathname();
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);

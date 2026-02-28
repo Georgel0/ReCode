@@ -8,17 +8,15 @@ export function AppProvider({ children }) {
   const [moduleData, setModuleData] = useState(null);
   
   const [qualityMode, setQualityMode] = useState(() => {
-    return localStorage.getItem("recode_quality_mode") || "fast";
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("recode_quality_mode") || "fast";
+    }
+    return "fast";
   });
   
   useEffect(() => {
     localStorage.setItem('recode_quality_mode', qualityMode);
   }, [qualityMode]);
-  
-  useEffect(() => {
-    const savedMode = localStorage.getItem('recode_quality_mode');
-    if (savedMode) setQualityMode(savedMode);
-  }, []);
   
   const toggleQualityMode = () => {
     setQualityMode(prev => {

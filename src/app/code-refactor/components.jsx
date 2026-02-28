@@ -1,11 +1,11 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-import CopyButton from '@/components/UIComponents/CopyButton';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CopyButton } from '@/components/ui';
 import { REFACTOR_MODES, formatBytes } from './utils';
 
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { diffLines } from 'diff';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 
