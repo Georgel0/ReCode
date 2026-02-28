@@ -25,7 +25,7 @@ const MODEL_OPTIONS = [
  specs: ['Superior problem solving', 'Advanced logic & context', 'Higher latency (best for precision)']
 }];
 
-export default function ModelSelector({ isOpen, onClose, onSelect, currentMode }) {
+export function ModelSelector({ isOpen, onClose, onSelect, currentMode }) {
  if (!isOpen) return null;
  
  return (

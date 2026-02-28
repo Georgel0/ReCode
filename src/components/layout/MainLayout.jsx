@@ -9,7 +9,7 @@ import Sidebar from './Sidebar';
 import Notification from './Notification';
 import ModelSelector from './ModelSelector';
 
-export default function MainLayout({ children }) {
+export function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); 
   const [notification, setNotification] = useState(null);

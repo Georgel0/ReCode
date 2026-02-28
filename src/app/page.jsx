@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import ParticleBackground from '@/components/FunctionalComponents/ParticleBackground';
-import ScrollAnimation from '@/components/FunctionalComponents/ScrollAnimation';
+import ParticleBackground from '@/components/effects/ParticleBackground';
+import ScrollAnimation from '@/components/effects/ScrollAnimation';
 import { tools } from '@/lib/toolContent'
 import '@/styles/landingpage.css';
 

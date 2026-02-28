@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { saveHistory } from '@/lib/firebase';
 
-export default function ModuleHeader({ title, description, resultData }) {
+export function ModuleHeader({ title, description, resultData }) {
  const [saving, setSaving] = useState(false);
  const [saved, setSaved] = useState(false);
  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);

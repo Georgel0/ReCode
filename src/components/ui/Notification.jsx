@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export default function Notification({ message, duration = 3000, type = 'success' }) {
+export function Notification({ message, duration = 3000, type = 'success' }) {
   const [isVisible, setIsVisible] = useState(false);
   const [text, setText] = useState('');
 

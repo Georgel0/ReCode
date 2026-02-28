@@ -6,7 +6,18 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from '@/components/FunctionalComponents/ThemeContext';
 import Link from 'next/link';
 
-export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
+const modules = [
+  { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt', path: '/code-converter' },
+  { id: 'refactor', label: 'Code Refactor', icon: 'fas fa-wand-magic-sparkles', path: '/code-refactor' },
+  { id: 'analysis', label: 'Code Analyzer', icon: 'fas fa-brain', path: '/code-analysis' },
+  { id: 'generator', label: 'Code Generator', icon: 'fas fa-magic', path: '/code-generator' },
+  { id: 'css-tailwind', label: 'CSS Frameworks', icon: 'fab fa-css3-alt', path: '/css-frameworks' },
+  { id: 'regex', label: 'Regex Generator', icon: 'fas fa-search', path: '/regex-generator' },
+  { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database', path: '/sql-builder' },
+  { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt', path: '/json-formatter' },
+];
+
+export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
   const pathname = usePathname();
   const [historyItems, setHistoryItems] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -71,7 +82,7 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
   
   const handleClearAll = async () => {
     if (historyItems.length === 0) return;
-   
+    
     if (window.confirm('Are you sure you want to delete all history items? This cannot be undone.')) {
       setIsDeleting(true);
       
@@ -85,17 +96,6 @@ export default function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleColl
       }
     }
   };
-  
-  const modules = [
-    { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt', path: '/code-converter' },
-    { id: 'refactor', label: 'Code Refactor', icon: 'fas fa-wand-magic-sparkles', path: '/code-refactor' },
-    { id: 'analysis', label: 'Code Analyzer', icon: 'fas fa-brain', path: '/code-analysis' },
-    { id: 'generator', label: 'Code Generator', icon: 'fas fa-magic', path: '/code-generator' },
-    { id: 'css-tailwind', label: 'CSS Frameworks', icon: 'fab fa-css3-alt', path: '/css-frameworks' },
-    { id: 'regex', label: 'Regex Generator', icon: 'fas fa-search', path: '/regex-generator' },
-    { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database', path: '/sql-builder' },
-    { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt', path: '/json-formatter' },
-  ];
   
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`} ref={sidebarRef}>

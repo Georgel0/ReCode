@@ -1,7 +1,7 @@
 import React from 'react';
 import '@/styles/ToolFooter.css';
 
-export default function ToolFooter({ content }) {
+export function ToolFooter({ content }) {
  if (!content) return null;
  
  return (

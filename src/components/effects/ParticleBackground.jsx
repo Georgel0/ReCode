@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-export default function ParticleBackground() {
+export function ParticleBackground() {
  const canvasRef = useRef(null);
  const mouse = useRef({ x: null, y: null });
  const particles = useRef([]);

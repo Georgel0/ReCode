@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function CopyButton({
+export function CopyButton({
  codeToCopy,
  label = "Copy",
  className = "primary-button copy-btn copy-btn-absolute",
