@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useConverter } from './useConverter';
 import { TARGET_FRAMEWORKS, MODES } from './constants';
-import PreviewPane from './PreviewPane';
+import { PreviewPane } from './PreviewPane';
 import { CopyButton, ModuleHeader } from '@/components/ui';
 import { useApp } from '@/context/AppContext';
 
