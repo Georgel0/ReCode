@@ -1,2 +1,2 @@
-export * from "./ParticleBackground.jsx";
-export * from "./ScrollAnimation.jsx";
+export * from "./ParticleBackground";
+export * from "./ScrollAnimation";

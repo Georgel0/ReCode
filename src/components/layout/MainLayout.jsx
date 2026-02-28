@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useApp, useTheme } from '@/context';
-import Sidebar from './Sidebar';
+import { Sidebar } from '@/components/layout';
 import { Notification, ModelSelector } from '@/components/ui';
 
 export function MainLayout({ children }) {
