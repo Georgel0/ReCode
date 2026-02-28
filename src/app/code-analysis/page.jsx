@@ -1,5 +1,5 @@
 import CodeAnalysis from './CodeAnalysis';
-import ToolFooter from '@/components/UIComponents/ToolFooter';
+import { ToolFooter } from '@/components/layout';
 import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
