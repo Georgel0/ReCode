@@ -12,6 +12,7 @@ export function MainLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); 
   const [notification, setNotification] = useState(null);
   const [showModelSelector, setShowModelSelector] = useState(false);
+  const [hrefLaunch, setHrefLaunch] = useState('/code-converter')
   
   const { qualityMode, setQualityMode, toggleQualityMode, setModuleData } = useApp();
   const { currentTheme } = useTheme();
@@ -20,6 +21,11 @@ export function MainLayout({ children }) {
   const router = useRouter();
   
   const isLandingPage = pathname === '/';
+  
+  useEffect(() => {
+    const saved = localStorage.getItem('recode_last_module');
+    if (saved) setHrefLaunch(saved);
+  });
   
   useEffect(() => {
     if (isLandingPage) return;
@@ -49,7 +55,7 @@ export function MainLayout({ children }) {
   };
 
   return (
-    <div className={`app-wrapper ${isLandingPage ? 'landing-mode' : `theme-${currentTheme}`}`}>
+    <div className={`app-wrapper ${isLandingPage ? 'landing-mode' : ''}`}>
       
       {!isLandingPage && (
         <Sidebar 
@@ -76,7 +82,7 @@ export function MainLayout({ children }) {
                   </div>
                 </Link>
                 <Link 
-                  href={localStorage.getItem('recode_last_module') || '/code-converter'} 
+                  href={hrefLaunch} 
                   className="primary-button launch-app-btn">
                   Launch App
                 </Link>

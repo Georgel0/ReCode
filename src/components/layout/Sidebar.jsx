@@ -161,7 +161,6 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
           </button>
         </div>
 
-        
         {!isCollapsed && (
           <div className="theme-selector-section">
             <h3>Theme:</h3>

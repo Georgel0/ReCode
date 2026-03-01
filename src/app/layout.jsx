@@ -17,11 +17,25 @@ export const metadata = {
   keywords: ['Code Converter', 'Code Refactor', 'Code Analysis', 'Code Generator', 'CSS Converter', 'Regex Generator', 'SQL Generator', 'JSON Formatter'],
 };
 
+const themeCheckScript = `
+(function() {
+  try {
+    var theme = localStorage.getItem('recode-theme');
+    var supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (!theme) {
+      theme = supportDarkMode ? 'recode-dark' : 'classic-light';
+    }
+    
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+})();
+`;
 
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -48,6 +62,8 @@ export default function RootLayout({ children }) {
         <meta property="twitter:title" content="ReCode | AI-Powered Code Converter" />
         <meta property="twitter:description" content="Instantly translate source code between multiple languages. Simplify your migration and boost productivity with AI." />
         <meta property="twitter:image" content="https://recode-alpha.vercel.app/og-image.png" />
+        
+        <script dangerouslySetInnerHTML={{ __html: themeCheckScript }} />
       </head>
       <body>
         <ThemeProvider>
