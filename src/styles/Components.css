@@ -661,6 +661,8 @@ select option {
   padding: 6px 12px; 
   font-size: 0.85rem;
   text-decoration: none;
+  color: white;
+  background-color: #0ea5e9;
 }
 
 .icon-btn {

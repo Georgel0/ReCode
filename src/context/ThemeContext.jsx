@@ -3,11 +3,11 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 const THEMES_DATA = [
- { id: 'recode-dark', label: 'Space Gray', group: 'Dark Themes' },
+ { id: 'recode-dark', label: 'Black', group: 'Dark Themes' },
  { id: 'midnight-gold', label: 'Luxury Black', group: 'Dark Themes' },
  { id: 'deep-sea', label: 'Oceanic', group: 'Dark Themes' },
- { id: 'classic-light', label: 'Snow White', group: 'Light Themes' },
- { id: 'quartz', label: 'Rose Gold', group: 'Light Themes' },
+ { id: 'classic-light', label: 'White', group: 'Light Themes' },
+ { id: 'quartz', label: 'Quartz Gold', group: 'Light Themes' },
  { id: 'mint', label: 'Fresh Mint', group: 'Light Themes' },
 ];
 
