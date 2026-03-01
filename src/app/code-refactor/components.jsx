@@ -150,7 +150,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
       oldValue={activeSourceFile.content}
       newValue={activeOutput.content}
       splitView={isMobile ? false : viewMode === 'split'}
-      useDarkTheme={!useLightCode}
+      useDarkTheme={isDarkTheme}
       compareMethod="diffLines"
       leftTitle="Original"
       rightTitle="Refactored"
