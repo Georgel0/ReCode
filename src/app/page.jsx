@@ -10,6 +10,12 @@ import '@/styles/landingpage.css';
 export default function LandingPage() {
  const router = useRouter();
  const [activeInfo, setActiveInfo] = useState(null);
+ const [lastModule, setLastModule] = useState("/code-converter");
+ 
+ useEffect(() => {
+   const saved = localStorage.getItem('recode_last_module');
+   if (saved) setLastModule(saved);
+ }, []);
  
  return (
   <div className="lp-wrapper">
@@ -30,7 +36,7 @@ export default function LandingPage() {
           </p>
           <div className="hero-actions">
             <Link 
-              href={localStorage.getItem('recode_last_module') || '/code-converter'}
+              href={lastModule}
               className="lp-cta">
               Get Started <i className="fa-solid fa-arrow-right"></i>
             </Link>
