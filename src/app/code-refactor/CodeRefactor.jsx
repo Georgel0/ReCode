@@ -42,6 +42,8 @@ export default function CodeRefactor() {
  const fileInputRef = useRef(null);
  const isRestoring = useRef(false);
  
+ const { currentTheme } = useTheme();
+ 
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  const useLightCode = isDarkTheme;
  

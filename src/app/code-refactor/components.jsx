@@ -80,6 +80,8 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
  
  const [isMobile, setIsMobile] = useState(false);
  
+ const { currentTheme } = useTheme();
+ 
  useEffect(() => {
   setIsMobile(window.innerWidth < 768);
   
