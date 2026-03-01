@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode } from '@/lib/api';
-import { ModuleHeader } from '@/components/ui';
+import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context/AppContext';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';

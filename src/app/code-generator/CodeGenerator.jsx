@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context/AppContext';
-import { CopyButton, ModuleHeader } from '@/components/ui';
+import { CopyButton } from '@/components/ui';
+import { ModuleHeader } from '@/components/layout';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';

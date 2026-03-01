@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useConverter } from './useConverter';
 import { TARGET_FRAMEWORKS, MODES } from './constants';
 import { PreviewPane } from './PreviewPane';
-import { CopyButton, ModuleHeader } from '@/components/ui';
+import { CopyButton } from '@/components/ui';
+import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context/AppContext';
 
 import './CssFrameworks.css'

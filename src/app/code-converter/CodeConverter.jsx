@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { CopyButton, ModuleHeader } from '@/components/ui';
+import { CopyButton } from '@/components/ui';
+import { ModuleHeader } from '@/components/layout';
 
 const LANGUAGES = [
  { value: 'javascript', label: 'JavaScript', ext: '.js' },

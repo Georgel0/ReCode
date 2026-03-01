@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
-import { ModuleHeader } from '@/components/ui';
+import { ModuleHeader } from '@/components/layout';
+import { CopyButton } from '@/components/ui';
 import { useApp } from '@/context/AppContext';
 
 import './regexGenerator.css';
@@ -73,7 +74,6 @@ export default function RegexGenerator() {
  ]);
  
  const [loading, setLoading] = useState(false);
- const [copyFeedback, setCopyFeedback] = useState('Copy');
  const [showCheatsheet, setShowCheatsheet] = useState(false);
  const [showTestInfo, setShowTestInfo] = useState(false);
  const [lastResult, setLastResult] = useState(null);
@@ -130,19 +130,6 @@ export default function RegexGenerator() {
    alert(`Generation failed: ${error.message}`);
   }
   setLoading(false);
- };
- 
- const handleCopy = () => {
-  if (outputCode) {
-   // Construct full regex string including flags
-   const flagStr = Object.keys(flags).filter(k => flags[k]).join('');
-   const fullString = `/${outputCode}/${flagStr}`;
-   
-   navigator.clipboard.writeText(fullString);
-   
-   setCopyFeedback('Copied!');
-   setTimeout(() => setCopyFeedback('Copy'), 2000);
-  }
  };
  
  const getRegexObject = () => {
@@ -220,6 +207,9 @@ export default function RegexGenerator() {
   
   return { isMatch: regex.test(text) };
  };
+ 
+ // Construct full regex string including flags
+ const fullString = `/${outputCode}/${Object.keys(flags).filter(k => flags[k]).join('')}` || "";
  
  return (
   <div className="module-container">
@@ -362,9 +352,7 @@ export default function RegexGenerator() {
         <span style={{color: 'var(--text-secondary)', userSelect:'none'}}>
          / {Object.keys(flags).filter(k => flags[k]).join('')}
         </span>
-        <button className="copy-btn" onClick={handleCopy}>
-         {copyFeedback}
-        </button>
+        <CopyButton className="copy-btn" iconOnly={true} codeToCopy={fullString} />
        </div>
       </div>
 

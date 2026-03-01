@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
-import { CopyButton, ModuleHeader } from '@/components/ui';
+import { CopyButton } from '@/components/ui';
+import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context/AppContext';
 
 const DIALECTS = [
