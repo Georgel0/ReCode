@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode } from '@/lib/api';
+import { useTheme } from '@/context/ThemeContext';
 import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context/AppContext';
 import JSZip from 'jszip';
@@ -12,7 +13,6 @@ import { FileTabs, RefactorControls, OutputPanel } from './components';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
@@ -41,6 +41,9 @@ export default function CodeRefactor() {
  const [storageWarning, setStorageWarning] = useState(false);
  const fileInputRef = useRef(null);
  const isRestoring = useRef(false);
+ 
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+ const useLightCode = isDarkTheme;
  
  useEffect(() => {
   if (moduleData && moduleData.type === "refactor") {
@@ -357,7 +360,7 @@ export default function CodeRefactor() {
      onValueChange={(code) => updateFile(activeTabId, code)}
      highlight={code => highlight(code, getEditorLanguage(activeFile?.language), activeFile?.language || 'javascript')}
      padding={15}
-     className="code-editor"
+     className={`code-editor ${useLightCode ? 'prism-light' : 'prism-dark'}`}
      placeholder="Paste your code here..."
      style={{ fontFamily: '"Fira Code", "Courier New", monospace', fontSize: 14, }}
     />

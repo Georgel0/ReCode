@@ -2,10 +2,11 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 
 import { CopyButton } from '@/components/ui';
+import { useTheme } from '@/context';
 import { REFACTOR_MODES, formatBytes } from './utils';
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { diffLines } from 'diff';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 
@@ -89,6 +90,10 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
  
  const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
  
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+ 
+ const useLightCode = isDarkTheme;
+ 
  if (loadingStage !== 'idle') {
   return (
    <div className="placeholder-container-inner">
@@ -131,7 +136,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
      <>
       <SyntaxHighlighter 
        language={activeSourceFile.language || 'javascript'} 
-       style={vscDarkPlus}
+       style={useLightCode ? vs : vscDarkPlus}
        showLineNumbers
        customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
       >
@@ -145,11 +150,11 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
       oldValue={activeSourceFile.content}
       newValue={activeOutput.content}
       splitView={isMobile ? false : viewMode === 'split'}
-      useDarkTheme={true}
+      useDarkTheme={!useLightCode}
       compareMethod="diffLines"
       leftTitle="Original"
       rightTitle="Refactored"
-      styles={{
+      styles={useLightCode ? undefined : {
        variables: {
         diffViewerBackground: '#1e1e1e',
         addedBackground: 'rgba(46, 160, 67, 0.15)',

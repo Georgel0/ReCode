@@ -180,6 +180,8 @@
   outline: none;
   transition: border-color 0.2s ease;
   overflow: auto;
+  text-shadow: none;
+  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 
 .code-editor:focus-within {
