@@ -362,9 +362,8 @@ export default function CodeRefactor() {
      onValueChange={(code) => updateFile(activeTabId, code)}
      highlight={code => highlight(code, getEditorLanguage(activeFile?.language), activeFile?.language || 'javascript')}
      padding={15}
-     className={`code-editor ${useLightCode ? 'prism-light' : 'prism-dark'}`}
+     className={`code-editor-ref ${useLightCode ? 'prism-light' : 'prism-dark'}`}
      placeholder="Paste your code here..."
-     style={{ fontFamily: '"Fira Code", "Courier New", monospace', fontSize: 14, }}
     />
    </div>
 

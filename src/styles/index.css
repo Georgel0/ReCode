@@ -306,3 +306,21 @@ html[data-theme='mint'] select {
 .prism-light .token.deleted,
 .prism-light .token.tag,
 .prism-light .token.class-name { color: #d73a49; }
+
+.code-editor.prism-light,
+.code-editor.prism-light textarea,
+.code-editor.prism-light pre {
+  background-color: #ffffff !important;
+  color: #393A34 !important;
+}
+
+.code-editor.prism-dark,
+.code-editor.prism-dark textarea,
+.code-editor.prism-dark pre {
+  background-color: #1d1d1d !important;
+  color: #ccc !important;
+}
+
+.prism-light .token {
+  background: none !important;
+}

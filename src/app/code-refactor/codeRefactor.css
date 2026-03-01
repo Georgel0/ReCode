@@ -170,7 +170,7 @@
   border-bottom: 2px solid var(--accent);
 }
 
-.code-editor {
+.code-editor-ref {
   width: 100%;
   min-height: 400px;
   background: #1e1e1e;
@@ -181,6 +181,7 @@
   transition: border-color 0.2s ease;
   overflow: auto;
   text-shadow: none;
+  font-size: 14px;
   font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 
