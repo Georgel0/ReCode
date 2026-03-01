@@ -94,8 +94,6 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
  
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
- const useLightCode = isDarkTheme;
- 
  if (loadingStage !== 'idle') {
   return (
    <div className="placeholder-container-inner">
@@ -138,7 +136,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
      <>
       <SyntaxHighlighter 
        language={activeSourceFile.language || 'javascript'} 
-       style={!useLightCode ? vs : vscDarkPlus}
+       style={isDarkTheme ? vscDarkPlus : vs}
        showLineNumbers
        customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
       >
@@ -156,7 +154,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
       compareMethod="diffLines"
       leftTitle="Original"
       rightTitle="Refactored"
-      styles={useLightCode ? undefined : {
+      styles={!isDarkTheme ? undefined : {
        variables: {
         diffViewerBackground: '#1e1e1e',
         addedBackground: 'rgba(46, 160, 67, 0.15)',

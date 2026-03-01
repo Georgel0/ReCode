@@ -307,20 +307,28 @@ html[data-theme='mint'] select {
 .prism-light .token.tag,
 .prism-light .token.class-name { color: #d73a49; }
 
+.code-editor.prism-dark,
+.code-editor.prism-dark textarea,
+.code-editor.prism-dark pre {
+  background-color: #000000 !important;
+  color: #c9d1d9 !important;
+}
+
 .code-editor.prism-light,
 .code-editor.prism-light textarea,
 .code-editor.prism-light pre {
   background-color: #ffffff !important;
-  color: #393A34 !important;
+  color: #333333 !important;
 }
 
-.code-editor.prism-dark,
-.code-editor.prism-dark textarea,
-.code-editor.prism-dark pre {
-  background-color: #1d1d1d !important;
-  color: #ccc !important;
-}
+.prism-dark .token.keyword { color: #cc99cd !important; }
+.prism-dark .token.string { color: #7ec699 !important; }
+.prism-dark .token.function { color: #f08d49 !important; }
 
-.prism-light .token {
-  background: none !important;
+.prism-light .token.keyword { color: #00a4db !important; }
+.prism-light .token.string { color: #e3116c !important; }
+.prism-light .token.function { color: #d73a49 !important; }
+
+.code-editor textarea:focus {
+  outline: none;
 }
