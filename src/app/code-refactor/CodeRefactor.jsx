@@ -45,7 +45,6 @@ export default function CodeRefactor() {
  const { currentTheme } = useTheme();
  
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
- const useLightCode = isDarkTheme;
  
  useEffect(() => {
   if (moduleData && moduleData.type === "refactor") {
@@ -362,8 +361,8 @@ export default function CodeRefactor() {
      onValueChange={(code) => updateFile(activeTabId, code)}
      highlight={code => highlight(code, getEditorLanguage(activeFile?.language), activeFile?.language || 'javascript')}
      padding={15}
-     className={`code-editor ${useLightCode ? 'prism-light' : 'prism-dark'}`}
-     placeholder="Paste your code here..."
+     className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
+     placeholder="Paste/write your code here..."
     />
    </div>
 
