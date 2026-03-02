@@ -4,10 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context';
 import { useRouter } from 'next/navigation';
-import { CopyButton, CodeEditor } from '@/components/ui';
+import { CopyButton, CodeEditor, OutputPanel } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const LANGUAGES = [
  { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -222,14 +220,9 @@ export default function CodeConverter() {
      {outputCode ? (
       <div className="code-output-container"> 
        <div className="output-wrapper">
-         <SyntaxHighlighter 
-          language={targetLang} 
-          style={isDarkTheme ? vscDarkPlus : vs}
-          showLineNumbers
-          customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
-         >
-         {outputCode}
-        </SyntaxHighlighter>
+        <OutputPanel
+         language={targetLang} 
+         content={outputCode} />
         
         <CopyButton codeToCopy={outputCode} />
        </div>

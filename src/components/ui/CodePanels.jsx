@@ -1,5 +1,8 @@
 'use client';
 
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-clike';
@@ -27,11 +30,7 @@ import 'prismjs/components/prism-haskell';
 
 import { useTheme } from '@/context';
 
-export function CodeEditor({
- value,
- onValueChange,
- language = 'javascript',
- placeholder = "Paste/write your code here..."
+export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..."
 }) {
  
  const { currentTheme } = useTheme();
@@ -56,3 +55,20 @@ export function CodeEditor({
   </div>
  );
 }
+
+export function OutputPanel({ content, language }) {
+ 
+ const { currentTheme } = useTheme();
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+ 
+ return (
+  <SyntaxHighlighter 
+   language={language} 
+   style={isDarkTheme ? vscDarkPlus : vs}
+   showLineNumbers
+   customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
+  >
+   {content}
+  </SyntaxHighlighter>
+ );
+};

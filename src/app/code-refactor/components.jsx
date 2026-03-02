@@ -1,12 +1,10 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-import { CopyButton } from '@/components/ui';
+import { CopyButton, OutputPanel } from '@/components/ui';
 import { useTheme } from '@/context';
 import { REFACTOR_MODES, formatBytes } from './utils';
 
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { diffLines } from 'diff';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 
@@ -80,8 +78,6 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
  
  const [isMobile, setIsMobile] = useState(false);
  
- const { currentTheme } = useTheme();
- 
  useEffect(() => {
   setIsMobile(window.innerWidth < 768);
   
@@ -91,8 +87,6 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
  }, []);
  
  const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
- 
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
  if (loadingStage !== 'idle') {
   return (
@@ -134,14 +128,9 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
    <div className="diff-container">
     {viewMode === 'final' ? (
      <>
-      <SyntaxHighlighter 
-       language={activeSourceFile.language || 'javascript'} 
-       style={isDarkTheme ? vscDarkPlus : vs}
-       showLineNumbers
-       customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
-      >
-       {activeOutput.content}
-      </SyntaxHighlighter>
+      <OutputPanel
+       language={activeSourceFile.language || 'javascript'}
+       content={activeOutput.content} />
           
       <CopyButton codeToCopy={activeOutput.content} />
      </>
