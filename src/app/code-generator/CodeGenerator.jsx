@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context/AppContext';
-import { CopyButton } from '@/components/ui';
+import { CopyButton, CodeOutput } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -186,23 +184,9 @@ export default function CodeGenerator({ onSwitchModule }) {
         </div>
 
         <div className="highlighter-wrapper">
-         <SyntaxHighlighter 
-          language={getLanguage(activeFile?.fileName)} 
-          style={vscDarkPlus} 
-          customStyle={{ 
-           margin: 0, 
-           height: '100%', 
-           background: 'transparent',
-           fontSize: '0.9rem',
-           whiteSpace: 'pre-wrap', 
-           wordBreak: 'break-word'   
-          }}
-          showLineNumbers={true}
-          wrapLines={true}
-          wrapLongLines={true}  
-         >
-          {activeFile ? formatContent(activeFile.content) : ''}
-         </SyntaxHighlighter>
+         <CodeOutput 
+          language={getLanguage(activeFile?.fileName)}
+          content={activeFile ? formatContent(activeFile.content) : ''} />
          
          <CopyButton codeToCopy={activeFile?.content || ''} />
         </div>

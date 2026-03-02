@@ -67,6 +67,7 @@ export function CodeOutput({ content, language }) {
    style={isDarkTheme ? vscDarkPlus : vs}
    showLineNumbers
    customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
+   showLineNumbers={true}
   >
    {content}
   </SyntaxHighlighter>
