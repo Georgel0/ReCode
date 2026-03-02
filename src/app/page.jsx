@@ -75,7 +75,7 @@ export default function LandingPage() {
     <section className="lp-section bg-alt">
      <div className="lp-container">
       <ScrollAnimation direction="up">
-       <div className="section-header-lp center">
+       <div className="section-header center">
         <h2 className="section-title">The Developer Suite</h2>
         <p className="section-desc">Modular utilities to accelerate your workflow without losing control.</p>
        </div>
@@ -142,7 +142,7 @@ export default function LandingPage() {
      <section id="platform-video" className="lp-section video-section">
       <div className="lp-container">
        <ScrollAnimation direction="up">
-        <div className="section-header-lp center">
+        <div className="section-header center">
          <h2 className="section-title">Platform Overview</h2>
          <p className="section-desc">See how ReCode transforms your development velocity.</p>
         </div>

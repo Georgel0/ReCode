@@ -144,12 +144,12 @@ body {
   border-bottom: 1px solid var(--lp-border);
 }
 
-.section-header-lp {
+.section-header {
   margin-bottom: 60px;
   z-index: 1;
 }
 
-.section-header-lp.center {
+.section-header.center {
   text-align: center;
 }
 
