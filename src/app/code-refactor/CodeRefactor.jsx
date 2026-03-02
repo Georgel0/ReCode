@@ -2,25 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode } from '@/lib/api';
-import { useTheme } from '@/context/ThemeContext';
+import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import { useApp } from '@/context/AppContext';
+import { CodeEditor } from '@/componenets/ui';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
 import { sanitizeFilename, validateFile, suggestRefactorMode, LANGUAGES } from './utils';
 import { FileTabs, RefactorControls, OutputPanel } from './components';
-
-import Editor from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-csharp';
-import 'prismjs/components/prism-java';
 
 import { get, set } from 'idb-keyval';
 
@@ -41,10 +30,6 @@ export default function CodeRefactor() {
  const [storageWarning, setStorageWarning] = useState(false);
  const fileInputRef = useRef(null);
  const isRestoring = useRef(false);
- 
- const { currentTheme } = useTheme();
- 
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
  useEffect(() => {
   if (moduleData && moduleData.type === "refactor") {
@@ -354,17 +339,12 @@ export default function CodeRefactor() {
      setActiveTabId={setActiveTabId}
      removeFile={removeFile}
     />
-
-   <div className="editor-container">
-    <Editor
+    
+    <CodeEditor
      value={activeFile?.content || ''}
      onValueChange={(code) => updateFile(activeTabId, code)}
-     highlight={code => highlight(code, getEditorLanguage(activeFile?.language), activeFile?.language || 'javascript')}
-     padding={15}
-     className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
-     placeholder="Paste/write your code here..."
+     language={activeFile?.language || 'javascript'}
     />
-   </div>
 
     <div className="action-row">
      <button 

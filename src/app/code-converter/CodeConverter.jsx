@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
-import { useApp, useTheme } from '@/context';
+import { useApp } from '@/context';
 import { useRouter } from 'next/navigation';
-import { CopyButton } from '@/components/ui';
+import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -47,9 +47,6 @@ export default function CodeConverter() {
  const [lastResult, setLastResult] = useState(false);
  const initialSyncRef = useRef(false);
  const router = useRouter();
- 
- const { currentTheme } = useTheme();
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
  useEffect(() => {
   if (moduleData?.type === 'converter' && !initialSyncRef.current) {
@@ -177,13 +174,11 @@ export default function CodeConverter() {
       {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
      </select>
     </div>
-
-    <textarea 
-     value={input} 
-     onChange={(e) => setInput(e.target.value)} 
-     placeholder="Paste your code or upload a file..." 
-     spellCheck="false"
-     className="flex-grow"
+    
+    <CodeEditor
+     value={input}
+     onValueChange={setInput}
+     language={sourceLang}
     />
 
     <div className="action-row">
