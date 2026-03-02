@@ -56,7 +56,7 @@ export function CodeEditor({ value, onValueChange, language = 'javascript', plac
  );
 }
 
-export function OutputPanel({ content, language }) {
+export function CodeOutput({ content, language }) {
  
  const { currentTheme } = useTheme();
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);

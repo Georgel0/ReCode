@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-import { CopyButton, OutputPanel } from '@/components/ui';
+import { CopyButton, CodeOutput } from '@/components/ui';
 import { useTheme } from '@/context';
 import { REFACTOR_MODES, formatBytes } from './utils';
 
@@ -128,7 +128,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
    <div className="diff-container">
     {viewMode === 'final' ? (
      <>
-      <OutputPanel
+      <CodeOutput
        language={activeSourceFile.language || 'javascript'}
        content={activeOutput.content} />
           

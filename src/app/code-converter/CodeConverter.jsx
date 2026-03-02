@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context';
 import { useRouter } from 'next/navigation';
-import { CopyButton, CodeEditor, OutputPanel } from '@/components/ui';
+import { CopyButton, CodeEditor, CodeOutput } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 
 const LANGUAGES = [
@@ -220,7 +220,7 @@ export default function CodeConverter() {
      {outputCode ? (
       <div className="code-output-container"> 
        <div className="output-wrapper">
-        <OutputPanel
+        <CodeOutput
          language={targetLang} 
          content={outputCode} />
         
