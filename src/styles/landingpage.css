@@ -2,6 +2,7 @@
   --lp-bg: #000000;
   --lp-bg-alt: #080808;
   --lp-blue: #38bdf8;
+  --lp-blue-dark: #0072A5;
   --lp-blue-glow: rgba(56, 189, 248, 0.15);
   --lp-text-main: #ffffff;
   --lp-text-muted: #94a3b8;
@@ -144,12 +145,14 @@ body {
   border-bottom: 1px solid var(--lp-border);
 }
 
-.section-header {
+.section-header.lp {
   margin-bottom: 60px;
   z-index: 1;
+  background: none !important;
+  border: none !important;
 }
 
-.section-header.center {
+.section-header.lp.center {
   text-align: center;
 }
 
@@ -484,14 +487,14 @@ body {
 .info-trigger-lp {
   background: transparent;
   border: none;
-  color: var(--accent-hover);
+  color: var(--lp-blue-dark);
   cursor: pointer;
   transition: color 0.2s;
   font-size: 1.1rem;
 }
 
 .info-trigger-lp:hover {
-  color: var(--text-on-accent);
+  color: var(--lp-blue);
 }
 
 @keyframes modalPop {
