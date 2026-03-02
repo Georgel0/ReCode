@@ -217,7 +217,7 @@
   position: relative;
   border: 1px solid var(--border);
   border-top: none;
-  background: var(--bg-primary);
+  background: transparent;
   border-radius: 0 0 var(--radius) var(--radius);
 }
 
