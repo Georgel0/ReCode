@@ -75,7 +75,7 @@ export default function LandingPage() {
     <section className="lp-section bg-alt">
      <div className="lp-container">
       <ScrollAnimation direction="up">
-       <div className="section-header center">
+       <div className="section-header-lp center">
         <h2 className="section-title">The Developer Suite</h2>
         <p className="section-desc">Modular utilities to accelerate your workflow without losing control.</p>
        </div>
@@ -89,7 +89,7 @@ export default function LandingPage() {
            <div className="card-header">
             <div className="lp-card-icon"><i className={tool.icon}></i></div>
             <button 
-             className="info-trigger" 
+             className="info-trigger-lp" 
              onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -142,7 +142,7 @@ export default function LandingPage() {
      <section id="platform-video" className="lp-section video-section">
       <div className="lp-container">
        <ScrollAnimation direction="up">
-        <div className="section-header center">
+        <div className="section-header-lp center">
          <h2 className="section-title">Platform Overview</h2>
          <p className="section-desc">See how ReCode transforms your development velocity.</p>
         </div>

@@ -144,12 +144,12 @@ body {
   border-bottom: 1px solid var(--lp-border);
 }
 
-.section-header {
+.section-header-lp {
   margin-bottom: 60px;
   z-index: 1;
 }
 
-.section-header.center {
+.section-header-lp.center {
   text-align: center;
 }
 
@@ -479,6 +479,19 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.info-trigger-lp {
+  background: transparent;
+  border: none;
+  color: var(--accent-hover);
+  cursor: pointer;
+  transition: color 0.2s;
+  font-size: 1.1rem;
+}
+
+.info-trigger-lp:hover {
+  color: var(--text-on-accent);
 }
 
 @keyframes modalPop {
