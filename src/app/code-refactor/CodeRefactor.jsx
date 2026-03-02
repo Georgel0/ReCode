@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import { CodeEditor } from '@/componenets/ui';
+import { CodeEditor } from '@/components/ui';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
