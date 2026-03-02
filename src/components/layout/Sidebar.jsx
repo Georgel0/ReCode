@@ -143,9 +143,9 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
         
         <div className="model-trigger-section">
           {!isCollapsed && (
-          <button className="model-trigger-btn" onClick={openModelSelector}>
-            <i className="fas fa-microchip"></i>
-            <span>AI Model Mode</span>
+            <button className="model-trigger-btn" onClick={openModelSelector}>
+              <i className="fas fa-microchip"></i>
+             <span>AI Model Mode</span>
             </button>
           )}
           <button className="second-model-trigger-btn" onClick={toggleQuality}>
