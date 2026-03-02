@@ -657,14 +657,6 @@ select option {
   gap: 8px;
 }
 
-.launch-app-btn {
-  padding: 6px 12px; 
-  font-size: 0.85rem;
-  text-decoration: none;
-  color: white;
-  background-color: #0ea5e9;
-}
-
 .icon-btn {
   background: transparent;
   color: var(--text-primary);

@@ -9,6 +9,8 @@ import JSON5 from 'json5';
 import JsonView from 'react18-json-view'
 import 'react18-json-view/src/style.css'
 
+import './JsonFormatter.css';
+
 export default function JsonFormatter() {
  const [input, setInput] = useState('');
  const [outputCode, setOutputCode] = useState('');

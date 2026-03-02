@@ -83,7 +83,7 @@ export function MainLayout({ children }) {
        </Link>
        <Link 
         href={hrefLaunch} 
-        className="primary-button launch-app-btn">
+        className="launch-app-btn">
         Launch App
        </Link>
       </>
