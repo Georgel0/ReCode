@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { convertCode } from '@/lib/api';
-import { useApp } from '@/context/AppContext';
+import { useApp, useTheme } from '@/context';
 import { useRouter } from 'next/navigation';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const LANGUAGES = [
  { value: 'javascript', label: 'JavaScript', ext: '.js' },
@@ -45,6 +47,9 @@ export default function CodeConverter() {
  const [lastResult, setLastResult] = useState(false);
  const initialSyncRef = useRef(false);
  const router = useRouter();
+ 
+ const { currentTheme } = useTheme();
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
  useEffect(() => {
   if (moduleData?.type === 'converter' && !initialSyncRef.current) {
@@ -92,10 +97,13 @@ export default function CodeConverter() {
  };
  
  const handleSwap = () => {
+  const oldInput = input;
+  const oldOutput = outputCode;
+  
   setSourceLang(targetLang);
   setTargetLang(sourceLang);
-  setInput(outputCode);
-  setOutputCode('');
+  setInput(oldOutput || '');
+  setOutputCode(oldInput);
  };
  
  const handleClear = () => {
@@ -153,7 +161,7 @@ export default function CodeConverter() {
        ref={fileInputRef} 
        className="hidden" 
        onChange={handleFileChange}
-       accept=".js,.ts,.py,.java,.c,.cs,.cpp,.go,.rs,.php,.swift,.kt,.rb,.dart,.zig,.mojo,.r,.scala,.ex,.hs,.lua" 
+       accept={LANGUAGES.map(l => l.ext).join(',')}
       />
       <button className="info-icon" aria-label="Supported formats" onClick={() => setShowInfoModal(true)}> i
       </button>
@@ -219,13 +227,16 @@ export default function CodeConverter() {
      {outputCode ? (
       <div className="code-output-container"> 
        <div className="output-wrapper">
-        <textarea 
-         className="output-textarea"
-         value={outputCode} 
-         readOnly 
-         spellCheck="false"
-        />
-       <CopyButton codeToCopy={outputCode} />
+         <SyntaxHighlighter 
+          language={targetLang} 
+          style={isDarkTheme ? vscDarkPlus : vs}
+          showLineNumbers
+          customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
+         >
+         {outputCode}
+        </SyntaxHighlighter>
+        
+        <CopyButton codeToCopy={outputCode} />
        </div>
                 
        <div className="action-row">
