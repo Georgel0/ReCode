@@ -82,7 +82,7 @@
 }
 
 .feature-card h4 {
-  color: var(--accent);
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
   font-size: 1rem;
 }
@@ -94,7 +94,7 @@
 }
 
 .faq-item dt {
-  color: var(--text-primary);
+  color: var(--accent);
   font-weight: bold;
   margin-bottom: 0.5rem;
 }
