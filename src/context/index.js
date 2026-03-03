@@ -1,2 +1,2 @@
-export * from "./AppContext.jsx";
-export * from "./ThemeContext.jsx";
+export * from "./AppContext";
+export * from "./ThemeContext";
