@@ -4,7 +4,7 @@ export default function robots() {
       {
         userAgent: '*',
         allow: '/',
-        disallow: '/api/',
+        disallow: ['/api/', '/favicon.ico'],
       },
     ],
     sitemap: 'https://recode-alpha.vercel.app/sitemap.xml',
