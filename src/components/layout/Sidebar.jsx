@@ -213,7 +213,10 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
           {!isCollapsed && (
             <div className="history-list">
               {historyItems.length === 0 ? (
-                <p className="empty-state">No history yet.</p>
+                <>
+                  <p className="empty-state">No history yet.</p>
+                  <i className="fas fa-ghost"></i>
+                </>
               ) : (
                 historyItems.map(item => (
                   <div key={item.id} className="history-card" onClick={() => loadFromHistory(item)}>
