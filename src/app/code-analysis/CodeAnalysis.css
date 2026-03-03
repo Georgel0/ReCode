@@ -1,0 +1,226 @@
+.analysis-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.analysis-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.score-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.score-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(var(--accent) var(--score-percent, 0%), var(--bg-tertiary) 0);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.score-ring::before {
+  content: '';
+  position: absolute;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+}
+
+.score-value {
+  position: relative;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--header-color);
+  z-index: 2;
+}
+
+.score-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.score-label span {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.score-label strong {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.complexity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.complexity-card {
+  background: var(--bg-tertiary);
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.complexity-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-size: 1.2rem;
+  border: 1px solid var(--border);
+}
+
+.complexity-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.complexity-info p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
+.analysis-section {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-header i {
+  color: var(--accent);
+}
+
+.section-header.danger i {
+  color: #ff4d4d;
+}
+
+.section-header.warning i {
+  color: #ffa500;
+}
+
+.section-header.success i {
+  color: #10b981;
+}
+
+.section-content {
+  padding: 1rem;
+}
+
+.analysis-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.analysis-list li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.analysis-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.analysis-list li i {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.analysis-list li.issue-high i {
+  color: #ff4d4d;
+}
+
+.analysis-list li.issue-medium i {
+  color: #ffa500;
+}
+
+.analysis-list li.suggestion i {
+  color: #10b981;
+}
+
+.analyzing-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.analyzing-state i {
+  color: var(--accent);
+}
+
+.analyzing-state p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+
+@media (max-width: 764px) {
+  .analysis-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .complexity-grid {
+    grid-template-columns: 1fr;
+  }
+}

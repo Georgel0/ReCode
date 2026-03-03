@@ -5,6 +5,7 @@ import { convertCode } from '@/lib/api';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context/AppContext';
+import 'CodeAnalysis.css';
 
 export default function CodeAnalysis() {
  const [input, setInput] = useState('');
