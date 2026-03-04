@@ -1,35 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { convertCode } from '@/lib/api';
+import { convertCode, LANGUAGES } from '@/lib';
 import { useApp } from '@/context';
 import { useRouter } from 'next/navigation';
 import { CopyButton, CodeEditor, CodeOutput } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
-
-const LANGUAGES = [
- { value: 'javascript', label: 'JavaScript', ext: '.js' },
- { value: 'typescript', label: 'TypeScript', ext: '.ts' },
- { value: 'python', label: 'Python', ext: '.py' },
- { value: 'java', label: 'Java', ext: '.java' },
- { value: 'c', label: 'C', ext: '.c' },
- { value: 'csharp', label: 'C#', ext: '.cs' },
- { value: 'cpp', label: 'C++', ext: '.cpp' },
- { value: 'go', label: 'Go', ext: '.go' },
- { value: 'rust', label: 'Rust', ext: '.rs' },
- { value: 'php', label: 'PHP', ext: '.php' },
- { value: 'swift', label: 'Swift', ext: '.swift' },
- { value: 'kotlin', label: 'Kotlin', ext: '.kt' },
- { value: 'ruby', label: 'Ruby', ext: '.rb' },
- { value: 'dart', label: 'Dart', ext: '.dart' },
- { value: 'zig', label: 'Zig', ext: '.zig' },
- { value: 'mojo', label: 'Mojo', ext: '.mojo' },
- { value: 'r', label: 'R', ext: '.r' },
- { value: 'scala', label: 'Scala', ext: '.scala' },
- { value: 'elixir', label: 'Elixir', ext: '.ex' },
- { value: 'haskell', label: 'Haskell', ext: '.hs' },
- { value: 'lua', label: 'Lua', ext: '.lua' },
-];
 
 export default function CodeConverter() {
  const { moduleData, qualityMode, setModuleData } = useApp();

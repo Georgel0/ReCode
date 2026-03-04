@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { convertCode } from '@/lib/api';
-import { CopyButton } from '@/components/ui';
+import { useRouter } from 'next/navigation';
+import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
+import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
-import { useApp } from '@/context/AppContext';
+import { useApp } from '@/context';
 import 'CodeAnalysis.css';
 
 export default function CodeAnalysis() {
@@ -13,7 +14,12 @@ export default function CodeAnalysis() {
  const [rawAnalysis, setRawAnalysis] = useState('');
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
- const { moduleData, qualityMode } = useApp();
+ 
+ const { moduleData, setModuleData, qualityMode } = useApp();
+ const router = useRouter();
+ 
+ const [selectedLang, setSelectedLang] = useState('javascript');
+ const [isAutoDetected, setIsAutoDetected] = useState(true);
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'analysis') {
@@ -30,6 +36,19 @@ export default function CodeAnalysis() {
    }
   }
  }, [moduleData]);
+ 
+ useEffect(() => {
+  if (!isAutoDetected) return;
+  
+  const timer = setTimeout(() => {
+   const detected = detectLanguage(input);
+   if (detected !== 'unknown') {
+    setSelectedLang(detected);
+   }
+  }, 600);
+  
+  return () => clearTimeout(timer);
+ }, [input, isAutoDetected]);
  
  const processAnalysisResult = (result) => {
   if (typeof result === 'object' && result !== null) {
@@ -52,7 +71,7 @@ export default function CodeAnalysis() {
   
   setLoading(true);
   try {
-   const result = await convertCode('analysis', codeToProcess, { qualityMode });
+   const result = await convertCode('analysis', codeToProcess, { qualityMode, language: selectedLang });
    
    if (result && (result.summary || result.analysis)) {
     processAnalysisResult(result);
@@ -76,6 +95,25 @@ export default function CodeAnalysis() {
   return '#ff4d4d';
  };
  
+ const handleRefactorRouting = () => {
+  const ext = LANGUAGES.find(l => l.value === selectedLang)?.ext || '.js';
+  // Wrap the raw string into the file object structure CodeRefactor expects
+  const filePayload = [{
+   id: crypto.randomUUID(),
+   name: `analyzed_code${ext}`,
+   language: selectedLang,
+   content: input,
+   size: input.length
+  }];
+  // Send the formatted array and update sourceModule for accuracy
+  setModuleData({
+   type: 'refactor',
+   input: filePayload,
+   sourceModule: 'analysis'
+  });
+  router.push('/code-refactor');
+ }
+ 
  return (
   <div className="module-container">
    <ModuleHeader 
@@ -87,11 +125,26 @@ export default function CodeAnalysis() {
    <div className="converter-grid"> 
     <div className="panel">
      <h3><i className="fa-solid fa-code"></i> Source Code</h3>
-     <textarea 
-      value={input} 
-      onChange={(e) => setInput(e.target.value)}
-      placeholder="Paste your code here for a comprehensive audit..." 
-      spellCheck="false"
+     
+     <select 
+      value={selectedLang} 
+      onChange={(e) => {
+       setSelectedLang(e.target.value);
+       setIsAutoDetected(false); 
+      }}
+      className="lang-selector"
+     >
+      {LANGUAGES.map(lang => (
+       <option key={lang.value} value={lang.value}>
+        {lang.label} ({lang.ext})
+       </option>
+      ))}
+     </select>
+     
+     <CodeEditor
+      value={input}
+      onValueChange={setInput}
+      language={selectedLang}
      />
      
      <div className="action-row">
@@ -210,6 +263,12 @@ export default function CodeAnalysis() {
 
        <div className="action-row">
         <CopyButton codeToCopy={textToCopy} className="primary-button" label="Copy Report" />
+        
+        <button 
+         className="primary-button secondary-action-btn"
+         onClick={handleRefactorRouting}>
+         <i className="fas fa-wand-magic-sparkles"></i> Send to Refactor
+        </button>
        </div>
 
        </div>
