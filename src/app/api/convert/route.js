@@ -13,43 +13,36 @@ import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
 /**
  * Robust JSON extraction from LLM strings. 
- * Strategy: Delimiters -> JSON.parse -> Markdown Strip -> Bracket Heuristics.
+ * Strategy: JSON.parse -> Markdown Strip -> Bracket Heuristics.
  */
 function extractJson(text) {
  if (!text) return null;
  
- // Try Delimiters (Highest Reliability)
- const startTag = "~~~JSON_OUTPUT_START~~~";
- const endTag = "~~~JSON_OUTPUT_END~~~";
- const sIndex = text.indexOf(startTag);
- const eIndex = text.lastIndexOf(endTag);
- 
- if (sIndex !== -1 && eIndex !== -1) {
-  try {
-   const raw = text.substring(sIndex + startTag.length, eIndex).trim();
-   return JSON.parse(raw);
-  } catch (e) {
-   console.warn("Delimiter found but JSON parse failed", e);
-  }
- }
- 
- // Fallback: Try Standard JSON.parse
+ // Primary: Try Standard JSON.parse
  try {
   return JSON.parse(text);
  } catch (e) {
-  // Fallback: Clean Markdown
+  // Fallback 1: Clean Markdown code blocks
   const cleanMarkdown = text.replace(/```json|```/g, '').trim();
-  try { return JSON.parse(cleanMarkdown); } catch (e3) {
-   // Last Resort: Heuristic Bracket Finding
+  try { 
+   return JSON.parse(cleanMarkdown); 
+  } catch (e3) {
+   // Fallback 2: Heuristic Bracket Finding
    const start = text.indexOf('{');
    const end = text.lastIndexOf('}');
+   
    if (start !== -1 && end !== -1 && end > start) {
     const jsonCandidate = text.substring(start, end + 1);
     // Remove control chars and try basic trailing comma fix
     const cleanCandidate = jsonCandidate
      .replace(/,\s*}/g, '}')
      .replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-    try { return JSON.parse(cleanCandidate); } catch (e4) { return null; }
+    
+    try { 
+     return JSON.parse(cleanCandidate); 
+    } catch (e4) { 
+     return null; 
+    }
    }
    return null;
   }

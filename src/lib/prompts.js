@@ -84,12 +84,8 @@ const withSchema = (basePrompt, schemaDesc) => {
   1. You MUST return a valid JSON object.
   2. Use this EXACT structure:
   ${schemaDesc}
-  3. WRAP your entire JSON output in these tags: 
-     ~~~JSON_OUTPUT_START~~~ 
-     (your json here) 
-     ~~~JSON_OUTPUT_END~~~
-  4. Do NOT use markdown code blocks (\`\`\`json).
-  5. Escape all double quotes inside string values.`
+  3. Output ONLY the JSON. Do not include any conversational text before or after the object.
+  4. Escape all double quotes inside string values.`
 };
 
 
