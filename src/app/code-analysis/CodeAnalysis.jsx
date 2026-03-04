@@ -6,7 +6,7 @@ import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context';
-import 'CodeAnalysis.css';
+import './CodeAnalysis.css';
 
 export default function CodeAnalysis() {
  const [input, setInput] = useState('');
