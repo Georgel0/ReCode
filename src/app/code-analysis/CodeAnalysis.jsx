@@ -93,6 +93,7 @@ export default function CodeAnalysis() {
       placeholder="Paste your code here for a comprehensive audit..." 
       spellCheck="false"
      />
+     
      <div className="action-row">
       <button 
        className="primary-button" 
