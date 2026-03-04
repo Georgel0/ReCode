@@ -1,5 +1,5 @@
 import hljs from 'highlight.js/lib/common';
-import { LANGUAGES } from './lib';
+import { LANGUAGES } from '@/lib';
 
 export const detectLanguage = (code) => {
   if (!code || code.trim().length < 5) return 'unknown';
