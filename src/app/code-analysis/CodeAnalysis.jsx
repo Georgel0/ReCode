@@ -1,19 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context';
+import {
+ BarChart,
+ Bar,
+ XAxis,
+ YAxis,
+ Tooltip,
+ ResponsiveContainer,
+ CartesianGrid,
+ Cell
+} from 'recharts';
+
 import './CodeAnalysis.css';
 
 export default function CodeAnalysis() {
  const [input, setInput] = useState('');
  const [analysisData, setAnalysisData] = useState(null);
- const [rawAnalysis, setRawAnalysis] = useState('');
  const [loading, setLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
+ const [activeTab, setActiveTab] = useState('complexity');
  
  const { moduleData, setModuleData, qualityMode } = useApp();
  const router = useRouter();
@@ -22,48 +33,26 @@ export default function CodeAnalysis() {
  const [isAutoDetected, setIsAutoDetected] = useState(true);
  
  useEffect(() => {
-  if (moduleData && moduleData.type === 'analysis') {
+  if (moduleData?.type === 'analysis') {
    const codeToAnalyze = moduleData.input || '';
    setInput(codeToAnalyze);
    
    if (moduleData.fullOutput?.analysis) {
-    processAnalysisResult(moduleData.fullOutput.analysis);
+    setAnalysisData(moduleData.fullOutput.analysis);
    } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
     handleAnalyze(codeToAnalyze);
-   } else {
-    setAnalysisData(null);
-    setRawAnalysis('');
    }
   }
  }, [moduleData]);
  
  useEffect(() => {
   if (!isAutoDetected) return;
-  
   const timer = setTimeout(() => {
    const detected = detectLanguage(input);
-   if (detected !== 'unknown') {
-    setSelectedLang(detected);
-   }
+   if (detected !== 'unknown') setSelectedLang(detected);
   }, 600);
-  
   return () => clearTimeout(timer);
  }, [input, isAutoDetected]);
- 
- const processAnalysisResult = (result) => {
-  if (typeof result === 'object' && result !== null) {
-   setAnalysisData(result);
-   setRawAnalysis(JSON.stringify(result, null, 2));
-   return;
-  }
-  setRawAnalysis(result);
-  try {
-   const cleanJson = result.replace(/```json/g, '').replace(/```/g, '').trim();
-   setAnalysisData(JSON.parse(cleanJson));
-  } catch (e) {
-   setAnalysisData(null);
-  }
- };
  
  const handleAnalyze = async (codeOverride) => {
   const codeToProcess = codeOverride || input;
@@ -72,47 +61,52 @@ export default function CodeAnalysis() {
   setLoading(true);
   try {
    const result = await convertCode('analysis', codeToProcess, { qualityMode, language: selectedLang });
-   
-   if (result && (result.summary || result.analysis)) {
-    processAnalysisResult(result);
+   if (result) {
+    setAnalysisData(result);
     setLastResult({ type: "analysis", input: codeToProcess, output: result });
-   } else {
-    throw new Error("API returned no data (check server logs for 500/429 errors)");
    }
   } catch (error) {
-   alert(`Analysis failed: ${error.message}`);
+   console.error("Analysis Error:", error);
+  } finally {
+   setLoading(false);
   }
+ };
+ 
+ const getTabContentToCopy = useMemo(() => {
+  if (!analysisData) return '';
   
-  setLoading(false);
- };
+  switch (activeTab) {
+   case 'complexity':
+    return `Complexity Analysis:\n- Time: ${analysisData.complexity.time}\n- Space: ${analysisData.complexity.space}\n\nBreakdown:\n${analysisData.complexity.explanation.join('\n')}`;
+   case 'security':
+    return `Security Audit:\n${analysisData.security.join('\n')}`;
+   case 'bestPractices':
+    return `Best Practices:\n${analysisData.bestPractices.join('\n')}`;
+   default:
+    return JSON.stringify(analysisData[activeTab], null, 2);
+  }
+ }, [activeTab, analysisData]);
  
- let textToCopy = analysisData ?
-  `CODE ANALYSIS REPORT\n\nSCORE: ${analysisData.score}/100\n\nSUMMARY:\n${analysisData.summary}\n\nCOMPLEXITY:\n${analysisData.complexity}\n\nSECURITY:\n${analysisData.security?.join('\n- ')}\n\nIMPROVEMENTS:\n${analysisData.improvements?.join('\n- ')}` : rawAnalysis;
- 
- const getScoreColor = (score) => {
-  if (score >= 80) return 'var(--accent)';
-  if (score >= 50) return '#ffa500';
-  return '#ff4d4d';
- };
+ // Chart Data Preparation
+ const chartData = useMemo(() => {
+  if (!analysisData?.complexity?.metrics) return [];
+  const m = analysisData.complexity.metrics;
+  return [
+   { name: 'Cyclomatic', val: m.cyclomatic, color: '#ffa500' },
+   { name: 'Cognitive', val: m.cognitive, color: '#ff4d4d' },
+   { name: 'Maintainability', val: m.maintainability, color: '#10b981' }
+  ];
+ }, [analysisData]);
  
  const handleRefactorRouting = () => {
   const ext = LANGUAGES.find(l => l.value === selectedLang)?.ext || '.js';
-  // Wrap the raw string into the file object structure CodeRefactor expects
-  const filePayload = [{
-   id: crypto.randomUUID(),
-   name: `analyzed_code${ext}`,
-   language: selectedLang,
-   content: input,
-   size: input.length
-  }];
-  // Send the formatted array and update sourceModule for accuracy
   setModuleData({
    type: 'refactor',
-   input: filePayload,
+   input: [{ id: crypto.randomUUID(), name: `audit_fix${ext}`, language: selectedLang, content: input }],
    sourceModule: 'analysis'
   });
   router.push('/code-refactor');
- }
+ };
  
  return (
   <div className="module-container">
@@ -125,173 +119,120 @@ export default function CodeAnalysis() {
    <div className="converter-grid"> 
     <div className="panel">
      <h3><i className="fa-solid fa-code"></i> Source Code</h3>
-     
      <select 
       value={selectedLang} 
-      onChange={(e) => {
-       setSelectedLang(e.target.value);
-       setIsAutoDetected(false); 
-      }}
-      className="lang-selector"
-     >
-      {LANGUAGES.map(lang => (
-       <option key={lang.value} value={lang.value}>
-        {lang.label} ({lang.ext})
-       </option>
-      ))}
-     </select>
-     
-     <CodeEditor
-      value={input}
-      onValueChange={setInput}
-      language={selectedLang}
-     />
-     
-     <div className="action-row">
-      <button 
-       className="primary-button" 
-       onClick={() => handleAnalyze()} 
-       disabled={loading} >
-      {loading ? (
-       <>
-        <br/>
-        <i className="fa-solid fa-circle-notch fa-spin"></i> Analyzing...
-       </>
-      ) : (
-       <>
-        <i className="fa-solid fa-magnifying-glass-chart"></i> Run Audit
-       </>
-      )}
-     </button>
-    </div>
-   </div>
-
-   <div className="panel">
-    <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
-    <div className="results-container">
-     {loading ? (
-      <div className="analyzing-state">
-       <div className="spinner"></div>
-       <p>Analyzing logic structure, complexity, and security vectors...</p>
-      </div>
-     ) : analysisData ? (
-      <div className="analysis-dashboard">
-       <div className="analysis-header-card">
-        <div className="score-container">
-         <div className="score-ring" 
-          style={{ '--score-percent': `${analysisData.score}%`, background: `conic-gradient(${getScoreColor(analysisData.score)} ${analysisData.score}%, var(--bg-tertiary) 0)` 
-          }} >
-         <div className="score-value">{analysisData.score}</div>
-        </div>
-        <div className="score-label">
-         <span>Quality Score</span>
-         <strong>{analysisData.score >= 80 ? 'Excellent' : analysisData.score >= 50 ? 'Average' : 'Needs Work'}</strong>
-        </div>
-       </div>
-           
-       <div className="complexity-grid">
-        <div className="complexity-card">
-         <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
-          <div className="complexity-info">
-           <h4>Analysis</h4>
-           <p>{analysisData.complexity || 'N/A'}</p>
+      onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
+            className="lang-selector"
+          >
+            {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
+          </select>
+          
+          <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
+          
+          <div className="action-row">
+            <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading}>
+              {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
+              {loading ? " Analyzing..." : " Run Audit"}
+            </button>
           </div>
-         </div>
         </div>
-       </div>
 
-       <div className="analysis-section">
-        <div className="section-header">
-         <i className="fa-solid fa-align-left"></i> Executive Summary
-        </div>
-        <div className="section-content summary-text">
-         {analysisData.summary}
-        </div>
-       </div>
+        <div className="panel">
+          <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
+          
+          {analysisData ? (
+            <div className="analysis-dashboard">
+              {/* Header Summary Card */}
+              <div className="analysis-header-card">
+                <div style={{ flex: 1 }}>
+                  <p className="summary-text">{analysisData.summary}</p>
+                </div>
+                <div className="score-container">
+                  <div className="score-label">
+                    <span>Quality Score</span>
+                    <strong>{analysisData.score}/100</strong>
+                  </div>
+                  <div className="score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
+                    <span className="score-value">{analysisData.score}</span>
+                  </div>
+                </div>
+              </div>
 
-       {analysisData.security && analysisData.security.length > 0 && (
-        <div className="analysis-section" style={{ borderColor: '#ff4d4d' }}>
-         <div className="section-header danger">
-          <i className="fa-solid fa-shield-halved"></i> Security Vulnerabilities
-         </div>
-         <div className="section-content">
-          <ul className="analysis-list">
-           {analysisData.security.map((item, i) => (
-            <li key={i} className="issue-high">
-             <i className="fa-solid fa-triangle-exclamation"></i>
-             <span>{item}</span>
-            </li>
-           ))}
-          </ul>
-         </div>
-        </div>
-       )}
+              {/* Tab Navigation */}
+              <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--border)' }}>
+                {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
+                  <button 
+                    key={tab}
+                    className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
+                  </button>
+                ))}
+                <div style={{ marginLeft: 'auto', paddingBottom: '5px' }}>
+                  <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
+                </div>
+              </div>
 
-       {analysisData.bugs && analysisData.bugs.length > 0 && (
-        <div className="analysis-section" style={{ borderColor: '#ffa500' }}>
-         <div className="section-header warning">
-          <i className="fa-solid fa-bug"></i> Potential Bugs
-         </div>
-         <div className="section-content">
-          <ul className="analysis-list">
-           {analysisData.bugs.map((item, i) => (
-            <li key={i} className="issue-medium">
-             <i className="fa-solid fa-circle-exclamation"></i>
-             <span>{item}</span>
-            </li>
-           ))}
-          </ul>
-         </div>
-        </div>
-       )}
-       
-       <div className="analysis-section">
-        <div className="section-header success">
-         <i className="fa-solid fa-wand-magic-sparkles"></i> Recommended Improvements
-        </div>
-        <div className="section-content">
-         <ul className="analysis-list">
-          {analysisData.improvements?.map((item, i) => (
-           <li key={i} className="suggestion">
-            <i className="fa-solid fa-check"></i>
-            <span>{item}</span>
-           </li>
-          ))}
-         </ul>
-        </div>
-       </div>
+              {/* Dynamic Tab Content */}
+              <div className="analysis-tab-content">
+                {activeTab === 'complexity' && (
+                  <div className="complexity-breakdown">
+                    <div>
+                      <div className="complexity-grid">
+                        <div className="complexity-card">
+                          <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
+                          <div className="complexity-info"><h4>Time</h4><p>{analysisData.complexity.time}</p></div>
+                        </div>
+                        <div className="complexity-card">
+                          <div className="complexity-icon"><i className="fa-solid fa-memory"></i></div>
+                          <div className="complexity-info"><h4>Space</h4><p>{analysisData.complexity.space}</p></div>
+                        </div>
+                      </div>
+                      <ul className="complexity-explanation-list">
+                        {analysisData.complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
+                      </ul>
+                    </div>
+                    <div className="complexity-chart-container">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
+                          <YAxis hide domain={[0, 100]} />
+                          <Tooltip cursor={{fill: 'transparent'}} contentStyle={{background: 'var(--bg-secondary)', border: '1px solid var(--border)'}} />
+                          <Bar dataKey="val" radius={[4, 4, 0, 0]} barSize={40}>
+                            {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
 
-       <div className="action-row">
-        <CopyButton codeToCopy={textToCopy} className="primary-button" label="Copy Report" />
-        
-        <button 
-         className="primary-button secondary-action-btn"
-         onClick={handleRefactorRouting}>
-         <i className="fas fa-wand-magic-sparkles"></i> Send to Refactor
-        </button>
-       </div>
+                {(activeTab === 'security' || activeTab === 'bugs' || activeTab === 'improvements' || activeTab === 'bestPractices') && (
+                  <ul className="analysis-list">
+                    {(analysisData[activeTab] || []).map((item, i) => (
+                      <li key={i} className={activeTab === 'security' ? 'issue-high' : activeTab === 'bugs' ? 'issue-medium' : 'suggestion'}>
+                        <i className={`fa-solid ${activeTab === 'security' ? 'fa-shield-halved' : activeTab === 'bugs' ? 'fa-bug' : 'fa-lightbulb'}`}></i>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
-       </div>
-      ) : rawAnalysis ? (
-       <div className="output-wrapper">
-        <div className="ai-summary">
-         <div className="legacy-output">
-          {rawAnalysis}
-         </div>
-        </div>
-        <div className="action-row">
-         <CopyButton codeToCopy={textToCopy}  className="primary-button"  label="Copy Analysis" />
-        </div>
-       </div>
-      ) : (
-       <div className="placeholder-text">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
-         <i className="fa-solid fa-microchip" style={{ fontSize: '3rem', opacity: 0.3 }}></i>
-         <span>Analysis results will appear here.</span>
-        </div>
-       </div>
-      )}
-     </div>
+              <div className="action-row">
+                <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
+                  <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
+                </button>
+              </div>
+            </div>
+          ) : (
+      <div className="placeholder-text">
+       <i className="fa-solid fa-microchip" style={{ fontSize: '3rem', opacity: 0.2 }}></i>
+       <p>Run an audit to see detailed metrics.</p>
+      </div>
+     )}
     </div>
    </div> 
   </div>
