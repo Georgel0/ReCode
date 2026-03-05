@@ -140,6 +140,12 @@ const chartData = useMemo(() => {
   router.push('/code-refactor');
  };
  
+ const handleClear = () => {
+  setLoading(false);
+  setInput('');
+  setAnalysisData(null);
+ };
+ 
  return (
   <div className="module-container">
    <ModuleHeader 
@@ -150,14 +156,19 @@ const chartData = useMemo(() => {
 
    <div className="converter-grid"> 
     <div className="panel">
-     <h3><i className="fa-solid fa-code"></i> Source Code</h3>
-     <select 
-      value={selectedLang} 
-      onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
-      className="lang-selector"
-     >
+     <div className="panel-header-row">
+      <h3><i className="fa-solid fa-code"></i> Source Code</h3>
+      <select 
+       value={selectedLang} 
+       onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
+       className="lang-selector"
+      >
       {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
-     </select>
+      </select>
+      <button className="secondary-button clear-btn"  onClick={handleClear} title="Clear Input">
+       <i className="fa-solid fa-trash"></i> Clear
+      </button>
+     </div>
           
      <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
           
