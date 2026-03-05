@@ -106,7 +106,21 @@ const chartData = useMemo(() => {
   
   return data;
 }, [analysisData]);
- 
+
+  // Helper to color-code the metrics
+  const getMetricClass = (value, type) => {
+    if (value === undefined || value === null) return 'score-neutral';
+    if (type === 'low-is-better') {
+      if (value <= 10) return 'score-good';
+      if (value <= 20) return 'score-warn';
+      return 'score-bad';
+    } else {
+      if (value >= 80) return 'score-good';
+      if (value >= 60) return 'score-warn';
+      return 'score-bad';
+    }
+  };
+
  const handleRefactorRouting = () => {
   const ext = LANGUAGES.find(l => l.value === selectedLang)?.ext || '.js';
   setModuleData({
@@ -178,14 +192,17 @@ const chartData = useMemo(() => {
            </button>
          ))}
         </div>
-        
-        <CopyButton 
-          codeToCopy={getTabContentToCopy} 
-          className="primary-button copy-btn" 
-          iconOnly={true} 
-          label="" 
-        />
        </div>
+       
+       <div className="analysis-tab-content-wrapper">
+         <div className="hover-copy-container">
+           <CopyButton 
+            codeToCopy={getTabContentToCopy} 
+            className="primary-button copy-btn" 
+            iconOnly={true} 
+            label="" 
+           />
+         </div>
          
        <div className="analysis-tab-content">
         {activeTab === 'complexity' && (
@@ -256,6 +273,41 @@ const chartData = useMemo(() => {
             </LineChart>
            </ResponsiveContainer>
           </div>
+          
+          {analysisData.complexity.metrics && (
+           <div className="metrics-container">
+            <div className="metric-card">
+             <div className="metric-header">
+              <span className="metric-title">Cyclomatic</span>
+              <span className={`metric-score ${getMetricClass(analysisData.complexity.metrics.cyclomatic, 'low-is-better')}`}>
+               {analysisData.complexity.metrics.cyclomatic}
+              </span>
+             </div>
+             <p className="metric-desc">Counts the number of linearly independent paths. Lower means the code is easier to test and follow.</p>
+            </div>
+
+            <div className="metric-card">
+             <div className="metric-header">
+              <span className="metric-title">Cognitive</span>
+              <span className={`metric-score ${getMetricClass(analysisData.complexity.metrics.cognitive, 'low-is-better')}`}>
+               {analysisData.complexity.metrics.cognitive}
+              </span>
+             </div>
+             <p className="metric-desc">Measures how difficult the control flow is for a human to understand. Lower is better.</p>
+            </div>
+
+            <div className="metric-card">
+             <div className="metric-header">
+              <span className="metric-title">Maintainability</span>
+              <span className={`metric-score ${getMetricClass(analysisData.complexity.metrics.maintainability, 'high-is-better')}`}>
+               {analysisData.complexity.metrics.maintainability}
+              </span>
+             </div>
+             <p className="metric-desc">Overall index (0-100) evaluating code health. Higher means it's easier to modify without breaking.</p>
+            </div>
+           </div>
+          )}
+          
          </div>
         )}
         
@@ -270,6 +322,7 @@ const chartData = useMemo(() => {
          </ul>
         )}
        </div>
+      </div>
 
        <div className="action-row">
         <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
