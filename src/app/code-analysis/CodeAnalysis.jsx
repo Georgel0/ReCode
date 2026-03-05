@@ -78,16 +78,34 @@ export default function CodeAnalysis() {
   }
  }, [activeTab, analysisData]);
  
- // Chart Data Preparation
- const chartData = useMemo(() => {
-  if (!analysisData?.complexity?.metrics) return [];
-  const m = analysisData.complexity.metrics;
-  return [
-   { name: 'Cyclomatic', val: m.cyclomatic, color: '#ffa500' },
-   { name: 'Cognitive', val: m.cognitive, color: '#ff4d4d' },
-   { name: 'Maintainability', val: m.maintainability, color: '#10b981' }
-  ];
- }, [analysisData]);
+// Chart Data Preparation
+const chartData = useMemo(() => {
+  if (!analysisData?.complexity?.time) return [];
+
+  // Normalize the AI's string output (e.g., "O(n^2)", "O(N log N)")
+  const timeStr = analysisData.complexity.time.toLowerCase().replace(/[\s\(\)o]/g, '');
+  
+  const data = [];
+  // Generate curve data points for n = 1 to 10
+  for (let n = 1; n <= 10; n++) {
+    let operations = n; // Default to O(n) if parsing fails
+    
+    if (timeStr === '1') { operations = 1; }
+    else if (timeStr === 'logn') { operations = Math.log2(n + 1); }
+    else if (timeStr === 'n') { operations = n; }
+    else if (timeStr === 'nlogn') { operations = n * Math.log2(n + 1); }
+    else if (timeStr.includes('n^2') || timeStr.includes('n²')) { operations = n * n; }
+    else if (timeStr.includes('n^3') || timeStr.includes('n³')) { operations = n * n * n; }
+    else if (timeStr.includes('2^n')) { operations = Math.pow(2, n); }
+
+    data.push({
+      inputElements: `n=${n}`,     // X-Axis label
+      operations: Number(operations.toFixed(2)), // Y-Axis value
+    });
+  }
+  
+  return data;
+}, [analysisData]);
  
  const handleRefactorRouting = () => {
   const ext = LANGUAGES.find(l => l.value === selectedLang)?.ext || '.js';
@@ -190,37 +208,50 @@ export default function CodeAnalysis() {
           
           <div className="complexity-chart-container">
            <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+            <LineChart data={chartData} margin={{ top: 30, right: 30, left: 0, bottom: 20 }}>
              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
-             
-             <XAxis 
-               dataKey="name" 
-               axisLine={false} 
+                  
+             {/* X-Axis: Input Size (n) */}
+              <XAxis 
+               dataKey="inputElements" 
+               axisLine={true} 
                tickLine={false} 
-               tick={{fill: 'var(--text-secondary)', fontSize: 13, fontWeight: 500}} 
-               dy={10}
+               tick={{fill: 'var(--text-secondary)', fontSize: 12}} 
+               dy={15}
+               label={{ value: 'Input Size (Elements)', position: 'insideBottom', offset: -15, fill: 'var(--text-secondary)', fontSize: 13 }}
+              />
+              {/* Y-Axis: Operations (Time) */}
+              <YAxis 
+               axisLine={true} 
+               tickLine={false}
+               tick={{fill: 'var(--text-secondary)', fontSize: 12}}
+               dx={-10}
+               label={{ value: 'Operations (Time)', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)', fontSize: 13 }}
              />
-             <YAxis hide domain={[0, 100]} />
-             
+                  
              <Tooltip 
-               cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }} 
-               contentStyle={{
-                 background: 'var(--bg-secondary)', 
-                 border: '1px solid var(--border)', 
-                 borderRadius: 'var(--radius)', 
-                 color: 'var(--text-primary)',
-                 boxShadow: 'var(--shadow-subtle)'
-               }}
-               itemStyle={{ color: 'var(--accent)', fontWeight: 'bold' }}
+              cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }} 
+              contentStyle={{
+               background: 'var(--bg-secondary)', 
+               border: '1px solid var(--border)', 
+               borderRadius: 'var(--radius)', 
+               color: 'var(--text-primary)',
+               boxShadow: 'var(--shadow-subtle)'
+              }}
+              formatter={(value) => [`${value} Ops`, 'Complexity']}
+              labelStyle={{ color: 'var(--accent)', fontWeight: 'bold', marginBottom: '5px' }}
              />
-             
+                  
              <Line 
               type="monotone" 
-              dataKey="val" 
+              dataKey="operations" 
+              name="Growth Rate"
               stroke="var(--accent)" 
               strokeWidth={4}
-              dot={{ r: 6, fill: 'var(--bg-primary)', stroke: 'var(--accent)', strokeWidth: 2 }}
+              dot={{ r: 4, fill: 'var(--bg-primary)', stroke: 'var(--accent)', strokeWidth: 2 }}
               activeDot={{ r: 8, fill: 'var(--accent)', stroke: 'var(--bg-primary)', strokeWidth: 3 }}
+              animationDuration={1500}
+              animationEasing="ease-out"
              />
             </LineChart>
            </ResponsiveContainer>
