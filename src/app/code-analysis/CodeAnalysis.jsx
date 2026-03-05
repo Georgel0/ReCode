@@ -159,76 +159,82 @@ export default function CodeAnalysis() {
 
        <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--border)' }}>
         {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
-          <button 
-           key={tab}
-           className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-           onClick={() => setActiveTab(tab)}
-          >
-           {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
-          </button>
-         ))}
-          <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
-         </div>
+          <>
+           <button 
+            key={tab}
+            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+           >
+            {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
+           </button>
+          
+           <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
+          </>
+        ))}
+       </div>
          
-         <div className="analysis-tab-content">
-          {activeTab === 'complexity' && (
-           <div className="complexity-breakdown">
-            <div>
-             <div className="complexity-grid">
-              <div className="complexity-card">
-               <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
-               <div className="complexity-info"><h4>Time</h4><p>{analysisData.complexity.time}</p></div>
-              </div>
-              <div className="complexity-card">
-               <div className="complexity-icon"><i className="fa-solid fa-memory"></i></div>
-               <div className="complexity-info"><h4>Space</h4><p>{analysisData.complexity.space}</p></div>
-              </div>
-             </div>
-             <ul className="complexity-explanation-list">
-              {analysisData.complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
-             </ul>
+       <div className="analysis-tab-content">
+        {activeTab === 'complexity' && (
+         <div className="complexity-breakdown">
+          <div>
+           <div className="complexity-grid">
+            <div className="complexity-card">
+             <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
+             <div className="complexity-info"><h4>Time</h4><p>{analysisData.complexity.time}</p></div>
             </div>
-            <div className="complexity-chart-container">
-             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontSize: 12}} />
-               <YAxis hide domain={[0, 100]} />
-               <Tooltip cursor={{fill: 'transparent'}} contentStyle={{background: 'var(--bg-secondary)', border: '1px solid var(--border)'}} />
-               <Bar dataKey="val" radius={[4, 4, 0, 0]} barSize={40}>
-                {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-               </Bar>
-              </BarChart>
-             </ResponsiveContainer>
+            <div className="complexity-card">
+             <div className="complexity-icon"><i className="fa-solid fa-memory"></i></div>
+             <div className="complexity-info"><h4>Space</h4><p>{analysisData.complexity.space}</p></div>
             </div>
            </div>
-          )}
-
-          {(activeTab === 'security' || activeTab === 'bugs' || activeTab === 'improvements' || activeTab === 'bestPractices') && (
-           <ul className="analysis-list">
-            {(analysisData[activeTab] || []).map((item, i) => (
-             <li key={i} className={activeTab === 'security' ? 'issue-high' : activeTab === 'bugs' ? 'issue-medium' : 'suggestion'}>
-              <i className={`fa-solid ${activeTab === 'security' ? 'fa-shield-halved' : activeTab === 'bugs' ? 'fa-bug' : 'fa-lightbulb'}`}></i>
-              <span>{item}</span>
-             </li>
-            ))}
+           <ul className="complexity-explanation-list">
+            {analysisData.complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
            </ul>
-          )}
+          </div>
+          <div className="complexity-chart-container">
+           <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+           
+             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontSize: 12}} />
+             <YAxis hide domain={[0, 100]} />
+           
+             <Tooltip cursor={{fill: 'transparent'}} contentStyle={{background: 'var(--bg-secondary)', border: '1px solid var(--border)'}} />
+           
+             <Bar dataKey="val" radius={[4, 4, 0, 0]} barSize={40}>
+              {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+             </Bar>
+            </BarChart>
+           </ResponsiveContainer>
+          </div>
          </div>
+        )}
 
-         <div className="action-row">
-          <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
-           <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
-          </button>
-         </div>
-        </div>
-       ) : (
-        <div className="placeholder-text">
-         {loading ? (
-          <span><i className="fa-solid fa-circle-notch fa-spin"></i> AI is processing...</span>
-         ) : 'Result will appear here...'}
-        </div>
-       )}
+        {(activeTab === 'security' || activeTab === 'bugs' || activeTab === 'improvements' || activeTab === 'bestPractices') && (
+         <ul className="analysis-list">
+          {(analysisData[activeTab] || []).map((item, i) => (
+           <li key={i} className={activeTab === 'security' ? 'issue-high' : activeTab === 'bugs' ? 'issue-medium' : 'suggestion'}>
+            <i className={`fa-solid ${activeTab === 'security' ? 'fa-shield-halved' : activeTab === 'bugs' ? 'fa-bug' : 'fa-lightbulb'}`}></i>
+            <span>{item}</span>
+           </li>
+          ))}
+         </ul>
+        )}
+       </div>
+
+       <div className="action-row">
+        <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
+         <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
+        </button>
+       </div>
+      </div>
+     ) : (
+      <div className="placeholder-text">
+       {loading ? (
+        <span><i className="fa-solid fa-circle-notch fa-spin"></i> AI is processing...</span>
+       ) : 'Result will appear here...'}
+      </div>
+     )}
     </div>
    </div> 
   </div>
