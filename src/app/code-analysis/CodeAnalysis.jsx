@@ -156,8 +156,8 @@ const chartData = useMemo(() => {
 
    <div className="converter-grid"> 
     <div className="panel">
-     <div className="panel-header-row" style={{ display: "flex", alignItems: "center", justifyContent: "center"}}>
-      <h3><i className="fa-solid fa-code"></i> Source Code</h3>
+     <h3><i className="fa-solid fa-code"></i> Source Code</h3>
+     <div style={{ display: "flex", alignItems: "center", justifyContent: "center"}}>
       <select 
        value={selectedLang} 
        onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
