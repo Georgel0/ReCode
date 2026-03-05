@@ -34,6 +34,7 @@
     "react-simple-code-editor": "^0.14.1",
     "react-syntax-highlighter": "^16.1.0",
     "react18-json-view": "^0.2.9",
+    "recharts": "^3.7.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

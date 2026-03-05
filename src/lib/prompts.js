@@ -38,10 +38,20 @@ export const OUTPUT_SCHEMAS = {
  analysis: z.object({
   summary: z.string(),
   score: z.number().min(0).max(100),
-  complexity: z.string(),
+  complexity: z.object({
+   time: z.string().describe("Time complexity in Big O notation"),
+   space: z.string().describe("Space complexity in Big O notation"),
+   explanation: z.array(z.string()).describe("Bullet points explaining exactly why the complexity is what it is"),
+   metrics: z.object({
+    cyclomatic: z.number().describe("Cyclomatic complexity score (lower is better)"),
+    cognitive: z.number().describe("Cognitive complexity score (lower is better)"),
+    maintainability: z.number().describe("Maintainability index (0-100, higher is better)")
+   }).describe("Numeric metrics used to render the complexity chart")
+  }),
   security: z.array(z.string()),
   improvements: z.array(z.string()),
-  bugs: z.array(z.string())
+  bugs: z.array(z.string()),
+  bestPractices: z.array(z.string()).describe("Detailed, actionable coding standards and best practices specific to this snippet")
  }),
  
  regex: z.object({
@@ -180,19 +190,26 @@ export const PROMPT_CONFIG = {
       
       Guidelines:
       - Score: 0 (Critical Failure) to 100 (Flawless).
-      - Complexity: Calculate Time and Space complexity (Big O).
-      - Security: Look for XSS, SQLi, RCE, insecure deps, and hardcoded secrets, mention them ONLY if they exist. Do not report a vulnerability unless you can trace the exact path from input to sink. 
-      - Bugs: Find logic errors, race conditions, or unhandled null states.`,
+      - Complexity: Calculate Time and Space complexity (Big O). Provide specific bullet points explaining WHY it earned that complexity, and assign numeric scores for cyclomatic, cognitive, and maintainability metrics to fuel a UI chart.
+      - Security: Look for XSS, SQLi, RCE, insecure deps, and hardcoded secrets. Do not report a vulnerability unless you can trace the exact path from input to sink. 
+      - Bugs: Find logic errors, race conditions, or unhandled null states.
+      - Best Practices: List detailed architectural and syntactical best practices specific to this code snippet.`,
    `{ 
         "summary": "string (executive summary)", 
         "score": number, 
-        "complexity": "string", 
+        "complexity": {
+          "time": "string",
+          "space": "string",
+          "explanation": ["string"],
+          "metrics": { "cyclomatic": number, "cognitive": number, "maintainability": number }
+        }, 
         "security": ["string (specific vulnerability)"], 
         "improvements": ["string (actionable advice)"], 
-        "bugs": ["string (potential error)"] 
+        "bugs": ["string (potential error)"],
+        "bestPractices": ["string (best practice rule)"]
        }`
   ),
-  user: (input) => `Analyze this code:\n${input}`,
+  user: (input) => `Analyze this code in deep detail:\n${input}`,
   responseType: 'object',
   schema: OUTPUT_SCHEMAS.analysis
  },
