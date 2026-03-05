@@ -167,9 +167,7 @@ export default function CodeAnalysis() {
            {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
           </button>
          ))}
-          <div style={{ marginLeft: 'auto', paddingBottom: '5px' }}>
-           <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
-          </div>
+          <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
          </div>
          
          <div className="analysis-tab-content">
