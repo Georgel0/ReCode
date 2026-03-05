@@ -435,6 +435,7 @@ html[data-theme='quartz'] .copy-btn {
 .code-editor {
   width: 100%;
   min-height: 400px;
+  max-height: 1000px;
   background: #1e1e1e;
   color: #d4d4d4;
   border: 1px solid var(--border);
