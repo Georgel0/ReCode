@@ -159,18 +159,21 @@ export default function CodeAnalysis() {
 
        <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--border)' }}>
         {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
-          <>
-           <button 
-            key={tab}
-            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab)}
-           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
-           </button>
-          
-           <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
-          </>
+          <button 
+           key={tab}
+           className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+           onClick={() => setActiveTab(tab)}
+          >
+          {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
+         </button>
         ))}
+        
+        <CopyButton 
+         className = "primary-button copy-btn" 
+         codeToCopy={getTabContentToCopy}
+         iconOnly={true} 
+         label=""
+        />
        </div>
          
        <div className="analysis-tab-content">
