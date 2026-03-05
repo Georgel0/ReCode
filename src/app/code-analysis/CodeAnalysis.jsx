@@ -23,7 +23,7 @@ export default function CodeAnalysis() {
  const [selectedLang, setSelectedLang] = useState('javascript');
  const [isAutoDetected, setIsAutoDetected] = useState(true);
  
- useEffect(() => {
+  useEffect(() => {
   if (moduleData?.type === 'analysis') {
    const codeToAnalyze = moduleData.input || '';
    setInput(codeToAnalyze);
@@ -34,6 +34,10 @@ export default function CodeAnalysis() {
    } 
    else if (moduleData.fullOutput?.analysis) {
     setAnalysisData(moduleData.fullOutput.analysis);
+   } 
+   else if (moduleData.fullOutput?.summary && moduleData.fullOutput?.complexity) {
+    setAnalysisData(moduleData.fullOutput);
+    setLastResult({ type: "analysis", input: codeToAnalyze, output: moduleData.fullOutput });
    } 
    else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
     handleAnalyze(codeToAnalyze);
