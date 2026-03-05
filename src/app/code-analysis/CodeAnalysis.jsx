@@ -122,117 +122,115 @@ export default function CodeAnalysis() {
      <select 
       value={selectedLang} 
       onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
-            className="lang-selector"
-          >
-            {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
-          </select>
+      className="lang-selector"
+     >
+      {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
+     </select>
           
-          <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
+     <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
           
-          <div className="action-row">
-            <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading}>
-              {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
-              {loading ? " Analyzing..." : " Run Audit"}
-            </button>
-          </div>
+     <div className="action-row">
+      <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading}>
+       {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
+       {loading ? " Analyzing..." : " Run Audit"}
+      </button>
+     </div>
+    </div>
+
+    <div className="panel">
+     <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
+          
+     {analysisData ? (
+      <div className="analysis-dashboard">
+       <div className="analysis-header-card">
+        <div style={{ flex: 1 }}>
+         <p className="summary-text">{analysisData.summary}</p>
         </div>
+        <div className="score-container">
+         <div className="score-label">
+          <span>Quality Score</span>
+          <strong>{analysisData.score}/100</strong>
+         </div>
+         <div className="score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
+          <span className="score-value">{analysisData.score}</span>
+         </div>
+        </div>
+       </div>
 
-        <div className="panel">
-          <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
-          
-          {analysisData ? (
-            <div className="analysis-dashboard">
-              {/* Header Summary Card */}
-              <div className="analysis-header-card">
-                <div style={{ flex: 1 }}>
-                  <p className="summary-text">{analysisData.summary}</p>
-                </div>
-                <div className="score-container">
-                  <div className="score-label">
-                    <span>Quality Score</span>
-                    <strong>{analysisData.score}/100</strong>
-                  </div>
-                  <div className="score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
-                    <span className="score-value">{analysisData.score}</span>
-                  </div>
-                </div>
+       <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--border)' }}>
+        {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
+          <button 
+           key={tab}
+           className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+           onClick={() => setActiveTab(tab)}
+          >
+           {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
+          </button>
+         ))}
+          <div style={{ marginLeft: 'auto', paddingBottom: '5px' }}>
+           <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
+          </div>
+         </div>
+         
+         <div className="analysis-tab-content">
+          {activeTab === 'complexity' && (
+           <div className="complexity-breakdown">
+            <div>
+             <div className="complexity-grid">
+              <div className="complexity-card">
+               <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
+               <div className="complexity-info"><h4>Time</h4><p>{analysisData.complexity.time}</p></div>
               </div>
-
-              {/* Tab Navigation */}
-              <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--border)' }}>
-                {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
-                  <button 
-                    key={tab}
-                    className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
-                  </button>
-                ))}
-                <div style={{ marginLeft: 'auto', paddingBottom: '5px' }}>
-                  <CopyButton codeToCopy={getTabContentToCopy} iconOnly={true} label="" />
-                </div>
+              <div className="complexity-card">
+               <div className="complexity-icon"><i className="fa-solid fa-memory"></i></div>
+               <div className="complexity-info"><h4>Space</h4><p>{analysisData.complexity.space}</p></div>
               </div>
-
-              {/* Dynamic Tab Content */}
-              <div className="analysis-tab-content">
-                {activeTab === 'complexity' && (
-                  <div className="complexity-breakdown">
-                    <div>
-                      <div className="complexity-grid">
-                        <div className="complexity-card">
-                          <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
-                          <div className="complexity-info"><h4>Time</h4><p>{analysisData.complexity.time}</p></div>
-                        </div>
-                        <div className="complexity-card">
-                          <div className="complexity-icon"><i className="fa-solid fa-memory"></i></div>
-                          <div className="complexity-info"><h4>Space</h4><p>{analysisData.complexity.space}</p></div>
-                        </div>
-                      </div>
-                      <ul className="complexity-explanation-list">
-                        {analysisData.complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
-                      </ul>
-                    </div>
-                    <div className="complexity-chart-container">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
-                          <YAxis hide domain={[0, 100]} />
-                          <Tooltip cursor={{fill: 'transparent'}} contentStyle={{background: 'var(--bg-secondary)', border: '1px solid var(--border)'}} />
-                          <Bar dataKey="val" radius={[4, 4, 0, 0]} barSize={40}>
-                            {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                )}
-
-                {(activeTab === 'security' || activeTab === 'bugs' || activeTab === 'improvements' || activeTab === 'bestPractices') && (
-                  <ul className="analysis-list">
-                    {(analysisData[activeTab] || []).map((item, i) => (
-                      <li key={i} className={activeTab === 'security' ? 'issue-high' : activeTab === 'bugs' ? 'issue-medium' : 'suggestion'}>
-                        <i className={`fa-solid ${activeTab === 'security' ? 'fa-shield-halved' : activeTab === 'bugs' ? 'fa-bug' : 'fa-lightbulb'}`}></i>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="action-row">
-                <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
-                  <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
-                </button>
-              </div>
+             </div>
+             <ul className="complexity-explanation-list">
+              {analysisData.complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
+             </ul>
             </div>
-          ) : (
-      <div className="placeholder-text">
-       <i className="fa-solid fa-microchip" style={{ fontSize: '3rem', opacity: 0.2 }}></i>
-       <p>Run an audit to see detailed metrics.</p>
-      </div>
-     )}
+            <div className="complexity-chart-container">
+             <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontSize: 12}} />
+               <YAxis hide domain={[0, 100]} />
+               <Tooltip cursor={{fill: 'transparent'}} contentStyle={{background: 'var(--bg-secondary)', border: '1px solid var(--border)'}} />
+               <Bar dataKey="val" radius={[4, 4, 0, 0]} barSize={40}>
+                {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+               </Bar>
+              </BarChart>
+             </ResponsiveContainer>
+            </div>
+           </div>
+          )}
+
+          {(activeTab === 'security' || activeTab === 'bugs' || activeTab === 'improvements' || activeTab === 'bestPractices') && (
+           <ul className="analysis-list">
+            {(analysisData[activeTab] || []).map((item, i) => (
+             <li key={i} className={activeTab === 'security' ? 'issue-high' : activeTab === 'bugs' ? 'issue-medium' : 'suggestion'}>
+              <i className={`fa-solid ${activeTab === 'security' ? 'fa-shield-halved' : activeTab === 'bugs' ? 'fa-bug' : 'fa-lightbulb'}`}></i>
+              <span>{item}</span>
+             </li>
+            ))}
+           </ul>
+          )}
+         </div>
+
+         <div className="action-row">
+          <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
+           <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
+          </button>
+         </div>
+        </div>
+       ) : (
+        <div className="placeholder-text">
+         {loading ? (
+          <span><i className="fa-solid fa-circle-notch fa-spin"></i> AI is processing...</span>
+         ) : 'Result will appear here...'}
+        </div>
+       )}
     </div>
    </div> 
   </div>
