@@ -6,16 +6,7 @@ import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context';
-import {
- BarChart,
- Bar,
- XAxis,
- YAxis,
- Tooltip,
- ResponsiveContainer,
- CartesianGrid,
- Cell
-} from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 import './CodeAnalysis.css';
 
@@ -156,23 +147,25 @@ export default function CodeAnalysis() {
          </div>
         </div>
        </div>
-
-       <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid var(--border)' }}>
-        {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
-          <button 
-           key={tab}
-           className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-           onClick={() => setActiveTab(tab)}
-          >
-          {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
-         </button>
-        ))}
+       
+       <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', gap: '5px' }}>
+         {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
+           <button 
+            key={tab}
+            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+           >
+            {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
+           </button>
+         ))}
+        </div>
         
         <CopyButton 
-         className = "primary-button copy-btn" 
-         codeToCopy={getTabContentToCopy}
-         iconOnly={true} 
-         label=""
+          codeToCopy={getTabContentToCopy} 
+          className="primary-button copy-btn" 
+          iconOnly={true} 
+          label="" 
         />
        </div>
          
@@ -194,25 +187,47 @@ export default function CodeAnalysis() {
             {analysisData.complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
            </ul>
           </div>
+          
           <div className="complexity-chart-container">
            <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-           
-             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontSize: 12}} />
+            <LineChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
+             
+             <XAxis 
+               dataKey="name" 
+               axisLine={false} 
+               tickLine={false} 
+               tick={{fill: 'var(--text-secondary)', fontSize: 13, fontWeight: 500}} 
+               dy={10}
+             />
              <YAxis hide domain={[0, 100]} />
-           
-             <Tooltip cursor={{fill: 'transparent'}} contentStyle={{background: 'var(--bg-secondary)', border: '1px solid var(--border)'}} />
-           
-             <Bar dataKey="val" radius={[4, 4, 0, 0]} barSize={40}>
-              {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-             </Bar>
-            </BarChart>
+             
+             <Tooltip 
+               cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }} 
+               contentStyle={{
+                 background: 'var(--bg-secondary)', 
+                 border: '1px solid var(--border)', 
+                 borderRadius: 'var(--radius)', 
+                 color: 'var(--text-primary)',
+                 boxShadow: 'var(--shadow-subtle)'
+               }}
+               itemStyle={{ color: 'var(--accent)', fontWeight: 'bold' }}
+             />
+             
+             <Line 
+              type="monotone" 
+              dataKey="val" 
+              stroke="var(--accent)" 
+              strokeWidth={4}
+              dot={{ r: 6, fill: 'var(--bg-primary)', stroke: 'var(--accent)', strokeWidth: 2 }}
+              activeDot={{ r: 8, fill: 'var(--accent)', stroke: 'var(--bg-primary)', strokeWidth: 3 }}
+             />
+            </LineChart>
            </ResponsiveContainer>
           </div>
          </div>
         )}
-
+        
         {(activeTab === 'security' || activeTab === 'bugs' || activeTab === 'improvements' || activeTab === 'bestPractices') && (
          <ul className="analysis-list">
           {(analysisData[activeTab] || []).map((item, i) => (
