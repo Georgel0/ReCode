@@ -1,18 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { convertCode } from '@/lib/api';
+import { convertCode, LANGUAGES } from '@/lib';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
 import { CodeEditor } from '@/components/ui';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
-import { sanitizeFilename, validateFile, suggestRefactorMode, LANGUAGES } from './utils';
+import { sanitizeFilename, validateFile, suggestRefactorMode } from './utils';
 import { FileTabs, RefactorControls, OutputPanel } from './components';
-
 import { get, set } from 'idb-keyval';
-
 import './codeRefactor.css';
 
 export default function CodeRefactor() {

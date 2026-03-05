@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { useTheme } from '@/context';
-import { REFACTOR_MODES, formatBytes } from './utils';
+import { REFACTOR_MODES } from './utils';
+import { formatBytes } from '@/lib';
 
 import { diffLines } from 'diff';
 import ReactDiffViewer from 'react-diff-viewer-continued';

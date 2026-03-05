@@ -131,8 +131,7 @@ export const getToolContent = (slug) => {
 };
 
 
-
-// More needed info
+// Landingpage info
 export const tools = [
 {
  name: 'Code Converter',
@@ -192,6 +191,7 @@ export const tools = [
 }, ];
 
 
+// Coding languages used across the app
 export const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
   { value: 'typescript', label: 'TypeScript', ext: '.ts' },
@@ -214,4 +214,5 @@ export const LANGUAGES = [
   { value: 'elixir', label: 'Elixir', ext: '.ex' },
   { value: 'haskell', label: 'Haskell', ext: '.hs' },
   { value: 'lua', label: 'Lua', ext: '.lua' },
+  { value: 'plaintext', label: 'Plain Text', ext: '.txt' }
 ];

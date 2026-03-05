@@ -19,29 +19,9 @@ export const suggestRefactorMode = (code) => {
   return 'clean';
 };
 
-export const LANGUAGES = [
-  { value: 'javascript', label: 'JavaScript', ext: '.js' },
-  { value: 'typescript', label: 'TypeScript', ext: '.ts' },
-  { value: 'python', label: 'Python', ext: '.py' },
-  { value: 'java', label: 'Java', ext: '.java' },
-  { value: 'c', label: 'C', ext: '.c' },
-  { value: 'csharp', label: 'C#', ext: '.cs' },
-  { value: 'cpp', label: 'C++', ext: '.cpp' },
-  { value: 'plaintext', label: 'Plain Text', ext: '.txt' }
-];
-
 export const REFACTOR_MODES = [
   { id: 'clean', label: 'Clean & Readability', desc: 'Improves naming, structure, and formatting.' },
   { id: 'perf', label: 'Performance', desc: 'Optimizes loops, memory usage, and complexity.' },
   { id: 'modern', label: 'Modernize Syntax', desc: 'Updates legacy code.' },
   { id: 'comments', label: 'Add Comments', desc: 'Adds documentation.' },
 ];
-
-export const formatBytes = (bytes, decimals = 2) => {
-  if (!bytes) return '0 Bytes';
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-};

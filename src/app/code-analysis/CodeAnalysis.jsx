@@ -186,8 +186,8 @@ export default function CodeAnalysis() {
         <div className="score-label">
          <span>Quality Score</span>
          <strong>{analysisData.score >= 80 ? 'Excellent' : analysisData.score >= 50 ? 'Average' : 'Needs Work'}</strong>
+        </div>
        </div>
-      </div>
            
        <div className="complexity-grid">
         <div className="complexity-card">
