@@ -200,7 +200,7 @@ const chartData = useMemo(() => {
         </div>
        </div>
        
-       <div className="tabs-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
+       <div className="tabs-container refactor" >
         <div style={{ display: 'flex', gap: '5px' }}>
          {['complexity', 'security', 'bugs', 'improvements', 'bestPractices'].map((tab) => (
            <button 
