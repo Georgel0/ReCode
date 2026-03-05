@@ -28,9 +28,14 @@ export default function CodeAnalysis() {
    const codeToAnalyze = moduleData.input || '';
    setInput(codeToAnalyze);
    
-   if (moduleData.fullOutput?.analysis) {
+   if (moduleData.summary && moduleData.complexity) {
+    setAnalysisData(moduleData);
+    setLastResult({ type: "analysis", input: codeToAnalyze, output: moduleData });
+   } 
+   else if (moduleData.fullOutput?.analysis) {
     setAnalysisData(moduleData.fullOutput.analysis);
-   } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
+   } 
+   else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
     handleAnalyze(codeToAnalyze);
    }
   }
