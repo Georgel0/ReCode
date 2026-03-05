@@ -552,10 +552,6 @@ html[data-theme='midnight-gold'] .video-container {
   margin-bottom: 1rem;
 }
 
-.header-actions {
-  gap: 10px;
-}
-
 .panel textarea {
   flex-grow: 1;
 }
