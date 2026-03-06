@@ -426,7 +426,10 @@ html[data-theme='quartz'] .copy-btn {
 }
 
 .editor-container {
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
   position: relative;
   border-top: none;
   background: transparent;
@@ -434,7 +437,6 @@ html[data-theme='quartz'] .copy-btn {
 }
 
 .code-editor {
-  width: 100%;
   flex-grow: 1;
   background: #1e1e1e;
   color: #d4d4d4;
