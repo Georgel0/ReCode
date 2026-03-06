@@ -193,7 +193,7 @@ html[data-theme='quartz'] .copy-btn {
   width: 100%;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: center;
   margin: 5px;
   gap: 10px;
 }
