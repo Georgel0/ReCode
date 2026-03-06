@@ -186,7 +186,7 @@ html[data-theme='quartz'] .copy-btn {
 .panel-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
 }
 
 .header-actions {
