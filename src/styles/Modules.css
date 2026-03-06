@@ -192,7 +192,7 @@ html[data-theme='quartz'] .copy-btn {
 .header-actions {
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   margin: 5px;
   gap: 8px;
@@ -436,7 +436,7 @@ html[data-theme='quartz'] .copy-btn {
 
 .code-editor {
   width: 100%;
-  min-height: 400px;
+  min-height: auto;
   max-height: 1000px;
   background: #1e1e1e;
   color: #d4d4d4;
