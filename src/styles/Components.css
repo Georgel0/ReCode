@@ -215,6 +215,8 @@ html[data-theme='quartz'] .primary-button:hover::after {
   overflow-x: auto;
   border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
+  flex-shrink: 0;
+  min-height: fit-content;
 }
 
 .tab-btn {
