@@ -214,15 +214,6 @@ html[data-theme='quartz'] .copy-btn {
   font-family: 'Fira Code', 'Consolas', monospace !important;
 }
 
-.editor-container {
-  flex-grow: 1;
-  position: relative;
-  border: 1px solid var(--border);
-  border-top: none;
-  background: transparent;
-  border-radius: 0 0 var(--radius) var(--radius);
-}
-
 .placeholder-container-inner {
   flex-grow: 1;
   display: flex;
@@ -434,10 +425,17 @@ html[data-theme='quartz'] .copy-btn {
   background: var(--text-secondary, #666);
 }
 
+.editor-container {
+  flex-grow: 1;
+  position: relative;
+  border-top: none;
+  background: transparent;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
 .code-editor {
   width: 100%;
-  min-height: auto;
-  max-height: 1000px;
+  flex-grow: 1;
   background: #1e1e1e;
   color: #d4d4d4;
   border: 1px solid var(--border);
@@ -481,6 +479,9 @@ html[data-theme='quartz'] .copy-btn {
 }
 
 @media (max-width: 768px) {
+  .code-editor {
+    max-height: 1000px;
+  }
   .converter-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
