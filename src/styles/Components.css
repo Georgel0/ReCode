@@ -220,7 +220,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
 }
 
 .tab-btn {
-  padding: 8px 16px;
+  padding: 5px 10px;
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border: 1px solid var(--border);
@@ -236,7 +236,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   font-weight: 600;
 }
 
-.tab-btn i {
+.tab-btn > i:first-of-type {
   margin-right: 8px;
   opacity: 0.7;
   font-size: 0.9em;
@@ -249,7 +249,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
 
 .close-tab {
   opacity: 0.5;
-  margin-left: 8px;
+  margin-left: 5px;
   font-size: 16px;
   transition: opacity 0.2s;
   background: none;

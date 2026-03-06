@@ -44,9 +44,7 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
      <button 
       className="close-tab" 
       aria-label={`Close ${file.name}`}
-      onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
-     >
-      <i className="fa-solid fa-xmark"></i>
+      onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}><i className="fa-solid fa-xmark"></i>
      </button>
     </div>
    ))}
