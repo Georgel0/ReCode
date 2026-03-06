@@ -192,10 +192,10 @@ html[data-theme='quartz'] .copy-btn {
 .header-actions {
   width: 100%;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: flex-end;
+  justify-content: space-between;
   margin: 5px;
-  gap: 8px;
+  gap: 10px;
 }
 
 .highlighter-wrapper {
