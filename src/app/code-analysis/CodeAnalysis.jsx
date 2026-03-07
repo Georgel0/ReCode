@@ -23,7 +23,7 @@ export default function CodeAnalysis() {
  const [selectedLang, setSelectedLang] = useState('javascript');
  const [isAutoDetected, setIsAutoDetected] = useState(true);
  
-  useEffect(() => {
+ useEffect(() => {
   if (moduleData?.type === 'analysis') {
    const codeToAnalyze = moduleData.input || '';
    setInput(codeToAnalyze);
@@ -31,14 +31,14 @@ export default function CodeAnalysis() {
    if (moduleData.summary && moduleData.complexity) {
     setAnalysisData(moduleData);
     setLastResult({ type: "analysis", input: codeToAnalyze, output: moduleData });
-   } 
+   }
    else if (moduleData.fullOutput?.analysis) {
     setAnalysisData(moduleData.fullOutput.analysis);
-   } 
+   }
    else if (moduleData.fullOutput?.summary && moduleData.fullOutput?.complexity) {
     setAnalysisData(moduleData.fullOutput);
     setLastResult({ type: "analysis", input: codeToAnalyze, output: moduleData.fullOutput });
-   } 
+   }
    else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
     handleAnalyze(codeToAnalyze);
    }
@@ -87,49 +87,73 @@ export default function CodeAnalysis() {
   }
  }, [activeTab, analysisData]);
  
-// Chart Data Preparation
-const chartData = useMemo(() => {
+ // Chart Data Preparation
+ const chartData = useMemo(() => {
   if (!analysisData?.complexity?.time) return [];
-
+  
   // Normalize the AI's string output (e.g., "O(n^2)", "O(N log N)")
-  const timeStr = analysisData.complexity.time.toLowerCase().replace(/[\s\(\)o]/g, '');
+  // Strip spaces and parentheses globally, but only the leading 'o' for Big O.
+  const timeStr = analysisData.complexity.time
+   .toLowerCase()
+   .replace(/[\s\(\)]/g, '')
+   .replace(/^o/, '');
   
   const data = [];
   // Generate curve data points for n = 1 to 10
   for (let n = 1; n <= 10; n++) {
-    let operations = n; // Default to O(n) if parsing fails
-    
-    if (timeStr === '1') { operations = 1; }
-    else if (timeStr === 'logn') { operations = Math.log2(n + 1); }
-    else if (timeStr === 'n') { operations = n; }
-    else if (timeStr === 'nlogn') { operations = n * Math.log2(n + 1); }
-    else if (timeStr.includes('n^2') || timeStr.includes('n²')) { operations = n * n; }
-    else if (timeStr.includes('n^3') || timeStr.includes('n³')) { operations = n * n * n; }
-    else if (timeStr.includes('2^n')) { operations = Math.pow(2, n); }
-
-    data.push({
-      inputElements: `n=${n}`,     // X-Axis label
-      operations: Number(operations.toFixed(2)), // Y-Axis value
-    });
+   let operations = n;
+   
+   if (timeStr === '1') {
+    operations = 1;
+   }
+   else if (timeStr === 'logn') {
+    operations = Math.log2(n + 1);
+   }
+   else if (timeStr === 'n') {
+    operations = n;
+   }
+   else if (timeStr === 'nlogn') {
+    operations = n * Math.log2(n + 1);
+   }
+   else if (timeStr.includes('n^2') || timeStr.includes('n²')) {
+    operations = n * n;
+   }
+   else if (timeStr.includes('n^3') || timeStr.includes('n³')) {
+    operations = n * n * n;
+   }
+   else if (timeStr.includes('2^n')) {
+    operations = Math.pow(2, n);
+   }
+   else if (timeStr.includes('n!')) {
+    // Simple factorial calculation for the chart
+    let fact = 1;
+    for (let i = 2; i <= n; i++) fact *= i;
+    operations = fact;
+   }
+   
+   data.push({
+    inputElements: `n=${n}`, // X-Axis label
+    operations: Number(operations.toFixed(2)), // Y-Axis value
+   });
   }
   
   return data;
-}, [analysisData]);
-
-  // Helper to color-code the metrics
-  const getMetricClass = (value, type) => {
-    if (value === undefined || value === null) return 'score-neutral';
-    if (type === 'low-is-better') {
-      if (value <= 10) return 'score-good';
-      if (value <= 20) return 'score-warn';
-      return 'score-bad';
-    } else {
-      if (value >= 80) return 'score-good';
-      if (value >= 60) return 'score-warn';
-      return 'score-bad';
-    }
-  };
-
+ }, [analysisData]);
+ 
+ // Helper to color-code the metrics
+ const getMetricClass = (value, type) => {
+  if (value === undefined || value === null) return 'score-neutral';
+  if (type === 'low-is-better') {
+   if (value <= 10) return 'score-good';
+   if (value <= 20) return 'score-warn';
+   return 'score-bad';
+  } else {
+   if (value >= 80) return 'score-good';
+   if (value >= 60) return 'score-warn';
+   return 'score-bad';
+  }
+ };
+ 
  const handleRefactorRouting = () => {
   const ext = LANGUAGES.find(l => l.value === selectedLang)?.ext || '.js';
   setModuleData({
