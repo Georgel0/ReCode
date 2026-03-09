@@ -141,8 +141,8 @@ body {
 
 html[data-theme='midnight-gold'] {
   --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-tertiary: #141414;
+  --bg-secondary: #000000;
+  --bg-tertiary: #000000;
   --text-primary: #f8f8f8;
   --text-secondary: #d4af37;
   --accent: #d4af37;
