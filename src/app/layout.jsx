@@ -21,10 +21,10 @@ const themeCheckScript = `
 (function() {
   try {
     var theme = localStorage.getItem('recode-theme');
-    var supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
+    // If no theme is saved in localStorage, force 'recode-dark'
     if (!theme) {
-      theme = supportDarkMode ? 'recode-dark' : 'classic-light';
+      theme = 'recode-dark';
     }
     
     document.documentElement.setAttribute('data-theme', theme);
