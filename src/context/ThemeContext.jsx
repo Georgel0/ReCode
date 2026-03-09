@@ -19,11 +19,10 @@ export const ThemeProvider = ({ children }) => {
  const [currentTheme, setCurrentTheme] = useState('recode-dark');
  
  useEffect(() => {
-  const savedTheme = localStorage.getItem('recode-theme');
-  if (savedTheme) {
-   setCurrentTheme(savedTheme);
-   document.documentElement.setAttribute('data-theme', savedTheme);
-  }
+  const savedTheme = localStorage.getItem('recode-theme') || 'recode-dark';
+  
+  setCurrentTheme(savedTheme);
+  document.documentElement.setAttribute('data-theme', savedTheme);
  }, []);
  
  const changeTheme = (themeId) => {

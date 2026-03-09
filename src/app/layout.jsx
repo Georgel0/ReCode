@@ -20,13 +20,7 @@ export const metadata = {
 const themeCheckScript = `
 (function() {
   try {
-    var theme = localStorage.getItem('recode-theme');
-    
-    // If no theme is saved in localStorage, force 'recode-dark'
-    if (!theme) {
-      theme = 'recode-dark';
-    }
-    
+    var theme = localStorage.getItem('recode-theme') || 'recode-dark';
     document.documentElement.setAttribute('data-theme', theme);
   } catch (e) {}
 })();
