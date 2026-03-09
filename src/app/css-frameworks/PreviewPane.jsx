@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generatePreviewDoc, TARGET_FRAMEWORKS } from './constants';
+import { generatePreviewDoc, TARGET_FRAMEWORKS } from './components';
 
 export function PreviewPane({ inputHtml, inputCss, outputHtml, targetLang, loading }) {
   const [fullScreenView, setFullScreenView] = useState(null); 

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { useConverter } from './useConverter';
-import { TARGET_FRAMEWORKS, MODES } from './constants';
+import { TARGET_FRAMEWORKS, MODES, useConverter } from './components';
 import { PreviewPane } from './PreviewPane';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
-import { useApp } from '@/context/AppContext';
+import { useApp } from '@/context';
 
 import './CssFrameworks.css'
 
