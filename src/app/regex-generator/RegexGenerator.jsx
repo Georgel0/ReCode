@@ -328,7 +328,7 @@ export default function RegexGenerator() {
         <i className="fa-solid fa-rotate-left"></i> Start Over
      </button>
     )}
-    <button className="primary-button" onClick={handleGenerate} disabled={loading}>
+    <button className="primary-button" onClick={handleGenerate} disabled={loading || !input.trim()}>
      <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : refineMode ? 'fa-sliders' : 'fa-wand-magic-sparkles'}`}></i>
      {loading ? 'Processing...' : refineMode ? 'Refine Regex' : 'Generate Regex'}
     </button>

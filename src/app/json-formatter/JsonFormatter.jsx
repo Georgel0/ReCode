@@ -182,7 +182,7 @@ export default function JsonFormatter() {
       {errorMsg && <div className="error-message"><i className="fa-solid fa-circle-exclamation"></i> {errorMsg}</div>}
           
       <div className="action-row">
-       <button className="primary-button" onClick={handleAiFix} disabled={loading}>
+       <button className="primary-button" onClick={handleAiFix} disabled={loading || !input.trim()}>
         <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}></i>
         {loading ? 'Repairing...' : 'AI Fix & Format'}
        </button>

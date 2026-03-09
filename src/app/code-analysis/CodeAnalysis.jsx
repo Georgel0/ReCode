@@ -197,7 +197,7 @@ export default function CodeAnalysis() {
      <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
           
      <div className="action-row">
-      <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading}>
+      <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading || !input.trim()}>
        {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
        {loading ? " Analyzing..." : " Run Audit"}
       </button>

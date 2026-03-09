@@ -199,7 +199,7 @@ export default function SqlBuilder() {
      />
      
      <div className="action-row">
-      <button className="primary-button" onClick={handleGenerate} disabled={loading}>
+      <button className="primary-button" onClick={handleGenerate} disabled={loading || !input.trim()}>
        {loading ? (
         <>
          <i className="fa-solid fa-spinner fa-spin"></i> Processing...
