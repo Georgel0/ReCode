@@ -433,17 +433,17 @@ html[data-theme='quartz'] .copy-btn {
   border-top: none;
   background: transparent;
   border-radius: 0 0 var(--radius) var(--radius);
+  overflow: auto;
 }
 
 .code-editor {
-  flex-grow: 1;
+  min-height: 100%;
   background: #1e1e1e;
   color: #d4d4d4;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   outline: none;
   transition: border-color 0.2s ease;
-  overflow: auto;
   text-shadow: none;
   font-size: 14px;
   font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
@@ -456,11 +456,7 @@ html[data-theme='quartz'] .copy-btn {
 
 .code-editor textarea, 
 .code-editor pre {
-  margin: 0 !important;
-  padding: 15px !important; 
   tab-size: 2;
-  white-space: pre-wrap !important;
-  word-break: break-all !important;
 }
 
 .code-editor textarea {
