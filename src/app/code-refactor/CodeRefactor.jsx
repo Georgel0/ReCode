@@ -108,10 +108,10 @@ export default function CodeRefactor() {
  
  useEffect(() => {
   const activeFile = files.find(f => f.id === activeTabId);
-  if (activeFile && input) {
+  if (activeFile && activeFile?.content) {
    setSuggestedMode(suggestRefactorMode(activeFile.content));
   }
- }, [activeTabId, files, input]);
+ }, [activeTabId, files]);
  
  const handleRefactor = async () => {
   if (files.every(f => !f.content.trim())) return;
