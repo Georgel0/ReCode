@@ -29,6 +29,8 @@ export default function CodeRefactor() {
  const fileInputRef = useRef(null);
  const isRestoring = useRef(false);
  
+ const activeFile = files.find(f => f.id === activeTabId);
+ 
  useEffect(() => {
   if (moduleData && moduleData.type === "refactor") {
    isRestoring.current = true;
@@ -107,7 +109,6 @@ export default function CodeRefactor() {
  }, [files, outputFiles, saveDraft]);
  
  useEffect(() => {
-  const activeFile = files.find(f => f.id === activeTabId);
   if (activeFile && activeFile?.content) {
    setSuggestedMode(suggestRefactorMode(activeFile.content));
   }
@@ -258,8 +259,6 @@ export default function CodeRefactor() {
   const content = await zip.generateAsync({ type: "blob" });
   saveAs(content, "refactored_project.zip");
  };
- 
- const activeFile = files.find(f => f.id === activeTabId);
  
  const getEditorLanguage = (lang) => {
   if (languages[lang]) return languages[lang];
