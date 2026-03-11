@@ -111,7 +111,7 @@ export default function CodeRefactor() {
   if (activeFile && activeFile?.content) {
    setSuggestedMode(suggestRefactorMode(activeFile.content));
   }
- }, [activeTabId, files]);
+ }, [activeTabId, files, activeFile?.content]);
  
  const handleRefactor = async () => {
   if (files.every(f => !f.content.trim())) return;
