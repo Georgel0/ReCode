@@ -108,10 +108,10 @@ export default function CodeRefactor() {
  
  useEffect(() => {
   const activeFile = files.find(f => f.id === activeTabId);
-  if (activeFile) {
+  if (activeFile && input) {
    setSuggestedMode(suggestRefactorMode(activeFile.content));
   }
- }, [activeTabId, files]);
+ }, [activeTabId, files, input]);
  
  const handleRefactor = async () => {
   if (files.every(f => !f.content.trim())) return;
@@ -317,7 +317,7 @@ export default function CodeRefactor() {
      <RefactorControls 
       refactorMode={refactorMode} 
       setRefactorMode={setRefactorMode} 
-      suggestedMode={!input.trim() ? suggestedMode : null} 
+      suggestedMode={suggestedMode} 
      />
           
      <div className="editor-toolbar">
