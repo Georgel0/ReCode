@@ -317,7 +317,7 @@ export default function CodeRefactor() {
      <RefactorControls 
       refactorMode={refactorMode} 
       setRefactorMode={setRefactorMode} 
-      suggestedMode={suggestedMode} 
+      suggestedMode={!input.trim() ? suggestedMode : null} 
      />
           
      <div className="editor-toolbar">
