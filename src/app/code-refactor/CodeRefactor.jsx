@@ -109,9 +109,10 @@ export default function CodeRefactor() {
  }, [files, outputFiles, saveDraft]);
  
  useEffect(() => {
-  if (activeFile && activeFile?.content) {
+  if (activeFile && activeFile?.content.trim().length > 0) {
    setSuggestedMode(suggestRefactorMode(activeFile.content));
-  }
+  } else setSuggestedMode(null);
+  
  }, [activeTabId, files, activeFile?.content]);
  
  const handleRefactor = async () => {
