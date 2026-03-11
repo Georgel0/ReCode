@@ -22,7 +22,7 @@ html[data-theme='quartz'] .sidebar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 50px; 
+  height: 50px;
   margin-bottom: 1.5rem;
   padding: 0 0.5rem;
 }
@@ -74,6 +74,16 @@ html[data-theme='quartz'] .sidebar {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.nav-menu i {
+  text-decoration: none;
+  margin-right: 5px;
+}
+
+.nav-menu a {
+  text-decoration: none;
 }
 
 .nav-item {
@@ -357,15 +367,6 @@ html[data-theme='midnight-gold'] .nav-item {
   color: #BBBCCB !important;
 }
 
-.nav-menu i {
-  text-decoration: none;
-  margin-right: 5px;
-}
-
-.nav-menu a {
-  text-decoration: none;
-}
-
 html[data-theme='midnight-gold'] .nav-item.active {
   color: var(--accent) !important;
 }
@@ -404,9 +405,15 @@ html[data-theme='midnight-gold'] .nav-item:hover {
 
 .model-trigger-section {
   padding: 0;
-  margin-top: 1rem;
   display: flex;
   align-items: stretch;
+}
+
+.model-trigger-section:hover .model-trigger-btn,
+.model-trigger-section:hover .second-model-trigger-btn {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.15);
 }
 
 .model-trigger-btn {
@@ -425,20 +432,13 @@ html[data-theme='midnight-gold'] .nav-item:hover {
   transition: all 0.2s ease;
 }
 
-.model-trigger-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.15);
-}
-
 html[data-theme='midnight-gold'] .model-trigger-btn,
 html[data-theme='quartz'] .model-trigger-btn,
 html[data-theme='midnight-gold'] .second-model-trigger-btn,
 html[data-theme='quartz'] .second-model-trigger-btn {
   border: 1px solid;
   border-right: none;
-  border-image: linear-gradient(to right, #FFEC8B 5%, #D4AF37 30%, #B8860B 50%, #D4AF37 70%, transparent 100%
-  ) 1;
+  border-image: linear-gradient(to right, #FFEC8B 5%, #D4AF37 30%, #B8860B 50%, #D4AF37 70%, transparent 100%) 1;
   border-radius: 0;
 }
 
@@ -455,7 +455,7 @@ html[data-theme='quartz'] .second-model-trigger-btn {
   color: var(--accent-color);
   border: 1px solid var(--border);
   padding: 0.75rem 1rem;
-  border-radius:  0 var(--radius) var(--radius) 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
   border-left: none;
   cursor: pointer;
   font-size: 0.9rem;
@@ -463,16 +463,12 @@ html[data-theme='quartz'] .second-model-trigger-btn {
   overflow: hidden;
 }
 
-.second-model-trigger-btn:hover, 
-.model-trigger-btn:hover {
-}
-
 .mode-icon-slide {
   animation: slide-up-down 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
 .sidebar.collapsed {
-  width: 70px; 
+  width: 70px;
   padding: 1rem 0.5rem;
 }
 
@@ -494,8 +490,8 @@ html[data-theme='quartz'] .second-model-trigger-btn {
 .sidebar.collapsed .second-model-trigger-btn {
   display: flex;
   justify-content: center;
-  width: 100%;          
-  padding: 0.75rem 0;     
+  width: 100%;
+  padding: 0.75rem 0;
   border: none !important;
   background: none !important;
 }
@@ -507,7 +503,7 @@ html[data-theme='quartz'] .second-model-trigger-btn {
 }
 
 .sidebar.collapsed .logo-group {
-  display: none; 
+  display: none;
 }
 
 .mobile-only {
@@ -546,6 +542,7 @@ html[data-theme='quartz'] .second-model-trigger-btn {
     transform: translateY(20px);
     opacity: 0;
   }
+  
   100% {
     transform: translateY(0);
     opacity: 1;
