@@ -404,7 +404,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--lp-text-muted);
+  color: var(--lp-blue-dark);
   transition: color 0.2s ease;
   cursor: help;
 }
