@@ -88,16 +88,14 @@ export default function LandingPage() {
           <Link href={tool.path}>
            <div className="card-header">
             <div className="lp-card-icon"><i className={tool.icon}></i></div>
-            <button 
-             className="info-trigger-lp" 
-             onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setActiveInfo(tool);
-             }} 
-            >
+            
+            <div className="info-trigger-lp">
              <i className="fas fa-circle-info"></i>
-            </button>
+             <div className="speech-bubble">
+              <p>{tool.info}</p>
+             </div>
+            </div>
+
            </div>
            <h3>{tool.name}</h3>
            <p>{tool.desc}</p>
@@ -189,22 +187,6 @@ export default function LandingPage() {
      </div>
     </div>
    </footer>
-   
-   {activeInfo && (
-    <div className="info-popup-overlay" onClick={() => setActiveInfo(null)}>
-     <div className="info-popup-content" onClick={e => e.stopPropagation()}>
-      <div className="popup-header">
-       <h3><i className={activeInfo.icon}></i> {activeInfo.name}</h3>
-       <button className="close-icon-btn" onClick={() => setActiveInfo(null)}>✕</button>
-      </div>
-      <p>{activeInfo.info}</p>
-      <div className="popup-actions">
-       <Link href={activeInfo.path} className="popup-cta">Launch Tool</Link>
-      </div>
-     </div>
-    </div>
-   )}
-
   </div>
  );
 }
