@@ -92,7 +92,10 @@ export default function LandingPage() {
             <div className="info-trigger-lp">
              <i className="fas fa-circle-info"></i>
              <div className="speech-bubble">
-              <p>{tool.info}</p>
+              <p>
+               <i className={tool.icon}></i> 
+               {tool.info}
+              </p>
              </div>
             </div>
 
