@@ -283,8 +283,10 @@ export default function CodeAnalysis() {
               />
               {/* Y-Axis: Operations (Time) */}
               <YAxis 
+               allowDecimals={false}
                axisLine={true} 
                tickLine={false}
+               domain={[0, dataMax => Math.max(dataMax, 4)]}
                tick={{fill: 'var(--text-secondary)', fontSize: 12}}
                dx={-10}
                label={{ value: 'Operations (Time)', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)', fontSize: 13 }}
