@@ -8,7 +8,9 @@ import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context'; 
 
 import { ComplexityTab, IssuesTab, TestingTab, ArchitectureTab } from './tabs';
+
 import './CodeAnalysis.css'; 
+
 
 export default function CodeAnalysis() {
  const [input, setInput] = useState(''); 
