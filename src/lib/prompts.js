@@ -42,16 +42,44 @@ export const OUTPUT_SCHEMAS = {
    time: z.string().describe("Time complexity in Big O notation"),
    space: z.string().describe("Space complexity in Big O notation"),
    explanation: z.array(z.string()).describe("Bullet points explaining exactly why the complexity is what it is"),
+   bottleneck: z.string().optional().describe("Identify the specific function, loop, or recursive call causing the worst-case time complexity. Omit if not applicable."),
+   tradeoffs: z.string().optional().describe("Suggest space-time tradeoffs, e.g., 'Using a Hash Map here would drop time to O(n) but increase space to O(n)'"),
    metrics: z.object({
     cyclomatic: z.number().describe("Cyclomatic complexity score (lower is better)"),
     cognitive: z.number().describe("Cognitive complexity score (lower is better)"),
     maintainability: z.number().describe("Maintainability index (0-100, higher is better)")
-   }).describe("Numeric metrics used to render the complexity chart")
+   })
   }),
-  security: z.array(z.string()),
-  improvements: z.array(z.string()),
-  bugs: z.array(z.string()),
-  bestPractices: z.array(z.string()).describe("Detailed, actionable coding standards and best practices specific to this snippet")
+  security: z.array(z.object({
+   severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
+   location: z.string().optional().describe("Specific line number, function name, or snippet"),
+   issue: z.string().describe("What the vulnerability is"),
+   resolution: z.string().describe("How to fix it")
+  })).optional(),
+  bugs: z.array(z.object({
+   severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
+   location: z.string().optional(),
+   issue: z.string(),
+   resolution: z.string()
+  })).optional(),
+  improvements: z.array(z.object({
+   severity: z.enum(['High', 'Medium', 'Low']),
+   location: z.string().optional(),
+   issue: z.string(),
+   resolution: z.string()
+  })).optional(),
+  bestPractices: z.array(z.object({
+   issue: z.string(),
+   resolution: z.string()
+  })).optional(),
+  testing: z.object({
+   edgeCases: z.array(z.string()).optional().describe("List of edge cases the code fails to handle"),
+   unitTests: z.array(z.string()).optional().describe("Plain-English descriptions of recommended unit tests")
+  }).optional(),
+  architecture: z.object({
+   smells: z.array(z.string()).optional().describe("Code smells like Tight Coupling, God Objects, or SOLID violations"),
+   dependencies: z.array(z.string()).optional().describe("Warnings about outdated methods or non-standard ecosystem practices")
+  }).optional()
  }),
  
  regex: z.object({
@@ -185,28 +213,25 @@ export const PROMPT_CONFIG = {
  
  analysis: {
   system: () => withSchema(
-   `You are a Senior Security & Performance Auditor. 
+   `You are a Senior Security & Architecture Auditor. 
       Your Task: Conduct a deep-dive static analysis of the code.
       
       Guidelines:
       - Score: 0 (Critical Failure) to 100 (Flawless).
-      - Complexity: Calculate Time and Space complexity (Big O). Provide specific bullet points explaining WHY it earned that complexity, and assign numeric scores for cyclomatic, cognitive, and maintainability metrics to fuel a UI chart.
-      - Security: Look for XSS, SQLi, RCE, insecure deps, and hardcoded secrets. Do not report a vulnerability unless you can trace the exact path from input to sink. 
-      - Bugs: Find logic errors, race conditions, or unhandled null states.
-      - Best Practices: List detailed architectural and syntactical best practices specific to this code snippet.`,
+      - Complexity: Calculate Time and Space complexity (Big O). Identify the specific bottleneck and suggest space-time tradeoffs if applicable.
+      - Issues (Security, Bugs, Improvements): You MUST provide the exact location (function name or snippet), the issue, and the resolution. Assign severity levels accurately.
+      - Architecture & Testing: Identify code smells, missing edge cases, and recommend plain-English unit tests.
+      - CRITICAL: Do NOT hallucinate. If the code is perfectly simple (e.g., a basic addition function), leave optional arrays empty or omit them. Do not invent vulnerabilities just to fill the schema.`,
    `{ 
-        "summary": "string (executive summary)", 
+        "summary": "string", 
         "score": number, 
-        "complexity": {
-          "time": "string",
-          "space": "string",
-          "explanation": ["string"],
-          "metrics": { "cyclomatic": number, "cognitive": number, "maintainability": number }
-        }, 
-        "security": ["string (specific vulnerability)"], 
-        "improvements": ["string (actionable advice)"], 
-        "bugs": ["string (potential error)"],
-        "bestPractices": ["string (best practice rule)"]
+        "complexity": { ... }, 
+        "security": [{ "severity": "Critical|High|Medium|Low", "location": "string", "issue": "string", "resolution": "string" }], 
+        "bugs": [...],
+        "improvements": [...],
+        "bestPractices": [...],
+        "testing": { "edgeCases": ["string"], "unitTests": ["string"] },
+        "architecture": { "smells": ["string"], "dependencies": ["string"] }
        }`
   ),
   user: (input) => `Analyze this code in deep detail:\n${input}`,
