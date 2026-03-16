@@ -1,5 +1,5 @@
 "use client";
-import { EmptyPlaceholder } from './EmptyPlaceholder';
+import { EmptyPlaceholder } from '../EmptyPlaceholder';
 
 export function ArchitectureTab({ architecture }) {
   if (!architecture || (!architecture.smells?.length && !architecture.dependencies?.length)) {
