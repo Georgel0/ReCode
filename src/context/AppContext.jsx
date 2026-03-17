@@ -7,12 +7,14 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [moduleData, setModuleData] = useState(null);
   
-  const [qualityMode, setQualityMode] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("recode_quality_mode") || "fast";
+  const [qualityMode, setQualityMode] = useState("fast");
+  
+  useEffect(() => {
+    const savedMode = localStorage.getItem("recode_quality_mode");
+    if (savedMode) {
+      setQualityMode(savedMode);
     }
-    return "fast";
-  });
+  }, []);
   
   useEffect(() => {
     localStorage.setItem('recode_quality_mode', qualityMode);
