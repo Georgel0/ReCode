@@ -8,7 +8,7 @@ export function ComplexityTab({ complexity }) {
  const chartData = useMemo(() => {
   if (!complexity?.time) return [];
   
-  const timeStr = complexity.time.toLowerCase().replace(/[\s\(\)]/g, '').replace(/^o/, '');
+  const timeStr = complexity.time.toLowerCase().replace(/[\s\(\)]/g, '').replace(/^o/, '') || 'n';
   
   const data = [];
   for (let n = 1; n <= 10; n++) {
@@ -67,7 +67,7 @@ export function ComplexityTab({ complexity }) {
     </div>
         
     <ul className="complexity-explanation-list">
-     {complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
+     {(complexity?.explanation || []).map((item, i) => <li key={i}>{item}</li>)}
     </ul>
 
     {complexity?.bottleneck && (

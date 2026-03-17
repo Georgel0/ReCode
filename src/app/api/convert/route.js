@@ -138,6 +138,7 @@ export async function POST(request) {
      model: modelInstance,
      system: systemPrompt,
      prompt: userPrompt,
+     maxTokens: 8000
     });
     finalData = { convertedCode: text.trim() };
    }
@@ -154,6 +155,7 @@ export async function POST(request) {
      system: systemPrompt,
      prompt: userPrompt,
      schema: config.schema,
+     maxTokens: 8000
     });
     finalData = object;
    } else {
@@ -161,6 +163,7 @@ export async function POST(request) {
      model: modelInstance,
      system: systemPrompt,
      prompt: userPrompt,
+     maxTokens: 8000
     });
     finalData = { convertedCode: text.trim() };
    }
