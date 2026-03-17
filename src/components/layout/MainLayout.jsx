@@ -25,7 +25,7 @@ export function MainLayout({ children }) {
  useEffect(() => {
   const saved = localStorage.getItem('recode_last_module');
   if (saved) setHrefLaunch(saved);
- });
+ }, []);
  
  useEffect(() => {
   if (isLandingPage) return;
