@@ -35,7 +35,8 @@
     "react-syntax-highlighter": "^16.1.0",
     "react18-json-view": "^0.2.9",
     "recharts": "^3.7.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "eslint": "^10.0.0",
