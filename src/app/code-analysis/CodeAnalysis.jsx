@@ -82,7 +82,7 @@ export default function CodeAnalysis() {
 
   switch (activeTab) {
    case 'complexity':
-    return `Complexity Analysis:\n- Time: ${analysisData.complexity.time}\n- Space: ${analysisData.complexity.space}\n\nBreakdown:\n${analysisData.complexity.explanation.join('\n')}`; 
+    return `Complexity Analysis:\n- Time: ${analysisData.complexity.time}\n- Space: ${analysisData.complexity.space}\n\nBreakdown:\n${(analysisData.complexity.explanation || []).join('\n')}`; 
    case 'security': return `Security Audit:\n${formatIssues(analysisData.security)}`;
    
    case 'bugs': return `Bug Report:\n${formatIssues(analysisData.bugs)}`;
