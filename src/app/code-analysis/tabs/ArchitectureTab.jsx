@@ -2,13 +2,13 @@
 import { EmptyPlaceholder } from '../EmptyPlaceholder';
 
 export function ArchitectureTab({ architecture }) {
-  if (!architecture || (!architecture.smells?.length && !architecture.dependencies?.length)) {
+  if (!architecture || (!architecture?.smells?.length && !architecture?.dependencies?.length)) {
     return <EmptyPlaceholder icon="fa-cubes" title="Clean Architecture" message="No architectural code smells or dependency warnings were detected." />;
   }
 
   return (
     <div className="architecture-container">
-      {architecture.smells && architecture.smells.length > 0 && (
+      {architecture?.smells && architecture?.smells.length > 0 && (
         <div style={{ marginBottom: '2rem' }}>
           <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}><i className="fa-solid fa-wind"></i> Code Smells</h4>
           <ul className="simple-list">
@@ -19,7 +19,7 @@ export function ArchitectureTab({ architecture }) {
         </div>
       )}
 
-      {architecture.dependencies && architecture.dependencies.length > 0 && (
+      {architecture?.dependencies && architecture?.dependencies.length > 0 && (
         <div>
           <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}><i className="fa-solid fa-boxes-stacked"></i> Ecosystem & Dependencies</h4>
           <ul className="simple-list">

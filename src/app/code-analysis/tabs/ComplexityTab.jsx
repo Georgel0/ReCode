@@ -70,7 +70,7 @@ export function ComplexityTab({ complexity }) {
      {complexity.explanation.map((item, i) => <li key={i}>{item}</li>)}
     </ul>
 
-    {complexity.bottleneck && (
+    {complexity?.bottleneck && (
      <div className="insight-box">
       <i className="fa-solid fa-traffic-cone"></i>
        <div className="insight-content">
@@ -80,7 +80,7 @@ export function ComplexityTab({ complexity }) {
       </div>
      )}
 
-     {complexity.tradeoffs && (
+     {complexity?.tradeoffs && (
       <div className="insight-box">
        <i className="fa-solid fa-scale-balanced"></i>
         <div className="insight-content">
@@ -137,7 +137,7 @@ export function ComplexityTab({ complexity }) {
        </ResponsiveContainer>
       </div>
       
-      {complexity.metrics && (
+      {complexity?.metrics && (
        <div className="metrics-container">
         <div className="metric-card">
          <div className="metric-header">

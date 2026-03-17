@@ -8,7 +8,7 @@ export function TestingTab({ testing }) {
 
   return (
     <div className="testing-container">
-      {testing.edgeCases && testing.edgeCases.length > 0 && (
+      {testing?.edgeCases && testing?.edgeCases.length > 0 && (
         <div style={{ marginBottom: '2rem' }}>
           <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}><i className="fa-solid fa-triangle-exclamation"></i> Unhandled Edge Cases</h4>
           <ul className="simple-list">
@@ -19,7 +19,7 @@ export function TestingTab({ testing }) {
         </div>
       )}
 
-      {testing.unitTests && testing.unitTests.length > 0 && (
+      {testing?.unitTests && testing?.unitTests.length > 0 && (
         <div>
           <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}><i className="fa-solid fa-vial-circle-check"></i> Recommended Unit Tests</h4>
           <ul className="simple-list">
