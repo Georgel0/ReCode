@@ -8,7 +8,7 @@ export function ComplexityTab({ complexity }) {
  const chartData = useMemo(() => {
   if (!complexity?.time) return [];
   
-  const timeStr = complexity.time.toLowerCase().replace(/[\s\(\)]/g, '').replace(/^o/, '') || 'n';
+  const timeStr = complexity.time.toLowerCase().replace(/[\s\(\)]/g, '').replace(/^o/, '');
   
   const data = [];
   for (let n = 1; n <= 10; n++) {
