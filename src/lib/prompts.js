@@ -221,7 +221,7 @@ export const PROMPT_CONFIG = {
       - Complexity: Calculate Time and Space complexity (Big O). Identify the specific bottleneck and suggest space-time tradeoffs if applicable.
       - Issues (Security, Bugs, Improvements): You MUST provide the exact location (function name or snippet), the issue, and the resolution. Assign severity levels accurately.
       - Architecture & Testing: Identify code smells, missing edge cases, and recommend plain-English unit tests.
-      - CRITICAL: Do NOT hallucinate. If the code is perfectly simple (e.g., a basic addition function), leave optional arrays empty or omit them. Do not invent vulnerabilities just to fill the schema.`,
+      - CRITICAL: Do NOT hallucinate. If the code is perfectly simple (e.g., a basic addition function), leave optional arrays empty or omit them. Do not invent vulnerabilities just to fill the schema. If no issues are found, you MUST return an empty array [] for that category. Do not omit the key.`,
    `{ 
         "summary": "string", 
         "score": number, 

@@ -78,7 +78,7 @@ export default function CodeAnalysis() {
   if (!analysisData) return ''; 
   
   // Formatters for the new object arrays
-  const formatIssues = (arr) => arr?.map(i => `[${i.severity || 'Tip'}] ${i.location ? `(${i.location}) ` : ''}${i.issue}\nFix: ${i.resolution}`).join('\n\n') || 'None found.';
+  const formatIssues = (arr) => (arr || []).map(i => `[${i.severity || 'Tip'}] ${i.location ? `(${i.location}) ` : ''}${i.issue}\nFix: ${i.resolution}`).join('\n\n') || 'None found.';
 
   switch (activeTab) {
    case 'complexity':
