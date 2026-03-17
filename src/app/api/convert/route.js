@@ -137,13 +137,15 @@ export async function POST(request) {
    const modelInstance = groq('llama-3.3-70b-versatile');
    
    if (config.schema) {
-    const { object } = await generateObject({
+    const { text } = await generateText({
      model: modelInstance,
      system: systemPrompt,
      prompt: userPrompt,
-     schema: config.schema,
     });
-    finalData = object;
+    finalData = extractJson(text);
+    if (!finalData) {
+     throw new Error("Groq model failed to return valid JSON.");
+    }
    } else {
     const { text } = await generateText({
      model: modelInstance,
