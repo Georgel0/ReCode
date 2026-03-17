@@ -1,7 +1,7 @@
 /**
  * @fileoverview Next.js API route for AI-powered code conversion and generation.
- * Utilizes the AI SDK to route requests to various LLMs 
- * based on the requested quality mode and following a strict schema from '@/lib/prompts.js'. Integrates with Firebase Admin for auth/logging.
+ * Utilizes the AI SDK to route requests to various LLMs. 
+ * Integrates with Firebase Admin for auth/logging.
  */
 
 import { NextResponse } from 'next/server';
@@ -9,31 +9,25 @@ import admin from "firebase-admin";
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
-/**
- * Robust JSON extraction from LLM strings. 
- * Strategy: JSON.parse -> Markdown Strip -> Bracket Heuristics.
- */
+// Robust JSON extraction from LLM strings. 
 function extractJson(text) {
  if (!text) return null;
  
- // Primary: Try Standard JSON.parse
  try {
   return JSON.parse(text);
  } catch (e) {
-  // Fallback 1: Clean Markdown code blocks
   const cleanMarkdown = text.replace(/```json|```/g, '').trim();
   try {
    return JSON.parse(cleanMarkdown);
   } catch (e3) {
-   // Fallback 2: Heuristic Bracket Finding
    const start = text.indexOf('{');
    const end = text.lastIndexOf('}');
    
    if (start !== -1 && end !== -1 && end > start) {
     const jsonCandidate = text.substring(start, end + 1);
-    // Remove control chars and try basic trailing comma fix
     const cleanCandidate = jsonCandidate
      .replace(/,\s*}/g, '}')
      .replace(/[\x00-\x1F\x7F-\x9F]/g, "");
@@ -49,11 +43,7 @@ function extractJson(text) {
  }
 }
 
-/**
- * Retrieves and parses the Firebase service account credentials from environment variables.
- * Supports both direct JSON and Base64-encoded JSON formats.
- * @returns {object|null} - The parsed service account object or null if parsing fails.
- */
+// Retrieves and parses the Firebase service account credentials.
 function getServiceAccount() {
  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
  if (!raw) return null;
@@ -71,7 +61,7 @@ function getServiceAccount() {
  }
 }
 
-// Firebase Initialization. Initialized in the global scope to persist the connection across serverless cold starts.
+// Firebase Initialization
 if (!admin.apps.length) {
  const serviceAccount = getServiceAccount();
  
@@ -85,14 +75,10 @@ if (!admin.apps.length) {
    console.error("Firebase Init Error:", error);
   }
  } else {
-  console.warn("FIREBASE_SERVICE_ACCOUNT missing or invalid. Auth checks may fail.");
+  console.warn("FIREBASE_SERVICE_ACCOUNT missing or invalid.");
  }
 }
 
-/**
- * Creates a provider registry for AI models with configured API keys.
- * @type {import('ai').ProviderRegistry}
- */
 const registry = createProviderRegistry({
  gateway: createOpenAI({
   baseURL: 'https://ai-gateway.vercel.sh/v1',
@@ -102,22 +88,6 @@ const registry = createProviderRegistry({
 
 const groq = createGroq();
 
-/**
- * @typedef {Object} CodeConversionRequest
- * @property {string} type - The type of operation (must match a key in PROMPT_CONFIG).
- * @property {string} input - The raw source code to be processed.
- * @property {string} [sourceLang] - The programming language of the input code.
- * @property {string} [targetLang] - The programming language to convert to.
- * @property {string} [mode] - Specific processing mode (e.g., 'explain', 'refactor').
- * @property {'quality'|'fast'|'turbo'} qualityMode - Determines the AI model used.
- */
-
-/**
- * Handles POST requests for code conversion operations.
- * @param {Request} request - The incoming request object.
- * @returns {Promise<NextResponse>} - Returns status 200 with the converted JSON data/code, 
- * status 400 for bad input, or 500 for server errors.
- */
 export async function POST(request) {
  try {
   const body = await request.json();
@@ -128,8 +98,15 @@ export async function POST(request) {
   }
   
   const config = PROMPT_CONFIG[type];
-  const systemPrompt = config.system({ sourceLang, targetLang, mode });
+  let systemPrompt = config.system({ sourceLang, targetLang, mode });
   const userPrompt = config.user(input);
+  
+  /* DYNAMIC SCHEMA INJECTION: If we have a schema and we are using standard text generation, 
+  we dynamically convert the Zod schema to a JSON schema and strictly enforce it. */
+  if (config.schema && qualityMode === 'turbo') {
+   const jsonSchema = zodToJsonSchema(config.schema, { target: "jsonSchema7" });
+   systemPrompt += `\n\nCRITICAL SYSTEM INSTRUCTION: You MUST return ONLY a valid JSON object. The JSON must strictly validate against this JSON Schema: ${JSON.stringify(jsonSchema, null, 2)}`;
+  }
   
   let finalData;
   
@@ -137,14 +114,24 @@ export async function POST(request) {
    const modelInstance = groq('llama-3.3-70b-versatile');
    
    if (config.schema) {
-    const { text } = await generateText({
-     model: modelInstance,
-     system: systemPrompt,
-     prompt: userPrompt,
-    });
-    finalData = extractJson(text);
+    // Give the model 3 chances to output valid JSON
+    const MAX_RETRIES = 2;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+     const { text } = await generateText({
+      model: modelInstance,
+      system: systemPrompt,
+      prompt: userPrompt,
+      temperature: 0.1
+     });
+     
+     finalData = extractJson(text);
+     if (finalData) break;
+     
+     console.warn(`Groq JSON extraction failed on attempt ${attempt + 1}. Retrying...`);
+    }
+    
     if (!finalData) {
-     throw new Error("Groq model failed to return valid JSON.");
+     throw new Error("Groq failed to return valid JSON after multiple attempts. The output may be exceeding token limits.");
     }
    } else {
     const { text } = await generateText({
