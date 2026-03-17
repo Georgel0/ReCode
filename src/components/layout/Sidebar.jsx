@@ -17,6 +17,12 @@ const modules = [
  { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt', path: '/json-formatter' },
 ];
 
+const qualityConfig = {
+ fast: { icon: 'fa-stopwatch', title: 'Fast Mode' },
+ quality: { icon: 'fa-gem', title: 'Quality Mode' },
+ turbo: { icon: 'fa-bolt', title: 'Turbo Mode' },
+};
+
 export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
  
  const pathname = usePathname();
@@ -31,6 +37,8 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
   }
   return false;
  });
+ 
+ const current = qualityConfig[qualityMode] || qualityConfig.fast;
  
  const toggleAutoSave = () => {
   const newState = !autoSave;
@@ -150,13 +158,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
       )}
       <button className="second-model-trigger-btn" onClick={toggleQuality}>
        <div className="mode-icon-slide" key={qualityMode}>
-        {qualityMode === 'fast' ? (
-         <i className="fas fa-stopwatch" title="Fast Mode"></i>
-          ) : (qualityMode === 'quality' ? (
-         <i className="fas fa-gem" title="Quality Mode"></i>
-        ) : (
-         <i className="fas fa-bolt" title="Turbo Mode"></i>
-        ))}
+        <i className={`fas ${current.icon}`} title={current.title}></i>
        </div>
       </button>
      </div>
