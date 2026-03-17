@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server';
 import admin from "firebase-admin";
 import { createOpenAI } from '@ai-sdk/openai';
-import Groq from 'groq-sdk';
+import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
@@ -24,8 +24,8 @@ function extractJson(text) {
  } catch (e) {
   // Fallback 1: Clean Markdown code blocks
   const cleanMarkdown = text.replace(/```json|```/g, '').trim();
-  try { 
-   return JSON.parse(cleanMarkdown); 
+  try {
+   return JSON.parse(cleanMarkdown);
   } catch (e3) {
    // Fallback 2: Heuristic Bracket Finding
    const start = text.indexOf('{');
@@ -38,10 +38,10 @@ function extractJson(text) {
      .replace(/,\s*}/g, '}')
      .replace(/[\x00-\x1F\x7F-\x9F]/g, "");
     
-    try { 
-     return JSON.parse(cleanCandidate); 
-    } catch (e4) { 
-     return null; 
+    try {
+     return JSON.parse(cleanCandidate);
+    } catch (e4) {
+     return null;
     }
    }
    return null;
@@ -100,7 +100,7 @@ const registry = createProviderRegistry({
  }),
 });
 
-const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = createGroq();
 
 /**
  * @typedef {Object} CodeConversionRequest
@@ -134,20 +134,24 @@ export async function POST(request) {
   let finalData;
   
   if (qualityMode === 'turbo') {
-   const jsonForce = config.schema ? "\n\nIMPORTANT: Output PURE JSON." : "";
-   const completion = await groqClient.chat.completions.create({
-    messages: [
-     { role: "system", content: systemPrompt + jsonForce },
-     { role: "user", content: userPrompt }
-    ],
-    model: 'llama-3.3-70b-versatile',
-    temperature: 0.1,
-    response_format: config.schema ? { type: "json_object" } : { type: "text" },
-   });
+   const modelInstance = groq('llama-3.3-70b-versatile');
    
-   const text = completion.choices[0]?.message?.content || "";
-   finalData = config.schema ? extractJson(text) : { convertedCode: text.trim() };
-   
+   if (config.schema) {
+    const { object } = await generateObject({
+     model: modelInstance,
+     system: systemPrompt,
+     prompt: userPrompt,
+     schema: config.schema,
+    });
+    finalData = object;
+   } else {
+    const { text } = await generateText({
+     model: modelInstance,
+     system: systemPrompt,
+     prompt: userPrompt,
+    });
+    finalData = { convertedCode: text.trim() };
+   }
   } else {
    const modelId = qualityMode === 'quality' ?
     'gateway:deepseek/deepseek-v3.2-thinking' :
