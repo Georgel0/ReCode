@@ -94,7 +94,7 @@ export default function LandingPage() {
              <div className="speech-bubble">
               <p>
                <i className={tool.icon}></i> 
-               {tool.info}
+                {tool.info}
               </p>
              </div>
             </div>
