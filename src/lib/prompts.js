@@ -105,6 +105,11 @@ export const OUTPUT_SCHEMAS = {
   convertedCode: z.string().optional().describe("The refactored stylesheet code"),
   
   extra: z.string().optional().describe("Include any 'leftover' CSS that couldn't be converted, required custom @layer styles, or variables the user needs to add manually to make the design work.")
+ }),
+ 
+  sql: z.object({
+  query: z.string().describe("The generated, converted, or optimized raw SQL code"),
+  explanation: z.string().optional().describe("A bulleted list explaining changes, index suggestions, or logic breakdowns. Omit if not requested.")
  })
 };
 
@@ -312,16 +317,20 @@ export const PROMPT_CONFIG = {
   schema: OUTPUT_SCHEMAS.regex
  },
  
- sql: {
-  system: () => `You are a Database Administrator specializing in Query Optimization.
-      Your Task: Generate or Optimize SQL queries.
+  sql: {
+  system: () => withSchema(
+   `You are a Database Administrator specializing in Query Optimization and Architecture.
+      Your Task: Generate, Convert, or Optimize SQL queries.
       
       Guidelines:
       - Use standard ANSI SQL unless a specific dialect is requested.
-      - Focus on Index usage and avoiding full table scans.
-      - Output ONLY the raw SQL code.
-      - Add brief "-- comments" explaining complex logic.`,
+      - Focus on Index usage and avoiding full table scans when optimizing.
+      - Output ONLY the raw SQL code in the 'query' property.
+      - If requested, provide a clear, bulleted 'explanation' of why specific changes were made.`,
+   `{ "query": "string (the raw SQL)", "explanation": "string (optional bulleted plan)" }`
+  ),
   user: (input) => `SQL Requirement:\n${input}`,
-  responseType: 'text'
+  responseType: 'object',
+  schema: OUTPUT_SCHEMAS.sql
  }
 };

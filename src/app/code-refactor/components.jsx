@@ -77,6 +77,9 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
  
  const [isMobile, setIsMobile] = useState(false);
  
+ const { currentTheme } = useTheme();
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+ 
  useEffect(() => {
   setIsMobile(window.innerWidth < 768);
   

@@ -1,101 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { convertCode } from '@/lib/api';
-import { CopyButton } from '@/components/ui';
+import { Toaster } from 'sonner';
+import ReactDiffViewer from 'react-diff-viewer-continued';
 import { ModuleHeader } from '@/components/layout';
-import { useApp } from '@/context/AppContext';
-
-const DIALECTS = [
- { value: 'Standard SQL', label: 'Standard SQL' },
- { value: 'PostgreSQL', label: 'PostgreSQL' },
- { value: 'MySQL', label: 'MySQL' },
- { value: 'SQLite', label: 'SQLite' },
- { value: 'SQL Server', label: 'SQL Server (T-SQL)' },
- { value: 'Oracle', label: 'Oracle PL/SQL' },
- { value: 'Snowflake', label: 'Snowflake' },
- { value: 'BigQuery', label: 'Google BigQuery' },
- { value: 'Redshift', label: 'AWS Redshift' },
-];
-
-const MODES = [
- { id: 'builder', label: 'Builder', icon: 'fa-wand-magic-sparkles' },
- { id: 'converter', label: 'Converter', icon: 'fa-right-left' },
- { id: 'optimizer', label: 'Optimizer', icon: 'fa-gauge-high' },
-];
+import { CodeEditor, CodeOutput, CopyButton } from '@/components/ui';
+import { useTheme } from '@/context';
+import { useSqlForge, MODES, DIALECTS } from './useSqlForge';
+import './SqlBuilder.css';
 
 export default function SqlBuilder() {
- const [activeMode, setActiveMode] = useState('builder');
- const [input, setInput] = useState('');
- const [schema, setSchema] = useState('');
- const [showSchema, setShowSchema] = useState(false);
  
- const [targetDialect, setTargetDialect] = useState('Standard SQL');
- const [sourceDialect, setSourceDialect] = useState('MySQL');
+ const { currentTheme } = useTheme();
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
- const [outputCode, setOutputCode] = useState('');
- const [loading, setLoading] = useState(false);
- const [lastResult, setLastResult] = useState(false);
- const { moduleData, qualityMode } = useApp();
- 
- useEffect(() => {
-  if (moduleData && moduleData.type === 'sql') {
-   setInput(moduleData.input || '');
-   setOutputCode(moduleData.fullOutput?.convertedCode || '');
-   if (moduleData.targetLang) setTargetDialect(moduleData.targetLang);
-   if (moduleData.mode) setActiveMode(moduleData.mode);
-  }
- }, [moduleData]);
- 
- const handleGenerate = async () => {
-  if (!input.trim()) return;
-  setLoading(true);
-  setOutputCode('');
-  setLastResult(false);
-  
-  try {
-   let fullPrompt = '';
-   
-   if (activeMode === 'builder') {
-    fullPrompt = `Generate a ${targetDialect} query based on this requirement: "${input}".\n`;
-    if (schema) fullPrompt += `Use this Database Schema strictly: ${schema}`;
-   }
-   else if (activeMode === 'converter') {
-    fullPrompt = `Convert the following ${sourceDialect} query to ${targetDialect}.\nOriginal SQL:\n${input}`;
-   }
-   else if (activeMode === 'optimizer') {
-    fullPrompt = `Analyze and optimize this ${targetDialect} query for performance. Add comments explaining changes.\nQuery:\n${input}`;
-    if (schema) fullPrompt += `\nSchema Context: ${schema}`;
-   }
-   
-   // passing the prompt as 'input' to the backend
-   const result = await convertCode('sql', fullPrompt, { targetLang: targetDialect, qualityMode });
-   
-   if (result && result.convertedCode) {
-    setOutputCode(result.convertedCode);
-    setLastResult({
-     type: "sql",
-     mode: activeMode,
-     input: input,
-     output: result
-    });
-   } else {
-    throw new Error("Unexpected response structure.");
-   }
-  } catch (error) {
-   alert(`Generation failed: ${error.message}`);
-  }
-  setLoading(false);
- };
- 
- const clearInputs = () => {
-  setInput('');
-  setOutputCode('');
-  setSchema('');
- };
+ const {
+  activeMode,
+  setActiveMode,
+  input,
+  setInput,
+  schema,
+  handleSchemaChange,
+  showSchema,
+  setShowSchema,
+  targetDialect,
+  setTargetDialect,
+  sourceDialect,
+  setSourceDialect,
+  explainChanges,
+  setExplainChanges,
+  outputCode,
+  explanation,
+  loading,
+  lastResult,
+  handleGenerate,
+  clearInputs,
+  handleFileUpload,
+  handleFormatCode
+ } = useSqlForge();
  
  return (
   <div className="module-container">
+   <Toaster position="bottom-right" theme={isDarkTheme ? 'dark' : 'light'} />
+      
    <ModuleHeader 
     title="SQL Forge"
     description="Generate, convert, and optimize SQL queries for any database."
@@ -107,7 +53,7 @@ export default function SqlBuilder() {
      <button
       key={m.id}
       className={`tab-btn ${activeMode === m.id ? 'active' : ''}`}
-      onClick={() => { setActiveMode(m.id); setOutputCode(''); }}
+      onClick={() => setActiveMode(m.id)}
      >
       <i className={`fa-solid ${m.icon}`}></i> {m.label}
      </button>
@@ -115,7 +61,7 @@ export default function SqlBuilder() {
    </div>
 
    <div className="converter-grid">
-    <div className="panel">
+    <div className="panel flex-col">
      <div className="panel-header-row">
       <h3>
        {activeMode === 'builder' && 'Requirement'}
@@ -123,113 +69,176 @@ export default function SqlBuilder() {
        {activeMode === 'optimizer' && 'Slow Query'}
       </h3>
       <button className="mode-btn" onClick={clearInputs}>
-        <i className="fa-solid fa-eraser"></i> Clear
-       </button>
-      </div>
+       <i className="fa-solid fa-eraser"></i> Clear
+      </button>
+     </div>
 
-       <div className="controls-group">
-        {activeMode === 'converter' ? (
-         <div className="ext-grid">
-          <div className="control-field">
-           <span className="label-text">From:</span>
-           <select 
-            value={sourceDialect} 
-            onChange={(e) => setSourceDialect(e.target.value)}
-            className="lang-select full-width"
-           >
-            {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-           </select>
-          </div>
-          <div className="control-field">
-           <span className="label-text">To:</span>
-           <select 
-            value={targetDialect} 
-            onChange={(e) => setTargetDialect(e.target.value)}
-            className="lang-select full-width"
-           >
-           {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-          </select>
-         </div>
+     <div className="controls-group">
+      {activeMode === 'converter' ? (
+       <div className="ext-grid">
+        <div className="control-field">
+         <span className="label-text">From:</span>
+         <input 
+          list="source-dialects" 
+          value={sourceDialect} 
+          onChange={(e) => setSourceDialect(e.target.value)}
+          className="combobox-input full-width"
+          placeholder="Search dialect..."
+         />
+         <datalist id="source-dialects">
+          {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+         </datalist>
         </div>
-       ) : (
-        <div className="action-row start center-y" style={{ marginBottom: '1rem' }}>
-         <span className="label-text">Dialect:</span>
-         <select 
+        <div className="control-field">
+         <span className="label-text">To:</span>
+         <input 
+          list="target-dialects" 
           value={targetDialect} 
           onChange={(e) => setTargetDialect(e.target.value)}
-          className="lang-select"
-         >
+          className="combobox-input full-width"
+          placeholder="Search dialect..."
+         />
+         <datalist id="target-dialects">
           {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-        </select>
+         </datalist>
+        </div>
+       </div>
+      ) : (
+       <div className="action-row start center-y" style={{ marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <span className="label-text">Dialect:</span>
+        <input 
+         list="target-dialects" 
+         value={targetDialect} 
+         onChange={(e) => setTargetDialect(e.target.value)}
+         className="combobox-input"
+         placeholder="Search dialect..."
+        />
+                
+        {activeMode === 'optimizer' && (
+         <label className="custom-check" style={{ marginLeft: 'auto' }}>
+          <input 
+           type="checkbox" 
+           checked={explainChanges} 
+           onChange={(e) => setExplainChanges(e.target.checked)} 
+          />
+          <div className="box"><i className="fa-solid fa-check"></i></div>
+          <span className="label-text">Explain Changes</span>
+         </label>
+        )}
        </div>
       )}
-
+      
       {activeMode !== 'converter' && (
        <div className="schema-wrapper">
-        <button 
-         className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
-         onClick={() => setShowSchema(!showSchema)}
-        >
-         <i className="fa-solid fa-database"></i> 
-         {showSchema ? 'Hide Database Schema' : 'Add Database Schema (Context)'}
-        </button>
-                
+        <div className="schema-header-actions">
+         <button 
+          className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
+          onClick={() => setShowSchema(!showSchema)}
+         >
+          <i className="fa-solid fa-database"></i> 
+          {showSchema ? 'Hide Database Schema' : 'Add Database Schema (Context)'}
+         </button>
+         {showSchema && (
+          <div className="upload-btn-wrapper">
+           <button className="file-upload-btn">
+            <i className="fa-solid fa-file-import"></i> Auto-Discover (.sql)
+           </button>
+           <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
+          </div>
+         )}
+        </div>
+                        
         {showSchema && (
-         <textarea 
-          className="schema-input"
-          placeholder="CREATE TABLE users (id INT, name TEXT...);"
-          value={schema}
-          onChange={(e) => setSchema(e.target.value)}
-          spellCheck="false"
-         />
+         <div className="schema-editor-wrapper">
+          <CodeEditor 
+           value={schema}
+           onValueChange={handleSchemaChange}
+           language="sql"
+           placeholder="CREATE TABLE users (id INT, name TEXT...);"
+          />
+         </div>
         )}
        </div>
       )}
      </div>
 
-     <textarea 
-      value={input} 
-      onChange={(e) => setInput(e.target.value)} 
-      placeholder={
-       activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
-       activeMode === 'converter' ? "Paste your SQL here to convert it..." :
-       "Paste your slow query here..." }
-      spellCheck="false"
-      className="main-input"
-     />
-     
-     <div className="action-row">
-      <button className="primary-button" onClick={handleGenerate} disabled={loading || !input.trim()}>
+     <div className="main-input-wrapper flex-grow">
+      <CodeEditor 
+       value={input}
+       onValueChange={setInput}
+       language="sql"
+       placeholder={
+        activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
+        activeMode === 'converter' ? "Paste your SQL here to convert it..." :
+        "Paste your slow query here..."
+       }
+      />
+     </div>
+          
+     <div className="action-row" style={{ marginTop: '1rem' }}>
+      <button className="primary-button full-width" onClick={handleGenerate} disabled={loading || !input.trim()}>
        {loading ? (
-        <>
-         <i className="fa-solid fa-spinner fa-spin"></i> Processing...
-        </>
+        <><i className="fa-solid fa-spinner fa-spin"></i> Processing...</>
        ) : (
-        <>
-         <i className="fa-solid fa-gears"></i> 
-         {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}
-        </>
+        <><i className="fa-solid fa-gears"></i>
+        {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}</>
        )}
       </button>
      </div>
     </div>
 
-    <div className="panel">
-     <h3>Generated SQL ({targetDialect})</h3>
-     <div className="results-container">
-      {outputCode ? (
-       <div className="output-wrapper"> 
-        <textarea 
-         value={outputCode} 
-         readOnly 
-         className="output-textarea"
-         spellCheck="false"
-        />
-        
-        <CopyButton codeToCopy={outputCode} />
+    <div className="panel flex-col">
+     <div className="panel-header-row">
+      <h3>Generated SQL ({targetDialect})</h3>
+      {outputCode && (
+        <div className="header-actions">
+         <button className="secondary-button btn-small" onClick={handleFormatCode}>
+          <i className="fa-solid fa-align-left"></i> Format
+         </button>
+         
+         <CopyButton codeToCopy={outputCode} className="secondary-button btn-small" />
+        </div>
+       )}
+      </div>
+
+      <div className="results-container flex-grow">
+       {outputCode ? (
+        <div className="output-scrollable">
+         {activeMode === 'optimizer' ? (
+          <div className="diff-viewer-wrapper">
+           <ReactDiffViewer
+            oldValue={input}
+            newValue={outputCode}
+            splitView={true}
+            useDarkTheme={isDarkTheme}
+            compareMethod="diffLines"
+            leftTitle="Original Query"
+            rightTitle="Optimized Query"
+            styles={!isDarkTheme ? undefined : {
+             variables: {
+              diffViewerBackground: 'var(--bg-primary)',
+              addedBackground: 'rgba(46, 160, 67, 0.15)',
+              addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
+              removedBackground: 'rgba(248, 81, 73, 0.15)',
+              removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
+             },
+             contentText: { fontSize: '13px', lineHeight: '20px' }
+            }}
+           />
+          </div>
+         ) : (
+          <CodeOutput content={outputCode} language="sql" />
+         )}
+          
+         {explanation && (
+          <div className="ai-summary" style={{ marginTop: '1rem' }}>
+           <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
+          <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
+         </div>
+        )}
        </div>
       ) : (
-       <div className="placeholder-text">
+       <div className="placeholder-text placeholder-container-inner">
         {loading ? (
          <div className="processing-state">
           <div className="pulse-ring"></div>
