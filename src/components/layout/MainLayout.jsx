@@ -3,19 +3,21 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { Toaster, toast } from 'sonner';
+
 import { useApp, useTheme } from '@/context';
 import { Sidebar } from '@/components/layout';
-import { Notification, ModelSelector } from '@/components/ui';
+import { ModelSelector } from '@/components/ui';
 
 export function MainLayout({ children }) {
  const [sidebarOpen, setSidebarOpen] = useState(false);
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
- const [notification, setNotification] = useState(null);
  const [showModelSelector, setShowModelSelector] = useState(false);
  const [hrefLaunch, setHrefLaunch] = useState('/code-converter')
  
  const { qualityMode, setQualityMode, toggleQualityMode, setModuleData } = useApp();
  const { currentTheme } = useTheme();
+ const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
  const pathname = usePathname();
  const router = useRouter();
@@ -50,12 +52,14 @@ export function MainLayout({ children }) {
   if (historyItem.type === 'css-tailwind' || historyItem.type === 'css-framework') targetPath = '/css-frameworks';
   
   setModuleData(historyItem);
-  setNotification(`Loaded ${historyItem.type} from history`);
+  toast.success(`Loaded ${historyItem.type} from history`)
   router.push(targetPath);
  };
  
  return (
   <div className={`app-wrapper ${isLandingPage ? 'landing-mode' : ''}`}>
+   
+   <Toaster position="bottom-right" theme={isDarkTheme ? 'dark' : 'light'} />
       
    {!isLandingPage && (
     <Sidebar 
@@ -103,8 +107,6 @@ export function MainLayout({ children }) {
         
     {children}
    </main>
-
-   <Notification message={notification} />
       
    {!isLandingPage && <ModelSelector
     currentMode={qualityMode}

@@ -1,6 +1,5 @@
 'use client';
 
-import { Toaster } from 'sonner';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { ModuleHeader } from '@/components/layout';
 import { CodeEditor, CodeOutput, CopyButton } from '@/components/ui';
@@ -40,8 +39,6 @@ export default function SqlBuilder() {
  
  return (
   <div className="module-container">
-   <Toaster position="bottom-right" theme={isDarkTheme ? 'dark' : 'light'} />
-      
    <ModuleHeader 
     title="SQL Forge"
     description="Generate, convert, and optimize SQL queries for any database."
