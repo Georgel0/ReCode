@@ -458,6 +458,11 @@ body {
   z-index: -1;
 }
 
+.speech-bubble > i {
+  margin-right: 5px;
+  color: var(--lp-blue);
+}
+
 .info-trigger-lp:hover .speech-bubble {
   visibility: visible;
   opacity: 1;
