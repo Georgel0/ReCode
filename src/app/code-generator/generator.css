@@ -47,3 +47,10 @@
 .full-width-grid {
   grid-column: 1 / -1;
 }
+
+.ps-message {
+  opacity: .9;
+  font-weight: bold;
+  font-style: italic;
+  font-size: .95rem;
+}
