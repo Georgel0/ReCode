@@ -1,80 +1,53 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { convertCode } from '@/lib/api';
-import { useApp } from '@/context/AppContext';
-import { CopyButton, CodeOutput } from '@/components/ui';
+import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
+import ConfigTab from './ConfigTab';
+import GeneratorTab from './GeneratorTab';
+import { generateProjectFiles } from './utils';
+import './generator.css';
 
-
-export default function CodeGenerator({ onSwitchModule }) {
+export default function CodeGenerator() {
+ const { moduleData, qualityMode } = useApp();
+ 
+ const [activeTab, setActiveTab] = useState('generator');
+ const [error, setError] = useState('');
+ const [loading, setLoading] = useState(false);
+ 
  const [input, setInput] = useState('');
  const [files, setFiles] = useState([]);
  const [activeFileIndex, setActiveFileIndex] = useState(0);
- const [loading, setLoading] = useState(false);
- const [lastResult, setLastResult] = useState(false);
- const { moduleData, qualityMode } = useApp();
+ const [lastResult, setLastResult] = useState(null);
+ 
+ const [config, setConfig] = useState({
+  typescript: true,
+  styling: 'Tailwind CSS',
+  stateManagement: 'None (Local State Only)',
+  verbosity: 'production',
+  includeReadme: true,
+  includeJSDoc: false,
+  customStack: ''
+ });
  
  useEffect(() => {
   if (moduleData && moduleData.type === 'generator') {
    setInput(moduleData.input || '');
-   const savedFiles = moduleData.fullOutput?.files || [];
-   setFiles(savedFiles);
+   setFiles(moduleData.fullOutput?.files || []);
    setActiveFileIndex(0);
   }
  }, [moduleData]);
  
- const getLanguage = (fileName) => {
-  if (!fileName) return 'javascript';
-  const ext = fileName.split('.').pop().toLowerCase();
-  const map = {
-   js: 'javascript',
-   jsx: 'react',
-   ts: 'typescript',
-   tsx: 'typescript',
-   html: 'xml',
-   css: 'css',
-   json: 'json',
-   md: 'markdown',
-   py: 'python',
-   c: 'c',
-   cs: 'csharp',
-   cpp: 'cpp',
-   swift: 'swift',
-   go: 'go',
-   php: 'php',
-   java: 'java',
-   sql: 'sql',
-   sh: 'bash',
-   yml: 'yaml'
-  };
-  return map[ext] || 'javascript';
- };
- 
  const handleGenerate = async () => {
   if (!input.trim()) return;
   setLoading(true);
+  setError('');
   setFiles([]);
-  setLastResult(false);
+  setLastResult(null);
   
   try {
-   let result = await convertCode('generator', input, { qualityMode });
-   
-   if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
-    const rawContent = result.files[0].content;
-    if (rawContent.trim().startsWith('{')) {
-     try {
-      const parsed = JSON.parse(rawContent);
-      if (parsed.files) {
-       result = parsed;
-      }
-     } catch (e) {
-      console.warn("Frontend failsafe parse failed:", e);
-     }
-    }
-   }
+   // Logic abstracted to utility file
+   const result = await generateProjectFiles(input, config, { qualityMode });
    
    if (result && result.files) {
     setFiles(result.files);
@@ -84,146 +57,65 @@ export default function CodeGenerator({ onSwitchModule }) {
      input: input,
      output: result
     });
+    // Switch back to generator tab to see results if they were in config
+    setActiveTab('generator');
+   } else {
+    throw new Error("Invalid response format from AI.");
    }
-  } catch (error) {
-   alert(`Generation failed: ${error.message}`);
+  } catch (err) {
+   setError(`Generation failed: ${err.message}`);
+  } finally {
+   setLoading(false);
   }
-  setLoading(false);
  };
  
  const handleClearAll = () => {
   setInput('');
   setFiles([]);
   setActiveFileIndex(0);
- };
- 
- const downloadSingleFile = (file) => {
-  if (!file) return;
-  const blob = new Blob([file.content], { type: 'text/plain' });
-  saveAs(blob, file.fileName);
- };
- 
- const downloadZip = async () => {
-  const zip = new JSZip();
-  files.forEach(f => zip.file(f.fileName, f.content));
-  const content = await zip.generateAsync({ type: 'blob' });
-  saveAs(content, 'project.zip');
- };
- 
- const activeFile = files[activeFileIndex] || null;
- 
- const formatContent = (content) => {
-  if (!content) return '';
-  if (content.includes('\\n') && !content.includes('\n')) {
-   return content.replace(/\\n/g, '\n');
-  }
-  return content;
+  setError('');
  };
  
  return (
   <div className="module-container">
-   <ModuleHeader 
-    title="Code Generator"
-    description="Describe your code snippet or project requirements and the AI will scaffold a multi-file solution for you."
-    resultData={lastResult}
-   />
-   <p>Make sure your description its as detailed as possible.</p>
+      <ModuleHeader 
+        title="Code Generator"
+        description="Scaffold multi-file solutions. Tweak your stack in the Config tab."
+        resultData={lastResult}
+      />
 
-   <div className="converter-grid">
-    <div className="panel">
-     <h3>
-      <i className="fa-solid fa-layer-group" style={{ marginRight: '8px' }}></i>
-      Requirements
-     </h3>
-     <textarea 
-      className="flex-grow"
-      value={input} 
-      onChange={(e) => setInput(e.target.value)} 
-      placeholder="E.g., Create a React button component and a CSS file for styling..." 
-      spellCheck="false"
-     /> 
-     <div className="action-row">
-      <button className="secondary-button clear-btn" onClick={handleClearAll} disabled={loading || !input}>
-       <i className="fa-solid fa-trash-can"></i> Clear
-      </button>
-      <button 
-       className="primary-button" 
-       onClick={handleGenerate} 
-       disabled={loading || !input.trim()}
-      >
-       {loading ? (
-        <><i className="fa-solid fa-circle-notch fa-spin"></i> Generating...</>
-       ) : (
-        <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate Code</>
-       )}
-      </button> 
-     </div>
-    </div>
-
-    <div className="panel">
-     <h3>
-      <i className="fa-solid fa-code" style={{ marginRight: '8px' }}></i>
-      Generated Output
-     </h3>
-          
-     <div className="results-container">
-      {files.length > 0 ? (
-       <div className="code-output-container">
-             
-        <div className="tabs-container">
-         {files.map((file, idx) => (
-          <button 
-           key={idx} 
-           className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
-           onClick={() => setActiveFileIndex(idx)}
-           title={file.fileName}
-          >
-           <i className="fa-regular fa-file-code"></i> {file.fileName}
-          </button>
-         ))}
-        </div>
-
-        <div className="highlighter-wrapper">
-         <CodeOutput 
-          language={getLanguage(activeFile?.fileName)}
-          content={activeFile ? formatContent(activeFile.content) : ''} />
-         
-         <CopyButton codeToCopy={activeFile?.content || ''} />
-        </div>
-                
-        <div className="action-row">
-                  
-        <div style={{ flex: 1 }}></div>
-
-        <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
-         <i className="fa-solid fa-download"></i> File
+      <div className="tabs-container main-module-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'generator' ? 'active' : ''}`}
+          onClick={() => setActiveTab('generator')}
+        >
+          <i className="fa-solid fa-pen-nib"></i> Editor & Output
         </button>
-                  
-        {files.length > 1 && (
-         <button className="primary-button" onClick={downloadZip}>
-          <i className="fa-solid fa-file-zipper"></i> Download ZIP
-         </button>
-        )}
-       </div>
+        <button 
+          className={`tab-btn ${activeTab === 'config' ? 'active' : ''}`}
+          onClick={() => setActiveTab('config')}
+        >
+          <i className="fa-solid fa-sliders"></i> Configuration
+        </button>
       </div>
-     ) : (
-      <div className="placeholder-text">
-       {loading ? (
-        <div className="analyzing-state">
-         <div className="spinner"></div>
-          <p>AI is building your solution...</p>
-         </div>
+
+      <div className="tab-content-wrapper">
+        {activeTab === 'generator' ? (
+          <GeneratorTab 
+            input={input}
+            setInput={setInput}
+            files={files}
+            activeFileIndex={activeFileIndex}
+            setActiveFileIndex={setActiveFileIndex}
+            loading={loading}
+            error={error}
+            handleGenerate={handleGenerate}
+            handleClearAll={handleClearAll}
+          />
         ) : (
-         <div className="analyzing-state">
-          <i className="fa-solid fa-laptop-code" style={{ fontSize: '2.5rem', marginBottom: '0.3rem', opacity: 0.7 }}></i>
-          <p>Enter your requirements to generate project files.</p>
-         </div>
+          <ConfigTab config={config} setConfig={setConfig} />
         )}
-       </div> 
-      )}
-     </div>
+      </div>
     </div>
-   </div>
-  </div>
  );
 }

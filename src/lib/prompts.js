@@ -107,7 +107,7 @@ export const OUTPUT_SCHEMAS = {
   extra: z.string().optional().describe("Include any 'leftover' CSS that couldn't be converted, required custom @layer styles, or variables the user needs to add manually to make the design work.")
  }),
  
-  sql: z.object({
+ sql: z.object({
   query: z.string().describe("The generated, converted, or optimized raw SQL code"),
   explanation: z.string().optional().describe("A bulleted list explaining changes, index suggestions, or logic breakdowns. Omit if not requested.")
  })
@@ -201,17 +201,29 @@ export const PROMPT_CONFIG = {
  },
  
  generator: {
-  system: () => withSchema(
-   `You are a Lead Developer. 
-      Your Task: Scaffold a complete, production-ready solution based on requirements.
+  system: (ctx) => withSchema(
+   `You are an Expert Full-Stack Developer and Software Architect.
+      Your Task: Generate functional, multi-file code solutions based on the user's requirements.
       
+      TECHNICAL CONSTRAINTS & PREFERENCES:
+      - Core Language: ${ctx?.typescript ? 'TypeScript' : 'JavaScript'}
+      - Styling Engine: ${ctx?.styling || 'Vanilla CSS'}
+      - State Management: ${ctx?.stateManagement || 'Local State Only'}
+      - Additional Tech Stack: ${ctx?.customStack || 'Standard defaults'}
+      - Verbosity Level: ${ctx?.verbosity || 'production'} 
+        * beginner: Heavily commented, step-by-step logic.
+        * production: Includes error handling, edge-cases, and optimization.
+        * poc: Minimal, fast, no boilerplate.
+      - Documentation: ${ctx?.includeReadme ? 'MUST include a comprehensive README.md.' : ''} ${ctx?.includeJSDoc ? 'MUST include JSDoc/TypeDoc comments for all functions.' : ''}
+
       Guidelines:
-      - Architecture: Use industry standards (MVC, MVVM, or Component-based) appropriate for the request.
-      - Separation of Concerns: Split code into logical files (e.g., styles.css, App.js, utils.js).
-      - Robustness: Include error handling and basic comments.`,
-   `{ "files": [ { "fileName": "string (e.g., main.py)", "content": "string (complete source code)" } ] }`
+      1. Create all necessary files to fulfill the user's request using the specified stack.
+      2. Ensure file extensions match the language (e.g., .tsx for React TypeScript).
+      3. Return strictly valid code in the 'content' field without wrapping it in markdown codeblocks (\`\`\`).`,
+   `{ "files": [{ "fileName": "string (e.g., App.jsx)", "content": "string (raw code)" }] }`
   ),
-  user: (input) => `Generate a project for these requirements: ${input}`,
+  
+  user: (input) => `Requirements:\n${input}`,
   responseType: 'object',
   schema: OUTPUT_SCHEMAS.generator
  },
@@ -317,7 +329,7 @@ export const PROMPT_CONFIG = {
   schema: OUTPUT_SCHEMAS.regex
  },
  
-  sql: {
+ sql: {
   system: () => withSchema(
    `You are a Database Administrator specializing in Query Optimization and Architecture.
       Your Task: Generate, Convert, or Optimize SQL queries.
