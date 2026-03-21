@@ -99,6 +99,8 @@ export default function ConfigTab({ config, setConfig }) {
      />
     </div>
    </div>
+   
+   <p className="ps-message">These are just optional, your main prompt will be prioritized. Make sure to be as detailed as possible.</p>
   </div>
  );
 }

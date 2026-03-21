@@ -49,8 +49,7 @@
 }
 
 .ps-message {
-  opacity: .9;
-  font-weight: bold;
+  opacity: .7;
   font-style: italic;
-  font-size: .95rem;
+  font-size: .75rem;
 }
