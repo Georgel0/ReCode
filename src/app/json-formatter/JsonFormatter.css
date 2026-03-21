@@ -33,3 +33,14 @@
   background-color: var(--bg-tertiary);
   cursor: text;
 }
+
+.tree-view-container {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  height: 350px;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+}

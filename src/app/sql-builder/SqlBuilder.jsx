@@ -40,7 +40,7 @@ export default function SqlBuilder() {
  return (
   <div className="module-container">
    <ModuleHeader 
-    title="SQL Forge"
+    title="SQL Builder"
     description="Generate, convert, and optimize SQL queries for any database."
     resultData={lastResult}
    />

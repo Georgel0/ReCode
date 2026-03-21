@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { convertCode } from '@/lib/api';
+import { convertCode } from '@/lib';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
-import { useApp } from '@/context/AppContext';
+import { useApp } from '@/context';
 import JSON5 from 'json5';
 import JsonView from 'react18-json-view'
 import 'react18-json-view/src/style.css'
