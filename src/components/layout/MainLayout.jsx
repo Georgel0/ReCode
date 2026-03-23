@@ -16,6 +16,7 @@ export function MainLayout({ children }) {
  const [hrefLaunch, setHrefLaunch] = useState('/code-converter')
  
  const { qualityMode, setQualityMode, toggleQualityMode, setModuleData } = useApp();
+ 
  const { currentTheme } = useTheme();
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
