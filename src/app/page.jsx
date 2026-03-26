@@ -140,26 +140,6 @@ export default function LandingPage() {
       </div>
      </section>
 
-     <section id="platform-video" className="lp-section video-section">
-      <div className="lp-container">
-       <ScrollAnimation direction="up">
-        <div className="section-header lp center">
-         <h2 className="section-title">Platform Overview</h2>
-         <p className="section-desc">See how ReCode transforms your development velocity.</p>
-        </div>
-        <div className="video-wrapper">
-         <iframe
-          src="https://player.mux.com/gTlyythoN01D5QLRReHSOFTjttP7wVo3W7JJGBvQFztQ?metadata-video-title=ReCode+Platform+Overview"
-          className="lp-video-iframe"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-          allowFullScreen
-          title="ReCode Platform Overview"
-         ></iframe>
-       </div>
-     </ScrollAnimation>
-    </div>
-   </section>
-
    <footer className="lp-footer">
     <div className="lp-container">
      <div className="footer-grid">
