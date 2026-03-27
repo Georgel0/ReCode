@@ -83,7 +83,7 @@ export default function LandingPage() {
           
       <div className="lp-grid">
        {tools.map((tool, i) => (
-        <ScrollAnimation key={i} delay={i * 100}>
+        <ScrollAnimation key={i} delay={i * 80}>
          <div className="lp-card">
           <Link href={tool.path}>
            <div className="card-header">
