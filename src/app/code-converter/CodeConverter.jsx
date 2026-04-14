@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode, LANGUAGES } from '@/lib';
 import { useApp } from '@/context';
 import { useRouter } from 'next/navigation';
-import { CopyButton, CodeEditor, CodeOutput } from '@/components/ui';
+import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
 import { ModuleHeader } from '@/components/layout';
 import { get, set } from 'idb-keyval';
 import debounce from 'lodash/debounce';
@@ -25,14 +25,14 @@ const FRAMEWORKS = [
 export default function CodeConverter() {
  const { moduleData, qualityMode, setModuleData } = useApp();
  const router = useRouter();
-
+ 
  // State: Multi-File Management
  const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
  const [outputFiles, setOutputFiles] = useState([]);
  const [activeTabId, setActiveTabId] = useState(files[0].id);
  const activeFile = files.find(f => f.id === activeTabId);
  const activeOutputFile = outputFiles.find(f => f.sourceId === activeTabId);
-
+ 
  // State: Conversion Settings
  const [targetLang, setTargetLang] = useState('python');
  const [targetFramework, setTargetFramework] = useState('none');
@@ -43,52 +43,49 @@ export default function CodeConverter() {
  const [lastResult, setLastResult] = useState(false);
  const [showInfoModal, setShowInfoModal] = useState(false);
  const [syncScroll, setSyncScroll] = useState(true);
- const [lintStatus, setLintStatus] = useState('idle'); // idle, linting, success, error
-
+ const [lintStatus, setLintStatus] = useState('idle');
+ const [pendingDraft, setPendingDraft] = useState(null); // idle, linting, success, error
+ 
  const fileInputRef = useRef(null);
  const sourceScrollRef = useRef(null);
  const targetScrollRef = useRef(null);
  const initialSyncRef = useRef(false);
-
+ 
  // Draft Persistence via indexedDB 
  const saveDraft = useCallback(
   debounce(async (draftData) => {
    if (draftData.files.some(f => f.content.trim())) {
-    try { await set('converter-draft-data', draftData); } 
+    try { await set('converter-draft-data', draftData); }
     catch (e) { console.error("IndexedDB Error:", e); }
    }
   }, 1500),
   []
  );
-
+ 
  useEffect(() => {
   const loadDraft = async () => {
    try {
     const saved = await get('converter-draft-data');
     if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
-     if (window.confirm("Continue from your previous draft?")) {
-      setFiles(saved.files);
-      setActiveTabId(saved.files[0]?.id);
-      if (saved.outputFiles?.length > 0) setOutputFiles(saved.outputFiles);
-     } else {
-      await set('converter-draft-data', null);
-     }
+     setPendingDraft(saved);
     }
-   } catch (err) { console.error("Draft load failed", err); }
+   } catch (err) {
+    console.error("Draft load failed", err);
+   }
   };
   loadDraft();
  }, []);
-
+ 
  useEffect(() => {
   saveDraft({ files, outputFiles });
   return () => saveDraft.cancel();
  }, [files, outputFiles, saveDraft]);
-
+ 
  // File Operations
  const handleFileUpload = async (e) => {
   const uploadedFiles = Array.from(e.target.files);
   if (uploadedFiles.length === 0) return;
-
+  
   const newFilesPromises = uploadedFiles.map(file => new Promise((resolve) => {
    const reader = new FileReader();
    reader.onload = (event) => {
@@ -98,23 +95,23 @@ export default function CodeConverter() {
    };
    reader.readAsText(file);
   }));
-
+  
   const newFiles = await Promise.all(newFilesPromises);
   setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
   setActiveTabId(newFiles[0].id);
   if (fileInputRef.current) fileInputRef.current.value = "";
  };
-
+ 
  const updateFile = (id, content) => {
   setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
  };
-
+ 
  const handleAddFile = () => {
   const newId = crypto.randomUUID();
   setFiles([...files, { id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
   setActiveTabId(newId);
  };
-
+ 
  const removeFile = (idToRemove) => {
   const newFiles = files.filter(f => f.id !== idToRemove);
   if (newFiles.length === 0) {
@@ -126,7 +123,7 @@ export default function CodeConverter() {
    if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
   }
  };
-
+ 
  // Scroll Sync Logic
  const handleScrollSync = (e, targetRef) => {
   if (!syncScroll || !targetRef.current) return;
@@ -134,7 +131,7 @@ export default function CodeConverter() {
   const ratio = scrollTop / (scrollHeight - clientHeight);
   targetRef.current.scrollTop = ratio * (targetRef.current.scrollHeight - targetRef.current.clientHeight);
  };
-
+ 
  // Conversion & Sandbox Logic
  const handleConvert = async () => {
   if (files.every(f => !f.content.trim())) return;
@@ -143,14 +140,14 @@ export default function CodeConverter() {
   
   try {
    const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
-   const result = await convertCode('converter', inputPayload, { 
-    sourceLang: activeFile.language, 
-    targetLang, 
+   const result = await convertCode('converter', inputPayload, {
+    sourceLang: activeFile.language,
+    targetLang,
     framework: targetFramework,
     isPartial: isPartialMode,
-    qualityMode 
+    qualityMode
    });
-
+   
    if (result && Array.isArray(result.files)) {
     setOutputFiles(result.files);
    } else {
@@ -162,7 +159,7 @@ export default function CodeConverter() {
    setLoading(false);
   }
  };
-
+ 
  const runLinter = () => {
   setLintStatus('linting');
   // Simulated WebAssembly/Browser Linter Hook
@@ -170,14 +167,28 @@ export default function CodeConverter() {
    setLintStatus(Math.random() > 0.15 ? 'success' : 'error');
   }, 1200);
  };
-
+ 
  const downloadZip = async () => {
   const zip = new JSZip();
   outputFiles.forEach(file => zip.file(file.fileName || 'file.txt', file.content));
   const content = await zip.generateAsync({ type: "blob" });
   saveAs(content, "converted_project.zip");
  };
-
+ 
+ const handleConfirmDraft = () => {
+  setFiles(pendingDraft.files);
+  setActiveTabId(pendingDraft.files[0]?.id);
+  if (pendingDraft.outputFiles?.length > 0) {
+   setOutputFiles(pendingDraft.outputFiles);
+  }
+  setPendingDraft(null);
+ };
+ 
+ const handleCancelDraft = async () => {
+  await set('converter-draft-data', null);
+  setPendingDraft(null);
+ };
+ 
  return (
   <div className="module-container">
    <ModuleHeader 
@@ -291,6 +302,17 @@ export default function CodeConverter() {
      </div>
     </div>
    </div>
+   
+   <ConfirmModal 
+    isOpen={!!pendingDraft}
+    title="Continue Previous Session?"
+    message="You have unsaved converted files from a previous session. Do you want to restore them?"
+    confirmText="Restore Files"
+    cancelText="Discard"
+    icon="fa-box-archive"
+    onConfirm={handleConfirmDraft}
+    onCancel={handleCancelDraft}
+   />
   </div>
  );
 }
