@@ -10,7 +10,7 @@ import { get, set } from 'idb-keyval';
 import debounce from 'lodash/debounce';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import ConverterTabs from './components/ConverterTabs';
+import ConverterTabs from './ConverterTabs';
 import './CodeConverter.css';
 
 const FRAMEWORKS = [
