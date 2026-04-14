@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode, LANGUAGES } from '@/lib';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import { CodeEditor } from '@/components/ui';
+import { CodeEditor, ConfirmModal } from '@/components/ui';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
@@ -15,6 +15,7 @@ import './codeRefactor.css';
 
 export default function CodeRefactor() {
  const { moduleData, qualityMode } = useApp();
+ 
  const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
  const [activeTabId, setActiveTabId] = useState(files[0].id);
  const [outputFiles, setOutputFiles] = useState([]);
@@ -26,6 +27,8 @@ export default function CodeRefactor() {
  const [viewMode, setViewMode] = useState('final');
  const [errorMsg, setErrorMsg] = useState('');
  const [storageWarning, setStorageWarning] = useState(false);
+ const [pendingDraft, setPendingDraft] = useState(null);
+ 
  const fileInputRef = useRef(null);
  const isRestoring = useRef(false);
  
@@ -83,18 +86,8 @@ export default function CodeRefactor() {
   const loadDraft = async () => {
    try {
     const saved = await get('refactor-draft-data');
-    
     if (saved && saved.files && saved.files.length > 0 && saved.files.some(f => f.content.trim())) {
-     if (window.confirm("Continue from your previous draft?")) {
-      setFiles(saved.files);
-      setActiveTabId(saved.files[0]?.id);
-      
-      if (saved.outputFiles && saved.outputFiles.length > 0) {
-       setOutputFiles(saved.outputFiles);
-      }
-     } else {
-      await set('refactor-draft-data', null);
-     }
+     setPendingDraft(saved);
     }
    } catch (err) {
     console.error("Failed to load IndexedDB draft", err);
@@ -275,6 +268,20 @@ export default function CodeRefactor() {
   setActiveTabId(newFile.id);
  };
  
+ const handleConfirmDraft = () => {
+  setFiles(pendingDraft.files);
+  setActiveTabId(pendingDraft.files[0]?.id);
+  if (pendingDraft.outputFiles && pendingDraft.outputFiles.length > 0) {
+   setOutputFiles(pendingDraft.outputFiles);
+  }
+  setPendingDraft(null);
+ };
+ 
+ const handleCancelDraft = async () => {
+  await set('refactor-draft-data', null);
+  setPendingDraft(null);
+ };
+ 
  return (
   <div className="module-container">
    <ModuleHeader 
@@ -375,6 +382,17 @@ export default function CodeRefactor() {
      />
     </div>
    </div>
+   
+   <ConfirmModal 
+    isOpen={!!pendingDraft}
+    title="Unsaved Draft Found"
+    message="We found an autosaved draft from your previous session. Would you like to continue where you left off, or start fresh?"
+    confirmText="Restore Draft"
+    cancelText="Start Fresh"
+    icon="fa-clock-rotate-left"
+    onConfirm={handleConfirmDraft}
+    onCancel={handleCancelDraft}
+   />
   </div>
  );
 }
