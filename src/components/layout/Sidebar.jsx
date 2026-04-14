@@ -5,6 +5,7 @@ import { getHistory, deleteHistoryItem, clearAllHistory, subscribeToHistory } fr
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context';
 import Link from 'next/link';
+import { ConfirmModal } from '@/components/ui';
 
 const modules = [
  { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt', path: '/code-converter' },
@@ -26,10 +27,19 @@ const qualityConfig = {
 export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, loadFromHistory, openModelSelector, qualityMode, toggleQuality }) {
  
  const pathname = usePathname();
- const [historyItems, setHistoryItems] = useState([]);
- const [isDeleting, setIsDeleting] = useState(false);
  const { currentTheme, changeTheme, groupedThemes } = useTheme();
  const sidebarRef = useRef(null);
+ 
+ const [historyItems, setHistoryItems] = useState([]);
+ const [isDeleting, setIsDeleting] = useState(false);
+ 
+ const [modalConfig, setModalConfig] = useState({
+  isOpen: false,
+  title: '',
+  message: '',
+  onConfirm: () => {},
+  type: null // 'single' or 'all'
+ });
  
  const [autoSave, setAutoSave] = useState(() => {
   if (typeof window !== 'undefined') {
@@ -75,35 +85,58 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
   };
  }, [isOpen, toggleSidebar]);
  
- const handleDelete = async (e, itemId) => {
+ const handleDeleteClick = (e, id) => {
   e.stopPropagation();
+  setModalConfig({
+   isOpen: true,
+   title: 'Delete History Item?',
+   message: 'This will permanently remove this item from your history. This action cannot be undone.',
+   confirmText: 'Delete',
+   cancelText: 'Keep it',
+   icon: 'fa-trash-can',
+   onConfirm: () => executeDelete(id)
+  });
+ };
+ 
+ const handleClearAllClick = () => {
+  setModalConfig({
+   isOpen: true,
+   title: 'Clear Entire History?',
+   message: 'Are you sure you want to delete every item in your history? This is a permanent action.',
+   confirmText: 'Clear All',
+   cancelText: 'Cancel',
+   icon: 'fa-fire-flame-curved',
+   onConfirm: executeClearAll
+  });
+ };
+ 
+ // Execution Logic
+ const executeDelete = async (id) => {
   setIsDeleting(true);
-  
   try {
-   await deleteHistoryItem(itemId);
-   setHistoryItems(historyItems.filter(item => item.id !== itemId));
-  } catch (error) {
-   alert('Failed to delete history item.');
+   await deleteHistoryItem(id);
+  } catch (err) {
+   console.error("Delete failed", err);
   } finally {
    setIsDeleting(false);
+   closeModal();
   }
  };
  
- const handleClearAll = async () => {
-  if (historyItems.length === 0) return;
-  
-  if (window.confirm('Are you sure you want to delete all history items? This cannot be undone.')) {
-   setIsDeleting(true);
-   
-   try {
-    await clearAllHistory();
-    setHistoryItems([]);
-   } catch (error) {
-    alert('Failed to clear history.');
-   } finally {
-    setIsDeleting(false);
-   }
+ const executeClearAll = async () => {
+  setIsDeleting(true);
+  try {
+   await clearAllHistory();
+  } catch (err) {
+   console.error("Clear failed", err);
+  } finally {
+   setIsDeleting(false);
+   closeModal();
   }
+ };
+ 
+ const closeModal = () => {
+  setModalConfig(prev => ({ ...prev, isOpen: false }));
  };
  
  return (
@@ -195,7 +228,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
         {historyItems.length > 0 && (
          <button 
           className="refresh-btn" 
-          onClick={handleClearAll}
+          onClick={handleClearAllClick}
           disabled={isDeleting}
           title="Clear All History"
           style={{ color: 'var(--danger)' }}
@@ -245,7 +278,10 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
             }) : 'N/A'}
            </span>
            </div>
-           <button className="delete-item-btn" onClick={(e) => handleDelete(e, item.id)} disabled={isDeleting}>
+           <button 
+            className="delete-item-btn" 
+            onClick={(e) => handleDeleteClick(e, item.id)}
+            disabled={isDeleting}>
            <i className="fas fa-trash"></i>
           </button>
          </div>
@@ -255,6 +291,17 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
      )}
     </div>
    </div>
+   
+   <ConfirmModal 
+    isOpen={modalConfig.isOpen}
+    title={modalConfig.title}
+    message={modalConfig.message}
+    confirmText={modalConfig.confirmText}
+    cancelText={modalConfig.cancelText}
+    icon={modalConfig.icon}
+    onConfirm={modalConfig.onConfirm}
+    onCancel={closeModal}
+   />
   </aside>
  );
 }
