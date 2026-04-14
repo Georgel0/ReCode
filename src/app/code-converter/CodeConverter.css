@@ -1,0 +1,61 @@
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.sync-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative;
+  min-height: 400px;
+}
+
+.sync-scroll-container > .editor-container {
+  border: none;
+  border-radius: 0;
+}
+
+.lint-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  animation: popIn 0.3s ease-out;
+}
+
+.lint-badge.success {
+  background-color: rgba(32, 178, 170, 0.15);
+  color: #20b2aa;
+  border: 1px solid #20b2aa;
+}
+
+.lint-badge.error {
+  background-color: rgba(255, 77, 77, 0.15);
+  color: #ff4d4d;
+  border: 1px solid #ff4d4d;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}

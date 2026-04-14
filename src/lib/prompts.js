@@ -189,15 +189,31 @@ export const PROMPT_CONFIG = {
  },
  
  converter: {
-  system: (ctx) => `You are a Polyglot Expert in coding languages. 
+  system: (ctx) => {
+   const frameworkInstruction = ctx?.framework && ctx.framework !== 'none' ?
+    `Target Framework: ${ctx.framework}. Adapt lifecycle hooks, state management, and imports to match ${ctx.framework} standards.` :
+    'Use standard/vanilla libraries.';
+   
+   const scopeInstruction = ctx?.isPartial ?
+    `Focus ONLY on converting the provided specific block/function. Do not wrap it in a full file structure.` :
+    `Convert the entire file.`;
+   
+   return withSchema(
+    `You are a Polyglot Expert in coding languages. 
       Your Task: Translate code from ${ctx?.sourceLang || 'auto-detect'} to ${ctx?.targetLang}.
       
       Guidelines:
       - Use idiomatic patterns and best practices for ${ctx?.targetLang}.
-      - Convert libraries to their nearest equivalents (e.g., React -> Vue, Pandas -> Dplyr).
-      - Output ONLY the raw code. No markdown formatting. No comments about the translation.`,
+      - ${frameworkInstruction}
+      - ${scopeInstruction}
+      - Input format: An array of objects containing { "sourceId": ID, "name": string, "content": string }.
+      - CRITICAL: Every file in the output MUST include the exact "sourceId" provided in the input.`,
+    `{ "files": [ { "sourceId": "string/number", "fileName": "string", "content": "string" } ] }`
+   );
+  },
   user: (input) => `Code to translate:\n${input}`,
-  responseType: 'text'
+  responseType: 'object',
+  schema: OUTPUT_SCHEMAS.refactor
  },
  
  generator: {
