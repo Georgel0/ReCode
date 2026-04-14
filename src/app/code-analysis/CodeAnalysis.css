@@ -532,6 +532,130 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+.editor-wrapper .code-editor {
+  border: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-item i {
+  color: var(--accent);
+}
+
+.stat-divider {
+  opacity: 0.3;
+  margin: 0 4px;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs-scroll-area {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  width: 100%;
+}
+
+.tabs-scroll-area::-webkit-scrollbar {
+  height: 4px;
+}
+
+.nowrap-text {
+  white-space: nowrap;
+}
+
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  min-height: 300px;
+}
+
+.status-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.placeholder-icon {
+  font-size: 3.5rem;
+  color: var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.status-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.status-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 80%;
+}
+
+.tab-section {
+  margin-bottom: 2rem;
+}
+
+.tab-section-title {
+  color: var(--accent);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.text-warning {
+  color: #f59e0b;
+}
+
+.text-danger {
+  color: #ef4444;
+}
+
+.text-success {
+  color: #10b981;
+}
+
 @media (max-width: 764px) {
   .analysis-header-card {
     flex-direction: column;

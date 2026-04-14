@@ -9,22 +9,32 @@ export function ArchitectureTab({ architecture }) {
   return (
     <div className="architecture-container">
       {architecture?.smells && architecture?.smells.length > 0 && (
-        <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}><i className="fa-solid fa-wind"></i> Code Smells</h4>
+        <div className="tab-section">
+          <h4 className="tab-section-title">
+            <i className="fa-solid fa-wind"></i> Code Smells
+          </h4>
           <ul className="simple-list">
             {architecture.smells.map((smell, i) => (
-              <li key={i}><i className="fa-solid fa-circle-exclamation" style={{ color: '#f59e0b' }}></i> <span>{smell}</span></li>
+              <li key={i}>
+                <i className="fa-solid fa-circle-exclamation text-warning"></i> 
+                <span>{smell}</span>
+              </li>
             ))}
           </ul>
         </div>
       )}
 
       {architecture?.dependencies && architecture?.dependencies.length > 0 && (
-        <div>
-          <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}><i className="fa-solid fa-boxes-stacked"></i> Ecosystem & Dependencies</h4>
+        <div className="tab-section">
+          <h4 className="tab-section-title">
+            <i className="fa-solid fa-boxes-stacked"></i> Ecosystem & Dependencies
+          </h4>
           <ul className="simple-list">
             {architecture.dependencies.map((dep, i) => (
-              <li key={i}><i className="fa-solid fa-link-slash" style={{ color: '#ef4444' }}></i> <span>{dep}</span></li>
+              <li key={i}>
+                <i className="fa-solid fa-link-slash text-danger"></i> 
+                <span>{dep}</span>
+              </li>
             ))}
           </ul>
         </div>
