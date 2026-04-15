@@ -16,6 +16,7 @@ import './CodeConverter.css';
 const FRAMEWORKS = [
  { value: 'none', label: 'Vanilla / Standard' },
  { value: 'react', label: 'React' },
+ { value: 'angular', label: 'Angular' },
  { value: 'vue', label: 'Vue.js' },
  { value: 'svelte', label: 'Svelte' },
  { value: 'express', label: 'Express.js' },

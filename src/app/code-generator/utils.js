@@ -19,24 +19,51 @@ export const EXTENSION_MAP = {
   java: 'java',
   sql: 'sql',
   sh: 'bash',
-  yml: 'yaml'
+  yml: 'yaml',
+  rs: 'rust',
+  rb: 'ruby'
 };
 
-export const STYLING_OPTIONS = [
-  'Tailwind CSS', 
-  'CSS Modules', 
-  'Styled Components', 
-  'SCSS', 
-  'Vanilla CSS',
-  'None'
+export const LANGUAGES = [
+  'Auto-Detect / Any', 
+  'JavaScript', 
+  'TypeScript', 
+  'Python', 
+  'Go', 
+  'Rust', 
+  'Java', 
+  'C#', 
+  'C++', 
+  'PHP', 
+  'Ruby', 
+  'Swift', 
+  'Kotlin'
 ];
 
-export const STATE_MANAGEMENT = [
-  'None (Local State Only)', 
-  'Redux Toolkit', 
-  'Zustand', 
-  'Context API',
-  'Jotai'
+export const FRAMEWORKS = [
+  'None (Vanilla)', 
+  'React / Next.js', 
+  'Vue / Nuxt', 
+  'Angular', 
+  'Svelte',
+  'Django', 
+  'Flask', 
+  'FastAPI', 
+  'Spring Boot', 
+  'Express / Node.js',
+  'NestJS', 
+  'Laravel', 
+  '.NET Core', 
+  'Gin (Go)'
+];
+
+export const ARCHITECTURE_PATTERNS = [
+  'Standard / Minimal', 
+  'MVC (Model-View-Controller)',
+  'Clean Architecture', 
+  'Microservices', 
+  'Event-Driven',
+  'Serverless'
 ];
 
 export const VERBOSITY_LEVELS = [
@@ -45,10 +72,7 @@ export const VERBOSITY_LEVELS = [
   { value: 'poc', label: 'Proof of Concept (Minimal, fast, no boilerplate)' }
 ];
 
-
 export const generateProjectFiles = async (input, config, options) => {
-  // Pass the config directly as the context (ctx) parameter
-  // instead of string-concatenating it into the user prompt.
   let result = await convertCode('generator', input, { 
     ...options, 
     context: config
@@ -56,10 +80,13 @@ export const generateProjectFiles = async (input, config, options) => {
 
   // Frontend Failsafe Parsing
   if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
+    
     const rawContent = result.files[0].content;
+    
     if (rawContent.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(rawContent);
+        
         if (parsed.files) {
           result = parsed;
         }
@@ -72,7 +99,9 @@ export const generateProjectFiles = async (input, config, options) => {
   // String Escaping / Formatting
   if (result && result.files) {
     result.files = result.files.map(file => {
+      
       let content = file.content;
+      
       if (content && content.includes('\\n') && !content.includes('\n')) {
         content = content.replace(/\\n/g, '\n');
       }
@@ -85,6 +114,8 @@ export const generateProjectFiles = async (input, config, options) => {
 
 export const getLanguage = (fileName) => {
   if (!fileName) return 'javascript';
+  
   const ext = fileName.split('.').pop().toLowerCase();
+  
   return EXTENSION_MAP[ext] || 'javascript';
 };

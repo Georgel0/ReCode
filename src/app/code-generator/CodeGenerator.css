@@ -1,0 +1,156 @@
+.main-module-tabs {
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.main-module-tabs .tab-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+}
+
+.tab-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.config-panel {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.config-panel h3 i {
+  margin-right: 8px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.config-section h4 {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.full-width-grid {
+  grid-column: 1 / -1;
+}
+
+.config-control {
+  margin-bottom: 1rem;
+}
+
+.config-control-lg {
+  margin-bottom: 1.25rem;
+}
+
+.config-check {
+  margin-bottom: 0.75rem;
+}
+
+.config-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+}
+
+.config-textarea {
+  min-height: 100px;
+}
+
+.ps-message {
+  opacity: .7;
+  font-style: italic;
+  font-size: .75rem;
+  margin-top: 1.5rem;
+}
+
+.panel h3 i {
+  margin-right: 8px;
+}
+
+.generator-error {
+  margin-top: 1rem;
+}
+
+.button-spinner {
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+}
+
+.file-tabs {
+  margin-bottom: 0.5rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.output-header-row {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.output-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-toolbar {
+  position: relative;
+  flex: 1;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.placeholder-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-message {
+  text-align: center;
+}
+
+.status-spinner {
+  margin: 0 auto 15px;
+}
+
+.status-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+  color: var(--accent);
+}
+
+.status-message p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}

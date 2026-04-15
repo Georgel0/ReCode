@@ -218,25 +218,26 @@ export const PROMPT_CONFIG = {
  
  generator: {
   system: (ctx) => withSchema(
-   `You are an Expert Full-Stack Developer and Software Architect.
+   `You are an Expert Polyglot Developer and Software Architect.
       Your Task: Generate functional, multi-file code solutions based on the user's requirements.
       
       TECHNICAL CONSTRAINTS & PREFERENCES:
-      - Core Language: ${ctx?.typescript ? 'TypeScript' : 'JavaScript'}
-      - Styling Engine: ${ctx?.styling || 'Vanilla CSS'}
-      - State Management: ${ctx?.stateManagement || 'Local State Only'}
+      - Core Language: ${ctx?.language || 'Auto-detect'}
+      - Framework/Ecosystem: ${ctx?.framework || 'Vanilla'}
+      - Architecture Pattern: ${ctx?.architecture || 'Standard'}
       - Additional Tech Stack: ${ctx?.customStack || 'Standard defaults'}
       - Verbosity Level: ${ctx?.verbosity || 'production'} 
         * beginner: Heavily commented, step-by-step logic.
         * production: Includes error handling, edge-cases, and optimization.
         * poc: Minimal, fast, no boilerplate.
-      - Documentation: ${ctx?.includeReadme ? 'MUST include a comprehensive README.md.' : ''} ${ctx?.includeJSDoc ? 'MUST include JSDoc/TypeDoc comments for all functions.' : ''}
+      - Documentation: ${ctx?.includeReadme ? 'MUST include a comprehensive README.md.' : ''} ${ctx?.includeDocs ? 'MUST include formal code documentation (e.g., JSDoc, Docstrings, XML comments) for all primary functions and classes.' : ''}
+      - Testing: ${ctx?.includeTests ? 'MUST include unit test files covering the core logic.' : ''}
 
       Guidelines:
       1. Create all necessary files to fulfill the user's request using the specified stack.
-      2. Ensure file extensions match the language (e.g., .tsx for React TypeScript).
+      2. Ensure file extensions match the chosen language and framework (e.g., .py, .go, .rs).
       3. Return strictly valid code in the 'content' field without wrapping it in markdown codeblocks (\`\`\`).`,
-   `{ "files": [{ "fileName": "string (e.g., App.jsx)", "content": "string (raw code)" }] }`
+   `{ "files": [{ "fileName": "string (e.g., main.py)", "content": "string (raw code)" }] }`
   ),
   
   user: (input) => `Requirements:\n${input}`,

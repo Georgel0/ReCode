@@ -34,10 +34,9 @@ export default function GeneratorTab({
 
   return (
     <div className="converter-grid">
-      {/* Input Panel */}
       <div className="panel">
         <h3>
-          <i className="fa-solid fa-layer-group" style={{ marginRight: '8px' }}></i>
+          <i className="fa-solid fa-layer-group"></i>
           Requirements
         </h3>
         <textarea 
@@ -45,18 +44,14 @@ export default function GeneratorTab({
           value={input} 
           onChange={(e) => setInput(e.target.value)} 
           placeholder="E.g., Create a React button component and a CSS file for styling..." 
-          spellCheck="true" // UX Enhancement
-        /> 
+          spellCheck="true"
+        />
         
-        {error && (
-          <div className="error-message has-error" style={{ padding: '10px', borderRadius: '6px', border: '1px solid', marginTop: '10px' }}>
-            <i className="fa-solid fa-triangle-exclamation"></i> {error}
-          </div>
-        )}
-
+        {error && <div className="error-message generator-error">{error}</div>}
+        
         <div className="action-row">
-          <button className="secondary-button clear-btn" onClick={handleClearAll} disabled={loading || !input}>
-            <i className="fa-solid fa-trash-can"></i> Clear
+          <button className="secondary-button" onClick={handleClearAll}>
+            Clear
           </button>
           <button 
             className="primary-button" 
@@ -64,46 +59,42 @@ export default function GeneratorTab({
             disabled={loading || !input.trim()}
           >
             {loading ? (
-              <><i className="fa-solid fa-circle-notch fa-spin"></i> Generating...</>
+              <><span className="spinner button-spinner"></span> Building...</>
             ) : (
               <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate Code</>
             )}
-          </button> 
+          </button>
         </div>
       </div>
 
-      {/* Output Panel */}
       <div className="panel">
-        <h3>
-          <i className="fa-solid fa-code" style={{ marginRight: '8px' }}></i>
-          Generated Output
-        </h3>
-        <div className="results-container">
-          {files.length > 0 ? (
-            <div className="code-output-container">
-              <div className="tabs-container">
-                {files.map((file, idx) => (
-                  <button 
-                    key={idx} 
-                    className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
-                    onClick={() => setActiveFileIndex(idx)}
-                    title={file.fileName}
-                  >
-                    <i className="fa-regular fa-file-code"></i> {file.fileName}
-                  </button>
-                ))}
-              </div>
+        <div className="output-header-row">
+          <div className="tabs-container file-tabs">
+            {files.map((file, idx) => (
+              <button
+                key={idx}
+                className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
+                onClick={() => setActiveFileIndex(idx)}
+              >
+                {file.fileName}
+              </button>
+            ))}
+          </div>
+        </div>
 
-              <div className="highlighter-wrapper">
+        <div className="output-content-area">
+          {files.length > 0 ? (
+            <div className="editor-wrapper">
+              <div className="editor-toolbar">
                 <CodeOutput 
-                  language={getLanguage(activeFile?.fileName)}
-                  content={activeFile?.content || ''} 
+                  code={activeFile?.content || ''} 
+                  language={activeFile ? getLanguage(activeFile.fileName) : ''} 
                 />
                 <CopyButton codeToCopy={activeFile?.content || ''} />
               </div>
                       
               <div className="action-row">
-                <div style={{ flex: 1 }}></div>
+                <div className="spacer"></div>
                 <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
                   <i className="fa-solid fa-download"></i> File
                 </button>
@@ -115,15 +106,15 @@ export default function GeneratorTab({
               </div>
             </div>
           ) : (
-            <div className="placeholder-text">
+            <div className="placeholder-container">
               {loading ? (
-                <div className="analyzing-state" style={{ textAlign: 'center' }}>
-                  <div className="spinner" style={{ margin: '0 auto 15px' }}></div>
+                <div className="status-message">
+                  <div className="spinner status-spinner"></div>
                   <p>AI is building your solution based on your config...</p>
                 </div>
               ) : (
-                <div className="analyzing-state" style={{ textAlign: 'center' }}>
-                  <i className="fa-solid fa-laptop-code" style={{ fontSize: '2.5rem', marginBottom: '1rem', opacity: 0.7 }}></i>
+                <div className="status-message">
+                  <i className="fa-solid fa-laptop-code status-icon"></i>
                   <p>Enter your requirements and configure your stack to generate files.</p>
                 </div>
               )}
