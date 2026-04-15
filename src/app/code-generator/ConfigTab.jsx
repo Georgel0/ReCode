@@ -81,7 +81,7 @@ export default function ConfigTab({ config, setConfig }) {
               onChange={(e) => handleChange('includeDocs', e.target.checked)}
             />
             <div className="box"><i className="fa-solid fa-check"></i></div>
-            <span className="label-text">Include Code Documentation (Docstrings, JSDoc, etc.)</span>
+            <span className="label-text">Include Code Documentation</span>
           </label>
           
           <label className="custom-check">
