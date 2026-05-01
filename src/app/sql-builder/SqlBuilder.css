@@ -123,6 +123,9 @@
   position: relative;
   overflow: hidden;
   display: inline-block;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
 .upload-btn-wrapper input[type=file] {
