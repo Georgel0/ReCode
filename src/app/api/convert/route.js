@@ -91,18 +91,30 @@ const groq = createGroq();
 export async function POST(request) {
  try {
   const body = await request.json();
-  const { type, input, sourceLang, targetLang, mode, qualityMode } = body;
+  const { type, input, sourceLang, targetLang, mode, qualityMode, explainChanges, schema } = body;
   
   if (!input || !PROMPT_CONFIG[type]) {
    return NextResponse.json({ error: 'Invalid input or type' }, { status: 400 });
   }
   
+  // TRUNCATION SAFEGUARD: Clean massive schemas
+  let cleanedSchema = schema;
+  if (cleanedSchema) {
+   // Remove INSERT INTO statements to save context window
+   cleanedSchema = cleanedSchema.replace(/INSERT\s+INTO[\s\S]*?;/gi, '');
+   // Cap payload at ~15,000 chars to prevent token bloat
+   if (cleanedSchema.length > 15000) {
+    cleanedSchema = cleanedSchema.substring(0, 15000) + '\n-- [Schema truncated due to length limits]';
+   }
+  }
+  
   const config = PROMPT_CONFIG[type];
-  let systemPrompt = config.system({ sourceLang, targetLang, mode });
+  
+  // Pass the rich context to the system prompt
+  const promptContext = { sourceLang, targetLang, mode, schema: cleanedSchema, explainChanges };
+  let systemPrompt = config.system(promptContext);
   const userPrompt = config.user(input);
   
-  /* DYNAMIC SCHEMA INJECTION: If we have a schema and we are using standard text generation, 
-  we dynamically convert the Zod schema to a JSON schema and strictly enforce it. */
   if (config.schema && qualityMode === 'turbo') {
    const jsonSchema = zodToJsonSchema(config.schema, { target: "jsonSchema7" });
    systemPrompt += `\n\nCRITICAL SYSTEM INSTRUCTION: You MUST return ONLY a valid JSON object. The JSON must strictly validate against this JSON Schema: ${JSON.stringify(jsonSchema, null, 2)}`;

@@ -109,7 +109,9 @@ export const OUTPUT_SCHEMAS = {
  
  sql: z.object({
   query: z.string().describe("The generated, converted, or optimized raw SQL code"),
-  explanation: z.string().optional().describe("A bulleted list explaining changes, index suggestions, or logic breakdowns. Omit if not requested.")
+  explanation: z.string().optional().describe("HTML formatted explanation of the logic, changes, or query plan."),
+  warnings: z.array(z.string()).optional().describe("Warnings about dialect incompatibilities, performance bottlenecks, or missing schema references."),
+  recommendedIndexes: z.array(z.string()).optional().describe("Explicit CREATE INDEX statements if the optimizer suggests them.")
  })
 };
 
@@ -347,18 +349,35 @@ export const PROMPT_CONFIG = {
  },
  
  sql: {
-  system: () => withSchema(
-   `You are a Database Administrator specializing in Query Optimization and Architecture.
-      Your Task: Generate, Convert, or Optimize SQL queries.
-      
-      Guidelines:
-      - Use standard ANSI SQL unless a specific dialect is requested.
-      - Focus on Index usage and avoiding full table scans when optimizing.
-      - Output ONLY the raw SQL code in the 'query' property.
-      - If requested, provide a clear, bulleted 'explanation' of why specific changes were made.`,
-   `{ "query": "string (the raw SQL)", "explanation": "string (optional bulleted plan)" }`
-  ),
-  user: (input) => `SQL Requirement:\n${input}`,
+  system: (ctx) => {
+   let task = "";
+   
+   if (ctx.mode === 'builder') {
+    task = `Generate an optimized ${ctx.targetLang} query based on the user requirement.`;
+   } else if (ctx.mode === 'converter') {
+    task = `Convert the provided ${ctx.sourceLang} query into perfect ${ctx.targetLang}.`;
+   } else if (ctx.mode === 'optimizer') {
+    task = `Analyze and optimize this ${ctx.targetLang} query for maximum performance.`;
+   } else if (ctx.mode === 'mock') {
+    task = `Generate 5 to 10 rows of realistic mock data (INSERT INTO statements) based strictly on the provided schema for ${ctx.targetLang}.`;
+   }
+
+   const schemaContext = ctx.schema ? `\nStrictly adhere to this Database Schema Context:\n${ctx.schema}` : '';
+   const explanationContext = ctx.explainChanges ? `\nProvide an explanation detailing exactly why specific indexes or joins were restructured.` : '';
+
+   return withSchema(
+    `You are a Senior Database Administrator and SQL Architect.
+    Your Task: ${task}
+    ${schemaContext}${explanationContext}
+
+    Guidelines:
+    - Output ONLY valid ${ctx.targetLang} code in the 'query' property. Do not wrap in markdown blocks.
+    - If converting, flag any functions that don't exist in the target dialect in the 'warnings' array.
+    - If optimizing, provide explicit CREATE INDEX statements in 'recommendedIndexes' if applicable.`,
+    `{ "query": "string", "explanation": "string", "warnings": ["string"], "recommendedIndexes": ["string"] }`
+   );
+  },
+  user: (input) => `Input:\n${input}`,
   responseType: 'object',
   schema: OUTPUT_SCHEMAS.sql
  }

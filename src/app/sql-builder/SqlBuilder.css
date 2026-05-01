@@ -33,19 +33,57 @@
   font-weight: 500;
 }
 
-.schema-input {
-  width: 100%;
-  border: none;
-  background: var(--bg-primary);
-  padding: 1rem;
-  font-size: 0.85rem;
-  height: 100px;
-  resize: vertical;
-  border-bottom: 1px solid var(--border);
+.schema-footer-actions {
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
 }
 
-.schema-input:focus {
-  outline: none;
+.workspace-controls {
+  padding-right: 0.5rem;
+}
+
+.select-small {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.85rem;
+  height: 28px;
+}
+
+.alert-box {
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  border: 1px solid;
+}
+
+.alert-box.amber {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--text-primary);
+}
+
+.alert-box strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d97706;
+  margin-bottom: 0.5rem;
+}
+
+.alert-box ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
   background: var(--bg-secondary);
 }
 
@@ -85,7 +123,6 @@
   position: relative;
   overflow: hidden;
   display: inline-block;
-  margin-right: 10px;
 }
 
 .upload-btn-wrapper input[type=file] {
@@ -100,7 +137,6 @@
 
 .schema-editor-wrapper {
   height: 150px;
-  border-top: 1px solid var(--border);
 }
 
 .combobox-input {

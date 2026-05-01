@@ -11,10 +11,9 @@ export default function Page() {
   const footerContent = getToolContent('sql-builder');
   
   return (
-  <>
-   <SqlBuilder />
-    
-   <ToolFooter content={footerContent} />
-  </>
- );
+   <>
+    <SqlBuilder />
+    <ToolFooter content={footerContent} />
+   </>
+  );
 }

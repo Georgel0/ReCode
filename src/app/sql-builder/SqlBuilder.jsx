@@ -8,7 +8,6 @@ import { useSqlForge, MODES, DIALECTS } from './useSqlForge';
 import './SqlBuilder.css';
 
 export default function SqlBuilder() {
- 
  const { currentTheme } = useTheme();
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
  
@@ -21,6 +20,10 @@ export default function SqlBuilder() {
   handleSchemaChange,
   showSchema,
   setShowSchema,
+  workspaces,
+  activeWorkspace,
+  switchWorkspace,
+  createWorkspace,
   targetDialect,
   setTargetDialect,
   sourceDialect,
@@ -29,13 +32,19 @@ export default function SqlBuilder() {
   setExplainChanges,
   outputCode,
   explanation,
+  warnings,
+  recommendedIndexes,
   loading,
+  mockLoading,
   lastResult,
   handleGenerate,
+  handleGenerateMockData,
   clearInputs,
   handleFileUpload,
   handleFormatCode
  } = useSqlForge();
+ 
+ const isSameDiff = activeMode === 'optimizer' && input.trim() && outputCode.trim() && input.trim() === outputCode.trim();
  
  return (
   <div className="module-container">
@@ -110,7 +119,6 @@ export default function SqlBuilder() {
          className="combobox-input"
          placeholder="Search dialect..."
         />
-                
         {activeMode === 'optimizer' && (
          <label className="custom-check" style={{ marginLeft: 'auto' }}>
           <input 
@@ -133,27 +141,53 @@ export default function SqlBuilder() {
           onClick={() => setShowSchema(!showSchema)}
          >
           <i className="fa-solid fa-database"></i> 
-          {showSchema ? 'Hide Database Schema' : 'Add Database Schema (Context)'}
+          {showSchema ? 'Hide Database Schema' : 'Add Database Schema Context'}
          </button>
+         
          {showSchema && (
-          <div className="upload-btn-wrapper">
-           <button className="file-upload-btn">
-            <i className="fa-solid fa-file-import"></i> Auto-Discover (.sql)
+          <div className="workspace-controls flex center-y gap-sm">
+           <select 
+            className="combobox-input select-small"
+            value={activeWorkspace}
+            onChange={(e) => switchWorkspace(e.target.value)}
+           >
+            {Object.keys(workspaces).map(ws => (
+             <option key={ws} value={ws}>{ws}</option>
+            ))}
+           </select>
+           <button className="secondary-button btn-small" onClick={createWorkspace} title="New Workspace">
+            <i className="fa-solid fa-plus"></i>
            </button>
-           <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
+           <div className="upload-btn-wrapper" title="Auto-Discover Schema">
+            <button className="secondary-button btn-small">
+             <i className="fa-solid fa-file-import"></i>
+            </button>
+            <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
+           </div>
           </div>
          )}
         </div>
                         
         {showSchema && (
-         <div className="schema-editor-wrapper">
-          <CodeEditor 
-           value={schema}
-           onValueChange={handleSchemaChange}
-           language="sql"
-           placeholder="CREATE TABLE users (id INT, name TEXT...);"
-          />
-         </div>
+         <>
+          <div className="schema-editor-wrapper">
+           <CodeEditor 
+            value={schema}
+            onValueChange={handleSchemaChange}
+            language="sql"
+            placeholder="CREATE TABLE users (id INT, name TEXT...);"
+           />
+          </div>
+          <div className="schema-footer-actions action-row">
+           <button 
+            className="secondary-button btn-small full-width" 
+            onClick={handleGenerateMockData}
+            disabled={mockLoading}
+           >
+            {mockLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : <><i className="fa-solid fa-table"></i> Generate Mock Data</>}
+           </button>
+          </div>
+         </>
         )}
        </div>
       )}
@@ -192,7 +226,6 @@ export default function SqlBuilder() {
          <button className="secondary-button btn-small" onClick={handleFormatCode}>
           <i className="fa-solid fa-align-left"></i> Format
          </button>
-         
          <CopyButton codeToCopy={outputCode} className="secondary-button btn-small" />
         </div>
        )}
@@ -201,7 +234,23 @@ export default function SqlBuilder() {
       <div className="results-container flex-grow">
        {outputCode ? (
         <div className="output-scrollable">
-         {activeMode === 'optimizer' ? (
+         
+         {warnings && warnings.length > 0 && (
+          <div className="alert-box amber">
+           <strong><i className="fa-solid fa-triangle-exclamation"></i> Warnings</strong>
+           <ul>
+            {warnings.map((w, i) => <li key={i}>{w}</li>)}
+           </ul>
+          </div>
+         )}
+
+         {isSameDiff ? (
+          <div className="success-state placeholder-container-inner" style={{ minHeight: '150px' }}>
+           <i className="fa-solid fa-circle-check" style={{ fontSize: '2.5rem', color: 'var(--success)', marginBottom: '1rem' }}></i>
+           <p><strong>Query is already optimized!</strong></p>
+           <p style={{ color: 'var(--text-secondary)' }}>No structural or indexing improvements were necessary for this query.</p>
+          </div>
+         ) : activeMode === 'optimizer' ? (
           <div className="diff-viewer-wrapper">
            <ReactDiffViewer
             oldValue={input}
@@ -226,20 +275,30 @@ export default function SqlBuilder() {
          ) : (
           <CodeOutput content={outputCode} language="sql" />
          )}
+
+         {recommendedIndexes && recommendedIndexes.length > 0 && (
+          <div className="ai-summary" style={{ marginTop: '1rem', borderLeftColor: 'var(--success)' }}>
+           <strong><i className="fa-solid fa-bolt"></i> Recommended Indexes</strong>
+           <p className="small-text">Applying these indexes might drastically improve query performance.</p>
+           {recommendedIndexes.map((idx, i) => (
+            <CodeOutput key={i} content={idx} language="sql" />
+           ))}
+          </div>
+         )}
           
          {explanation && (
           <div className="ai-summary" style={{ marginTop: '1rem' }}>
            <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
-          <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
+           <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
          </div>
         )}
        </div>
       ) : (
        <div className="placeholder-text placeholder-container-inner">
-        {loading ? (
+        {loading || mockLoading ? (
          <div className="processing-state">
           <div className="pulse-ring"></div>
-          <p>AI is building...</p>
+          <p>AI is {mockLoading ? 'generating data...' : 'building...'}</p>
          </div>
         ) : 'Result will appear here.'}
        </div>
