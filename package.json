@@ -37,6 +37,7 @@
     "recharts": "^3.7.0",
     "sonner": "^2.0.7",
     "sql-formatter": "^15.7.2",
+    "sql.js": "^1.14.1",
     "zod": "^4.3.5",
     "zod-to-json-schema": "^3.25.1"
   },
