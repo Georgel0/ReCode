@@ -359,7 +359,7 @@ export const PROMPT_CONFIG = {
    } else if (ctx.mode === 'optimizer') {
     task = `Analyze and optimize this ${ctx.targetLang} query for maximum performance.`;
    } else if (ctx.mode === 'mock') {
-    task = `Generate 5 to 10 rows of realistic mock data (INSERT INTO statements) based strictly on the provided schema for ${ctx.targetLang}.`;
+    task = `Generate 5 to 10 rows of realistic mock data (INSERT INTO statements) based strictly on the provided schema. CRITICAL: The output MUST be strictly valid SQLite syntax (standard ANSI SQL) so it can be executed safely in a WebAssembly SQLite sandbox. Do NOT use any ${ctx.targetLang} specific functions or data types that SQLite does not support.`;
    }
 
    const schemaContext = ctx.schema ? `\nStrictly adhere to this Database Schema Context:\n${ctx.schema}` : '';
@@ -371,7 +371,7 @@ export const PROMPT_CONFIG = {
     ${schemaContext}${explanationContext}
 
     Guidelines:
-    - Output ONLY valid ${ctx.targetLang} code in the 'query' property. Do not wrap in markdown blocks.
+    - Output ONLY valid code in the 'query' property. Do not wrap in markdown blocks.
     - If converting, flag any functions that don't exist in the target dialect in the 'warnings' array.
     - If optimizing, provide explicit CREATE INDEX statements in 'recommendedIndexes' if applicable.`,
     `{ "query": "string", "explanation": "string", "warnings": ["string"], "recommendedIndexes": ["string"] }`

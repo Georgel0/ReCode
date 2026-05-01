@@ -177,3 +177,114 @@
   height: 100%;
   overflow-y: auto;
 }
+
+.sandbox-results {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.sandbox-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.sandbox-header .close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sandbox-header .close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.table-responsive {
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sandbox-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.sandbox-table th, 
+.sandbox-table td {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.sandbox-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-weight: 600;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.sandbox-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.empty-message {
+  padding: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .sandbox-header {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .sandbox-table th, 
+  .sandbox-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+  }
+   
+  .table-responsive {
+    max-height: 300px; 
+  }
+  
+  .panel-header-row .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .sandbox-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .sandbox-header .close-btn {
+    align-self: flex-end;
+    margin-top: -30px;
+  }
+}

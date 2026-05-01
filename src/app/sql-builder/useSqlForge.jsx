@@ -29,6 +29,10 @@ export function useSqlForge() {
  const [mockLoading, setMockLoading] = useState(false);
  const [lastResult, setLastResult] = useState(false);
 
+ const [sandboxResults, setSandboxResults] = useState(null);
+ const [sandboxError, setSandboxError] = useState(null);
+ const [isSandboxRunning, setIsSandboxRunning] = useState(false);
+
  const getFormatterDialect = (dialectName) => {
   const map = {
    'MySQL': 'mysql',
@@ -51,7 +55,7 @@ export function useSqlForge() {
    if (moduleData.mode) setActiveMode(moduleData.mode);
   }
  }, [moduleData]);
- 
+
  useEffect(() => {
   const savedWorkspaces = localStorage.getItem('sqlForge_workspaces');
   if (savedWorkspaces) {
@@ -62,7 +66,7 @@ export function useSqlForge() {
    setSchema(parsed[firstKey]);
   }
  }, []);
- 
+
  const handleSchemaChange = (val) => {
   setSchema(val);
   const updatedWorkspaces = { ...workspaces, [activeWorkspace]: val };
@@ -99,7 +103,7 @@ export function useSqlForge() {
   reader.onerror = () => toast.error("Failed to read the file.");
   reader.readAsText(file);
  };
- 
+
  const handleFormatCode = () => {
   if (!outputCode) return;
   try {
@@ -110,7 +114,7 @@ export function useSqlForge() {
    toast.error("Could not format this SQL dialect perfectly.");
   }
  };
- 
+
  const handleGenerate = async () => {
   if (!input.trim()) {
    toast.error("Please provide an input requirement or query.");
@@ -123,7 +127,9 @@ export function useSqlForge() {
   setWarnings([]);
   setRecommendedIndexes([]);
   setLastResult(false);
-  
+  setSandboxResults(null);
+  setSandboxError(null);
+
   try {
    const requestBody = {
     targetLang: targetDialect,
@@ -133,7 +139,6 @@ export function useSqlForge() {
     explainChanges,
     qualityMode
    };
-   
    const result = await convertCode('sql', input, requestBody);
    
    if (result && (result.query || result.convertedCode)) {
@@ -165,13 +170,59 @@ export function useSqlForge() {
    const result = await convertCode('sql', 'Generate mock data', requestBody);
    
    if (result && result.query) {
-    setOutputCode(result.query);
-    toast.success("Mock data generated successfully!");
+    const updatedSchema = `${schema}\n\n-- Mock Data\n${result.query}`;
+    handleSchemaChange(updatedSchema);
+    toast.success("Mock data appended to schema successfully!");
    }
   } catch (error) {
    toast.error(`Mock Data generation failed: ${error.message}`);
   }
   setMockLoading(false);
+ };
+
+ const runSandbox = async () => {
+    if (!outputCode.trim()) {
+      toast.error("Generate a query first before running.");
+      return;
+    }
+    
+    setIsSandboxRunning(true);
+    setSandboxError(null);
+    setSandboxResults(null);
+
+    try {
+      // Dynamically import sql.js to prevent SSR issues in Next.js
+      const initSqlJsModule = (await import('sql.js')).default;
+      const SQL = await initSqlJsModule({
+        // Use CDN to easily grab the wasm file without Webpack headaches
+        locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+      });
+      
+      const db = new SQL.Database();
+
+      if (schema.trim()) {
+        try {
+          db.run(schema);
+        } catch (schemaErr) {
+          throw new Error(`Schema/Mock Data Error: ${schemaErr.message}`);
+        }
+      }
+
+      const res = db.exec(outputCode);
+
+      if (res && res.length > 0) {
+        setSandboxResults(res[0]); // Returns { columns: [...], values: [[...]] }
+      } else {
+        setSandboxResults({ columns: [], values: [], message: 'Query executed successfully but returned 0 rows.' });
+      }
+      toast.success("Query executed in sandbox!");
+
+    } catch (err) {
+      setSandboxError(err.message);
+      toast.error("Execution failed.");
+    } finally {
+      setIsSandboxRunning(false);
+    }
  };
  
  const clearInputs = () => {
@@ -180,8 +231,10 @@ export function useSqlForge() {
   setExplanation('');
   setWarnings([]);
   setRecommendedIndexes([]);
+  setSandboxResults(null);
+  setSandboxError(null);
  };
- 
+
  return {
   activeMode, setActiveMode,
   input, setInput,
@@ -194,8 +247,9 @@ export function useSqlForge() {
   outputCode, setOutputCode,
   explanation, warnings, recommendedIndexes,
   loading, mockLoading, lastResult,
+  sandboxResults, setSandboxResults, sandboxError, isSandboxRunning,
   handleGenerate, handleGenerateMockData, clearInputs,
-  handleFileUpload, handleFormatCode
+  handleFileUpload, handleFormatCode, runSandbox
  };
 }
 

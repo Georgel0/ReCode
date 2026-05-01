@@ -10,47 +10,30 @@ import './SqlBuilder.css';
 export default function SqlBuilder() {
  const { currentTheme } = useTheme();
  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
- 
+
  const {
-  activeMode,
-  setActiveMode,
-  input,
-  setInput,
-  schema,
-  handleSchemaChange,
-  showSchema,
-  setShowSchema,
-  workspaces,
-  activeWorkspace,
-  switchWorkspace,
-  createWorkspace,
-  targetDialect,
-  setTargetDialect,
-  sourceDialect,
-  setSourceDialect,
-  explainChanges,
-  setExplainChanges,
-  outputCode,
-  explanation,
-  warnings,
-  recommendedIndexes,
-  loading,
-  mockLoading,
-  lastResult,
-  handleGenerate,
-  handleGenerateMockData,
-  clearInputs,
-  handleFileUpload,
-  handleFormatCode
+  activeMode, setActiveMode,
+  input, setInput,
+  schema, handleSchemaChange,
+  showSchema, setShowSchema,
+  workspaces, activeWorkspace, switchWorkspace, createWorkspace,
+  targetDialect, setTargetDialect,
+  sourceDialect, setSourceDialect,
+  explainChanges, setExplainChanges,
+  outputCode, explanation, warnings, recommendedIndexes,
+  loading, mockLoading, lastResult,
+  sandboxResults, setSandboxResults, sandboxError, isSandboxRunning,
+  handleGenerate, handleGenerateMockData, clearInputs,
+  handleFileUpload, handleFormatCode, runSandbox
  } = useSqlForge();
- 
+
  const isSameDiff = activeMode === 'optimizer' && input.trim() && outputCode.trim() && input.trim() === outputCode.trim();
- 
+
  return (
   <div className="module-container">
    <ModuleHeader 
     title="SQL Builder"
-    description="Generate, convert, and optimize SQL queries for any database."
+    description="Generate, convert, execute, and optimize SQL queries securely in your browser."
     resultData={lastResult}
    />
 
@@ -119,6 +102,7 @@ export default function SqlBuilder() {
          className="combobox-input"
          placeholder="Search dialect..."
         />
+       
         {activeMode === 'optimizer' && (
          <label className="custom-check" style={{ marginLeft: 'auto' }}>
           <input 
@@ -184,7 +168,7 @@ export default function SqlBuilder() {
             onClick={handleGenerateMockData}
             disabled={mockLoading}
            >
-            {mockLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : <><i className="fa-solid fa-table"></i> Generate Mock Data</>}
+            {mockLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : <><i className="fa-solid fa-table"></i> Generate Mock Data into Schema</>}
            </button>
           </div>
          </>
@@ -222,7 +206,10 @@ export default function SqlBuilder() {
      <div className="panel-header-row">
       <h3>Generated SQL ({targetDialect})</h3>
       {outputCode && (
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+         <button className="secondary-button btn-small" onClick={runSandbox} disabled={isSandboxRunning || activeMode === 'converter'}>
+          <i className={`fa-solid ${isSandboxRunning ? 'fa-spinner fa-spin' : 'fa-play'}`}></i> Run
+         </button>
          <button className="secondary-button btn-small" onClick={handleFormatCode}>
           <i className="fa-solid fa-align-left"></i> Format
          </button>
@@ -232,7 +219,7 @@ export default function SqlBuilder() {
       </div>
 
       <div className="results-container flex-grow">
-       {outputCode ? (
+        {outputCode ? (
         <div className="output-scrollable">
          
          {warnings && warnings.length > 0 && (
@@ -244,14 +231,52 @@ export default function SqlBuilder() {
           </div>
          )}
 
+         {sandboxError && (
+          <div className="alert-box error" style={{ marginBottom: '1rem', background: 'rgba(248, 81, 73, 0.1)', borderColor: 'rgba(248, 81, 73, 0.3)', color: 'var(--text-primary)' }}>
+           <strong style={{ color: '#f85149', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '0.5rem' }}>
+             <i className="fa-solid fa-circle-xmark"></i> Execution Error
+           </strong>
+           <p style={{ margin: 0, fontSize: '0.85rem' }}>{sandboxError}</p>
+          </div>
+         )}
+
+         {sandboxResults && (
+           <div className="sandbox-results">
+             <div className="sandbox-header">
+                <strong><i className="fa-solid fa-table"></i> Query Results</strong>
+                <button onClick={() => setSandboxResults(null)} className="close-btn" aria-label="Close Results">
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+             </div>
+             {sandboxResults.message ? (
+                <p className="empty-message">{sandboxResults.message}</p>
+             ) : (
+                <div className="table-responsive">
+                  <table className="sandbox-table">
+                    <thead>
+                      <tr>{sandboxResults.columns.map((c, i) => <th key={i}>{c}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {sandboxResults.values.map((row, i) => (
+                        <tr key={i}>
+                          {row.map((val, j) => <td key={j}>{val !== null ? String(val) : <em>NULL</em>}</td>)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+             )}
+           </div>
+         )}
+
          {isSameDiff ? (
-          <div className="success-state placeholder-container-inner" style={{ minHeight: '150px' }}>
+          <div className="success-state placeholder-container-inner" style={{ minHeight: '150px', marginTop: '1rem' }}>
            <i className="fa-solid fa-circle-check" style={{ fontSize: '2.5rem', color: 'var(--success)', marginBottom: '1rem' }}></i>
            <p><strong>Query is already optimized!</strong></p>
            <p style={{ color: 'var(--text-secondary)' }}>No structural or indexing improvements were necessary for this query.</p>
           </div>
          ) : activeMode === 'optimizer' ? (
-          <div className="diff-viewer-wrapper">
+          <div className="diff-viewer-wrapper" style={{ marginTop: '1rem' }}>
            <ReactDiffViewer
             oldValue={input}
             newValue={outputCode}
@@ -273,7 +298,9 @@ export default function SqlBuilder() {
            />
           </div>
          ) : (
-          <CodeOutput content={outputCode} language="sql" />
+          <div style={{ marginTop: sandboxResults || sandboxError ? '1rem' : '0' }}>
+            <CodeOutput content={outputCode} language="sql" />
+          </div>
          )}
 
          {recommendedIndexes && recommendedIndexes.length > 0 && (
@@ -290,7 +317,7 @@ export default function SqlBuilder() {
           <div className="ai-summary" style={{ marginTop: '1rem' }}>
            <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
            <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
-         </div>
+          </div>
         )}
        </div>
       ) : (
@@ -298,7 +325,7 @@ export default function SqlBuilder() {
         {loading || mockLoading ? (
          <div className="processing-state">
           <div className="pulse-ring"></div>
-          <p>AI is {mockLoading ? 'generating data...' : 'building...'}</p>
+          <p>AI is {mockLoading ? 'generating mock data...' : 'building...'}</p>
          </div>
         ) : 'Result will appear here.'}
        </div>
