@@ -387,6 +387,10 @@ select.select-small {
     flex-wrap: wrap;
     justify-content: flex-end;
   }
+  
+  .workspace-controls {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 480px) {
