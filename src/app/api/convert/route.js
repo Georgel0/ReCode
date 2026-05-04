@@ -104,7 +104,7 @@ export async function POST(request) {
    cleanedSchema = cleanedSchema.replace(/INSERT\s+INTO[\s\S]*?;/gi, '');
    // Cap payload at ~15,000 chars to prevent token bloat
    if (cleanedSchema.length > 15000) {
-    cleanedSchema = cleanedSchema.substring(0, 15000) + '\n-- [Schema truncated due to length limits]';
+    cleanedSchema = cleanedSchema.substring(0, 20000) + '\n-- [Schema truncated due to length limits]';
    }
   }
   

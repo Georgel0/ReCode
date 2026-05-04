@@ -152,6 +152,7 @@ export default function SqlBuilder() {
                   <>
                     <div className="schema-editor-wrapper">
                       <CodeEditor
+                        key={activeWorkspace}
                         value={schema}
                         onValueChange={handleSchemaChange}
                         language="sql"
@@ -177,7 +178,7 @@ export default function SqlBuilder() {
             <CodeEditor
               value={input}
               onValueChange={setInput}
-              language="sql"
+              language="plaintext"
               placeholder={
                 activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
                   activeMode === 'converter' ? "Paste your SQL here to convert it..." :

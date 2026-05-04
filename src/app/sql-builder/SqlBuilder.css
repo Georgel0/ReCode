@@ -142,7 +142,21 @@
 }
 
 .schema-editor-wrapper {
-  height: 150px;
+  height: 250px;   
+  position: relative; 
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.schema-editor-wrapper > div {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .combobox-input {
