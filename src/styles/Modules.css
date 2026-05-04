@@ -34,6 +34,7 @@
   color: var(--header-color);
   background: var(--header-color);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
   font-size: 1.8rem;
@@ -53,6 +54,7 @@
   color: var(--text-primary);
   font-size: 1.1rem;
   text-align: center;
+  padding: 2rem;
 }
 
 .results-container {
@@ -76,6 +78,7 @@
   color: var(--header-color);
   background: var(--header-color);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: block;
   margin-bottom: 0.5rem;
@@ -94,10 +97,6 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem;
-}
-
-.selector-bar {
-  margin-bottom: 1rem;
 }
 
 .copy-btn {

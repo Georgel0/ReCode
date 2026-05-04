@@ -20,6 +20,9 @@ export function useSqlForge() {
  const [targetDialect, setTargetDialect] = useState('Standard SQL');
  const [sourceDialect, setSourceDialect] = useState('MySQL');
  const [explainChanges, setExplainChanges] = useState(true);
+
+ const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+ const [newWorkspaceName, setNewWorkspaceName] = useState('');
  
  const [outputCode, setOutputCode] = useState('');
  const [explanation, setExplanation] = useState('');
@@ -79,16 +82,34 @@ export function useSqlForge() {
   setSchema(workspaces[name]);
  };
 
- const createWorkspace = () => {
-  const name = prompt("Enter a name for the new workspace:");
-  if (name && !workspaces[name]) {
-   const updated = { ...workspaces, [name]: '' };
-   setWorkspaces(updated);
-   setActiveWorkspace(name);
-   setSchema('');
-   localStorage.setItem('sqlForge_workspaces', JSON.stringify(updated));
-   toast.success(`Workspace "${name}" created.`);
+const openWorkspaceModal = () => {
+  setNewWorkspaceName('');
+  setIsWorkspaceModalOpen(true);
+ };
+
+ const closeWorkspaceModal = () => {
+  setIsWorkspaceModalOpen(false);
+  setNewWorkspaceName('');
+ };
+
+ const confirmCreateWorkspace = () => {
+  const name = newWorkspaceName.trim();
+  if (!name) {
+    toast.error("Workspace name cannot be empty.");
+    return;
   }
+  if (workspaces[name]) {
+    toast.error(`Workspace "${name}" already exists.`);
+    return;
+  }
+  
+  const updated = { ...workspaces, [name]: '' };
+  setWorkspaces(updated);
+  setActiveWorkspace(name);
+  setSchema('');
+  localStorage.setItem('sqlForge_workspaces', JSON.stringify(updated));
+  toast.success(`Workspace "${name}" created.`);
+  closeWorkspaceModal();
  };
  
  const handleFileUpload = (e) => {
@@ -240,7 +261,11 @@ export function useSqlForge() {
   input, setInput,
   schema, handleSchemaChange,
   showSchema, setShowSchema,
-  workspaces, activeWorkspace, switchWorkspace, createWorkspace,
+  workspaces, activeWorkspace, switchWorkspace, 
+  
+  isWorkspaceModalOpen, newWorkspaceName, setNewWorkspaceName, 
+  openWorkspaceModal, closeWorkspaceModal, confirmCreateWorkspace,
+
   targetDialect, setTargetDialect,
   sourceDialect, setSourceDialect,
   explainChanges, setExplainChanges,

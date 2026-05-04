@@ -41,6 +41,9 @@
 
 .workspace-controls {
   padding-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .select-small {
@@ -255,6 +258,99 @@
   text-align: center;
   font-style: italic;
   margin: 0;
+}
+
+.dialect-selection-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.explain-check {
+  margin-left: auto;
+}
+
+.generate-action-row {
+  margin-top: 1rem;
+}
+
+.alert-box.error-box {
+  margin-bottom: 1rem;
+  background: rgba(248, 81, 73, 0.1);
+  border-color: rgba(248, 81, 73, 0.3);
+  color: var(--text-primary);
+}
+
+.alert-box.error-box strong {
+  color: #f85149;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.alert-box.error-box p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.diff-success-state {
+  min-height: 150px;
+  margin-top: 1rem;
+}
+
+.diff-success-state i.fa-circle-check {
+  font-size: 2.5rem;
+  color: var(--success, #2ea043);
+  margin-bottom: 1rem;
+}
+
+.diff-success-state .success-desc {
+  color: var(--text-secondary);
+}
+
+.optimizer-diff {
+  margin-top: 1rem;
+}
+
+.code-output-wrapper.has-results {
+  margin-top: 1rem;
+}
+
+.ai-summary.recommended-indexes {
+  margin-top: 1rem;
+  border-left: 3px solid var(--success, #2ea043);
+}
+
+.ai-summary.explain-plan {
+  margin-top: 1rem;
+}
+
+select.combobox-input {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23888%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem top 50%;
+  background-size: 0.65rem auto;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+select.select-small {
+  background-position: right 0.5rem top 50%;
+  padding-right: 1.5rem;
+}
+ 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {

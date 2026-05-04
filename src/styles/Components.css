@@ -1,6 +1,5 @@
 .panel {
   background: var(--bg-secondary);
-  border-radius: var(--radius);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -14,6 +13,7 @@
   color: var(--header-color);
   background: var(--header-color);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   border-bottom: 1px solid var(--bg-tertiary);
   padding-bottom: 0.75rem;
@@ -203,7 +203,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   font-weight: 600;
 }
 
-.tab-btn > i:first-of-type {
+.tab-btn>i:first-of-type {
   margin-right: 8px;
   opacity: 0.7;
   font-size: 0.9em;
@@ -230,6 +230,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
 
 .mode-selector {
   display: flex;
+  flex-wrap: wrap;
   background: var(--bg-tertiary);
   padding: 4px;
   border-radius: 8px;
@@ -257,6 +258,15 @@ html[data-theme='quartz'] .primary-button:hover::after {
   font-weight: 600;
 }
 
+.info-circle-btn {
+  color: var(--accent);
+  background: none;
+}
+
+.info-circle-btn:hover {
+  color: var(--accent-hover);
+}
+
 select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -265,8 +275,7 @@ select {
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
+  padding: .65rem 1.5rem;
   line-height: 1.5;
   cursor: pointer;
   transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
@@ -402,7 +411,7 @@ select option {
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
-  align-items: flex-start; 
+  align-items: flex-start;
   z-index: 1000;
   padding: 1rem;
   overflow-y: auto;
@@ -414,8 +423,7 @@ select option {
   border-radius: var(--radius);
   padding: 1.5rem;
   margin: 2rem auto;
-  width: 95%; 
-  max-width: 1500px;
+  max-width: 95%;
   box-shadow: var(--shadow-subtle);
   position: relative;
 }
@@ -496,8 +504,11 @@ select option {
 }
 
 .selector-bar {
+  display: flex;
+  flex-wrap: wrap;
   width: 100%;
   margin-bottom: 1rem;
+  gap: 5px;
 }
 
 .panel textarea {
@@ -518,6 +529,7 @@ select option {
   color: var(--header-color);
   background: var(--header-color);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
   font-size: 1.8rem;
@@ -527,6 +539,13 @@ select option {
   color: var(--text-primary);
   margin-bottom: 2rem;
   line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1rem;
 }
 
 .model-options-grid {
@@ -554,9 +573,17 @@ select option {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
 }
 
-.model-card.turbo:hover { border-color: var(--border);}
-.model-card.fast:hover { border-color: var(--border) } 
-.model-card.quality:hover { border-color: var(--border) } 
+.model-card.turbo:hover {
+  border-color: var(--border);
+}
+
+.model-card.fast:hover {
+  border-color: var(--border)
+}
+
+.model-card.quality:hover {
+  border-color: var(--border)
+}
 
 .model-card.active {
   border-color: var(--primary-color);
@@ -565,7 +592,7 @@ select option {
 }
 
 .model-card.turbo.active {
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); 
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
 }
 
 .model-card.quality.active {
@@ -577,8 +604,13 @@ select option {
   margin-bottom: 0.5rem;
 }
 
-.fast .card-icon { color: var(--text-primary); }
-.quality .card-icon { color: var(--text-primary); }
+.fast .card-icon {
+  color: var(--text-primary);
+}
+
+.quality .card-icon {
+  color: var(--text-primary);
+}
 
 .card-info h3 {
   color: var(--accent);
@@ -664,12 +696,12 @@ select option {
   background-color: var(--text-on-accent);
 }
 
-.custom-check input:checked ~ .box {
-  background-color: var(--accent); 
+.custom-check input:checked~.box {
+  background-color: var(--accent);
   border-color: var(--accent);
 }
 
-.custom-check input:checked ~ .box i {
+.custom-check input:checked~.box i {
   transform: scale(1);
 }
 
@@ -703,12 +735,12 @@ select option {
     transform: scale(0.95);
     opacity: 0.7;
   }
-  
+
   50% {
     transform: scale(1.1);
     opacity: 1;
   }
-  
+
   100% {
     transform: scale(0.95);
     opacity: 0.7;
@@ -719,32 +751,32 @@ select option {
   .mobile-header {
     display: flex;
   }
-  
+
   .module-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
   }
-  
+
   .save-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .ext-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .model-options-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .modal-content {
     margin: 1rem auto;
     padding: 1rem;
   }
-  
+
   .modal-header h2 {
     font-size: 1.4rem;
   }

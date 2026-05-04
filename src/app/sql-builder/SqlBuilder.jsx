@@ -8,331 +8,356 @@ import { useSqlForge, MODES, DIALECTS } from './useSqlForge';
 import './SqlBuilder.css';
 
 export default function SqlBuilder() {
- const { currentTheme } = useTheme();
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+  const { currentTheme } = useTheme();
+  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
 
- const {
-  activeMode, setActiveMode,
-  input, setInput,
-  schema, handleSchemaChange,
-  showSchema, setShowSchema,
-  workspaces, activeWorkspace, switchWorkspace, createWorkspace,
-  targetDialect, setTargetDialect,
-  sourceDialect, setSourceDialect,
-  explainChanges, setExplainChanges,
-  outputCode, explanation, warnings, recommendedIndexes,
-  loading, mockLoading, lastResult,
-  sandboxResults, setSandboxResults, sandboxError, isSandboxRunning,
-  handleGenerate, handleGenerateMockData, clearInputs,
-  handleFileUpload, handleFormatCode, runSandbox
- } = useSqlForge();
+  const {
+    activeMode, setActiveMode,
+    input, setInput,
+    schema, handleSchemaChange,
+    showSchema, setShowSchema,
+    workspaces, activeWorkspace, switchWorkspace,
+    isWorkspaceModalOpen, newWorkspaceName, setNewWorkspaceName,
+    openWorkspaceModal, closeWorkspaceModal, confirmCreateWorkspace,
+    targetDialect, setTargetDialect,
+    sourceDialect, setSourceDialect,
+    explainChanges, setExplainChanges,
+    outputCode, explanation, warnings, recommendedIndexes,
+    loading, mockLoading, lastResult,
+    sandboxResults, setSandboxResults, sandboxError, isSandboxRunning,
+    handleGenerate, handleGenerateMockData, clearInputs,
+    handleFileUpload, handleFormatCode, runSandbox
+  } = useSqlForge();
 
- const isSameDiff = activeMode === 'optimizer' && input.trim() && outputCode.trim() && input.trim() === outputCode.trim();
+  const isSameDiff = activeMode === 'optimizer' && input.trim() && outputCode.trim() && input.trim() === outputCode.trim();
 
- return (
-  <div className="module-container">
-   <ModuleHeader 
-    title="SQL Builder"
-    description="Generate, convert, execute, and optimize SQL queries securely in your browser."
-    resultData={lastResult}
-   />
-
-   <div className="tabs-container">
-    {MODES.map(m => (
-     <button
-      key={m.id}
-      className={`tab-btn ${activeMode === m.id ? 'active' : ''}`}
-      onClick={() => setActiveMode(m.id)}
-     >
-      <i className={`fa-solid ${m.icon}`}></i> {m.label}
-     </button>
-    ))}
-   </div>
-
-   <div className="converter-grid">
-    <div className="panel flex-col">
-     <div className="panel-header-row">
-      <h3>
-       {activeMode === 'builder' && 'Requirement'}
-       {activeMode === 'converter' && 'Source Query'}
-       {activeMode === 'optimizer' && 'Slow Query'}
-      </h3>
-      <button className="mode-btn" onClick={clearInputs}>
-       <i className="fa-solid fa-eraser"></i> Clear
-      </button>
-     </div>
-
-     <div className="controls-group">
-      {activeMode === 'converter' ? (
-       <div className="ext-grid">
-        <div className="control-field">
-         <span className="label-text">From:</span>
-         <input 
-          list="source-dialects" 
-          value={sourceDialect} 
-          onChange={(e) => setSourceDialect(e.target.value)}
-          className="combobox-input full-width"
-          placeholder="Search dialect..."
-         />
-         <datalist id="source-dialects">
-          {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-         </datalist>
-        </div>
-        <div className="control-field">
-         <span className="label-text">To:</span>
-         <input 
-          list="target-dialects" 
-          value={targetDialect} 
-          onChange={(e) => setTargetDialect(e.target.value)}
-          className="combobox-input full-width"
-          placeholder="Search dialect..."
-         />
-         <datalist id="target-dialects">
-          {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-         </datalist>
-        </div>
-       </div>
-      ) : (
-       <div className="action-row start center-y" style={{ marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <span className="label-text">Dialect:</span>
-        <input 
-         list="target-dialects" 
-         value={targetDialect} 
-         onChange={(e) => setTargetDialect(e.target.value)}
-         className="combobox-input"
-         placeholder="Search dialect..."
-        />
-       
-        {activeMode === 'optimizer' && (
-         <label className="custom-check" style={{ marginLeft: 'auto' }}>
-          <input 
-           type="checkbox" 
-           checked={explainChanges} 
-           onChange={(e) => setExplainChanges(e.target.checked)} 
-          />
-          <div className="box"><i className="fa-solid fa-check"></i></div>
-          <span className="label-text">Explain Changes</span>
-         </label>
-        )}
-       </div>
-      )}
-      
-      {activeMode !== 'converter' && (
-       <div className="schema-wrapper">
-        <div className="schema-header-actions">
-         <button 
-          className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
-          onClick={() => setShowSchema(!showSchema)}
-         >
-          <i className="fa-solid fa-database"></i> 
-          {showSchema ? 'Hide Database Schema' : 'Add Database Schema Context'}
-         </button>
-         
-         {showSchema && (
-          <div className="workspace-controls flex center-y gap-sm">
-           <select 
-            className="combobox-input select-small"
-            value={activeWorkspace}
-            onChange={(e) => switchWorkspace(e.target.value)}
-           >
-            {Object.keys(workspaces).map(ws => (
-             <option key={ws} value={ws}>{ws}</option>
-            ))}
-           </select>
-           <button className="secondary-button btn-small" onClick={createWorkspace} title="New Workspace">
-            <i className="fa-solid fa-plus"></i>
-           </button>
-           <div className="upload-btn-wrapper" title="Auto-Discover Schema">
-            <button className="secondary-button btn-small">
-             <i className="fa-solid fa-file-import"></i>
-            </button>
-            <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
-           </div>
-          </div>
-         )}
-        </div>
-                        
-        {showSchema && (
-         <>
-          <div className="schema-editor-wrapper">
-           <CodeEditor 
-            value={schema}
-            onValueChange={handleSchemaChange}
-            language="sql"
-            placeholder="CREATE TABLE users (id INT, name TEXT...);"
-           />
-          </div>
-          <div className="schema-footer-actions action-row">
-           <button 
-            className="secondary-button btn-small full-width" 
-            onClick={handleGenerateMockData}
-            disabled={mockLoading}
-           >
-            {mockLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : <><i className="fa-solid fa-table"></i> Generate Mock Data into Schema</>}
-           </button>
-          </div>
-         </>
-        )}
-       </div>
-      )}
-     </div>
-
-     <div className="main-input-wrapper flex-grow">
-      <CodeEditor 
-       value={input}
-       onValueChange={setInput}
-       language="sql"
-       placeholder={
-        activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
-        activeMode === 'converter' ? "Paste your SQL here to convert it..." :
-        "Paste your slow query here..."
-       }
+  return (
+    <div className="module-container">
+      <ModuleHeader
+        title="SQL Builder"
+        description="Generate, convert, execute, and optimize SQL queries securely in your browser."
+        resultData={lastResult}
       />
-     </div>
-          
-     <div className="action-row" style={{ marginTop: '1rem' }}>
-      <button className="primary-button full-width" onClick={handleGenerate} disabled={loading || !input.trim()}>
-       {loading ? (
-        <><i className="fa-solid fa-spinner fa-spin"></i> Processing...</>
-       ) : (
-        <><i className="fa-solid fa-gears"></i>
-        {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}</>
-       )}
-      </button>
-     </div>
-    </div>
 
-    <div className="panel flex-col">
-     <div className="panel-header-row">
-      <h3>Generated SQL ({targetDialect})</h3>
-      {outputCode && (
-        <div className="header-actions" style={{ display: 'flex', gap: '0.5rem' }}>
-         <button className="secondary-button btn-small" onClick={runSandbox} disabled={isSandboxRunning || activeMode === 'converter'}>
-          <i className={`fa-solid ${isSandboxRunning ? 'fa-spinner fa-spin' : 'fa-play'}`}></i> Run
-         </button>
-         <button className="secondary-button btn-small" onClick={handleFormatCode}>
-          <i className="fa-solid fa-align-left"></i> Format
-         </button>
-         <CopyButton codeToCopy={outputCode} className="secondary-button btn-small" />
-        </div>
-       )}
+      <div className="tabs-container">
+        {MODES.map(m => (
+          <button
+            key={m.id}
+            className={`tab-btn ${activeMode === m.id ? 'active' : ''}`}
+            onClick={() => setActiveMode(m.id)}
+          >
+            <i className={`fa-solid ${m.icon}`}></i> {m.label}
+          </button>
+        ))}
       </div>
 
-      <div className="results-container flex-grow">
-        {outputCode ? (
-        <div className="output-scrollable">
-         
-         {warnings && warnings.length > 0 && (
-          <div className="alert-box amber">
-           <strong><i className="fa-solid fa-triangle-exclamation"></i> Warnings</strong>
-           <ul>
-            {warnings.map((w, i) => <li key={i}>{w}</li>)}
-           </ul>
+      <div className="converter-grid">
+        <div className="panel flex-col">
+          <div className="panel-header-row">
+            <h3>
+              {activeMode === 'builder' && 'Requirement'}
+              {activeMode === 'converter' && 'Source Query'}
+              {activeMode === 'optimizer' && 'Slow Query'}
+            </h3>
+            <button className="mode-btn" onClick={clearInputs}>
+              <i className="fa-solid fa-eraser"></i> Clear
+            </button>
           </div>
-         )}
 
-         {sandboxError && (
-          <div className="alert-box error" style={{ marginBottom: '1rem', background: 'rgba(248, 81, 73, 0.1)', borderColor: 'rgba(248, 81, 73, 0.3)', color: 'var(--text-primary)' }}>
-           <strong style={{ color: '#f85149', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '0.5rem' }}>
-             <i className="fa-solid fa-circle-xmark"></i> Execution Error
-           </strong>
-           <p style={{ margin: 0, fontSize: '0.85rem' }}>{sandboxError}</p>
-          </div>
-         )}
-
-         {sandboxResults && (
-           <div className="sandbox-results">
-             <div className="sandbox-header">
-                <strong><i className="fa-solid fa-table"></i> Query Results</strong>
-                <button onClick={() => setSandboxResults(null)} className="close-btn" aria-label="Close Results">
-                  <i className="fa-solid fa-xmark"></i>
-                </button>
-             </div>
-             {sandboxResults.message ? (
-                <p className="empty-message">{sandboxResults.message}</p>
-             ) : (
-                <div className="table-responsive">
-                  <table className="sandbox-table">
-                    <thead>
-                      <tr>{sandboxResults.columns.map((c, i) => <th key={i}>{c}</th>)}</tr>
-                    </thead>
-                    <tbody>
-                      {sandboxResults.values.map((row, i) => (
-                        <tr key={i}>
-                          {row.map((val, j) => <td key={j}>{val !== null ? String(val) : <em>NULL</em>}</td>)}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          <div className="controls-group">
+            {activeMode === 'converter' ? (
+              <div className="ext-grid">
+                <div className="control-field">
+                  <span className="label-text">From:</span>
+                  <select
+                    value={sourceDialect}
+                    onChange={(e) => setSourceDialect(e.target.value)}
+                    className="combobox-input full-width"
+                  >
+                    {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
                 </div>
-             )}
-           </div>
-         )}
+                <div className="control-field">
+                  <span className="label-text">To:</span>
+                  <select
+                    value={targetDialect}
+                    onChange={(e) => setTargetDialect(e.target.value)}
+                    className="combobox-input full-width"
+                  >
+                    {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div className="dialect-selection-row">
+                <span className="label-text">Dialect:</span>
+                <select
+                  value={targetDialect}
+                  onChange={(e) => setTargetDialect(e.target.value)}
+                  className="combobox-input"
+                >
+                  {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                </select>
 
-         {isSameDiff ? (
-          <div className="success-state placeholder-container-inner" style={{ minHeight: '150px', marginTop: '1rem' }}>
-           <i className="fa-solid fa-circle-check" style={{ fontSize: '2.5rem', color: 'var(--success)', marginBottom: '1rem' }}></i>
-           <p><strong>Query is already optimized!</strong></p>
-           <p style={{ color: 'var(--text-secondary)' }}>No structural or indexing improvements were necessary for this query.</p>
-          </div>
-         ) : activeMode === 'optimizer' ? (
-          <div className="diff-viewer-wrapper" style={{ marginTop: '1rem' }}>
-           <ReactDiffViewer
-            oldValue={input}
-            newValue={outputCode}
-            splitView={true}
-            useDarkTheme={isDarkTheme}
-            compareMethod="diffLines"
-            leftTitle="Original Query"
-            rightTitle="Optimized Query"
-            styles={!isDarkTheme ? undefined : {
-             variables: {
-              diffViewerBackground: 'var(--bg-primary)',
-              addedBackground: 'rgba(46, 160, 67, 0.15)',
-              addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
-              removedBackground: 'rgba(248, 81, 73, 0.15)',
-              removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
-             },
-             contentText: { fontSize: '13px', lineHeight: '20px' }
-            }}
-           />
-          </div>
-         ) : (
-          <div style={{ marginTop: sandboxResults || sandboxError ? '1rem' : '0' }}>
-            <CodeOutput content={outputCode} language="sql" />
-          </div>
-         )}
+                {activeMode === 'optimizer' && (
+                  <label className="custom-check explain-check">
+                    <input
+                      type="checkbox"
+                      checked={explainChanges}
+                      onChange={(e) => setExplainChanges(e.target.checked)}
+                    />
+                    <div className="box"><i className="fa-solid fa-check"></i></div>
+                    <span className="label-text">Explain Changes</span>
+                  </label>
+                )}
+              </div>
+            )}
 
-         {recommendedIndexes && recommendedIndexes.length > 0 && (
-          <div className="ai-summary" style={{ marginTop: '1rem', borderLeftColor: 'var(--success)' }}>
-           <strong><i className="fa-solid fa-bolt"></i> Recommended Indexes</strong>
-           <p className="small-text">Applying these indexes might drastically improve query performance.</p>
-           {recommendedIndexes.map((idx, i) => (
-            <CodeOutput key={i} content={idx} language="sql" />
-           ))}
+            {activeMode !== 'converter' && (
+              <div className="schema-wrapper">
+                <div className="schema-header-actions">
+                  <button
+                    className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
+                    onClick={() => setShowSchema(!showSchema)}
+                  >
+                    <i className="fa-solid fa-database"></i>
+                    {showSchema ? 'Hide Database Schema' : 'Add Database Schema Context'}
+                  </button>
+
+                  {showSchema && (
+                    <div className="workspace-controls">
+                      <select
+                        className="combobox-input select-small"
+                        value={activeWorkspace}
+                        onChange={(e) => switchWorkspace(e.target.value)}
+                      >
+                        {Object.keys(workspaces).map(ws => (
+                          <option key={ws} value={ws}>{ws}</option>
+                        ))}
+                      </select>
+                      <button className="secondary-button btn-small" onClick={openWorkspaceModal} title="New Workspace">
+                        <i className="fa-solid fa-plus"></i>
+                      </button>
+                      <div className="upload-btn-wrapper" title="Auto-Discover Schema">
+                        <button className="secondary-button btn-small">
+                          <i className="fa-solid fa-file-import"></i>
+                        </button>
+                        <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {showSchema && (
+                  <>
+                    <div className="schema-editor-wrapper">
+                      <CodeEditor
+                        value={schema}
+                        onValueChange={handleSchemaChange}
+                        language="sql"
+                        placeholder="CREATE TABLE users (id INT, name TEXT...);"
+                      />
+                    </div>
+                    <div className="schema-footer-actions action-row">
+                      <button
+                        className="secondary-button btn-small full-width"
+                        onClick={handleGenerateMockData}
+                        disabled={mockLoading}
+                      >
+                        {mockLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : <><i className="fa-solid fa-table"></i> Generate Mock Data into Schema</>}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-         )}
-          
-         {explanation && (
-          <div className="ai-summary" style={{ marginTop: '1rem' }}>
-           <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
-           <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
+
+          <div className="main-input-wrapper flex-grow">
+            <CodeEditor
+              value={input}
+              onValueChange={setInput}
+              language="sql"
+              placeholder={
+                activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
+                  activeMode === 'converter' ? "Paste your SQL here to convert it..." :
+                    "Paste your slow query here..."
+              }
+            />
           </div>
-        )}
-       </div>
-      ) : (
-       <div className="placeholder-text placeholder-container-inner">
-        {loading || mockLoading ? (
-         <div className="processing-state">
-          <div className="pulse-ring"></div>
-          <p>AI is {mockLoading ? 'generating mock data...' : 'building...'}</p>
-         </div>
-        ) : 'Result will appear here.'}
-       </div>
+
+          <div className="action-row generate-action-row">
+            <button className="primary-button full-width" onClick={handleGenerate} disabled={loading || !input.trim()}>
+              {loading ? (
+                <><i className="fa-solid fa-spinner fa-spin"></i> Processing...</>
+              ) : (
+                <><i className="fa-solid fa-gears"></i>
+                  {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}</>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="panel flex-col">
+          <div className="panel-header-row">
+            <h3>Generated SQL ({targetDialect})</h3>
+            {outputCode && (
+              <div className="header-actions">
+                <button className="secondary-button btn-small" onClick={runSandbox} disabled={isSandboxRunning || activeMode === 'converter'}>
+                  <i className={`fa-solid ${isSandboxRunning ? 'fa-spinner fa-spin' : 'fa-play'}`}></i> Run
+                </button>
+                <button className="secondary-button btn-small" onClick={handleFormatCode}>
+                  <i className="fa-solid fa-align-left"></i> Format
+                </button>
+                <CopyButton codeToCopy={outputCode} className="secondary-button btn-small" />
+              </div>
+            )}
+          </div>
+
+          <div className="results-container flex-grow">
+            {outputCode ? (
+              <div className="output-scrollable">
+
+                {warnings && warnings.length > 0 && (
+                  <div className="alert-box amber">
+                    <strong><i className="fa-solid fa-triangle-exclamation"></i> Warnings</strong>
+                    <ul>
+                      {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                {sandboxError && (
+                  <div className="alert-box error-box">
+                    <strong>
+                      <i className="fa-solid fa-circle-xmark"></i> Execution Error
+                    </strong>
+                    <p>{sandboxError}</p>
+                  </div>
+                )}
+
+                {sandboxResults && (
+                  <div className="sandbox-results">
+                    <div className="sandbox-header">
+                      <strong><i className="fa-solid fa-table"></i> Query Results</strong>
+                      <button onClick={() => setSandboxResults(null)} className="close-btn" aria-label="Close Results">
+                        <i className="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                    {sandboxResults.message ? (
+                      <p className="empty-message">{sandboxResults.message}</p>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="sandbox-table">
+                          <thead>
+                            <tr>{sandboxResults.columns.map((c, i) => <th key={i}>{c}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {sandboxResults.values.map((row, i) => (
+                              <tr key={i}>
+                                {row.map((val, j) => <td key={j}>{val !== null ? String(val) : <em>NULL</em>}</td>)}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isSameDiff ? (
+                  <div className="success-state placeholder-container-inner diff-success-state">
+                    <i className="fa-solid fa-circle-check"></i>
+                    <p><strong>Query is already optimized!</strong></p>
+                    <p className="success-desc">No structural or indexing improvements were necessary for this query.</p>
+                  </div>
+                ) : activeMode === 'optimizer' ? (
+                  <div className="diff-viewer-wrapper optimizer-diff">
+                    <ReactDiffViewer
+                      oldValue={input}
+                      newValue={outputCode}
+                      splitView={true}
+                      useDarkTheme={isDarkTheme}
+                      compareMethod="diffLines"
+                      leftTitle="Original Query"
+                      rightTitle="Optimized Query"
+                      styles={!isDarkTheme ? undefined : {
+                        variables: {
+                          diffViewerBackground: 'var(--bg-primary)',
+                          addedBackground: 'rgba(46, 160, 67, 0.15)',
+                          addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
+                          removedBackground: 'rgba(248, 81, 73, 0.15)',
+                          removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
+                        },
+                        contentText: { fontSize: '13px', lineHeight: '20px' }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className={`code-output-wrapper ${sandboxResults || sandboxError ? 'has-results' : ''}`}>
+                    <CodeOutput content={outputCode} language="sql" />
+                  </div>
+                )}
+
+                {recommendedIndexes && recommendedIndexes.length > 0 && (
+                  <div className="ai-summary recommended-indexes">
+                    <strong><i className="fa-solid fa-bolt"></i> Recommended Indexes</strong>
+                    <p className="small-text">Applying these indexes might drastically improve query performance.</p>
+                    {recommendedIndexes.map((idx, i) => (
+                      <CodeOutput key={i} content={idx} language="sql" />
+                    ))}
+                  </div>
+                )}
+
+                {explanation && (
+                  <div className="ai-summary explain-plan">
+                    <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
+                    <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="placeholder-text placeholder-container-inner">
+                {loading || mockLoading ? (
+                  <div className="processing-state">
+                    <div className="pulse-ring"></div>
+                    <p>AI is {mockLoading ? 'generating mock data...' : 'building...'}</p>
+                  </div>
+                ) : 'Result will appear here.'}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isWorkspaceModalOpen && (
+        <div className="modal-overlay" onClick={closeWorkspaceModal}>
+          <div className="modal-content sql-project-model" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>Create New Workspace</h4>
+              <button className="close-btn" onClick={closeWorkspaceModal}>
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-desc">Enter a name for your new database schema workspace:</p>
+              <input
+                type="text"
+                className="combobox-input"
+                value={newWorkspaceName}
+                onChange={(e) => setNewWorkspaceName(e.target.value)}
+                placeholder="e.g., E-commerce DB"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && confirmCreateWorkspace()}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="secondary-button" onClick={closeWorkspaceModal}>Cancel</button>
+              <button className="primary-button" onClick={confirmCreateWorkspace}>Create</button>
+            </div>
+          </div>
+        </div>
       )}
-     </div>
     </div>
-   </div>
-  </div>
- );
+  );
 }
