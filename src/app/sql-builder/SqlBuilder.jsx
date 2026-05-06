@@ -99,15 +99,17 @@ export default function SqlBuilder() {
                   {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                 </select>
 
-                <label className="custom-check explain-check">
-                  <input
-                    type="checkbox"
-                    checked={explainChanges}
-                    onChange={(e) => setExplainChanges(e.target.checked)}
-                  />
-                  <div className="box"><i className="fa-solid fa-check"></i></div>
-                  <span className="label-text">Explain Changes</span>
-                </label>
+                {activeMode === 'optimizer' && (
+                  <label className="custom-check explain-check">
+                    <input
+                      type="checkbox"
+                      checked={explainChanges}
+                      onChange={(e) => setExplainChanges(e.target.checked)}
+                    />
+                    <div className="box"><i className="fa-solid fa-check"></i></div>
+                    <span className="label-text">Explain Changes</span>
+                  </label>
+                )}
               </div>
             )}
 

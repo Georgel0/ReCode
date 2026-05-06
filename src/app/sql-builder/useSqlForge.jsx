@@ -254,6 +254,7 @@ export function useSqlForge() {
     setRecommendedIndexes([]);
     setSandboxResults(null);
     setSandboxError(null);
+    setSchema('');
   };
 
   return {
@@ -262,10 +263,8 @@ export function useSqlForge() {
     schema, handleSchemaChange,
     showSchema, setShowSchema,
     workspaces, activeWorkspace, switchWorkspace,
-
     isWorkspaceModalOpen, newWorkspaceName, setNewWorkspaceName,
     openWorkspaceModal, closeWorkspaceModal, confirmCreateWorkspace,
-
     targetDialect, setTargetDialect,
     sourceDialect, setSourceDialect,
     explainChanges, setExplainChanges,
