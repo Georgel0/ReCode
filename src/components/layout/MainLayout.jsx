@@ -24,6 +24,11 @@ export function MainLayout({ children }) {
  const router = useRouter();
  
  const isLandingPage = pathname === '/';
+
+ useEffect(() => {
+  const saved = localStorage.getItem('recode_sidebar_collapsed');
+  if (saved !== null) setSidebarCollapsed(saved === 'true');
+ }, []);
  
  useEffect(() => {
   const saved = localStorage.getItem('recode_last_module');
@@ -40,7 +45,13 @@ export function MainLayout({ children }) {
  }, [pathname, isLandingPage]);
  
  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
- const toggleDesktopCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
+ const toggleDesktopCollapse = () => {
+  setSidebarCollapsed((prev) => {
+    const newValue = !prev;
+    localStorage.setItem('recode_sidebar_collapsed', String(newValue));
+    return newValue;
+  });
+ };
  
  const loadFromHistory = (historyItem) => {
   let targetPath = '/code-converter';

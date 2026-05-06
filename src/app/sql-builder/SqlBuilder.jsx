@@ -99,17 +99,15 @@ export default function SqlBuilder() {
                   {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                 </select>
 
-                {activeMode === 'optimizer' && (
-                  <label className="custom-check explain-check">
-                    <input
-                      type="checkbox"
-                      checked={explainChanges}
-                      onChange={(e) => setExplainChanges(e.target.checked)}
-                    />
-                    <div className="box"><i className="fa-solid fa-check"></i></div>
-                    <span className="label-text">Explain Changes</span>
-                  </label>
-                )}
+                <label className="custom-check explain-check">
+                  <input
+                    type="checkbox"
+                    checked={explainChanges}
+                    onChange={(e) => setExplainChanges(e.target.checked)}
+                  />
+                  <div className="box"><i className="fa-solid fa-check"></i></div>
+                  <span className="label-text">Explain Changes</span>
+                </label>
               </div>
             )}
 
@@ -135,14 +133,16 @@ export default function SqlBuilder() {
                           <option key={ws} value={ws}>{ws}</option>
                         ))}
                       </select>
-                      <button className="secondary-button btn-small" onClick={openWorkspaceModal} title="New Workspace">
-                        <i className="fa-solid fa-plus"></i>
-                      </button>
-                      <div className="upload-btn-wrapper" title="Auto-Discover Schema">
-                        <button className="secondary-button btn-small">
-                          <i className="fa-solid fa-file-import"></i>
+                      <div className="sub-workspace-controls">
+                        <button className="secondary-button btn-small" onClick={openWorkspaceModal} title="New Workspace">
+                          <i className="fa-solid fa-plus"></i>
                         </button>
-                        <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
+                        <div className="upload-btn-wrapper" title="Auto-Discover Schema">
+                          <button className="secondary-button btn-small">
+                            <i className="fa-solid fa-file-import"></i>
+                          </button>
+                          <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
+                        </div>
                       </div>
                     </div>
                   )}
