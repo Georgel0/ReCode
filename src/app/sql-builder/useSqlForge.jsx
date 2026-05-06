@@ -28,6 +28,7 @@ export function useSqlForge() {
   const [explanation, setExplanation] = useState('');
   const [warnings, setWarnings] = useState([]);
   const [recommendedIndexes, setRecommendedIndexes] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [mockLoading, setMockLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
@@ -210,38 +211,75 @@ export function useSqlForge() {
     setIsSandboxRunning(true);
     setSandboxError(null);
     setSandboxResults(null);
+    
+    let db = null;
 
     try {
-      // Dynamically import sql.js to prevent SSR issues in Next.js
-      const initSqlJsModule = (await import('sql.js')).default;
-      const SQL = await initSqlJsModule({
-        // Dynamically fetches the correct file from jsDelivr
-        locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js/dist/${file}`
+      // Robust loading to handle both ESM and CommonJS resolving
+      const sqlJsModule = await import('sql.js');
+      const initSqlJs = sqlJsModule.default || sqlJsModule;
+      
+      const SQL = await initSqlJs({
+        // Pinned version ensures the fetch doesn't break on upstream updates
+        locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
       });
 
-      const db = new SQL.Database();
+      db = new SQL.Database();
 
+      // Run Schema execution
       if (schema.trim()) {
         try {
-          db.run(schema);
+          db.exec(schema); 
         } catch (schemaErr) {
-          throw new Error(`Schema/Mock Data Error: ${schemaErr.message}`);
+          throw new Error(`Schema Execution Error: ${schemaErr.message}. Make sure your schema is compatible with SQLite syntax.`);
         }
       }
 
-      const res = db.exec(outputCode);
-
-      if (res && res.length > 0) {
-        setSandboxResults(res[0]); // Returns { columns: [...], values: [[...]] }
-      } else {
-        setSandboxResults({ columns: [], values: [], message: 'Query executed successfully but returned 0 rows.' });
+      // Run target Query execution
+      let res;
+      try {
+        res = db.exec(outputCode);
+      } catch (queryErr) {
+        // Explain dialect limitations to the user dynamically
+        const dialectWarning = targetDialect !== 'SQLite' 
+            ? `\n\nNote: The sandbox operates on an in-memory SQLite database. Specific ${targetDialect} functions/syntax may fail to execute.` 
+            : '';
+        throw new Error(`Query Error: ${queryErr.message}${dialectWarning}`);
       }
+
+      // Extract formatting for arrays 
+      const formattedResults = [];
+      
+      // Select Queries (Returns rows/columns)
+      if (res && res.length > 0) {
+        res.forEach(resultSet => {
+          formattedResults.push({
+            columns: resultSet.columns,
+            values: resultSet.values
+          });
+        });
+      }
+
+      // Action Queries (INSERT/UPDATE/DELETE return modifications)
+      const modifiedRows = db.getRowsModified();
+      if (modifiedRows > 0) {
+        formattedResults.push({ message: `Query executed successfully. Rows modified/affected: ${modifiedRows}` });
+      } else if (formattedResults.length === 0) {
+        formattedResults.push({ message: 'Query executed successfully but returned 0 rows.' });
+      }
+
+      setSandboxResults(formattedResults);
       toast.success("Query executed in sandbox!");
 
     } catch (err) {
+      console.error(err);
       setSandboxError(err.message);
       toast.error("Execution failed.");
     } finally {
+      // Safely close database to prevent memory leaks in WASM
+      if (db) {
+        try { db.close(); } catch(e) { console.error("Error closing sandbox memory", e); }
+      }
       setIsSandboxRunning(false);
     }
   };

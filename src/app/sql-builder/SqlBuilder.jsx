@@ -235,11 +235,11 @@ export default function SqlBuilder() {
                     <strong>
                       <i className="fa-solid fa-circle-xmark"></i> Execution Error
                     </strong>
-                    <p>{sandboxError}</p>
+                    <p style={{ whiteSpace: 'pre-wrap' }}>{sandboxError}</p>
                   </div>
                 )}
 
-                {sandboxResults && (
+                {sandboxResults && sandboxResults.length > 0 && (
                   <div className="sandbox-results">
                     <div className="sandbox-header">
                       <strong><i className="fa-solid fa-table"></i> Query Results</strong>
@@ -247,24 +247,37 @@ export default function SqlBuilder() {
                         <i className="fa-solid fa-xmark"></i>
                       </button>
                     </div>
-                    {sandboxResults.message ? (
-                      <p className="empty-message">{sandboxResults.message}</p>
-                    ) : (
-                      <div className="table-responsive">
-                        <table className="sandbox-table">
-                          <thead>
-                            <tr>{sandboxResults.columns.map((c, i) => <th key={i}>{c}</th>)}</tr>
-                          </thead>
-                          <tbody>
-                            {sandboxResults.values.map((row, i) => (
-                              <tr key={i}>
-                                {row.map((val, j) => <td key={j}>{val !== null ? String(val) : <em>NULL</em>}</td>)}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                    
+                    <div className="sandbox-results-body" style={{ padding: '0.5rem' }}>
+                      {sandboxResults.map((result, idx) => (
+                        <div key={idx} className="result-set" style={{ marginBottom: sandboxResults.length > 1 && idx < sandboxResults.length - 1 ? '1.5rem' : '0' }}>
+                          
+                          {sandboxResults.length > 1 && !result.message && (
+                            <h5 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)' }}>Result Set {idx + 1}</h5>
+                          )}
+
+                          {result.message ? (
+                            <p className="empty-message">{result.message}</p>
+                          ) : (
+                            <div className="table-responsive">
+                              <table className="sandbox-table">
+                                <thead>
+                                  <tr>{result.columns.map((c, i) => <th key={i}>{c}</th>)}</tr>
+                                </thead>
+                                <tbody>
+                                  {result.values.map((row, i) => (
+                                    <tr key={i}>
+                                      {row.map((val, j) => <td key={j}>{val !== null ? String(val) : <em>NULL</em>}</td>)}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
