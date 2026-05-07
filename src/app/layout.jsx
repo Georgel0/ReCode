@@ -58,6 +58,7 @@ export default function RootLayout({ children }) {
         <meta property="twitter:image" content="https://recode-alpha.vercel.app/og-image.png" />
         
         <script dangerouslySetInnerHTML={{ __html: themeCheckScript }} />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js" strategy="beforeInteractive" />
       </head>
       <body>
         <ThemeProvider>

@@ -1,7 +1,16 @@
 {
   "compilerOptions": {
+    "checkJs": false,
+    "module": "ESNext",
+    "target": "ES6",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ]
 }

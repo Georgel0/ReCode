@@ -18,6 +18,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  margin-top: 1rem;
 }
 
 .module-header {
@@ -224,7 +225,7 @@ html[data-theme='quartz'] .copy-btn {
 
 .panel-header-row .mode-btn {
   font-size: 0.75rem;
-  padding: 4px 12px;
+  padding: .4rem .8rem;
   border: 1px solid var(--border);
   color: var(--accent);
 }

@@ -247,11 +247,11 @@ export default function SqlBuilder() {
                         <i className="fa-solid fa-xmark"></i>
                       </button>
                     </div>
-                    
+
                     <div className="sandbox-results-body" style={{ padding: '0.5rem' }}>
                       {sandboxResults.map((result, idx) => (
                         <div key={idx} className="result-set" style={{ marginBottom: sandboxResults.length > 1 && idx < sandboxResults.length - 1 ? '1.5rem' : '0' }}>
-                          
+
                           {sandboxResults.length > 1 && !result.message && (
                             <h5 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)' }}>Result Set {idx + 1}</h5>
                           )}
@@ -305,7 +305,8 @@ export default function SqlBuilder() {
                           removedBackground: 'rgba(248, 81, 73, 0.15)',
                           removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
                         },
-                        contentText: { fontSize: '13px', lineHeight: '20px' }
+                        contentText: { fontSize: '13px', lineHeight: '20px' },
+                        titleBlock: { height: 'auto', padding: '10px' },
                       }}
                     />
                   </div>

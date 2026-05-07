@@ -70,6 +70,7 @@ textarea {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem;
+  margin-bottom: 1rem;
   resize: none;
   font-family: monospace;
   font-size: 0.9rem;

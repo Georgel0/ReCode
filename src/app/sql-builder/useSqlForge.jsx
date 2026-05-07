@@ -211,46 +211,28 @@ export function useSqlForge() {
     setIsSandboxRunning(true);
     setSandboxError(null);
     setSandboxResults(null);
-    
+
     let db = null;
 
     try {
-      // Robust loading to handle both ESM and CommonJS resolving
-      const sqlJsModule = await import('sql.js');
-      const initSqlJs = sqlJsModule.default || sqlJsModule;
-      
+      const initSqlJs = window.initSqlJs;
       const SQL = await initSqlJs({
-        // Pinned version ensures the fetch doesn't break on upstream updates
-        locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
+        locateFile: file => `/${file}`
       });
 
       db = new SQL.Database();
 
-      // Run Schema execution
-      if (schema.trim()) {
+      if (schema && schema.trim()) {
         try {
-          db.exec(schema); 
+          db.exec(schema);
         } catch (schemaErr) {
-          throw new Error(`Schema Execution Error: ${schemaErr.message}. Make sure your schema is compatible with SQLite syntax.`);
+          throw new Error(`Schema Error: ${schemaErr.message}`);
         }
       }
 
-      // Run target Query execution
-      let res;
-      try {
-        res = db.exec(outputCode);
-      } catch (queryErr) {
-        // Explain dialect limitations to the user dynamically
-        const dialectWarning = targetDialect !== 'SQLite' 
-            ? `\n\nNote: The sandbox operates on an in-memory SQLite database. Specific ${targetDialect} functions/syntax may fail to execute.` 
-            : '';
-        throw new Error(`Query Error: ${queryErr.message}${dialectWarning}`);
-      }
-
-      // Extract formatting for arrays 
+      const res = db.exec(outputCode);
       const formattedResults = [];
-      
-      // Select Queries (Returns rows/columns)
+
       if (res && res.length > 0) {
         res.forEach(resultSet => {
           formattedResults.push({
@@ -260,25 +242,22 @@ export function useSqlForge() {
         });
       }
 
-      // Action Queries (INSERT/UPDATE/DELETE return modifications)
       const modifiedRows = db.getRowsModified();
       if (modifiedRows > 0) {
-        formattedResults.push({ message: `Query executed successfully. Rows modified/affected: ${modifiedRows}` });
+        formattedResults.push({ message: `Query executed. Rows affected: ${modifiedRows}` });
       } else if (formattedResults.length === 0) {
-        formattedResults.push({ message: 'Query executed successfully but returned 0 rows.' });
+        formattedResults.push({ message: 'Query executed successfully (0 rows returned).' });
       }
 
       setSandboxResults(formattedResults);
-      toast.success("Query executed in sandbox!");
+      toast.success("Execution successful!");
 
     } catch (err) {
-      console.error(err);
-      setSandboxError(err.message);
-      toast.error("Execution failed.");
+      console.error("Sandbox Runtime Error:", err);
+      setSandboxError(err.message || "An unknown error occurred during execution.");
     } finally {
-      // Safely close database to prevent memory leaks in WASM
       if (db) {
-        try { db.close(); } catch(e) { console.error("Error closing sandbox memory", e); }
+        try { db.close(); } catch (e) { console.error(e); }
       }
       setIsSandboxRunning(false);
     }
