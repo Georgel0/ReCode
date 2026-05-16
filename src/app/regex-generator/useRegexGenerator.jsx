@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { convertCode } from '@/lib/api';
 import { useApp } from '@/context/AppContext';
 
@@ -66,10 +66,24 @@ export function useRegexGenerator() {
     { id: 2, text: 'invalid-email', shouldMatch: false }
   ]);
   
+  const [matchResults, setMatchResults] = useState({});
+  
   const [loading, setLoading] = useState(false);
   const [showCheatsheet, setShowCheatsheet] = useState(false);
   const [showTestInfo, setShowTestInfo] = useState(false);
   const [lastResult, setLastResult] = useState(null);
+
+  // Handle Escape key for modals
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowCheatsheet(false);
+        setShowTestInfo(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (moduleData && moduleData.type === 'regex') {
@@ -77,6 +91,39 @@ export function useRegexGenerator() {
       handleResponseParsing(moduleData.fullOutput);
     }
   }, [moduleData]);
+
+  // Debounced Regex Evaluation to prevent ReDoS UI freezes
+  useEffect(() => {
+    const evaluateTimer = setTimeout(() => {
+      const results = {};
+      const activeFlags = Object.keys(flags).filter(k => flags[k]).join('');
+      
+      let regexObj = null;
+      try {
+        if (outputCode) regexObj = new RegExp(outputCode, activeFlags);
+      } catch (e) {
+        // Invalid regex generated
+      }
+
+      testCases.forEach(test => {
+        if (!regexObj || !test.text) {
+          results[test.id] = { error: !regexObj, isMatch: false };
+          return;
+        }
+        try {
+          // Reset lastIndex for global regexes before testing
+          regexObj.lastIndex = 0; 
+          results[test.id] = { isMatch: regexObj.test(test.text), error: false };
+        } catch (e) {
+          results[test.id] = { error: true, isMatch: false };
+        }
+      });
+      
+      setMatchResults(results);
+    }, 300);
+
+    return () => clearTimeout(evaluateTimer);
+  }, [testCases, outputCode, flags]);
 
   const handleResponseParsing = (raw) => {
     const data = typeof raw === 'string' ? parseFallback(raw) : raw;
@@ -115,17 +162,8 @@ export function useRegexGenerator() {
     setLoading(false);
   };
 
-  const getRegexObject = () => {
-    try {
-      const activeFlags = Object.keys(flags).filter(k => flags[k]).join('');
-      return new RegExp(outputCode, activeFlags);
-    } catch (e) {
-      return null;
-    }
-  };
-
   const addTestCase = () => {
-    const newId = Math.max(...testCases.map(t => t.id), 0) + 1;
+    const newId = testCases.length > 0 ? Math.max(...testCases.map(t => t.id)) + 1 : 1;
     setTestCases([...testCases, { id: newId, text: '', shouldMatch: true }]);
   };
 
@@ -137,18 +175,12 @@ export function useRegexGenerator() {
     setTestCases(testCases.map(t => t.id === id ? { ...t, [field]: value } : t));
   };
 
-  const checkMatch = (text) => {
-    const regex = getRegexObject();
-    if (!regex) return { error: true };
-    return { isMatch: regex.test(text) };
-  };
-
-  const fullString = `/${outputCode}/${Object.keys(flags).filter(k => flags[k]).join('')}` || "";
+  const fullString = outputCode ? `/${outputCode}/${Object.keys(flags).filter(k => flags[k]).join('')}` : "";
 
   return {
     input, setInput, refineMode, setRefineMode, flavor, setFlavor, flags, setFlags,
-    outputCode, setOutputCode, summary, breakdown, testCases, loading,
+    outputCode, setOutputCode, summary, breakdown, testCases, loading, matchResults,
     showCheatsheet, setShowCheatsheet, showTestInfo, setShowTestInfo, lastResult,
-    handleGenerate, addTestCase, removeTestCase, updateTestCase, checkMatch, fullString
+    handleGenerate, addTestCase, removeTestCase, updateTestCase, fullString
   };
 }

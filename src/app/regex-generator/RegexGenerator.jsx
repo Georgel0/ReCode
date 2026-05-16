@@ -1,21 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { ModuleHeader } from '@/components/layout';
 import { CopyButton } from '@/components/ui';
 import { useRegexGenerator, CHEATSHEET } from './useRegexGenerator';
 import './regexGenerator.css';
 
-export default function RegexGenerator() {
-  const {
-    input, setInput, refineMode, setRefineMode, flavor, setFlavor, flags, setFlags,
-    outputCode, setOutputCode, summary, breakdown, testCases, loading,
-    showCheatsheet, setShowCheatsheet, showTestInfo, setShowTestInfo, lastResult,
-    handleGenerate, addTestCase, removeTestCase, updateTestCase, checkMatch, fullString
-  } = useRegexGenerator();
+// Extracted Component to handle individual scroll syncing perfectly
+const TestCaseItem = ({ test, result, outputCode, flags, updateTestCase, removeTestCase }) => {
+  const highlightLayerRef = useRef(null);
+
+  const handleScroll = (e) => {
+    if (highlightLayerRef.current) {
+      highlightLayerRef.current.scrollLeft = e.target.scrollLeft;
+    }
+  };
 
   const renderHighlightedText = (text) => {
-    if (!outputCode) return text;
+    if (!outputCode || !text) return text;
     try {
       const highlightFlags = `g${flags.i ? 'i' : ''}`;
       const regex = new RegExp(outputCode, highlightFlags);
@@ -23,7 +25,13 @@ export default function RegexGenerator() {
       const elements = [];
       let match;
       regex.lastIndex = 0;
-      while ((match = regex.exec(text)) !== null) {
+      
+      // Safety break to prevent infinite loops on zero-width matches
+      let safeGuard = 0; 
+      
+      while ((match = regex.exec(text)) !== null && safeGuard < 1000) {
+        if (match[0].length === 0) regex.lastIndex++; // Handle zero-width matches
+        
         if (match.index > lastIndex) {
           elements.push(text.substring(lastIndex, match.index));
         }
@@ -33,7 +41,7 @@ export default function RegexGenerator() {
           </span>
         );
         lastIndex = regex.lastIndex;
-        if (match.index === regex.lastIndex) regex.lastIndex++;
+        safeGuard++;
       }
       if (lastIndex < text.length) elements.push(text.substring(lastIndex));
       return elements.length > 0 ? elements : text;
@@ -41,6 +49,53 @@ export default function RegexGenerator() {
       return text;
     }
   };
+
+  const isSuccess = result?.isMatch === test.shouldMatch;
+
+  return (
+    <div className="test-case-row">
+      <button 
+        className={`expectation-toggle ${test.shouldMatch ? 'expect-match' : 'expect-fail'}`} 
+        onClick={() => updateTestCase(test.id, 'shouldMatch', !test.shouldMatch)}
+        aria-label={`Toggle expectation. Currently ${test.shouldMatch ? 'expecting match' : 'expecting fail'}`}
+      >
+        <i className={`fa-solid ${test.shouldMatch ? 'fa-check' : 'fa-ban'}`}></i>
+      </button>
+      
+      <div className="test-input-wrapper">
+        <input 
+          type="text" 
+          value={test.text} 
+          onChange={(e) => updateTestCase(test.id, 'text', e.target.value)} 
+          onScroll={handleScroll}
+          placeholder="Test string..." 
+          className="test-input-field" 
+          aria-label="Test case input"
+        />
+        <div className="test-input-highlight-layer" ref={highlightLayerRef} aria-hidden="true">
+          {renderHighlightedText(test.text)}
+        </div>
+      </div>
+
+      <div className={`result-indicator ${isSuccess ? 'success' : 'fail'}`} title={isSuccess ? "Passed" : "Failed"}>
+        {result?.error ? <i className="fa-solid fa-triangle-exclamation" title="Invalid Regex"></i> : <i className={`fa-solid ${isSuccess ? 'fa-check' : 'fa-xmark'}`}></i>}
+      </div>
+
+      <button className="remove-btn" onClick={() => removeTestCase(test.id)} aria-label="Remove test case">
+        <i className="fa-solid fa-trash"></i>
+      </button>
+    </div>
+  );
+};
+
+
+export default function RegexGenerator() {
+  const {
+    input, setInput, refineMode, setRefineMode, flavor, setFlavor, flags, setFlags,
+    outputCode, setOutputCode, summary, breakdown, testCases, loading, matchResults,
+    showCheatsheet, setShowCheatsheet, showTestInfo, setShowTestInfo, lastResult,
+    handleGenerate, addTestCase, removeTestCase, updateTestCase, fullString
+  } = useRegexGenerator();
 
   return (
     <div className="module-container">
@@ -52,8 +107,8 @@ export default function RegexGenerator() {
 
       {showCheatsheet && (
         <div className="modal-overlay" onClick={() => setShowCheatsheet(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Regex Cheatsheet</h2>
+          <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="cheatsheet-title" onClick={e => e.stopPropagation()}>
+            <h2 id="cheatsheet-title">Regex Cheatsheet</h2>
             <div className="ext-grid">
               {Object.entries(CHEATSHEET).map(([category, items]) => (
                 <div key={category} className="cheatsheet-category">
@@ -72,11 +127,10 @@ export default function RegexGenerator() {
         </div>
       )}
       
-      {/* Test Info Modal */}
       {showTestInfo && (
         <div className="modal-overlay" onClick={() => setShowTestInfo(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3>Test Cases Info</h3>
+          <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="test-info-title" onClick={e => e.stopPropagation()}>
+            <h3 id="test-info-title">Test Cases Info</h3>
             <div className="ext-grid">
               <strong><i className="fa-solid fa-toggle-on"></i> Set Your Goal</strong>
               <p>Toggle to define expectations: Match (<i className="fa-solid fa-check"></i>) or Ban (<i className="fa-solid fa-ban"></i>).</p>
@@ -107,6 +161,11 @@ export default function RegexGenerator() {
                 <option value="Python">Python</option>
                 <option value="PCRE">PCRE (PHP/Go)</option>
               </select>
+              {flavor !== 'JavaScript' && (
+                <span className="flavor-warning">
+                  <i className="fa-solid fa-circle-exclamation"></i> Live tests use JS engine
+                </span>
+              )}
             </div>
                   
             <div className="control-field">
@@ -182,34 +241,23 @@ export default function RegexGenerator() {
                   <div className="panel-header-row" style={{marginBottom: '10px'}}>
                     <div className="selector-name"><i className="fa-solid fa-vial"> </i> 
                       <h4 style={{ margin: '5px' }}>Test Cases</h4>
-                      <button className="info-trigger" onClick={() => setShowTestInfo(true)}><i className="fas fa-circle-info"></i></button>
+                      <button className="info-trigger" onClick={() => setShowTestInfo(true)} aria-label="More information about test cases"><i className="fas fa-circle-info"></i></button>
                     </div>
-                    <button className="icon-btn" onClick={addTestCase} title="Add Test Case"><i className="fa-solid fa-plus"></i></button>
+                    <button className="icon-btn" onClick={addTestCase} aria-label="Add Test Case" title="Add Test Case"><i className="fa-solid fa-plus"></i></button>
                   </div>
 
                   <div className="test-cases-list">
-                    {testCases.map((test) => {
-                      const result = checkMatch(test.text);
-                      const isSuccess = result.isMatch === test.shouldMatch; 
-                      return (
-                        <div key={test.id} className="test-case-row">
-                          <div className={`expectation-toggle ${test.shouldMatch ? 'expect-match' : 'expect-fail'}`} onClick={() => updateTestCase(test.id, 'shouldMatch', !test.shouldMatch)}>
-                            <i className={`fa-solid ${test.shouldMatch ? 'fa-check' : 'fa-ban'}`}></i>
-                          </div>
-                          
-                          <div className="test-input-wrapper">
-                            <input type="text" value={test.text} onChange={(e) => updateTestCase(test.id, 'text', e.target.value)} placeholder="Test string..." className="test-input-field" />
-                            <div className="test-input-highlight-layer">{renderHighlightedText(test.text)}</div>
-                          </div>
-
-                          <div className={`result-indicator ${isSuccess ? 'success' : 'fail'}`}>
-                            {result.error ? <i className="fa-solid fa-triangle-exclamation"></i> : <i className={`fa-solid ${isSuccess ? 'fa-check' : 'fa-xmark'}`}></i>}
-                          </div>
-
-                          <button className="remove-btn" onClick={() => removeTestCase(test.id)}><i className="fa-solid fa-trash"></i></button>
-                        </div>
-                      );
-                    })}
+                    {testCases.map((test) => (
+                      <TestCaseItem 
+                        key={test.id}
+                        test={test}
+                        result={matchResults[test.id]}
+                        outputCode={outputCode}
+                        flags={flags}
+                        updateTestCase={updateTestCase}
+                        removeTestCase={removeTestCase}
+                      />
+                    ))}
                   </div>
                 </div>
               </>
