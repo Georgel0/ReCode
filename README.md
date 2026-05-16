@@ -47,7 +47,7 @@ Generate boilerplate functions, classes, or entire scripts from natural language
 Convert raw CSS to Tailwind, Bootstrap, or SCSS automatically.
 
 ### SQL Builder
-Design complex database queries (Joins, Unions, CTEs) using simple English instructions.
+Design and test complex database queries (Joins, Unions, CTEs) using simple English instructions.
 
 ### Regex Generator
 Create complex Regular Expressions by describing what you want to match.

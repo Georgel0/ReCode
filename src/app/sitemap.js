@@ -11,6 +11,7 @@ export default function sitemap() {
     '/sql-builder',
     '/regex-generator',
     '/json-formatter',
+    '/mock-generator'
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split('T')[0],

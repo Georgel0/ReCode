@@ -61,6 +61,7 @@ export function MainLayout({ children }) {
   if (historyItem.type === 'refactor') targetPath = '/code-refactor';
   if (historyItem.type === 'regex') targetPath = '/regex-generator';
   if (historyItem.type === 'json') targetPath = '/json-formatter';
+  if (historyItem.type === 'mock') targetPath = '/mock-generator';
   if (historyItem.type === 'css-tailwind' || historyItem.type === 'css-framework') targetPath = '/css-frameworks';
   
   setModuleData(historyItem);
