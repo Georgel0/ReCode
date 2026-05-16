@@ -1,0 +1,173 @@
+/* Sandbox results table, stats bar, simulation notice */
+
+.sandbox-results {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.sandbox-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.sandbox-header .close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sandbox-header .close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.table-responsive {
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sandbox-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.sandbox-table th,
+.sandbox-table td {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.sandbox-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-weight: 600;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.sandbox-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.empty-message {
+  padding: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.null-value {
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-size: 0.8rem;
+}
+
+.sandbox-error-text {
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.result-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+
+.result-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.result-stat i {
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+.result-stat.simulated-tag {
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.08);
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.result-set-block {
+  margin-bottom: 0;
+}
+
+.result-set-label {
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.simulation-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 0.875rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.simulation-note-box {
+  border-left: 3px solid var(--accent);
+}
+
+@media (max-width: 768px) {
+  .sandbox-table th,
+  .sandbox-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .table-responsive {
+    max-height: 300px;
+  }
+
+  .result-stats-bar {
+    gap: 0.75rem;
+  }
+}

@@ -1,0 +1,115 @@
+/* Schema editor, workspace controls, file upload */
+
+.schema-wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  margin-bottom: 0.5rem;
+}
+
+.schema-toggle-btn {
+  flex-grow: 1;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.schema-toggle-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.schema-toggle-btn.active {
+  color: var(--accent);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.schema-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary);
+}
+
+.schema-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}
+
+.schema-editor-wrapper {
+  height: 250px;
+  position: relative;
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.schema-editor-wrapper > div {
+  position: absolute !important;
+  inset: 0;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.workspace-controls {
+  padding-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sub-workspace-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.upload-btn-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+}
+
+.upload-btn-wrapper input[type="file"] {
+  font-size: 100px;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 1000px) {
+  .workspace-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .schema-footer-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .sub-workspace-controls {
+    flex-wrap: wrap;
+  }
+}

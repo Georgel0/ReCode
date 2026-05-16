@@ -1,50 +1,52 @@
 'use client';
 
-import ReactDiffViewer from 'react-diff-viewer-continued';
+import { useEffect, useRef } from 'react';
 import { ModuleHeader } from '@/components/layout';
-import { CodeEditor, CodeOutput, CopyButton } from '@/components/ui';
 import { useTheme } from '@/context';
-import { useSqlForge, MODES, DIALECTS } from './useSqlForge';
-import './SqlBuilder.css';
+import { useSqlForge } from './ useSqlForge/useSqlForge';
+import { MODES } from './components/sqlForgeConstants';
+import { SqlBuilderInput } from './components/SqlBuilderInput';
+import { SqlBuilderOutput } from './components/SqlBuilderOutput';
+import { TestRunner } from './components/TestRunner';
+import { WorkspaceModal } from './components/WorkspaceModal';
+
+import './styles/sqlBuilder.css';
+import './styles/testRunner.css';
+import './styles/schema.css';
+import './styles/sandbox.css';
 
 export default function SqlBuilder() {
   const { currentTheme } = useTheme();
   const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+  const testRunnerRef = useRef(null);
 
-  const {
-    activeMode, setActiveMode,
-    input, setInput,
-    schema, handleSchemaChange,
-    showSchema, setShowSchema,
-    workspaces, activeWorkspace, switchWorkspace,
-    isWorkspaceModalOpen, newWorkspaceName, setNewWorkspaceName,
-    openWorkspaceModal, closeWorkspaceModal, confirmCreateWorkspace,
-    targetDialect, setTargetDialect,
-    sourceDialect, setSourceDialect,
-    explainChanges, setExplainChanges,
-    outputCode, explanation, warnings, recommendedIndexes,
-    loading, mockLoading, lastResult,
-    sandboxResults, setSandboxResults, sandboxError, isSandboxRunning,
-    handleGenerate, handleGenerateMockData, clearInputs,
-    handleFileUpload, handleFormatCode, runSandbox
-  } = useSqlForge();
+  const forge = useSqlForge();
 
-  const isSameDiff = activeMode === 'optimizer' && input.trim() && outputCode.trim() && input.trim() === outputCode.trim();
+  // Scroll to test runner when it opens
+  useEffect(() => {
+    if (forge.showTestRunner && testRunnerRef.current) {
+      const id = setTimeout(
+        () => testRunnerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        100,
+      );
+      return () => clearTimeout(id);
+    }
+  }, [forge.showTestRunner]);
 
   return (
     <div className="module-container">
       <ModuleHeader
         title="SQL Builder"
-        description="Generate, convert, execute, and optimize SQL queries securely in your browser."
-        resultData={lastResult}
+        description="Generate, convert, execute, and optimize SQL queries for any dialect."
+        resultData={forge.lastResult}
       />
 
       <div className="tabs-container">
-        {MODES.map(m => (
+        {MODES.map((m) => (
           <button
             key={m.id}
-            className={`tab-btn ${activeMode === m.id ? 'active' : ''}`}
-            onClick={() => setActiveMode(m.id)}
+            className={`tab-btn ${forge.activeMode === m.id ? 'active' : ''}`}
+            onClick={() => forge.setActiveMode(m.id)}
           >
             <i className={`fa-solid ${m.icon}`}></i> {m.label}
           </button>
@@ -52,329 +54,79 @@ export default function SqlBuilder() {
       </div>
 
       <div className="converter-grid">
-        <div className="panel flex-col">
-          <div className="panel-header-row">
-            <h3>
-              {activeMode === 'builder' && 'Requirement'}
-              {activeMode === 'converter' && 'Source Query'}
-              {activeMode === 'optimizer' && 'Slow Query'}
-            </h3>
-            <button className="mode-btn" onClick={clearInputs}>
-              <i className="fa-solid fa-eraser"></i> Clear
-            </button>
-          </div>
+        <SqlBuilderInput
+          activeMode={forge.activeMode}
+          input={forge.input} setInput={forge.setInput}
+          targetDialect={forge.targetDialect} setTargetDialect={forge.setTargetDialect}
+          sourceDialect={forge.sourceDialect} setSourceDialect={forge.setSourceDialect}
+          explainChanges={forge.explainChanges} setExplainChanges={forge.setExplainChanges}
+          schema={forge.schema}
+          handleSchemaChange={forge.handleSchemaChange}
+          handleCopySchema={forge.handleCopySchema}
+          handleClearSchema={forge.handleClearSchema}
+          showSchema={forge.showSchema} setShowSchema={forge.setShowSchema}
+          workspaces={forge.workspaces}
+          activeWorkspace={forge.activeWorkspace}
+          switchWorkspace={forge.switchWorkspace}
+          openWorkspaceModal={forge.openWorkspaceModal}
+          deleteWorkspace={forge.deleteWorkspace}
+          handleFileUpload={forge.handleFileUpload}
+          mockLoading={forge.mockLoading}
+          handleGenerateMockData={forge.handleGenerateMockData}
+          loading={forge.loading}
+          handleGenerate={forge.handleGenerate}
+          clearInputs={forge.clearInputs}
+        />
 
-          <div className="controls-group">
-            {activeMode === 'converter' ? (
-              <div className="ext-grid">
-                <div className="control-field">
-                  <span className="label-text">From:</span>
-                  <select
-                    value={sourceDialect}
-                    onChange={(e) => setSourceDialect(e.target.value)}
-                    className="combobox-input full-width"
-                  >
-                    {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
-                <div className="control-field">
-                  <span className="label-text">To:</span>
-                  <select
-                    value={targetDialect}
-                    onChange={(e) => setTargetDialect(e.target.value)}
-                    className="combobox-input full-width"
-                  >
-                    {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
-              </div>
-            ) : (
-              <div className="dialect-selection-row">
-                <span className="label-text">Dialect:</span>
-                <select
-                  value={targetDialect}
-                  onChange={(e) => setTargetDialect(e.target.value)}
-                  className="combobox-input"
-                >
-                  {DIALECTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                </select>
-
-                {activeMode === 'optimizer' && (
-                  <label className="custom-check explain-check">
-                    <input
-                      type="checkbox"
-                      checked={explainChanges}
-                      onChange={(e) => setExplainChanges(e.target.checked)}
-                    />
-                    <div className="box"><i className="fa-solid fa-check"></i></div>
-                    <span className="label-text">Explain Changes</span>
-                  </label>
-                )}
-              </div>
-            )}
-
-            {activeMode !== 'converter' && (
-              <div className="schema-wrapper">
-                <div className="schema-header-actions">
-                  <button
-                    className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
-                    onClick={() => setShowSchema(!showSchema)}
-                  >
-                    <i className="fa-solid fa-database"></i>
-                    {showSchema ? 'Hide Database Schema' : 'Add Database Schema Context'}
-                  </button>
-
-                  {showSchema && (
-                    <div className="workspace-controls">
-                      <select
-                        className="combobox-input select-small"
-                        value={activeWorkspace}
-                        onChange={(e) => switchWorkspace(e.target.value)}
-                      >
-                        {Object.keys(workspaces).map(ws => (
-                          <option key={ws} value={ws}>{ws}</option>
-                        ))}
-                      </select>
-                      <div className="sub-workspace-controls">
-                        <button className="secondary-button btn-small" onClick={openWorkspaceModal} title="New Workspace">
-                          <i className="fa-solid fa-plus"></i>
-                        </button>
-                        <div className="upload-btn-wrapper" title="Auto-Discover Schema">
-                          <button className="secondary-button btn-small">
-                            <i className="fa-solid fa-file-import"></i>
-                          </button>
-                          <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {showSchema && (
-                  <>
-                    <div className="schema-editor-wrapper">
-                      <CodeEditor
-                        key={activeWorkspace}
-                        value={schema}
-                        onValueChange={handleSchemaChange}
-                        language="sql"
-                        placeholder="CREATE TABLE users (id INT, name TEXT...);"
-                      />
-                    </div>
-                    <div className="schema-footer-actions action-row">
-                      <button
-                        className="secondary-button btn-small full-width"
-                        onClick={handleGenerateMockData}
-                        disabled={mockLoading}
-                      >
-                        {mockLoading ? <><i className="fa-solid fa-spinner fa-spin"></i> Generating...</> : <><i className="fa-solid fa-table"></i> Generate Mock Data into Schema</>}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="main-input-wrapper flex-grow">
-            <CodeEditor
-              value={input}
-              onValueChange={setInput}
-              language="plaintext"
-              placeholder={
-                activeMode === 'builder' ? "e.g., Get top 5 users who spent more than $100 last month..." :
-                  activeMode === 'converter' ? "Paste your SQL here to convert it..." :
-                    "Paste your slow query here..."
-              }
-            />
-          </div>
-
-          <div className="action-row generate-action-row">
-            <button className="primary-button full-width" onClick={handleGenerate} disabled={loading || !input.trim()}>
-              {loading ? (
-                <><i className="fa-solid fa-spinner fa-spin"></i> Processing...</>
-              ) : (
-                <><i className="fa-solid fa-gears"></i>
-                  {activeMode === 'builder' ? 'Build Query' : activeMode === 'converter' ? 'Convert' : 'Optimize'}</>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="panel flex-col">
-          <div className="panel-header-row">
-            <h3>Generated SQL ({targetDialect})</h3>
-            {outputCode && (
-              <div className="header-actions">
-                <button className="secondary-button btn-small" onClick={runSandbox} disabled={isSandboxRunning || activeMode === 'converter'}>
-                  <i className={`fa-solid ${isSandboxRunning ? 'fa-spinner fa-spin' : 'fa-play'}`}></i> Run
-                </button>
-                <button className="secondary-button btn-small" onClick={handleFormatCode}>
-                  <i className="fa-solid fa-align-left"></i> Format
-                </button>
-                <CopyButton codeToCopy={outputCode} className="secondary-button btn-small" />
-              </div>
-            )}
-          </div>
-
-          <div className="results-container flex-grow">
-            {outputCode ? (
-              <div className="output-scrollable">
-
-                {warnings && warnings.length > 0 && (
-                  <div className="alert-box amber">
-                    <strong><i className="fa-solid fa-triangle-exclamation"></i> Warnings</strong>
-                    <ul>
-                      {warnings.map((w, i) => <li key={i}>{w}</li>)}
-                    </ul>
-                  </div>
-                )}
-
-                {sandboxError && (
-                  <div className="alert-box error-box">
-                    <strong>
-                      <i className="fa-solid fa-circle-xmark"></i> Execution Error
-                    </strong>
-                    <p style={{ whiteSpace: 'pre-wrap' }}>{sandboxError}</p>
-                  </div>
-                )}
-
-                {sandboxResults && sandboxResults.length > 0 && (
-                  <div className="sandbox-results">
-                    <div className="sandbox-header">
-                      <strong><i className="fa-solid fa-table"></i> Query Results</strong>
-                      <button onClick={() => setSandboxResults(null)} className="close-btn" aria-label="Close Results">
-                        <i className="fa-solid fa-xmark"></i>
-                      </button>
-                    </div>
-
-                    <div className="sandbox-results-body" style={{ padding: '0.5rem' }}>
-                      {sandboxResults.map((result, idx) => (
-                        <div key={idx} className="result-set" style={{ marginBottom: sandboxResults.length > 1 && idx < sandboxResults.length - 1 ? '1.5rem' : '0' }}>
-
-                          {sandboxResults.length > 1 && !result.message && (
-                            <h5 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)' }}>Result Set {idx + 1}</h5>
-                          )}
-
-                          {result.message ? (
-                            <p className="empty-message">{result.message}</p>
-                          ) : (
-                            <div className="table-responsive">
-                              <table className="sandbox-table">
-                                <thead>
-                                  <tr>{result.columns.map((c, i) => <th key={i}>{c}</th>)}</tr>
-                                </thead>
-                                <tbody>
-                                  {result.values.map((row, i) => (
-                                    <tr key={i}>
-                                      {row.map((val, j) => <td key={j}>{val !== null ? String(val) : <em>NULL</em>}</td>)}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {isSameDiff ? (
-                  <div className="success-state placeholder-container-inner diff-success-state">
-                    <i className="fa-solid fa-circle-check"></i>
-                    <p><strong>Query is already optimized!</strong></p>
-                    <p className="success-desc">No structural or indexing improvements were necessary for this query.</p>
-                  </div>
-                ) : activeMode === 'optimizer' ? (
-                  <div className="diff-viewer-wrapper optimizer-diff">
-                    <ReactDiffViewer
-                      oldValue={input}
-                      newValue={outputCode}
-                      splitView={true}
-                      useDarkTheme={isDarkTheme}
-                      compareMethod="diffLines"
-                      leftTitle="Original Query"
-                      rightTitle="Optimized Query"
-                      styles={!isDarkTheme ? undefined : {
-                        variables: {
-                          diffViewerBackground: 'var(--bg-primary)',
-                          addedBackground: 'rgba(46, 160, 67, 0.15)',
-                          addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
-                          removedBackground: 'rgba(248, 81, 73, 0.15)',
-                          removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
-                        },
-                        contentText: { fontSize: '13px', lineHeight: '20px' },
-                        titleBlock: { height: 'auto', padding: '10px' },
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className={`code-output-wrapper ${sandboxResults || sandboxError ? 'has-results' : ''}`}>
-                    <CodeOutput content={outputCode} language="sql" />
-                  </div>
-                )}
-
-                {recommendedIndexes && recommendedIndexes.length > 0 && (
-                  <div className="ai-summary recommended-indexes">
-                    <strong><i className="fa-solid fa-bolt"></i> Recommended Indexes</strong>
-                    <p className="small-text">Applying these indexes might drastically improve query performance.</p>
-                    {recommendedIndexes.map((idx, i) => (
-                      <CodeOutput key={i} content={idx} language="sql" />
-                    ))}
-                  </div>
-                )}
-
-                {explanation && (
-                  <div className="ai-summary explain-plan">
-                    <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
-                    <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="placeholder-text placeholder-container-inner">
-                {loading || mockLoading ? (
-                  <div className="processing-state">
-                    <div className="pulse-ring"></div>
-                    <p>AI is {mockLoading ? 'generating mock data...' : 'building...'}</p>
-                  </div>
-                ) : 'Result will appear here.'}
-              </div>
-            )}
-          </div>
-        </div>
+        <SqlBuilderOutput
+          activeMode={forge.activeMode}
+          input={forge.input}
+          outputCode={forge.outputCode}
+          targetDialect={forge.targetDialect}
+          explanation={forge.explanation}
+          warnings={forge.warnings}
+          recommendedIndexes={forge.recommendedIndexes}
+          loading={forge.loading}
+          mockLoading={forge.mockLoading}
+          isSandboxRunning={forge.isSandboxRunning}
+          isDarkTheme={isDarkTheme}
+          runSandbox={forge.runSandbox}
+          handleFormatCode={forge.handleFormatCode}
+        />
       </div>
 
-      {isWorkspaceModalOpen && (
-        <div className="modal-overlay" onClick={closeWorkspaceModal}>
-          <div className="modal-content sql-project-model" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h4>Create New Workspace</h4>
-              <button className="close-btn" onClick={closeWorkspaceModal}>
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-            <div className="modal-body">
-              <p className="modal-desc">Enter a name for your new database schema workspace:</p>
-              <input
-                type="text"
-                className="combobox-input"
-                value={newWorkspaceName}
-                onChange={(e) => setNewWorkspaceName(e.target.value)}
-                placeholder="e.g., E-commerce DB"
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && confirmCreateWorkspace()}
-              />
-            </div>
-            <div className="modal-footer">
-              <button className="secondary-button" onClick={closeWorkspaceModal}>Cancel</button>
-              <button className="primary-button" onClick={confirmCreateWorkspace}>Create</button>
-            </div>
-          </div>
-        </div>
+      {forge.outputCode && (
+        <TestRunner
+          panelRef={testRunnerRef}
+          showTestRunner={forge.showTestRunner}
+          setShowTestRunner={forge.setShowTestRunner}
+          isNativeSqlite={forge.isNativeSqlite}
+          targetDialect={forge.targetDialect}
+          isSandboxRunning={forge.isSandboxRunning}
+          isGeneratingTestData={forge.isGeneratingTestData}
+          executionTime={forge.executionTime}
+          autoTestData={forge.autoTestData} setAutoTestData={forge.setAutoTestData}
+          testDataSQL={forge.testDataSQL} setTestDataSQL={forge.setTestDataSQL}
+          showTestDataPreview={forge.showTestDataPreview}
+          setShowTestDataPreview={forge.setShowTestDataPreview}
+          sandboxResults={forge.sandboxResults}
+          sandboxError={forge.sandboxError}
+          simulationNote={forge.simulationNote}
+          isSimulated={forge.isSimulated}
+          runSandbox={forge.runSandbox}
+          generateTestData={forge.generateTestData}
+          clearTestData={forge.clearTestData}
+          exportResultsAsCSV={forge.exportResultsAsCSV}
+        />
       )}
+
+      <WorkspaceModal
+        isOpen={forge.isWorkspaceModalOpen}
+        newWorkspaceName={forge.newWorkspaceName}
+        setNewWorkspaceName={forge.setNewWorkspaceName}
+        onConfirm={forge.confirmCreateWorkspace}
+        onClose={forge.closeWorkspaceModal}
+      />
     </div>
   );
 }

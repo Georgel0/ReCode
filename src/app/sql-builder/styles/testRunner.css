@@ -1,0 +1,237 @@
+/* Test runner panel, controls, badges, empty state, data editor */
+
+.test-runner-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 1.5rem;
+  background: var(--bg-secondary);
+  animation: slideUp 0.2s ease-out;
+}
+
+.test-runner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+
+.test-runner-header:hover {
+  background: var(--bg-secondary);
+}
+
+.test-runner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.test-runner-title i {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.test-runner-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tr-chevron {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+}
+
+.dialect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid;
+}
+
+.dialect-badge.native {
+  background: rgba(46, 160, 67, 0.12);
+  border-color: rgba(46, 160, 67, 0.35);
+  color: #2ea043;
+}
+
+.dialect-badge.simulated {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: var(--accent);
+}
+
+.exec-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.exec-time-badge.running {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.test-runner-body {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.test-runner-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tr-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tr-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.test-data-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.test-data-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.test-data-section-header span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-data-editor-wrapper {
+  height: 200px;
+  position: relative;
+  width: 100%;
+}
+
+.test-data-editor-wrapper > div {
+  position: absolute !important;
+  inset: 0;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.tr-result-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: slideUp 0.15s ease-out;
+}
+
+.tr-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+}
+
+.tr-empty-state i {
+  font-size: 2rem;
+  opacity: 0.3;
+  margin-bottom: 0.25rem;
+}
+
+.tr-empty-state p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.tr-empty-note {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .test-runner-header {
+    padding: 0.65rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .test-runner-header-right {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .test-runner-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tr-controls-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .dialect-badge {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .test-runner-body {
+    padding: 0.75rem;
+  }
+}

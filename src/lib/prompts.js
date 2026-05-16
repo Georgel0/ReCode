@@ -1,384 +1,433 @@
 /**
  * @fileoverview AI Prompt Configuration & Schema Registry.
- * * This module defines the system personas, prompt templates, and Zod validation 
- * schemas for all AI-driven features in the application. It ensures type-safety 
- * between the LLM outputs and the application UI.
- * * @module lib/prompts
+ *
+ * Defines system personas, prompt templates, and Zod validation schemas for
+ * every AI-driven feature in the application. Keeps LLM outputs type-safe
+ * and consistent with the UI expectations.
+ *
+ * @module lib/prompts
  */
 
 import { z } from 'zod';
 
 /**
- * Zod schemas defining the expected JSON structure from the AI.
- * These are used by `generateObject` for structured output and 
- * by `extractJson` for fallback parsing.
- * * @type {Object.<string, import('zod').ZodObject>}
+ * Zod schemas describing the exact JSON structure the AI must return.
+ * Used by `generateObject` for structured output and `extractJson` for
+ * fallback parsing.
  */
 export const OUTPUT_SCHEMAS = {
- json: z.object({
-  formattedJson: z.string().describe("The fixed and valid JSON string"),
-  explanation: z.string().describe("Bulleted list of specific syntax errors fixed")
- }),
- 
- refactor: z.object({
-  files: z.array(z.object({
-   sourceId: z.union([z.string(), z.number()]).describe("The original unique ID provided in the input"),
-   fileName: z.string().describe("The name of the file (can be updated if refactoring suggests better naming)"),
-   content: z.string().describe("The full refactored code")
-  }))
- }),
- 
- generator: z.object({
-  files: z.array(z.object({
-   fileName: z.string(),
-   content: z.string()
-  }))
- }),
- 
- analysis: z.object({
-  summary: z.string(),
-  score: z.number().min(0).max(100),
-  complexity: z.object({
-   time: z.string().describe("Time complexity in Big O notation"),
-   space: z.string().describe("Space complexity in Big O notation"),
-   explanation: z.array(z.string()).describe("Bullet points explaining exactly why the complexity is what it is"),
-   bottleneck: z.string().optional().describe("Identify the specific function, loop, or recursive call causing the worst-case time complexity. Omit if not applicable."),
-   tradeoffs: z.string().optional().describe("Suggest space-time tradeoffs, e.g., 'Using a Hash Map here would drop time to O(n) but increase space to O(n)'"),
-   metrics: z.object({
-    cyclomatic: z.number().describe("Cyclomatic complexity score (lower is better)"),
-    cognitive: z.number().describe("Cognitive complexity score (lower is better)"),
-    maintainability: z.number().describe("Maintainability index (0-100, higher is better)")
-   })
+  // JSON repair
+  json: z.object({
+    formattedJson: z.string().describe('The fixed and valid JSON string'),
+    explanation: z.string().describe('Bulleted list of specific syntax errors fixed'),
   }),
-  security: z.array(z.object({
-   severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
-   location: z.string().optional().describe("Specific line number, function name, or snippet"),
-   issue: z.string().describe("What the vulnerability is"),
-   resolution: z.string().describe("How to fix it")
-  })).optional(),
-  bugs: z.array(z.object({
-   severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
-   location: z.string().optional(),
-   issue: z.string(),
-   resolution: z.string()
-  })).optional(),
-  improvements: z.array(z.object({
-   severity: z.enum(['High', 'Medium', 'Low']),
-   location: z.string().optional(),
-   issue: z.string(),
-   resolution: z.string()
-  })).optional(),
-  bestPractices: z.array(z.object({
-   issue: z.string(),
-   resolution: z.string()
-  })).optional(),
-  testing: z.object({
-   edgeCases: z.array(z.string()).optional().describe("List of edge cases the code fails to handle"),
-   unitTests: z.array(z.string()).optional().describe("Plain-English descriptions of recommended unit tests")
-  }).optional(),
-  architecture: z.object({
-   smells: z.array(z.string()).optional().describe("Code smells like Tight Coupling, God Objects, or SOLID violations"),
-   dependencies: z.array(z.string()).optional().describe("Warnings about outdated methods or non-standard ecosystem practices")
-  }).optional()
- }),
- 
- regex: z.object({
-  pattern: z.string().describe("The raw regex string without delimiting slashes"),
-  summary: z.string().describe("A one sentence summary of what this does"),
-  breakdown: z.array(z.object({
-   token: z.string().describe("The specific part of the regex code"),
-   description: z.string().describe("What this specific token does")
-  })).describe("Breakdown of the regex logic token by token")
- }),
- 
- 'css-framework-json': z.object({
-  // Used for "CSS Only" mode
-  conversions: z.array(z.object({
-   selector: z.string().describe("The original CSS selector"),
-   tailwindClasses: z.string().describe("The equivalent utility classes")
-  })).optional(),
-  
-  // Used for "HTML + CSS" mode
-  convertedHtml: z.string().optional().describe("The full HTML string with framework classes applied"),
-  
-  // Used for SASS/LESS/Stylus
-  convertedCode: z.string().optional().describe("The refactored stylesheet code"),
-  
-  extra: z.string().optional().describe("Include any 'leftover' CSS that couldn't be converted, required custom @layer styles, or variables the user needs to add manually to make the design work.")
- }),
- 
- sql: z.object({
-  query: z.string().describe("The generated, converted, or optimized raw SQL code"),
-  explanation: z.string().optional().describe("HTML formatted explanation of the logic, changes, or query plan."),
-  warnings: z.array(z.string()).optional().describe("Warnings about dialect incompatibilities, performance bottlenecks, or missing schema references."),
-  recommendedIndexes: z.array(z.string()).optional().describe("Explicit CREATE INDEX statements if the optimizer suggests them.")
- })
+
+  // Code refactor / translate (multi-file)
+  refactor: z.object({
+    files: z.array(z.object({
+      sourceId: z.union([z.string(), z.number()])
+        .describe('The original unique ID provided in the input'),
+      fileName: z.string()
+        .describe('The file name (may be updated if refactoring suggests better naming)'),
+      content: z.string().describe('The full refactored code'),
+    })),
+  }),
+
+  // Code generator (multi-file)
+  generator: z.object({
+    files: z.array(z.object({
+      fileName: z.string(),
+      content: z.string(),
+    })),
+  }),
+
+  // Static code analysis
+  analysis: z.object({
+    summary: z.string(),
+    score: z.number().min(0).max(100),
+
+    complexity: z.object({
+      time: z.string().describe('Time complexity in Big O notation'),
+      space: z.string().describe('Space complexity in Big O notation'),
+      explanation: z.array(z.string()).describe('Bullet points explaining the complexity'),
+      bottleneck: z.string().optional()
+        .describe('The specific function/loop causing the worst-case time complexity'),
+      tradeoffs: z.string().optional()
+        .describe("Space-time tradeoff suggestions, e.g., 'Using a HashMap drops time to O(n)'"),
+      metrics: z.object({
+        cyclomatic: z.number().describe('Cyclomatic complexity (lower is better)'),
+        cognitive: z.number().describe('Cognitive complexity (lower is better)'),
+        maintainability: z.number().describe('Maintainability index 0–100 (higher is better)'),
+      }),
+    }),
+
+    security: z.array(z.object({
+      severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
+      location: z.string().optional().describe('Function name, line number, or snippet'),
+      issue: z.string().describe('What the vulnerability is'),
+      resolution: z.string().describe('How to fix it'),
+    })).optional(),
+
+    bugs: z.array(z.object({
+      severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
+      location: z.string().optional(),
+      issue: z.string(),
+      resolution: z.string(),
+    })).optional(),
+
+    improvements: z.array(z.object({
+      severity: z.enum(['High', 'Medium', 'Low']),
+      location: z.string().optional(),
+      issue: z.string(),
+      resolution: z.string(),
+    })).optional(),
+
+    bestPractices: z.array(z.object({
+      issue: z.string(),
+      resolution: z.string(),
+    })).optional(),
+
+    testing: z.object({
+      edgeCases: z.array(z.string()).optional()
+        .describe('Edge cases the code fails to handle'),
+      unitTests: z.array(z.string()).optional()
+        .describe('Plain-English descriptions of recommended unit tests'),
+    }).optional(),
+
+    architecture: z.object({
+      smells: z.array(z.string()).optional()
+        .describe('Code smells like tight coupling, god objects, or SOLID violations'),
+      dependencies: z.array(z.string()).optional()
+        .describe('Warnings about outdated or non-standard ecosystem practices'),
+    }).optional(),
+  }),
+
+  // Regex generator
+  regex: z.object({
+    pattern: z.string().describe('The raw regex string without delimiting slashes'),
+    summary: z.string().describe('One-sentence summary of what the pattern does'),
+    breakdown: z.array(z.object({
+      token: z.string().describe('The specific part of the regex'),
+      description: z.string().describe('What this token does'),
+    })).describe('Token-by-token breakdown of the regex logic'),
+  }),
+
+  // CSS framework converter
+  'css-framework-json': z.object({
+    // "CSS only" mode → Tailwind
+    conversions: z.array(z.object({
+      selector: z.string().describe('The original CSS selector'),
+      tailwindClasses: z.string().describe('The equivalent utility classes'),
+    })).optional(),
+
+    // "HTML + CSS" mode
+    convertedHtml: z.string().optional()
+      .describe('Full HTML string with framework classes applied'),
+
+    // SASS / LESS / Stylus
+    convertedCode: z.string().optional()
+      .describe('The refactored stylesheet code'),
+
+    extra: z.string().optional()
+      .describe("Leftover CSS, required @layer styles, or variables the user must add manually"),
+  }),
+
+  // SQL builder / converter / optimizer / simulator
+  sql: z.object({
+    query: z.string()
+      .describe(
+        "The generated, converted, or optimized raw SQL code. " +
+        "For 'simulate' mode: a raw JSON string representing the execution result."
+      ),
+    explanation: z.string().optional()
+      .describe('HTML-formatted explanation of logic, changes, query plan, or simulation notes.'),
+    warnings: z.array(z.string()).optional()
+      .describe('Dialect incompatibilities, performance issues, or missing schema references.'),
+    recommendedIndexes: z.array(z.string()).optional()
+      .describe('Explicit CREATE INDEX statements suggested by the optimizer.'),
+  }),
 };
 
+/**
+ * Wraps a base system prompt with strict JSON-only output instructions.
+ *
+ * @param {string} basePrompt  - Persona and task instructions.
+ * @param {string} schemaDesc  - String representation of the expected JSON shape.
+ * @returns {string}
+ */
+const withSchema = (basePrompt, schemaDesc) => `${basePrompt}
+
+CRITICAL OUTPUT RULES:
+1. You MUST return a valid JSON object.
+2. Use this EXACT structure:
+${schemaDesc}
+3. Output ONLY the JSON. No conversational text before or after the object.
+4. Escape all double quotes inside string values.`;
 
 /**
- * Enhances a base system prompt with strict JSON output instructions.
- * * @param {string} basePrompt - The persona and task instructions.
- * @param {string} schemaDesc - A string representation of the JSON schema for the AI to follow.
- * @returns {string} The complete system prompt with boundary tags and formatting rules.
+ * @typedef {Object} TaskConfig
+ * @property {(ctx: object) => string}  system       - Returns the system prompt.
+ * @property {(input: string) => string} user        - Returns the user prompt.
+ * @property {'object'|'text'}           responseType
+ * @property {import('zod').ZodSchema}  [schema]     - Required when responseType is 'object'.
  */
-const withSchema = (basePrompt, schemaDesc) => {
- return `${basePrompt}
-  
-  CRITICAL OUTPUT RULES:
-  1. You MUST return a valid JSON object.
-  2. Use this EXACT structure:
-  ${schemaDesc}
-  3. Output ONLY the JSON. Do not include any conversational text before or after the object.
-  4. Escape all double quotes inside string values.`
-};
 
-
-/**
- * Configuration registry for all AI tasks.
- * Each key represents an operation 'type' sent from the client.
- * * @typedef {Object} TaskConfig
- * @property {Function} system - Generates the system prompt. Receives a context object {sourceLang, targetLang, mode}.
- * @property {Function} user - Generates the user prompt based on the code input.
- * @property {'object'|'text'} responseType - Determines if the AI should return structured JSON or raw text.
- * @property {import('zod').ZodSchema} [schema] - The Zod schema for validation (required if responseType is 'object').
- */
 /** @type {Object.<string, TaskConfig>} */
 export const PROMPT_CONFIG = {
- json: {
-  system: () => withSchema(
-   `You are a Senior Data Engineer specializing in JSON data recovery. 
-      Your Task: Rescue broken JSON structures.
-      
-      Guidelines:
-      1. Fix trailing commas, missing quotes, mismatched brackets, and data type errors.
-      2. If the input is 'loose' JS objects (keys without quotes), standardise them to strict JSON.
-      3. In the 'explanation', be specific (e.g., "Fixed missing comma on line 5").`,
-   `{ "formattedJson": "string (the strictly valid JSON)", "explanation": "string" }`
-  ),
-  user: (input) => `Repair and prettify this JSON data:\n\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.json
- },
- 
- refactor: {
-  system: (ctx) => {
-   const mode = ctx?.mode || 'clean';
-   const goals = {
-    clean: "Maximum readability, standard naming conventions, and DRY principles.",
-    perf: "Algorithmic efficiency (reduce Big O), memory management, and loop optimization.",
-    modern: "Modern syntax features (ES2024+, async/await) and removing deprecated patterns.",
-    comments: "Comprehensive documentation explaining the 'Why' and 'How'."
-   };
-   
-   return withSchema(
-    `You are a Principal Software Architect. 
-          Your Task: Refactor the provided project source code.
-          Focus Mode: ${goals[mode]}
-          
+
+  // ── JSON Repair ─────────────────────────────────────────────────────────────
+  json: {
+    system: () => withSchema(
+      `You are a Senior Data Engineer specializing in JSON data recovery.
+Your Task: Rescue broken JSON structures.
+
+Guidelines:
+1. Fix trailing commas, missing quotes, mismatched brackets, and data-type errors.
+2. Standardise "loose" JS objects (un-quoted keys) to strict JSON.
+3. In 'explanation', be specific (e.g., "Fixed missing comma on line 5").`,
+      `{ "formattedJson": "string (strictly valid JSON)", "explanation": "string" }`
+    ),
+    user: (input) => `Repair and prettify this JSON:\n\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.json,
+  },
+
+  // ── Code Refactor ───────────────────────────────────────────────────────────
+  refactor: {
+    system: (ctx) => {
+      const mode = ctx?.mode || 'clean';
+      const goals = {
+        clean: 'Maximum readability, standard naming conventions, and DRY principles.',
+        perf: 'Algorithmic efficiency (reduce Big O), memory management, and loop optimisation.',
+        modern: 'Modern syntax (ES2024+, async/await) and removal of deprecated patterns.',
+        comments: "Comprehensive documentation explaining the 'Why' and 'How'.",
+      };
+
+      return withSchema(
+        `You are a Senior Software Engineer specialising in code quality and refactoring.
+Your Task: Refactor the provided code with this primary goal: ${goals[mode] || goals.clean}
+Target Language: ${ctx?.targetLang || 'Auto-detect from input'}
+
+Guidelines:
+1. Preserve all original functionality — never change what the code does, only how it does it.
+2. Apply the goal strictly and holistically across the entire file.
+3. Do NOT wrap code in markdown code blocks.
+4. Return each refactored file as a separate entry in the 'files' array.`,
+        `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string" }] }`
+      );
+    },
+    user: (input) => `Code to refactor:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.refactor,
+  },
+
+  // ── Code Translate ──────────────────────────────────────────────────────────
+  translate: {
+    system: (ctx) => withSchema(
+      `You are an Expert Polyglot Developer.
+Your Task: Translate source code from ${ctx?.sourceLang || 'the source language'} to ${ctx?.targetLang || 'the target language'}.
+
+Guidelines:
+1. Translate idioms, patterns, and library calls to their idiomatic target equivalent.
+2. Preserve all logic and functionality exactly.
+3. Use the target language's standard library and conventions.
+4. Do NOT wrap code in markdown code blocks.`,
+      `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string" }] }`
+    ),
+    user: (input) => `Code to translate:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.refactor,
+  },
+
+  // ── Code Generator ──────────────────────────────────────────────────────────
+  generator: {
+    system: (ctx) => withSchema(
+      `You are an Expert Polyglot Developer and Software Architect.
+Your Task: Generate functional, multi-file code solutions from the user's requirements.
+
+TECHNICAL CONSTRAINTS:
+- Core Language:       ${ctx?.language || 'Auto-detect'}
+- Framework/Ecosystem: ${ctx?.framework || 'Vanilla'}
+- Architecture:        ${ctx?.architecture || 'Standard'}
+- Additional Stack:    ${ctx?.customStack || 'Standard defaults'}
+- Verbosity:           ${ctx?.verbosity || 'production'}
+    beginner:    Heavily commented, step-by-step logic.
+    production:  Includes error handling, edge cases, and optimisation.
+    poc:         Minimal, fast, no boilerplate.
+- Documentation: ${ctx?.includeReadme ? 'MUST include a README.md.' : ''}${ctx?.includeDocs ? ' MUST include JSDoc/Docstrings for all primary functions.' : ''}
+- Testing: ${ctx?.includeTests ? 'MUST include unit test files.' : 'None required.'}
+
+Guidelines:
+1. Create all necessary files using the specified stack.
+2. Ensure file extensions match the chosen language (e.g., .py, .go, .rs).
+3. Return strictly valid code in 'content' — no markdown backticks.`,
+      `{ "files": [{ "fileName": "string (e.g., main.py)", "content": "string (raw code)" }] }`
+    ),
+    user: (input) => `Requirements:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.generator,
+  },
+
+  // ── Static Code Analysis ────────────────────────────────────────────────────
+  analysis: {
+    system: () => withSchema(
+      `You are a Senior Security & Architecture Auditor.
+Your Task: Conduct a deep-dive static analysis of the provided code.
+
+Guidelines:
+- Score: 0 (Critical Failure) → 100 (Flawless).
+- Complexity: Calculate Big O for time and space. Identify the specific bottleneck and suggest tradeoffs.
+- Issues (Security / Bugs / Improvements): provide the exact location, the issue, and the resolution. Assign severity accurately.
+- Architecture & Testing: identify code smells, missing edge cases, and recommend plain-English unit tests.
+- CRITICAL: Do NOT hallucinate. If the code is simple, leave optional arrays empty. Return [] for categories with no issues — do not omit the key.`,
+      `{
+  "summary": "string",
+  "score": number,
+  "complexity": { "time": "string", "space": "string", "explanation": ["string"], "bottleneck": "string", "tradeoffs": "string", "metrics": { "cyclomatic": number, "cognitive": number, "maintainability": number } },
+  "security":      [{ "severity": "Critical|High|Medium|Low", "location": "string", "issue": "string", "resolution": "string" }],
+  "bugs":          [{ "severity": "Critical|High|Medium|Low", "location": "string", "issue": "string", "resolution": "string" }],
+  "improvements":  [{ "severity": "High|Medium|Low", "location": "string", "issue": "string", "resolution": "string" }],
+  "bestPractices": [{ "issue": "string", "resolution": "string" }],
+  "testing":       { "edgeCases": ["string"], "unitTests": ["string"] },
+  "architecture":  { "smells": ["string"], "dependencies": ["string"] }
+}`
+    ),
+    user: (input) => `Analyze this code in detail:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.analysis,
+  },
+
+  // ── CSS Framework Converter ─────────────────────────────────────────────────
+  'css-framework': {
+    system: (ctx) => {
+      const { targetLang, mode } = ctx || {};
+      const contextNote =
+        "If the user provided a 'CONTEXT' or config snippet, use those specific tokens, colors, or spacing scales. " +
+        "If you encounter styles that cannot be handled by standard classes, add them into the 'extra' field.";
+
+      // Tailwind CSS
+      if (targetLang === 'tailwind') {
+        if (mode === 'html') {
+          return withSchema(
+            `You are a Tailwind CSS Expert.
+Task: Rewrite the provided HTML by applying Tailwind utility classes directly to elements.
+- ${contextNote}
+- Use arbitrary values (e.g., w-[13.5px]) only when standard classes don't fit.
+- Remove original <style> tags and class names that are now redundant.`,
+            `{ "convertedHtml": "string", "extra": "string" }`
+          );
+        }
+        return withSchema(
+          `You are a Tailwind CSS Expert. Convert CSS selectors into utility class strings.
+- ${contextNote}
+- Handle hover:, focus:, and media query prefixes.`,
+          `{ "conversions": [{ "selector": "string", "tailwindClasses": "string" }], "extra": "string" }`
+        );
+      }
+
+      // Bootstrap 5
+      if (targetLang === 'bootstrap') {
+        return withSchema(
+          `You are a Bootstrap 5 Expert.
+- Convert the input to standard Bootstrap 5 utility classes and components.
+- Return full HTML in 'convertedHtml' when mode is 'html'; mappings in 'conversions' when mode is 'css'.`,
+          `{ "convertedHtml": "string", "conversions": "array", "extra": "string" }`
+        );
+      }
+
+      // SASS / LESS / Stylus
+      return withSchema(
+        `You are a CSS Architecture Expert. Convert the input to valid ${targetLang || 'SASS'}.
+- Use modern syntax (nesting, variables, mixins).
+- Extract repeated values into a variable block at the top.`,
+        `{ "convertedCode": "string", "extra": "string" }`
+      );
+    },
+    user: (input) => `INPUT TO CONVERT:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS['css-framework-json'],
+  },
+
+  // ── Regex Generator ─────────────────────────────────────────────────────────
+  regex: {
+    system: (ctx) => withSchema(
+      `You are a Regex Architect.
+Your Task: Generate a strictly valid Regular Expression.
+
+Target Flavor: ${ctx?.targetLang || 'JavaScript'}
+
+Guidelines:
+1. Return ONLY the pattern string (no bounding slashes).
+2. If "Refining", use the previous pattern as context to improve the new one.
+3. Provide a granular token-by-token breakdown in 'breakdown'.`,
+      `{
+  "pattern":   "string (raw pattern, no slashes)",
+  "summary":   "string (one sentence)",
+  "breakdown": [{ "token": "string", "description": "string" }]
+}`
+    ),
+    user: (input) => input,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.regex,
+  },
+
+  // ── SQL Builder / Converter / Optimizer / Simulator ─────────────────────────
+  sql: {
+    system: (ctx) => {
+      const taskMap = {
+        builder: `Generate an optimised ${ctx.targetLang} query based on the user requirement.`,
+        converter: `Convert the provided ${ctx.sourceLang} query into perfect ${ctx.targetLang}.`,
+        optimizer: `Analyse and optimise this ${ctx.targetLang} query for maximum performance.`,
+        mock: (
+          `Generate 5–10 rows of realistic mock data (INSERT INTO statements) based strictly on the provided schema. ` +
+          `CRITICAL: Output MUST be strictly valid SQLite syntax (standard ANSI SQL) so it executes safely in a ` +
+          `WebAssembly SQLite sandbox. Do NOT use ${ctx.targetLang}-specific functions or data types unsupported by SQLite.`
+        ),
+        simulate: (
+          `You are simulating the execution of the provided ${ctx.targetLang} SQL query against the given schema and test data seed.\n\n` +
+          `Analyse the query semantics precisely and produce a realistic result set.\n\n` +
+          `CRITICAL: The 'query' field must contain ONLY a raw JSON string — no SQL, no markdown, no backticks.\n` +
+          `Use this EXACT structure:\n\n` +
+          `For SELECT / WITH / EXPLAIN:\n` +
+          `{"columns":["col1","col2"],"rows":[["val1","val2"]],"rowsAffected":0,"executionNote":""}\n\n` +
+          `For DML (INSERT / UPDATE / DELETE / MERGE):\n` +
+          `{"columns":[],"rows":[],"rowsAffected":5,"executionNote":"5 rows modified"}\n\n` +
+          `For DDL (CREATE / ALTER / DROP / TRUNCATE):\n` +
+          `{"columns":[],"rows":[],"rowsAffected":0,"executionNote":"Statement executed"}\n\n` +
+          `Simulation rules:\n` +
+          `- SELECT: generate 5–15 realistic rows respecting column types inferred from the schema.\n` +
+          `- Apply WHERE, JOIN, aggregation (COUNT/SUM/AVG/MAX/MIN), and GROUP BY semantics correctly.\n` +
+          `- If test data is provided, use it to compute accurate row counts and values.\n` +
+          `- Use plausible but clearly fictional names, IDs, dates, and amounts.\n` +
+          `- All JSON must be strictly valid: escape internal quotes, no trailing commas.\n` +
+          `- Put accuracy notes, caveats, or assumptions in the 'explanation' field (HTML formatted).`
+        ),
+      };
+
+      const task = taskMap[ctx.mode] || taskMap.builder;
+
+      const schemaContext = ctx.schema
+        ? `\nStrictly adhere to this Database Schema and Seed Data Context:\n${ctx.schema}`
+        : '';
+
+      const explainContext = ctx.explainChanges
+        ? '\nProvide an explanation detailing exactly why specific indexes or joins were restructured.'
+        : '';
+
+      return withSchema(
+        `You are a Senior Database Administrator and SQL Architect.
+          Your Task: ${task}
+          ${schemaContext}${explainContext}
+
           Guidelines:
-          - Input format: An array of objects containing { "sourceId": ID, "name": string, "content": string }.
-          - LANGUAGE INTEGRITY: You MUST maintain the original programming language of each file based on its file extension (e.g., .c stays C, .py stays Python). Do NOT translate between languages.
-          - CRITICAL: Every file in the output MUST include the exact "sourceId" provided in the input.
-          - Dependency Awareness: If you rename a file or an exported member, update imports across the set.
-          - Preserve logic parity unless specifically optimizing for Performance mode.`,
-    `{ "files": [ { "sourceId": "string/number", "fileName": "string", "content": "string" } ] }`
-   );
+          - For non-simulate modes: output ONLY valid SQL in the 'query' field. No markdown wrappers.
+          - Flag any functions missing from the target dialect in 'warnings'.
+          - Provide explicit CREATE INDEX statements in 'recommendedIndexes' if optimising.`,
+        `{ "query": "string", "explanation": "string", "warnings": ["string"], "recommendedIndexes": ["string"] }`
+      );
+    },
+    user: (input) => `Input:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.sql,
   },
-  user: (input) => `Refactor this project source code:\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.refactor
- },
- 
- converter: {
-  system: (ctx) => {
-   const frameworkInstruction = ctx?.framework && ctx.framework !== 'none' ?
-    `Target Framework: ${ctx.framework}. Adapt lifecycle hooks, state management, and imports to match ${ctx.framework} standards.` :
-    'Use standard/vanilla libraries.';
-   
-   const scopeInstruction = ctx?.isPartial ?
-    `Focus ONLY on converting the provided specific block/function. Do not wrap it in a full file structure.` :
-    `Convert the entire file.`;
-   
-   return withSchema(
-    `You are a Polyglot Expert in coding languages. 
-      Your Task: Translate code from ${ctx?.sourceLang || 'auto-detect'} to ${ctx?.targetLang}.
-      
-      Guidelines:
-      - Use idiomatic patterns and best practices for ${ctx?.targetLang}.
-      - ${frameworkInstruction}
-      - ${scopeInstruction}
-      - Input format: An array of objects containing { "sourceId": ID, "name": string, "content": string }.
-      - CRITICAL: Every file in the output MUST include the exact "sourceId" provided in the input.`,
-    `{ "files": [ { "sourceId": "string/number", "fileName": "string", "content": "string" } ] }`
-   );
-  },
-  user: (input) => `Code to translate:\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.refactor
- },
- 
- generator: {
-  system: (ctx) => withSchema(
-   `You are an Expert Polyglot Developer and Software Architect.
-      Your Task: Generate functional, multi-file code solutions based on the user's requirements.
-      
-      TECHNICAL CONSTRAINTS & PREFERENCES:
-      - Core Language: ${ctx?.language || 'Auto-detect'}
-      - Framework/Ecosystem: ${ctx?.framework || 'Vanilla'}
-      - Architecture Pattern: ${ctx?.architecture || 'Standard'}
-      - Additional Tech Stack: ${ctx?.customStack || 'Standard defaults'}
-      - Verbosity Level: ${ctx?.verbosity || 'production'} 
-        * beginner: Heavily commented, step-by-step logic.
-        * production: Includes error handling, edge-cases, and optimization.
-        * poc: Minimal, fast, no boilerplate.
-      - Documentation: ${ctx?.includeReadme ? 'MUST include a comprehensive README.md.' : ''} ${ctx?.includeDocs ? 'MUST include formal code documentation (e.g., JSDoc, Docstrings, XML comments) for all primary functions and classes.' : ''}
-      - Testing: ${ctx?.includeTests ? 'MUST include unit test files covering the core logic.' : ''}
-
-      Guidelines:
-      1. Create all necessary files to fulfill the user's request using the specified stack.
-      2. Ensure file extensions match the chosen language and framework (e.g., .py, .go, .rs).
-      3. Return strictly valid code in the 'content' field without wrapping it in markdown codeblocks (\`\`\`).`,
-   `{ "files": [{ "fileName": "string (e.g., main.py)", "content": "string (raw code)" }] }`
-  ),
-  
-  user: (input) => `Requirements:\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.generator
- },
- 
- analysis: {
-  system: () => withSchema(
-   `You are a Senior Security & Architecture Auditor. 
-      Your Task: Conduct a deep-dive static analysis of the code.
-      
-      Guidelines:
-      - Score: 0 (Critical Failure) to 100 (Flawless).
-      - Complexity: Calculate Time and Space complexity (Big O). Identify the specific bottleneck and suggest space-time tradeoffs if applicable.
-      - Issues (Security, Bugs, Improvements): You MUST provide the exact location (function name or snippet), the issue, and the resolution. Assign severity levels accurately.
-      - Architecture & Testing: Identify code smells, missing edge cases, and recommend plain-English unit tests.
-      - CRITICAL: Do NOT hallucinate. If the code is perfectly simple (e.g., a basic addition function), leave optional arrays empty or omit them. Do not invent vulnerabilities just to fill the schema. If no issues are found, you MUST return an empty array [] for that category. Do not omit the key.`,
-   `{ 
-        "summary": "string", 
-        "score": number, 
-        "complexity": { ... }, 
-        "security": [{ "severity": "Critical|High|Medium|Low", "location": "string", "issue": "string", "resolution": "string" }], 
-        "bugs": [...],
-        "improvements": [...],
-        "bestPractices": [...],
-        "testing": { "edgeCases": ["string"], "unitTests": ["string"] },
-        "architecture": { "smells": ["string"], "dependencies": ["string"] }
-       }`
-  ),
-  user: (input) => `Analyze this code in deep detail:\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.analysis
- },
- 
- 'css-framework': {
-  system: (ctx) => {
-   const { targetLang, mode, qualityMode } = ctx || {};
-   
-   const contextInstruction = "If the user provided 'CONTEXT' or a config snippet, prioritize using those specific tokens, colors, or spacing scales. IMPORTANT: If you encounter styles that cannot be handled by standard Tailwind classes or if something extra is needed that the user missed, add/extract them into the 'extra' field as code snippets of CSS, links, Tailwind or technical note.";
-   
-   // SCENARIO 1: Tailwind CSS
-   if (targetLang === 'tailwind') {
-    if (mode === 'html') {
-     return withSchema(
-      `You are a Tailwind CSS Expert. 
-           Task: Rewrite the provided HTML by applying Tailwind utility classes directly to elements.
-           - ${contextInstruction}
-           - Use arbitrary values (e.g., w-[13.5px]) only when standard classes don't fit.
-           - Remove original <style> tags and class names that are now redundant.`,
-      `{ "convertedHtml": "string", "extra": "string" }`
-     );
-    }
-    return withSchema(
-     `You are a Tailwind CSS Expert. Convert CSS selectors into utility class strings.
-         - ${contextInstruction}
-         - Handle hover:, focus:, and media queries as Tailwind prefixes.`,
-     `{ "conversions": [{ "selector": "string", "tailwindClasses": "string" }], "extra": "string" }`
-    );
-   }
-   
-   // SCENARIO 2: Bootstrap 5
-   if (targetLang === 'bootstrap') {
-    return withSchema(
-     `You are a Bootstrap 5 Expert. 
-         - Convert the input to use standard Bootstrap 5 utility classes and components.
-         - If mode is 'html', return the full HTML string in 'convertedHtml'.
-         - If mode is 'css', provide the mapping in 'conversions'.`,
-     `{ "convertedHtml": "string", "conversions": "array", "extra": "string" }`
-    );
-   }
-   
-   // SCENARIO 3: Preprocessors (SASS/LESS)
-   return withSchema(
-    `You are a CSS Architecture Expert. Convert the input to valid ${targetLang || 'SASS'}.
-       - Use modern syntax (nesting, variables, mixins).
-       - Extract repeated values into a variable block at the top.`,
-    `{ "convertedCode": "string", "extra": "string" }`
-   );
-  },
-  user: (input) => `INPUT TO CONVERT:\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS['css-framework-json']
- },
- 
- regex: {
-  system: (ctx) => withSchema(
-   `You are a Regex Architect. 
-      Your Task: Generate a strictly valid Regular Expression.
-      
-      Target Flavor: ${ctx?.targetLang || 'JavaScript'}
-      
-      Guidelines:
-      1. Return ONLY the pattern string (no bounding slashes).
-      2. If "Refining", use the previous pattern as context to improve the new one.
-      3. Create a granular breakdown of the logic for the 'breakdown' array.`,
-   `{ 
-         "pattern": "string (raw pattern)", 
-         "summary": "string (explanation)",
-         "breakdown": [{ "token": "string", "description": "string" }] 
-       }`
-  ),
-  
-  user: (input) => input,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.regex
- },
- 
- sql: {
-  system: (ctx) => {
-   let task = "";
-   
-   if (ctx.mode === 'builder') {
-    task = `Generate an optimized ${ctx.targetLang} query based on the user requirement.`;
-   } else if (ctx.mode === 'converter') {
-    task = `Convert the provided ${ctx.sourceLang} query into perfect ${ctx.targetLang}.`;
-   } else if (ctx.mode === 'optimizer') {
-    task = `Analyze and optimize this ${ctx.targetLang} query for maximum performance.`;
-   } else if (ctx.mode === 'mock') {
-    task = `Generate 5 to 10 rows of realistic mock data (INSERT INTO statements) based strictly on the provided schema. CRITICAL: The output MUST be strictly valid SQLite syntax (standard ANSI SQL) so it can be executed safely in a WebAssembly SQLite sandbox. Do NOT use any ${ctx.targetLang} specific functions or data types that SQLite does not support.`;
-   }
-
-   const schemaContext = ctx.schema ? `\nStrictly adhere to this Database Schema Context:\n${ctx.schema}` : '';
-   const explanationContext = ctx.explainChanges ? `\nProvide an explanation detailing exactly why specific indexes or joins were restructured.` : '';
-
-   return withSchema(
-    `You are a Senior Database Administrator and SQL Architect.
-    Your Task: ${task}
-    ${schemaContext}${explanationContext}
-
-    Guidelines:
-    - Output ONLY valid code in the 'query' property. Do not wrap in markdown blocks.
-    - If converting, flag any functions that don't exist in the target dialect in the 'warnings' array.
-    - If optimizing, provide explicit CREATE INDEX statements in 'recommendedIndexes' if applicable.`,
-    `{ "query": "string", "explanation": "string", "warnings": ["string"], "recommendedIndexes": ["string"] }`
-   );
-  },
-  user: (input) => `Input:\n${input}`,
-  responseType: 'object',
-  schema: OUTPUT_SCHEMAS.sql
- }
 };

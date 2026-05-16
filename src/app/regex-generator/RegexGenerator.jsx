@@ -215,7 +215,9 @@ export default function RegexGenerator() {
               </>
             ) : (
               <div className="placeholder-text">
-                {loading ? <div className="processing-state"><div className="pulse-ring"></div><p>Crafting your expression...</p></div> : 'Describe your pattern to generate a regex.'}
+                {loading ?
+                  <div className="processing-state"><div className="pulse-ring"></div><p>Crafting your expression...</p></div> 
+                    : 'Describe your pattern to generate a regex.'}
               </div>
             )}
           </div>
