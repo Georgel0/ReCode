@@ -8,18 +8,18 @@ import { toast } from 'sonner';
 export function useSandbox({ outputCode, schema, targetDialect }) {
   const { qualityMode } = useApp();
 
-  const [showTestRunner,       setShowTestRunner]       = useState(false);
-  const [autoTestData,         setAutoTestData]         = useState(true);
-  const [testDataSQL,          setTestDataSQL]          = useState('');
-  const [showTestDataPreview,  setShowTestDataPreview]  = useState(false);
+  const [showTestRunner, setShowTestRunner] = useState(false);
+  const [autoTestData, setAutoTestData] = useState(true);
+  const [testDataSQL, setTestDataSQL] = useState('');
+  const [showTestDataPreview, setShowTestDataPreview] = useState(false);
   const [isGeneratingTestData, setIsGeneratingTestData] = useState(false);
 
-  const [sandboxResults,   setSandboxResults]   = useState(null);
-  const [sandboxError,     setSandboxError]     = useState(null);
+  const [sandboxResults, setSandboxResults] = useState(null);
+  const [sandboxError, setSandboxError] = useState(null);
   const [isSandboxRunning, setIsSandboxRunning] = useState(false);
-  const [simulationNote,   setSimulationNote]   = useState('');
-  const [executionTime,    setExecutionTime]    = useState(null);
-  const [isSimulated,      setIsSimulated]      = useState(false);
+  const [simulationNote, setSimulationNote] = useState('');
+  const [executionTime, setExecutionTime] = useState(null);
+  const [isSimulated, setIsSimulated] = useState(false);
 
   const isNativeSqlite = targetDialect === 'SQLite';
 
@@ -40,9 +40,9 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
     setIsGeneratingTestData(true);
     try {
       const result = await convertCode('sql', 'Generate realistic INSERT statements for testing', {
-        targetLang:  'SQLite',
-        mode:        'mock',
-        schema:      context,
+        targetLang: 'SQLite',
+        mode: 'mock',
+        schema: context,
         qualityMode,
       });
       if (result?.query) {
@@ -73,7 +73,7 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
       db = new SQL.Database();
 
       if (schema?.trim()) {
-        try   { db.exec(schema); }
+        try { db.exec(schema); }
         catch (err) { throw new Error(`Schema error: ${err.message}`); }
       }
 
@@ -117,9 +117,9 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
         .join('\n\n-- Test Data Seed:\n');
 
       const result = await convertCode('sql', outputCode, {
-        targetLang:  targetDialect,
-        mode:        'simulate',
-        schema:      combinedSchema,
+        targetLang: targetDialect,
+        mode: 'simulate',
+        schema: combinedSchema,
         qualityMode,
       });
 
@@ -148,7 +148,7 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
 
       const parts = [
         parsed.rowsAffected > 0 ? `Rows affected: ${parsed.rowsAffected}` : null,
-        parsed.executionNote   || null,
+        parsed.executionNote || null,
       ].filter(Boolean);
 
       if (parts.length || formattedResults.length === 0) {
@@ -202,7 +202,7 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
     ].join('\n');
 
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    const a   = Object.assign(document.createElement('a'), { href: url, download: 'query-results.csv' });
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'query-results.csv' });
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Exported as CSV!');

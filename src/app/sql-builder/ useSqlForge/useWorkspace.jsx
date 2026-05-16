@@ -9,13 +9,13 @@ import { STORAGE_KEY, safeParseWorkspaces, persistWorkspaces } from '../componen
 export function useWorkspace() {
   const { qualityMode } = useApp();
 
-  const [workspaces,           setWorkspaces]           = useState({ 'Default Project': '' });
-  const [activeWorkspace,      setActiveWorkspace]      = useState('Default Project');
-  const [schema,               setSchema]               = useState('');
-  const [showSchema,           setShowSchema]           = useState(false);
+  const [workspaces, setWorkspaces] = useState({ 'Default Project': '' });
+  const [activeWorkspace, setActiveWorkspace] = useState('Default Project');
+  const [schema, setSchema] = useState('');
+  const [showSchema, setShowSchema] = useState(false);
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
-  const [newWorkspaceName,     setNewWorkspaceName]     = useState('');
-  const [mockLoading,          setMockLoading]          = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [mockLoading, setMockLoading] = useState(false);
 
   // Rehydrate persisted workspaces on mount
   useEffect(() => {
@@ -43,12 +43,12 @@ export function useWorkspace() {
     setSchema(workspaces[name] ?? '');
   }, [workspaces]);
 
-  const openWorkspaceModal  = () => { setNewWorkspaceName(''); setIsWorkspaceModalOpen(true);  };
+  const openWorkspaceModal = () => { setNewWorkspaceName(''); setIsWorkspaceModalOpen(true); };
   const closeWorkspaceModal = () => { setIsWorkspaceModalOpen(false); setNewWorkspaceName(''); };
 
   const confirmCreateWorkspace = () => {
     const name = newWorkspaceName.trim();
-    if (!name)            { toast.error('Workspace name cannot be empty.');     return; }
+    if (!name) { toast.error('Workspace name cannot be empty.'); return; }
     if (workspaces[name]) { toast.error(`Workspace "${name}" already exists.`); return; }
 
     setWorkspaces((prev) => {
@@ -83,7 +83,7 @@ export function useWorkspace() {
     if (!file) return;
     e.target.value = '';
     const reader = new FileReader();
-    reader.onload  = (evt) => {
+    reader.onload = (evt) => {
       handleSchemaChange(evt.target.result);
       toast.success('Schema loaded from file!');
       setShowSchema(true);
@@ -113,7 +113,7 @@ export function useWorkspace() {
     try {
       const result = await convertCode('sql', 'Generate mock data', {
         targetLang: targetDialect,
-        mode:       'mock',
+        mode: 'mock',
         schema,
         qualityMode,
       });

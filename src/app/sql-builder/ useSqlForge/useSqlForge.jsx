@@ -12,23 +12,23 @@ import { getFormatterDialect } from '../components/sqlForgeConstants';
 export function useSqlForge() {
   const { moduleData, qualityMode } = useApp();
 
-  const [activeMode,     setActiveMode]     = useState('builder');
-  const [input,          setInput]          = useState('');
-  const [targetDialect,  setTargetDialect]  = useState('Standard SQL');
-  const [sourceDialect,  setSourceDialect]  = useState('MySQL');
+  const [activeMode, setActiveMode] = useState('builder');
+  const [input, setInput] = useState('');
+  const [targetDialect, setTargetDialect] = useState('Standard SQL');
+  const [sourceDialect, setSourceDialect] = useState('MySQL');
   const [explainChanges, setExplainChanges] = useState(true);
 
-  const [outputCode,         setOutputCode]         = useState('');
-  const [explanation,        setExplanation]        = useState('');
-  const [warnings,           setWarnings]           = useState([]);
+  const [outputCode, setOutputCode] = useState('');
+  const [explanation, setExplanation] = useState('');
+  const [warnings, setWarnings] = useState([]);
   const [recommendedIndexes, setRecommendedIndexes] = useState([]);
-  const [lastResult,         setLastResult]         = useState(null);
-  const [loading,            setLoading]            = useState(false);
+  const [lastResult, setLastResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const workspace = useWorkspace();
-  const sandbox   = useSandbox({
+  const sandbox = useSandbox({
     outputCode,
-    schema:        workspace.schema,
+    schema: workspace.schema,
     targetDialect,
   });
 
@@ -38,7 +38,7 @@ export function useSqlForge() {
       setInput(moduleData.input || '');
       setOutputCode(moduleData.fullOutput?.query || moduleData.fullOutput?.convertedCode || '');
       if (moduleData.targetLang) setTargetDialect(moduleData.targetLang);
-      if (moduleData.mode)       setActiveMode(moduleData.mode);
+      if (moduleData.mode) setActiveMode(moduleData.mode);
     }
   }, [moduleData]);
 
@@ -55,10 +55,10 @@ export function useSqlForge() {
 
     try {
       const result = await convertCode('sql', input, {
-        targetLang:     targetDialect,
-        sourceLang:     sourceDialect,
-        mode:           activeMode,
-        schema:         workspace.schema,
+        targetLang: targetDialect,
+        sourceLang: sourceDialect,
+        mode: activeMode,
+        schema: workspace.schema,
         explainChanges,
         qualityMode,
       });

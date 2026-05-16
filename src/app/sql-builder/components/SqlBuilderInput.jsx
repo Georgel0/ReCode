@@ -23,7 +23,7 @@ export function SqlBuilderInput({
     <div className="panel flex-col">
       <div className="panel-header-row">
         <h3>
-          {activeMode === 'builder'   && 'Requirement'}
+          {activeMode === 'builder' && 'Requirement'}
           {activeMode === 'converter' && 'Source Query'}
           {activeMode === 'optimizer' && 'Slow Query'}
         </h3>

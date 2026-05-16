@@ -83,14 +83,14 @@ export function SqlBuilderOutput({
                   rightTitle="Optimized Query"
                   styles={!isDarkTheme ? undefined : {
                     variables: {
-                      diffViewerBackground:    'var(--bg-primary)',
-                      addedBackground:         'rgba(46, 160, 67, 0.15)',
-                      addedGutterBackground:   'rgba(46, 160, 67, 0.25)',
-                      removedBackground:       'rgba(248, 81, 73, 0.15)',
+                      diffViewerBackground: 'var(--bg-primary)',
+                      addedBackground: 'rgba(46, 160, 67, 0.15)',
+                      addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
+                      removedBackground: 'rgba(248, 81, 73, 0.15)',
                       removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
                     },
                     contentText: { fontSize: '13px', lineHeight: '20px' },
-                    titleBlock:  { height: 'auto', padding: '10px' },
+                    titleBlock: { height: 'auto', padding: '10px' },
                   }}
                 />
               </div>
