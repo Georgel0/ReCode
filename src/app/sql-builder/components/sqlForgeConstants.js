@@ -42,7 +42,7 @@ export const getNativeEngine = (dialect) => NATIVE_ENGINE_MAP[dialect] ?? 'ai';
 export const ENGINE_LABELS = {
   sqlite: { label: 'Native SQLite', icon: 'fa-bolt', cls: 'native' },
   pglite: { label: 'Native PostgreSQL', icon: 'fa-bolt', cls: 'native' },
-  duckdb: { label: 'DuckDB (approx.)', icon: 'fa-duck', cls: 'native' },
+  duckdb: { label: 'DuckDB (approx.)', icon: 'fa-database', cls: 'native' },
   ai: { label: 'AI Simulation', icon: 'fa-robot', cls: 'simulated' },
 };
 

@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'dompurify';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { CodeOutput, CopyButton } from '@/components/ui';
 
@@ -117,7 +118,9 @@ export function SqlBuilderOutput({
             {explanation && (
               <div className="ai-summary explain-plan">
                 <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
-                <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>') }} />
+                <div dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(explanation.replace(/\n/g, '<br/>'))
+                }} />
               </div>
             )}
 

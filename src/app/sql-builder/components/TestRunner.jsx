@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'dompurify';
 import { CodeEditor } from '@/components/ui';
 import { ResultStatsBar, ResultTable } from './SqlBuilderPrimitives';
 import { ENGINE_LABELS } from './sqlForgeConstants';
@@ -213,7 +214,9 @@ export function TestRunner({
           {simulationNote && (
             <div className="ai-summary simulation-note-box">
               <strong><i className="fa-solid fa-circle-info"></i> Simulation Notes</strong>
-              <div dangerouslySetInnerHTML={{ __html: simulationNote.replace(/\n/g, '<br/>') }} />
+              <div dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(simulationNote.replace(/\n/g, '<br/>'))
+              }} />           
             </div>
           )}
 

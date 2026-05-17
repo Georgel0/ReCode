@@ -380,8 +380,9 @@ export const PROMPT_CONFIG = {
         optimizer: `Analyse and optimise this ${ctx.targetLang} query for maximum performance.`,
         mock: (
           `Generate 5–10 rows of realistic mock data (INSERT INTO statements) based strictly on the provided schema. ` +
-          `CRITICAL: Output MUST be strictly valid SQLite syntax (standard ANSI SQL) so it executes safely in a ` +
-          `WebAssembly SQLite sandbox. Do NOT use ${ctx.targetLang}-specific functions or data types unsupported by SQLite.`
+          (ctx.targetLang === 'SQLite'
+            ? `CRITICAL: Output MUST be strictly valid SQLite syntax (no dialect-specific types or functions).`
+            : `Use valid ${ctx.targetLang} syntax. Ensure INSERT statements are compatible with the target dialect.`)
         ),
         simulate: (
           `You are simulating the execution of the provided ${ctx.targetLang} SQL query against the given schema and test data seed.\n\n` +
@@ -400,7 +401,10 @@ export const PROMPT_CONFIG = {
           `- If test data is provided, use it to compute accurate row counts and values.\n` +
           `- Use plausible but clearly fictional names, IDs, dates, and amounts.\n` +
           `- All JSON must be strictly valid: escape internal quotes, no trailing commas.\n` +
-          `- Put accuracy notes, caveats, or assumptions in the 'explanation' field (HTML formatted).`
+          `- Put accuracy notes, caveats, or assumptions in the 'explanation' field (HTML formatted).` +
+          `\n- Quality Mode: ${ctx.qualityMode === 'high'
+            ? 'Produce detailed, edge-case-rich results with varied data distributions.'
+            : 'Produce straightforward representative results.'}`
         ),
       };
 

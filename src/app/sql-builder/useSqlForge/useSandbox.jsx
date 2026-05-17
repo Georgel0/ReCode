@@ -25,14 +25,18 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
   const nativeEngine = getNativeEngine(targetDialect);
   const isNativeSqlite = nativeEngine === 'sqlite';
 
-  const resetSandbox = () => {
+  const resetSandboxState = () => {
     setSandboxResults(null);
     setSandboxError(null);
     setSimulationNote('');
     setExecutionTime(null);
     setIsSimulated(false);
-    setShowTestRunner(false);
     setTestDataSQL('');
+  };
+
+  const resetSandbox = () => {
+    resetSandboxState();
+    setShowTestRunner(false);
   };
 
   const generateTestData = useCallback(async () => {
@@ -82,15 +86,17 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
     } catch (err) {
       setSandboxError(err.message || 'Unknown error.');
     } finally {
-      if (db) try { db.close(); } catch {}
+      if (db) try { db.close(); } catch { }
     }
   };
 
   const runNativePglite = async (resolvedTestData) => {
     const t0 = Date.now();
+    let db = null;
+
     try {
       const { PGlite } = await import('@electric-sql/pglite');
-      const db = new PGlite();
+      db = new PGlite();
 
       if (schema?.trim()) {
         try { await db.exec(schema); }
@@ -101,9 +107,28 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
         catch (err) { toast.warning(`Test data partial: ${err.message.substring(0, 80)}`); }
       }
 
-      // Split on semicolons to run multiple statements, execute the last SELECT
-      const statements = outputCode.split(';').map((s) => s.trim()).filter(Boolean);
-      const formattedResults = [];
+      const splitSqlStatements = (sql) => {
+        const stmts = [];
+        let current = '';
+        let inSingle = false, inDouble = false;
+        for (let i = 0; i < sql.length; i++) {
+          const ch = sql[i];
+          if (ch === "'" && !inDouble) inSingle = !inSingle;
+          else if (ch === '"' && !inSingle) inDouble = !inDouble;
+          if (ch === ';' && !inSingle && !inDouble) {
+            const trimmed = current.trim();
+            if (trimmed) stmts.push(trimmed);
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+        const trimmed = current.trim();
+        if (trimmed) stmts.push(trimmed);
+        return stmts;
+      };
+
+      const statements = splitSqlStatements(outputCode); const formattedResults = [];
 
       for (const stmt of statements) {
         const res = await db.query(stmt);
@@ -127,11 +152,16 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
       toast.success('Executed on PostgreSQL!');
     } catch (err) {
       setSandboxError(err.message || 'PostgreSQL execution failed.');
+    } finally {
+      if (db) {
+        try { await db.close(); } catch { }
+      }
     }
   };
 
   const runNativeDuckdb = async (resolvedTestData) => {
     const t0 = Date.now();
+    let worker = null, db = null, conn = null; // ADD
     try {
       const duckdb = await import('@duckdb/duckdb-wasm');
       const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
@@ -140,13 +170,13 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
       const worker_url = URL.createObjectURL(
         new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
       );
-      const worker = new Worker(worker_url);
+      worker = new Worker(worker_url); // CHANGE (was const)
       const logger = new duckdb.ConsoleLogger();
-      const db = new duckdb.AsyncDuckDB(logger, worker);
+      db = new duckdb.AsyncDuckDB(logger, worker); // CHANGE
       await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
       URL.revokeObjectURL(worker_url);
 
-      const conn = await db.connect();
+      conn = await db.connect(); // CHANGE
 
       if (schema?.trim()) {
         try { await conn.query(schema); }
@@ -159,7 +189,10 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
 
       const result = await conn.query(outputCode);
       const schema_ = result.schema.fields.map((f) => f.name);
-      const rows = result.toArray().map((r) => schema_.map((col) => r[col] ?? null));
+      const rows = result.toArray().map((r) => {
+        const obj = r.toJSON();
+        return schema_.map((col) => obj[col] ?? null);
+      });
 
       setSandboxResults(
         rows.length > 0
@@ -168,13 +201,13 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
       );
       setExecutionTime(Date.now() - t0);
       setIsSimulated(false);
-
-      await conn.close();
-      await db.terminate();
-      worker.terminate();
       toast.success('Executed on DuckDB!');
     } catch (err) {
       setSandboxError(err.message || 'DuckDB execution failed.');
+    } finally {                         // ADD entire finally block
+      if (conn) try { await conn.close(); } catch { }
+      if (db) try { await db.terminate(); } catch { }
+      if (worker) try { worker.terminate(); } catch { }
     }
   };
 
@@ -243,10 +276,10 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
     }
 
     const engine = getNativeEngine(targetDialect);
-    if (engine === 'sqlite')      await runNativeSqlite(resolvedTestData);
+    if (engine === 'sqlite') await runNativeSqlite(resolvedTestData);
     else if (engine === 'pglite') await runNativePglite(resolvedTestData);
     else if (engine === 'duckdb') await runNativeDuckdb(resolvedTestData);
-    else                          await runAiSimulation(resolvedTestData);
+    else await runAiSimulation(resolvedTestData);
 
     setIsSandboxRunning(false);
   };
@@ -270,8 +303,8 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
     testDataSQL, setTestDataSQL,
     showTestDataPreview, setShowTestDataPreview,
     isGeneratingTestData,
-    isNativeSqlite,     
-    nativeEngine,       
+    isNativeSqlite,
+    nativeEngine,
     sandboxResults, setSandboxResults,
     sandboxError,
     isSandboxRunning,
@@ -283,5 +316,6 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
     clearTestData,
     exportResultsAsCSV,
     resetSandbox,
+    resetSandboxState
   };
 }

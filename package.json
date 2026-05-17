@@ -19,6 +19,7 @@
     "ai": "^6.0.43",
     "babel-plugin-react-compiler": "^1.0.0",
     "diff": "^8.0.3",
+    "dompurify": "^3.4.4",
     "file-saver": "^2.0.5",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",

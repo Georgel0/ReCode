@@ -100,7 +100,7 @@ export default function SqlBuilder() {
           panelRef={testRunnerRef}
           showTestRunner={forge.showTestRunner}
           setShowTestRunner={forge.setShowTestRunner}
-          isNativeSqlite={forge.isNativeSqlite}
+          nativeEngine={forge.nativeEngine}
           targetDialect={forge.targetDialect}
           isSandboxRunning={forge.isSandboxRunning}
           isGeneratingTestData={forge.isGeneratingTestData}

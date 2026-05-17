@@ -51,7 +51,7 @@ export function useSqlForge() {
     setWarnings([]);
     setRecommendedIndexes([]);
     setLastResult(null);
-    sandbox.resetSandbox();
+    sandbox.resetSandboxState();
 
     try {
       const result = await convertCode('sql', input, {
@@ -97,7 +97,6 @@ export function useSqlForge() {
     setWarnings([]);
     setRecommendedIndexes([]);
     setLastResult(null);
-    workspace.handleSchemaChange('');
     sandbox.resetSandbox();
   };
 
