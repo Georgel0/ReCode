@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { ModuleHeader } from '@/components/layout';
 import { useTheme } from '@/context';
-import { useSqlForge } from './ useSqlForge/useSqlForge';
+import { useSqlForge } from './useSqlForge/useSqlForge';
 import { MODES } from './components/sqlForgeConstants';
 import { SqlBuilderInput } from './components/SqlBuilderInput';
 import { SqlBuilderOutput } from './components/SqlBuilderOutput';

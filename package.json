@@ -11,6 +11,8 @@
   "dependencies": {
     "@ai-sdk/groq": "^3.0.15",
     "@ai-sdk/openai": "^3.0.13",
+    "@duckdb/duckdb-wasm": "^1.33.1-dev45.0",
+    "@electric-sql/pglite": "^0.4.5",
     "@google/generative-ai": "^0.24.1",
     "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^1.3.1",

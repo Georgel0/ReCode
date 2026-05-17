@@ -2,6 +2,7 @@
 
 import { CodeEditor } from '@/components/ui';
 import { ResultStatsBar, ResultTable } from './SqlBuilderPrimitives';
+import { ENGINE_LABELS } from './sqlForgeConstants';
 
 const formatExecTime = (ms) => {
   if (ms === null || ms === undefined) return null;
@@ -11,7 +12,7 @@ const formatExecTime = (ms) => {
 export function TestRunner({
   panelRef,
   showTestRunner, setShowTestRunner,
-  isNativeSqlite,
+  nativeEngine,
   targetDialect,
   isSandboxRunning,
   isGeneratingTestData,
@@ -33,6 +34,7 @@ export function TestRunner({
     .reduce((acc, r) => acc + (r.values?.length ?? 0), 0) ?? 0;
 
   const hasTableResults = sandboxResults?.some((r) => r.columns?.length > 0);
+  const engine = ENGINE_LABELS[nativeEngine] ?? ENGINE_LABELS.ai;
 
   return (
     <div className="test-runner-panel" ref={panelRef}>
@@ -60,15 +62,10 @@ export function TestRunner({
         </div>
 
         <div className="test-runner-header-right">
-          {isNativeSqlite ? (
-            <span className="dialect-badge native">
-              <i className="fa-solid fa-bolt"></i> Native SQLite
-            </span>
-          ) : (
-            <span className="dialect-badge simulated">
-              <i className="fa-solid fa-robot"></i> AI Simulation — {targetDialect}
-            </span>
-          )}
+          <span className={`dialect-badge ${engine.cls}`}>
+            <i className={`fa-solid ${engine.icon}`}></i>{' '}
+            {engine.cls === 'simulated' ? `${engine.label} — ${targetDialect}` : engine.label}
+          </span>
           <i className={`fa-solid ${showTestRunner ? 'fa-chevron-up' : 'fa-chevron-down'} tr-chevron`}></i>
         </div>
       </div>
@@ -225,7 +222,7 @@ export function TestRunner({
               <i className="fa-solid fa-play-circle"></i>
               <p>
                 Click <strong>Run Query</strong> to test your SQL.
-                {!isNativeSqlite && (
+                {nativeEngine === 'ai' && (
                   <span className="tr-empty-note">
                     {' '}Results for <strong>{targetDialect}</strong> will be AI-simulated.
                   </span>

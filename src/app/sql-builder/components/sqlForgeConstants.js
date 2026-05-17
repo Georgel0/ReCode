@@ -29,6 +29,23 @@ const FORMATTER_DIALECT_MAP = {
   Redshift: 'redshift',
 };
 
+export const NATIVE_ENGINE_MAP = {
+  SQLite: 'sqlite',
+  PostgreSQL: 'pglite',
+  BigQuery: 'duckdb',
+  Redshift: 'duckdb',
+  Snowflake: 'duckdb',
+};
+
+export const getNativeEngine = (dialect) => NATIVE_ENGINE_MAP[dialect] ?? 'ai';
+
+export const ENGINE_LABELS = {
+  sqlite: { label: 'Native SQLite', icon: 'fa-bolt', cls: 'native' },
+  pglite: { label: 'Native PostgreSQL', icon: 'fa-bolt', cls: 'native' },
+  duckdb: { label: 'DuckDB (approx.)', icon: 'fa-duck', cls: 'native' },
+  ai: { label: 'AI Simulation', icon: 'fa-robot', cls: 'simulated' },
+};
+
 export const getFormatterDialect = (dialectName) =>
   FORMATTER_DIALECT_MAP[dialectName] || 'sql';
 
