@@ -31,6 +31,11 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
   const [savedSchemas, setSavedSchemas] = useState([]);
   const [schemaOptionsVisible, setSchemaOptionsVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [newSchemaName, setNewSchemaName] = useState('');
+  const [saveSchemaError, setSaveSchemaError] = useState('');
+
   const itemsPerPage = 15;
 
   const [modalConfig, setModalConfig] = useState({
@@ -38,8 +43,13 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('mockSchemas');
-    if (saved) setSavedSchemas(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem('mockSchemas');
+      if (saved) setSavedSchemas(JSON.parse(saved));
+    } catch (e) {
+      console.warn('Failed to load saved schemas:', e);
+      localStorage.removeItem('mockSchemas');
+    }
   }, []);
 
   useEffect(() => {
@@ -59,21 +69,18 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
           setGeneratedData(parsed);
           setParsedRulesFeedback(parsed.parsedRules || []);
           setActiveTab(0);
-
-          if (onDataUpdate) {
-            onDataUpdate({ type: 'mock', input: moduleData.input, output: JSON.stringify(parsed), rules: moduleData.rules, locale: moduleData.locale, rowCount: moduleData.rowCount, seed: moduleData.seed, dataQuality: moduleData.dataQuality });
-          }
+          setCurrentPage(1);
         } catch (e) {
           console.error("Failed to rehydrate data map:", e);
         }
       }
     }
-  }, [moduleData, onDataUpdate]);
+  }, [moduleData]);
 
   const detectedLanguage = useMemo(() => {
     if (!schemaInput) return 'sql';
-    if (schemaInput.includes('type ') || schemaInput.includes('interface ')) return 'typescript';
-    if (schemaInput.includes('model ') && schemaInput.includes('@id')) return 'graphql';
+    if (schemaInput.includes(': string') || schemaInput.includes(': number') || /^(type|interface)\s+\w/m.test(schemaInput)) return 'typescript';
+    if (schemaInput.includes('model ') && schemaInput.includes('@id')) return 'prisma';
     if (schemaInput.trim().startsWith('{')) return 'json';
     return 'sql';
   }, [schemaInput]);
@@ -85,7 +92,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
     setParsedRulesFeedback([]);
 
     try {
-      const targetRows = overrideRows || parseInt(rowCount, 10);
+      const targetRows = overrideRows ?? parseInt(rowCount, 10);
       const data = await convertCode('mock', schemaInput, {
         mode: 'builder',
         qualityMode: qualityMode,
@@ -114,16 +121,45 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
   };
 
   const handleSaveSchema = () => {
-    const name = prompt("Name this schema template:");
-    if (!name) return;
+    setNewSchemaName('');
+    setSaveSchemaError('');
+    setIsSaveModalOpen(true);
+  };
 
-    const newSaved = [...savedSchemas, { name, schema: schemaInput }];
+  const executeSaveSchema = () => {
+    if (!newSchemaName || !newSchemaName.trim()) {
+      setSaveSchemaError("Name cannot be empty.");
+      return;
+    }
+
+    const trimmedName = newSchemaName.trim();
+
+    if (savedSchemas.some(s => s.name.toLowerCase() === trimmedName.toLowerCase())) {
+      setSaveSchemaError("A schema with this name already exists.");
+      return;
+    }
+
+    const newSaved = [...savedSchemas, { name: trimmedName, schema: schemaInput }];
     setSavedSchemas(newSaved);
     localStorage.setItem('mockSchemas', JSON.stringify(newSaved));
+    setIsSaveModalOpen(false);
+  };
+
+  const handleDeleteSchema = (indexToDelete) => {
+    const newSaved = savedSchemas.filter((_, i) => i !== indexToDelete);
+    setSavedSchemas(newSaved);
+    localStorage.setItem('mockSchemas', JSON.stringify(newSaved));
+
+    if (newSaved.length === 0) {
+      setSchemaOptionsVisible(false);
+    }
   };
 
   const handleCopyCell = (val) => {
-    navigator.clipboard.writeText(String(val));
+    const textToCopy = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val);
+    navigator.clipboard.writeText(textToCopy).catch(() => {
+      console.warn('Clipboard write failed');
+    });
   };
 
   const downloadFile = (content, filename, type) => {
@@ -153,26 +189,31 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
             const val = row[col];
             if (val === null) return 'NULL';
             if (typeof val === 'number' || typeof val === 'boolean') return val;
+            if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
             return `'${String(val).replace(/'/g, "''")}'`;
           });
           sqlString += `INSERT INTO ${table.tableName} (${columns.join(', ')}) VALUES (${values.join(', ')});\n`;
         });
         sqlString += '\n';
       });
+
       downloadFile(sqlString, 'mock-data.sql', 'application/sql');
     } else if (type === 'csv') {
       const table = generatedData.tables[activeTab];
-      if (!table || !table.rows.length) return;
+      if (!table || !table.rows || !table.rows.length) return;
 
       const columns = Object.keys(table.rows[0]);
       const csvRows = [columns.join(',')];
 
       table.rows.forEach(row => {
         csvRows.push(columns.map(col => {
-          let val = row[col] === null ? '' : String(row[col]);
-          return (val.includes(',') || val.includes('"')) ? `"${val.replace(/"/g, '""')}"` : val;
+          let val = row[col] === null ? '' : (typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col]));
+          return (val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r'))
+            ? `"${val.replace(/"/g, '""')}"`
+            : val;
         }).join(','));
       });
+
       downloadFile(csvRows.join('\n'), `${table.tableName}.csv`, 'text/csv');
     } else if (type === 'prisma') {
       let tsString = `import { PrismaClient } from '@prisma/client'\nconst prisma = new PrismaClient()\n\nasync function main() {\n`;
@@ -218,19 +259,46 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
           <div className="mock-sidebar-content">
 
             <div className="mock-form-group">
-              <div className="flex-between">
-                <label>1. Architecture ({detectedLanguage})</label>
-                <button className="text-btn text-xs" onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}>
-                  <i className="fas fa-bookmark"></i> Saved Schemas
+              <div className="flex-between" style={{ marginBottom: '8px' }}>
+                <label style={{ margin: 0 }}>1. Architecture ({detectedLanguage})</label>
+                <button
+                  className="text-btn text-xs"
+                  onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}
+                  disabled={savedSchemas.length === 0}
+                  style={{
+                    opacity: savedSchemas.length === 0 ? 0.5 : 1,
+                    cursor: savedSchemas.length === 0 ? 'not-allowed' : 'pointer'
+                  }}
+                  title={savedSchemas.length === 0 ? "Save a schema first" : "Toggle Saved Schemas"}
+                >
+                  <i className={`fas ${schemaOptionsVisible ? 'fa-folder-open' : 'fa-bookmark'}`}></i>
+                  {schemaOptionsVisible ? ' Close Library' : ' Saved Schemas'}
+                  {savedSchemas.length > 0 && ` (${savedSchemas.length})`}
                 </button>
               </div>
 
               {schemaOptionsVisible && savedSchemas.length > 0 && (
-                <div className="schema-library">
+                <div className="schema-library-panel">
                   {savedSchemas.map((s, i) => (
-                    <button key={i} className="schema-badge" onClick={() => { setSchemaInput(s.schema); setSchemaOptionsVisible(false); }}>
-                      {s.name}
-                    </button>
+                    <div key={i} className="schema-library-item">
+                      <div
+                        style={{ flexGrow: 1, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}
+                        onClick={() => { setSchemaInput(s.schema); setSchemaOptionsVisible(false); }}
+                        title="Load this schema"
+                      >
+                        <i className="fas fa-file-code" style={{ color: 'var(--primary-color, #3b82f6)' }}></i>
+                        {s.name}
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteSchema(i); }}
+                        className="library-item-delete-btn"
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                        title="Delete saved schema"
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -243,15 +311,25 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   placeholder="CREATE TABLE users (&#10;  id UUID PRIMARY KEY,&#10;  created_at TIMESTAMP&#10;);"
                 />
               </div>
-              <button className="secondary-button btn-small mt-1" onClick={handleSaveSchema}>Save to Library</button>
+              <button
+                className="secondary-button btn-small"
+                onClick={handleSaveSchema}
+                disabled={!schemaInput.trim()}
+                style={{ opacity: !schemaInput.trim() ? 0.5 : 1 }}
+              >
+                <i className="fas fa-save" style={{ marginRight: '4px' }}></i> Save to Library
+              </button>
             </div>
 
             <div className="mock-form-group">
               <label>2. Rule & Distribution Assertions</label>
-              <select className="theme-select-dropdown mb-1 text-sm" onChange={(e) => {
-                if (e.target.value) setRules(prev => prev ? prev + '\n' + e.target.value : e.target.value);
-                e.target.value = "";
-              }}>
+              <select
+                className="theme-select-dropdown mb-1 text-sm"
+                value=""
+                onChange={(e) => {
+                  if (e.target.value) setRules(prev => prev ? prev + '\n' + e.target.value : e.target.value);
+                }}
+              >
                 {RULE_TEMPLATES.map(t => <option key={t.label} value={t.value}>{t.label}</option>)}
               </select>
               <textarea
@@ -298,7 +376,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
               <input
                 type="range" min="50" max="100"
                 value={dataQuality}
-                onChange={(e) => setDataQuality(parseInt(e.target.value))}
+                onChange={(e) => setDataQuality(parseInt(e.target.value, 10))}
                 className="slider"
               />
             </div>
@@ -332,16 +410,26 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   onClick={() => { setActiveTab(idx); setCurrentPage(1); }}
                 >
                   <i className="fas fa-table"></i> {table.tableName}
-                  <span className="close-tab">({table.rows.length})</span>
+                  <span className="close-tab">({table.rows?.length ?? 0})</span>
                 </button>
               ))}
             </div>
 
             <div className="mock-export-group">
-              <button className="secondary-button icon-only" title="Copy as JSON" onClick={() => navigator.clipboard.writeText(JSON.stringify(activeTableData, null, 2))} disabled={!generatedData}>
+              <button className="secondary-button icon-only" title="Copy as JSON"
+                onClick={() => navigator.clipboard.writeText(JSON.stringify(activeTableData, null, 2)).catch(() => {
+                  console.warn('Clipboard write failed');
+                })} disabled={!generatedData}>
                 <i className="fas fa-clipboard"></i>
               </button>
-              <select className="theme-select-dropdown small-select" onChange={(e) => { if (e.target.value) triggerExportModal(e.target.value); e.target.value = ""; }} disabled={!generatedData}>
+              <select 
+                className="theme-select-dropdown small-select" 
+                value="" 
+                onChange={(e) => { 
+                  if (e.target.value) triggerExportModal(e.target.value); 
+                }} 
+                disabled={!generatedData}
+              >
                 <option value="">Export As...</option>
                 <option value="csv">CSV (Active Table)</option>
                 <option value="json">JSON (All Tables)</option>
@@ -378,16 +466,19 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   <tbody>
                     {paginatedRows.map((row, i) => (
                       <tr key={i}>
-                        {Object.values(row).map((val, j) => (
-                          <td
-                            key={j}
-                            title={String(val)}
-                            onDoubleClick={() => handleCopyCell(val)}
-                            className="editable-cell"
-                          >
-                            {String(val)}
-                          </td>
-                        ))}
+                        {Object.values(row).map((val, j) => {
+                          const displayVal = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val);
+                          return (
+                            <td
+                              key={j}
+                              title={displayVal}
+                              onDoubleClick={() => handleCopyCell(val)}
+                              className="editable-cell"
+                            >
+                              {displayVal}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
@@ -406,14 +497,55 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
             {generatedData?.explanation && (
               <div className="panel" style={{ marginTop: '1rem', flexShrink: 0 }}>
                 <h3>Generation Explanations</h3>
-                <div dangerouslySetInnerHTML={{ __html: generatedData.explanation }} />
+                <div>{generatedData.explanation}</div>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </div >
 
       <ConfirmModal {...modalConfig} onCancel={() => setModalConfig(prev => ({ ...prev, isOpen: false }))} />
+
+      {
+        isSaveModalOpen && (
+          <div className="modal-overlay" onClick={() => setIsSaveModalOpen(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2><i className="fas fa-save" style={{ marginRight: '8px' }}></i> Save Schema</h2>
+              </div>
+
+              <p className="modal-desc" style={{ marginBottom: '1rem' }}>
+                Name this schema template to save it to your library for quick access later.
+              </p>
+
+              <div className="mock-form-group">
+                <input
+                  type="text"
+                  className="text-input full-width"
+                  placeholder="e.g., E-commerce Users & Orders"
+                  value={newSchemaName}
+                  onChange={(e) => {
+                    setNewSchemaName(e.target.value);
+                    setSaveSchemaError('');
+                  }}
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && executeSaveSchema()}
+                />
+                {saveSchemaError && (
+                  <div className="error-message">
+                    <i className="fas fa-exclamation-circle"></i> {saveSchemaError}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button className="secondary-button" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
+                <button className="primary-button" onClick={executeSaveSchema}>Save Template</button>
+              </div>
+            </div>
+          </div>
+        )
+      }
     </>
   );
 }

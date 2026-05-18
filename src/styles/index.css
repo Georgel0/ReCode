@@ -1,4 +1,5 @@
-html[data-theme='recode-dark'] ,:root {
+html[data-theme='recode-dark'],
+:root {
   --bg-primary: black;
   --bg-secondary: black;
   --bg-tertiary: black;
@@ -61,6 +62,10 @@ select,
 input,
 textarea {
   font-family: inherit;
+}
+
+select:disabled {
+  cursor: not-allowed;
 }
 
 textarea {
@@ -127,7 +132,7 @@ textarea:focus {
 
 .logo-link {
   text-decoration: none;
-  color: inherit; 
+  color: inherit;
   display: flex;
   align-items: center;
 }
@@ -154,10 +159,10 @@ textarea:focus {
 }
 
 .app-wrapper.landing-mode {
-  height: auto;              
-  min-height: 100vh;      
-  overflow: visible;      
-  width: 100%;              
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+  width: 100%;
   background-color: #000;
 }
 
@@ -218,7 +223,7 @@ html[data-theme='midnight-gold'] select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23d4af37' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
 }
 
-html[data-theme='deep-sea']  {
+html[data-theme='deep-sea'] {
   --bg-primary: #0a0e2a;
   --bg-secondary: #121a40;
   --bg-tertiary: #1c285a;
@@ -236,7 +241,7 @@ html[data-theme='deep-sea'] select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%238a95c9' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
 }
 
-html[data-theme='classic-light']  {
+html[data-theme='classic-light'] {
   --bg-primary: #ffffff;
   --bg-secondary: #f5f7fa;
   --bg-tertiary: #eef2f7;
@@ -251,11 +256,11 @@ html[data-theme='classic-light']  {
   --btn-background-hover: var(--accent-hover);
 }
 
-html[data-theme='classic-light']  select {
+html[data-theme='classic-light'] select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23718096' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
 }
 
-html[data-theme='quartz']  {
+html[data-theme='quartz'] {
   --bg-primary: #fdfdfd;
   --bg-secondary: #f8f6f2;
   --bg-tertiary: #f0ebe1;
@@ -301,51 +306,92 @@ html[data-theme='mint'] select {
 .prism-dark {
   color: #ccc;
 }
+
 .prism-dark .token.comment,
 .prism-dark .token.block-comment,
 .prism-dark .token.prolog,
 .prism-dark .token.doctype,
-.prism-dark .token.cdata { color: #999; }
-.prism-dark .token.punctuation { color: #ccc; }
+.prism-dark .token.cdata {
+  color: #999;
+}
+
+.prism-dark .token.punctuation {
+  color: #ccc;
+}
+
 .prism-dark .token.tag,
 .prism-dark .token.attr-name,
 .prism-dark .token.namespace,
-.prism-dark .token.deleted { color: #e2777a; }
-.prism-dark .token.function-name { color: #6196cc; }
+.prism-dark .token.deleted {
+  color: #e2777a;
+}
+
+.prism-dark .token.function-name {
+  color: #6196cc;
+}
+
 .prism-dark .token.boolean,
 .prism-dark .token.number,
-.prism-dark .token.function { color: #f08d49; }
+.prism-dark .token.function {
+  color: #f08d49;
+}
+
 .prism-dark .token.property,
 .prism-dark .token.class-name,
 .prism-dark .token.constant,
-.prism-dark .token.symbol { color: #f8c555; }
+.prism-dark .token.symbol {
+  color: #f8c555;
+}
+
 .prism-dark .token.selector,
 .prism-dark .token.important,
 .prism-dark .token.atrule,
 .prism-dark .token.keyword,
-.prism-dark .token.builtin { color: #cc99cd; }
+.prism-dark .token.builtin {
+  color: #cc99cd;
+}
+
 .prism-dark .token.string,
 .prism-dark .token.char,
 .prism-dark .token.attr-value,
 .prism-dark .token.regex,
-.prism-dark .token.variable { color: #7ec699; }
+.prism-dark .token.variable {
+  color: #7ec699;
+}
+
 .prism-dark .token.operator,
 .prism-dark .token.entity,
-.prism-dark .token.url { color: #67cdcc; }
+.prism-dark .token.url {
+  color: #67cdcc;
+}
 
 
 .prism-light {
   color: #393A34;
 }
+
 .prism-light .token.comment,
 .prism-light .token.prolog,
 .prism-light .token.doctype,
-.prism-light .token.cdata { color: #999988; font-style: italic; }
-.prism-light .token.namespace { opacity: .7; }
+.prism-light .token.cdata {
+  color: #999988;
+  font-style: italic;
+}
+
+.prism-light .token.namespace {
+  opacity: .7;
+}
+
 .prism-light .token.string,
-.prism-light .token.attr-value { color: #e3116c; }
+.prism-light .token.attr-value {
+  color: #e3116c;
+}
+
 .prism-light .token.punctuation,
-.prism-light .token.operator { color: #393A34; }
+.prism-light .token.operator {
+  color: #393A34;
+}
+
 .prism-light .token.entity,
 .prism-light .token.url,
 .prism-light .token.symbol,
@@ -355,23 +401,47 @@ html[data-theme='mint'] select {
 .prism-light .token.constant,
 .prism-light .token.property,
 .prism-light .token.regex,
-.prism-light .token.inserted { color: #36acaa; }
+.prism-light .token.inserted {
+  color: #36acaa;
+}
+
 .prism-light .token.atrule,
 .prism-light .token.keyword,
 .prism-light .token.attr-name,
-.prism-light .token.selector { color: #00a4db; }
+.prism-light .token.selector {
+  color: #00a4db;
+}
+
 .prism-light .token.function,
 .prism-light .token.deleted,
 .prism-light .token.tag,
-.prism-light .token.class-name { color: #d73a49; }
+.prism-light .token.class-name {
+  color: #d73a49;
+}
 
-.prism-dark .token.keyword { color: #cc99cd !important; }
-.prism-dark .token.string { color: #7ec699 !important; }
-.prism-dark .token.function { color: #f08d49 !important; }
+.prism-dark .token.keyword {
+  color: #cc99cd !important;
+}
 
-.prism-light .token.keyword { color: #00a4db !important; }
-.prism-light .token.string { color: #e3116c !important; }
-.prism-light .token.function { color: #d73a49 !important; }
+.prism-dark .token.string {
+  color: #7ec699 !important;
+}
+
+.prism-dark .token.function {
+  color: #f08d49 !important;
+}
+
+.prism-light .token.keyword {
+  color: #00a4db !important;
+}
+
+.prism-light .token.string {
+  color: #e3116c !important;
+}
+
+.prism-light .token.function {
+  color: #d73a49 !important;
+}
 
 .code-editor textarea:focus {
   outline: none;
@@ -385,7 +455,7 @@ html[data-theme='mint'] select {
   background-color: #ffffff !important;
 }
 
-.code-editor textarea, 
+.code-editor textarea,
 .code-editor pre {
   background: transparent !important;
 }
