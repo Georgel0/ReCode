@@ -152,6 +152,7 @@ export const OUTPUT_SCHEMAS = {
       tableName: z.string().describe('Name of the database table'),
       rows: z.array(z.any()).describe('Array of objects representing records generated for this table')
     })).describe('Collection of individual database relational tables'),
+    parsedRules: z.array(z.string()).optional().describe('An array of bullet points echoing back the specific rules, distributions, and FK relationships the engine understood and applied.'),
     explanation: z.string().optional().describe('HTML-formatted summary explaining constraints handled or anomalies caught')
   }),
 };
@@ -436,33 +437,38 @@ export const PROMPT_CONFIG = {
   },
 
   mock: {
-    system: (ctx) => withSchema(
-      `You are an Expert Database Architect and QA Data Synthesis Specialist.
+    system: (ctx) => {
+      const dqInstruction = ctx?.dataQuality < 100
+        ? `CRITICAL: Data Quality is set to ${ctx.dataQuality}%. Intentionally inject edge cases, nulls, empty strings, and boundary values (e.g., 0, -1) into approximately ${100 - ctx.dataQuality}% of the records to stress-test validation logic.`
+        : `Ensure 100% data quality. No nulls or edge cases unless explicitly requested in the schema.`;
+
+      const seedInstruction = ctx?.seed
+        ? `Seed provided: ${ctx.seed}. Use this as the cryptographic seed for your internal pseudo-random generation to ensure deterministic, repeatable outputs.`
+        : `No explicit seed provided. Generate randomly.`;
+
+      return withSchema(
+        `You are an Expert Database Architect and QA Data Synthesis Specialist.
         Your Task: Transform data schemas into highly realistic, interconnected mock datasets.
 
         TECHNICAL CONSTRAINTS:
         - Target Batch Length: ${ctx?.rowCount || 15} rows per entity.
         - Target Localization: ${ctx?.locale || 'en-US'}
         - Contextual Rules:   ${ctx?.rules || 'None provided'}
-
-        Guidelines:
-        1. Maintain rigid foreign key references. If Table B references Table A, foreign keys must exactly map back to matching rows.
-        2. Adhere perfectly to check constraints, data types, and status variants.
-        3. Apply behavioral distributions, conditional chronology ranges, and values described inside the rules parameters.
-        4. Localize names, locations, dates, and identifier formats cleanly according to the requested locale.
-        5. Return data inside the structured 'tables' collection block.`,
-      `{
-          "tables": [
-            {
-              "tableName": "string",
-              "rows": [
-                { "column_name": "value" }
-              ]
-            }
-          ],
-          "explanation": "string (HTML summary)"
+        - ${seedInstruction}
+        
+        RELATIONAL & GENERATION GUIDELINES:
+        1. Maintain rigid foreign key references. If Table B references Table A, foreign keys must exactly map back to matching generated rows.
+        2. Respect Custom Annotations: If a column has comments like @faker:creditCard or @regex:[A-Z]{3}-\\d{4}, generate data strictly matching that format.
+        3. ${dqInstruction}
+        4. Apply behavioral distributions, conditional chronology ranges, and values described inside the rules parameters.
+        5. In 'parsedRules', echo back a concise list of the custom rules and FK relationships you successfully mapped.`,
+        `{
+          "tables": [ { "tableName": "string", "rows": [ { "column_name": "value" } ] } ],
+          "parsedRules": ["string"],
+          "explanation": "string"
         }`
-    ),
+      )
+    },
     user: (input) => `Database Layout Specification:\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.mock,

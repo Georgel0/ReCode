@@ -180,6 +180,106 @@
   color: var(--border);
 }
 
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+}
+.text-btn:hover { text-decoration: underline; }
+
+.schema-library {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+  background: var(--bg-tertiary);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.schema-badge {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.schema-badge:hover { border-color: var(--accent); color: var(--text-primary); }
+
+.rules-feedback {
+  background: rgba(14, 165, 233, 0.1);
+  border-left: 3px solid var(--accent);
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  border-radius: 0 4px 4px 0;
+}
+.rules-feedback ul {
+  margin: 5px 0 0 0;
+  padding-left: 15px;
+  color: var(--text-secondary);
+}
+.text-green { color: #10b981; }
+
+.slider {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: ew-resize;
+}
+
+.text-input {
+  width: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  font-family: inherit;
+}
+.text-input:focus { border-color: var(--accent); outline: none; }
+
+.small-select { padding: 0.4rem 2rem 0.4rem 0.75rem; font-size: 0.85rem; }
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  position: sticky;
+  bottom: 0;
+}
+.pagination-controls button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+.pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+.pagination-controls button:not(:disabled):hover { background: var(--accent); color: #fff; }
+
+.editable-cell { cursor: cell; transition: background 0.1s; }
+.editable-cell:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
+
 @media (max-width: 1024px) {
   .mock-factory-container {
     flex-direction: column;
