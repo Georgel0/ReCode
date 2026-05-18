@@ -49,6 +49,7 @@ html[data-theme='quartz'] .panel h3 {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .primary-button:hover {
@@ -119,6 +120,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .secondary-button:hover {
@@ -144,6 +146,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   font-size: 0.8rem;
   cursor: pointer;
   transition: border-color 0.2s;
+  white-space: nowrap;
 }
 
 .file-upload-btn:hover {
@@ -195,6 +198,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   border-radius: 6px 6px 0 0;
   cursor: pointer;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .tab-btn.active {
@@ -331,6 +335,7 @@ select option {
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .save-btn:hover:not(:disabled) {
@@ -744,6 +749,116 @@ select option {
   100% {
     transform: scale(0.95);
     opacity: 0.7;
+  }
+}
+
+@media (max-width: 1200px) {
+  .panel {
+    padding: 1.25rem;
+  }
+
+  .model-options-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    padding: 0.65rem 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  .save-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 960px) {
+  .panel {
+    padding: 0.9rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .file-upload-btn {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  select {
+    padding: 0.55rem 2.5rem 0.55rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .tabs-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+
+  .mode-btn {
+    font-size: 0.55rem;
+    padding: 3px 7px;
+  }
+}
+
+@media (max-width: 860px) {
+  .panel {
+    padding: 0.75rem;
+  }
+
+  .panel h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .model-options-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .modal-content {
+    margin: 1rem auto;
+    padding: 1rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .save-btn {
+    padding: 7px 12px;
+    font-size: 0.85rem;
+  }
+
+  .flag-group {
+    flex-wrap: wrap;
   }
 }
 

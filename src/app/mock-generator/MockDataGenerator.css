@@ -1,6 +1,6 @@
 .mock-factory-container {
   display: flex;
-  height: 70vh;
+  height: 80vh;
   width: 100%;
   background-color: var(--bg-primary);
   border: 1px solid var(--border);

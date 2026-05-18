@@ -15,12 +15,12 @@ import './codeRefactor.css';
 
 export default function CodeRefactor() {
   const { moduleData, qualityMode } = useApp();
- 
+
   const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
   const [activeTabId, setActiveTabId] = useState(files[0].id);
   const [outputFiles, setOutputFiles] = useState([]);
   const [lastResult, setLastResult] = useState(false);
- 
+
   const [loadingStage, setLoadingStage] = useState('idle');
   const [refactorMode, setRefactorMode] = useState('clean');
   const [suggestedMode, setSuggestedMode] = useState(null);
@@ -28,24 +28,24 @@ export default function CodeRefactor() {
   const [errorMsg, setErrorMsg] = useState('');
   const [storageWarning, setStorageWarning] = useState(false);
   const [pendingDraft, setPendingDraft] = useState(null);
- 
+
   const fileInputRef = useRef(null);
   const isRestoring = useRef(false);
- 
+
   const activeFile = files.find(f => f.id === activeTabId);
- 
+
   useEffect(() => {
     if (moduleData && moduleData.type === "refactor") {
       isRestoring.current = true;
       try {
         const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
         const savedOutput = typeof moduleData.fullOutput === 'string' ? JSON.parse(moduleData.fullOutput) : moduleData.fullOutput;
-        
+
         if (savedInputs && savedInputs.length > 0) {
           setFiles(savedInputs);
           setActiveTabId(savedInputs[0].id);
         }
-        
+
         if (savedOutput) setOutputFiles(savedOutput);
         if (moduleData.refactorMode) setRefactorMode(moduleData.refactorMode);
       } catch (e) {
@@ -54,7 +54,7 @@ export default function CodeRefactor() {
       setTimeout(() => { isRestoring.current = false; }, 100);
     }
   }, [moduleData]);
- 
+
   useEffect(() => {
     if (outputFiles.length > 0 && !isRestoring.current) {
       setLastResult({
@@ -66,7 +66,7 @@ export default function CodeRefactor() {
       });
     }
   }, [outputFiles, files, refactorMode, qualityMode]);
- 
+
   const saveDraft = useCallback(
     debounce(async (draftData) => {
       if (draftData.files.some(f => f.content.trim())) {
@@ -81,7 +81,7 @@ export default function CodeRefactor() {
     }, 1500),
     []
   );
- 
+
   useEffect(() => {
     const loadDraft = async () => {
       try {
@@ -95,31 +95,31 @@ export default function CodeRefactor() {
     };
     loadDraft();
   }, []);
- 
+
   useEffect(() => {
     saveDraft({ files, outputFiles });
     return () => saveDraft.cancel();
   }, [files, outputFiles, saveDraft]);
- 
+
   useEffect(() => {
     if (activeFile && activeFile?.content.trim().length > 0) {
       setSuggestedMode(suggestRefactorMode(activeFile.content));
     } else setSuggestedMode(null);
   }, [activeTabId, files, activeFile?.content]);
- 
+
   const handleRefactor = async () => {
     if (files.every(f => !f.content.trim())) return;
     setLoadingStage('analyzing');
     setErrorMsg('');
-  
+
     let optTimeout, valTimeout;
     try {
       optTimeout = setTimeout(() => setLoadingStage('optimizing'), 1500);
       valTimeout = setTimeout(() => setLoadingStage('validating'), 3000);
-   
+
       const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
       const result = await convertCode('refactor', inputPayload, { mode: refactorMode, qualityMode });
-   
+
       if (result && Array.isArray(result.files)) {
         setOutputFiles(result.files);
       } else {
@@ -133,16 +133,16 @@ export default function CodeRefactor() {
       setLoadingStage('idle');
     }
   };
- 
+
   const handleLanguageChange = (id, newLangValue) => {
     const selectedLang = LANGUAGES.find(l => l.value === newLangValue);
     if (!selectedLang) return;
-  
+
     setFiles(prev => prev.map(f => {
       if (f.id === id) {
         const nameWithoutExt = f.name.includes('.') ?
           f.name.substring(0, f.name.lastIndexOf('.')) : f.name;
-    
+
         return {
           ...f,
           language: selectedLang.value,
@@ -152,7 +152,7 @@ export default function CodeRefactor() {
       return f;
     }));
   };
- 
+
   const handleKeyDown = useCallback((e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -163,17 +163,17 @@ export default function CodeRefactor() {
       saveDraft({ files, outputFiles });
     }
   }, [files, outputFiles, handleRefactor, saveDraft]);
- 
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
- 
+
   const handleFileUpload = async (e) => {
     setErrorMsg('');
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
-  
+
     const validFiles = [];
     for (const file of uploadedFiles) {
       const { valid, error } = validateFile(file);
@@ -183,15 +183,15 @@ export default function CodeRefactor() {
       }
       validFiles.push(file);
     }
-  
+
     const newFilesPromises = validFiles.map(file => new Promise((resolve, reject) => {
       const reader = new FileReader();
-   
+
       reader.onload = (event) => {
         const name = sanitizeFilename(file.name);
         const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
         const matchedLang = LANGUAGES.find(l => l.ext === ext) || LANGUAGES.find(l => l.value === 'plaintext');
-    
+
         resolve({
           id: crypto.randomUUID(),
           name: name,
@@ -203,7 +203,7 @@ export default function CodeRefactor() {
       reader.onerror = reject;
       reader.readAsText(file);
     }));
-  
+
     try {
       const newFiles = await Promise.all(newFilesPromises);
       if (newFiles.length > 0) {
@@ -216,11 +216,11 @@ export default function CodeRefactor() {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
- 
+
   const updateFile = (id, content) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
   };
- 
+
   const removeFile = (idToRemove) => {
     const newFiles = files.filter(f => f.id !== idToRemove);
     if (newFiles.length === 0) {
@@ -232,7 +232,7 @@ export default function CodeRefactor() {
       if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
     }
   };
- 
+
   const downloadSingleFile = (file) => {
     const blob = new Blob([file.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -242,14 +242,14 @@ export default function CodeRefactor() {
     link.click();
     URL.revokeObjectURL(url);
   };
- 
+
   const downloadZip = async () => {
     const zip = new JSZip();
     outputFiles.forEach(file => zip.file(sanitizeFilename(file.fileName || file.name || 'file.txt'), file.content));
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, "refactored_project.zip");
   };
- 
+
   const handleAddFile = () => {
     const currentExt = activeFile?.language ? LANGUAGES.find(l => l.value === activeFile.language)?.ext : '.js';
     const currentLang = activeFile?.language || 'javascript';
@@ -257,7 +257,7 @@ export default function CodeRefactor() {
     setFiles([...files, newFile]);
     setActiveTabId(newFile.id);
   };
- 
+
   const handleConfirmDraft = () => {
     setFiles(pendingDraft.files);
     setActiveTabId(pendingDraft.files[0]?.id);
@@ -266,18 +266,18 @@ export default function CodeRefactor() {
     }
     setPendingDraft(null);
   };
- 
+
   const handleCancelDraft = async () => {
     await set('refactor-draft-data', null);
     setPendingDraft(null);
   };
- 
+
   return (
     <div className="module-container">
-      <ModuleHeader 
-        title="AI Code Refactor" 
+      <ModuleHeader
+        title="AI Code Refactor"
         description="Optimize, clean, or document your project files with context-aware AI."
-        resultData={lastResult} 
+        resultData={lastResult}
       />
 
       {errorMsg && (
@@ -286,7 +286,7 @@ export default function CodeRefactor() {
           {errorMsg}
         </div>
       )}
-      
+
       {storageWarning && (
         <div className="status-banner warning">
           <i className="fa-solid fa-hard-drive"></i>
@@ -297,7 +297,7 @@ export default function CodeRefactor() {
       <div className="converter-grid">
         <div className="panel">
           <div className="panel-header-row">
-            <h3><i className="fa-solid fa-file-code"></i> Source Files</h3>
+            <h3>Source Files</h3>
             <div className="header-actions">
               <button className="secondary-button" onClick={() => fileInputRef.current.click()}>
                 <i className="fa-solid fa-upload"></i> Upload
@@ -307,20 +307,11 @@ export default function CodeRefactor() {
               </button>
             </div>
             <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple hidden />
-          </div>
-
-          <RefactorControls 
-            refactorMode={refactorMode} 
-            setRefactorMode={setRefactorMode} 
-            suggestedMode={suggestedMode} 
-          />
-          
-          <div className="editor-toolbar">
-            <div className="editor-toolbar-group">
+            <div className="lang-selector">
               <h4>Language</h4>
-              <select 
-                value={activeFile?.language || 'javascript'} 
-                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)} 
+              <select
+                value={activeFile?.language || 'javascript'}
+                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
               >
                 {LANGUAGES.map(lang => (
                   <option key={lang.value} value={lang.value}>{lang.label}</option>
@@ -329,13 +320,19 @@ export default function CodeRefactor() {
             </div>
           </div>
 
-          <FileTabs 
-            files={files} 
-            activeTabId={activeTabId} 
+          <RefactorControls
+            refactorMode={refactorMode}
+            setRefactorMode={setRefactorMode}
+            suggestedMode={suggestedMode}
+          />
+
+          <FileTabs
+            files={files}
+            activeTabId={activeTabId}
             setActiveTabId={setActiveTabId}
             removeFile={removeFile}
           />
-    
+
           <CodeEditor
             value={activeFile?.content || ''}
             onValueChange={(code) => updateFile(activeTabId, code)}
@@ -343,10 +340,10 @@ export default function CodeRefactor() {
           />
 
           <div className="action-row">
-            <button 
-              className="primary-button full-width" 
-              onClick={handleRefactor} 
-              disabled={loadingStage !== 'idle' || files.every(f => !f.content.trim())} 
+            <button
+              className="primary-button full-width"
+              onClick={handleRefactor}
+              disabled={loadingStage !== 'idle' || files.every(f => !f.content.trim())}
             >
               <i className={loadingStage !== 'idle' ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-wand-magic-sparkles"}></i>
               {loadingStage !== 'idle' ? `Processing...` : 'Refactor Project'}
@@ -363,8 +360,8 @@ export default function CodeRefactor() {
               </button>
             )}
           </div>
-          
-          <OutputPanel 
+
+          <OutputPanel
             activeSourceFile={files.find(f => f.id === activeTabId)}
             outputFiles={outputFiles}
             viewMode={viewMode}
@@ -374,8 +371,8 @@ export default function CodeRefactor() {
           />
         </div>
       </div>
-   
-      <ConfirmModal 
+
+      <ConfirmModal
         isOpen={!!pendingDraft}
         title="Unsaved Draft Found"
         message="We found an autosaved draft from your previous session. Would you like to continue where you left off, or start fresh?"

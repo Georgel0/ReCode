@@ -167,11 +167,35 @@ textarea:focus {
   flex: 1;
 }
 
+
+@media (max-width: 1100px) {
+  .app-wrapper {
+    overflow: hidden;
+  }
+
+  .main-content {
+    min-width: 0;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-wrapper {
+    overflow: hidden;
+  }
+
+  .main-content {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+}
+
 @media (max-width: 768px) {
   .app-wrapper {
     flex-direction: column;
   }
 }
+
 
 html[data-theme='midnight-gold'] {
   --bg-primary: #000000;
