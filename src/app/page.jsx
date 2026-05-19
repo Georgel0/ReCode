@@ -130,7 +130,7 @@ export default function LandingPage() {
         <ScrollAnimation direction="left">
          <div className="lp-image-container">
           <img 
-           src="/infrastructure.jpg" 
+           src="/infrastructure.webp" 
            alt="ReCode Infrastructure Preview" 
            className="lp-feature-img"
           />
