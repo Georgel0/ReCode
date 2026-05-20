@@ -2,17 +2,18 @@
 
 import React, { useRef, useEffect } from 'react';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
+import { EmptyState } from '@/components/layout';
 import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES } from '../hooks/useDatabaseSeedingTab';
 import { ErdDiagram } from '../components/ErdDiagram';
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';
-  if (label.startsWith('FK'))                         cls += ' col-type-badge--fk';
-  else if (label === 'UUID')                          cls += ' col-type-badge--uuid';
+  if (label.startsWith('FK')) cls += ' col-type-badge--fk';
+  else if (label === 'UUID') cls += ' col-type-badge--uuid';
   else if (label === 'TIMESTAMP' || label === 'DATE') cls += ' col-type-badge--ts';
-  else if (label === 'PK')                            cls += ' col-type-badge--pk';
-  else if (label === 'BOOL')                          cls += ' col-type-badge--bool';
-  else if (label === 'INT' || label === 'FLOAT')      cls += ' col-type-badge--num';
+  else if (label === 'PK') cls += ' col-type-badge--pk';
+  else if (label === 'BOOL') cls += ' col-type-badge--bool';
+  else if (label === 'INT' || label === 'FLOAT') cls += ' col-type-badge--num';
 
   return <span className={cls}>{label}</span>;
 }
@@ -41,7 +42,7 @@ function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, o
           onChange={e => onChange(e.target.value)}
           onBlur={onCommit}
           onKeyDown={e => {
-            if (e.key === 'Enter')  onCommit();
+            if (e.key === 'Enter') onCommit();
             if (e.key === 'Escape') onCancel();
           }}
         />
@@ -94,7 +95,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
     activeTableData, hasNoInboundFKs,
   } = db;
 
-  const colKeys   = activeTableData?.rows?.[0] ? Object.keys(activeTableData.rows[0]) : [];
+  const colKeys = activeTableData?.rows?.[0] ? Object.keys(activeTableData.rows[0]) : [];
   const sampleRow = activeTableData?.rows?.[0] ?? {};
 
   const getQualityLabel = (val) => {
@@ -109,7 +110,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
         <div className="mock-sidebar">
           <div className="mock-sidebar-content">
-            
+
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
@@ -211,7 +212,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   <i className="fas fa-sliders-h" /> Fabrication Settings
                 </div>
               </div>
-              
+
               <div className="form-grid-2">
                 <div className="mock-form-group">
                   <label className="input-label">Locale</label>
@@ -361,28 +362,16 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
           <div className="mock-preview-area">
 
-            {!generatedData && !isLoading && (
-              <div className="mock-empty-state styled-empty">
-                <div className="empty-state-icon-ring">
-                  <i className="fas fa-database" />
-                </div>
-                <h3>Awaiting Architecture</h3>
-                <p>
-                  Input your schema definitions in the sidebar to generate a highly interconnected relational database.
-                </p>
-                <div className="empty-hints">
-                  <span className="hint-chip"><i className="fas fa-lightbulb text-accent" /> Hint: Use <code>@faker:creditCard</code> for specific formatting.</span>
-                </div>
-              </div>
-            )}
-
-            {isLoading && (
-              <div className="mock-empty-state loading-state-pane">
-                <div className="spinner-large" />
-                <h3>Synthesizing Reality</h3>
-                <p>Analyzing schema relationships and generating localized datasets...</p>
-              </div>
-            )}
+            <EmptyState
+              isLoading={isLoading}
+              condition={!generatedData}
+              icon="fas fa-database"
+              title="Awaiting Architecture"
+              description="Input your schema definitions in the sidebar to generate a highly interconnected relational database."
+              hint="Use <code>@faker:creditCard</code> for specific formatting."
+              loadingTitle="Synthesizing Reality"
+              loadingDescription="Analyzing schema relationships and generating localized datasets..."
+            />
 
             {generatedData && !isLoading && viewMode === 'erd' && (
               <ErdDiagram
@@ -420,7 +409,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                     </span>
                   )}
                   <div className="table-controls-right">
-                     <span className="table-meta-tag"><i className="fas fa-info-circle" /> Triple-click cell to copy</span>
+                    <span className="table-meta-tag"><i className="fas fa-info-circle" /> Triple-click cell to copy</span>
                   </div>
                 </div>
 

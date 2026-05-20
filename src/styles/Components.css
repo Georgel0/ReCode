@@ -181,41 +181,50 @@ html[data-theme='quartz'] .primary-button:hover::after {
 
 .tabs-container {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   overflow-x: auto;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
-  flex-shrink: 0;
-  min-height: fit-content;
+  margin-bottom: -1px;
+  scrollbar-width: none;
+}
+
+.tab-btn-wrapper {
+  display: flex;
+  align-items: stretch;
 }
 
 .tab-btn {
-  padding: 5px 10px;
-  background: var(--bg-tertiary);
+  padding: 0.6rem 1rem;
+  background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-bottom: none;
-  border-radius: 6px 6px 0 0;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
   font-size: 0.85rem;
+  font-weight: 600;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .tab-btn.active {
-  background: var(--accent);
-  color: #000;
-  font-weight: 600;
+  background: var(--bg-primary);
+  color: var(--accent);
+  border-color: var(--border);
+  border-bottom: 1px solid var(--bg-primary);
 }
 
 .tab-btn>i:first-of-type {
   margin-right: 8px;
   opacity: 0.7;
   font-size: 0.9em;
-}
-
-.tab-btn.active i {
-  opacity: 1;
-  background-color: var(--accent);
 }
 
 .close-tab {

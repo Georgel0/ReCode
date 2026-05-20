@@ -247,7 +247,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
           {!isCollapsed && (
             <div className="history-list">
               {historyItems.length === 0 ? (
-                <div className="empty-state">
+                <div className="empty-history">
                   <i className="fas fa-ghost"></i>
                   <p>No history yet.</p>
                 </div>
