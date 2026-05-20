@@ -224,7 +224,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   font-size: 16px;
   transition: opacity 0.2s;
   background: none;
-  color: black;
+  color: var(--text-primary);
 }
 
 .close-tab:hover {
@@ -591,8 +591,8 @@ select option {
 }
 
 .model-card.active {
-  border-color: var(--primary-color);
-  background-color: var(--active-bg);
+  border-color: var(--accent);
+  background-color: var(--bg-tertiary);
   transform: translateY(-2px);
 }
 
