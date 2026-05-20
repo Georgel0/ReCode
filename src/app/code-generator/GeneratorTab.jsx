@@ -1,20 +1,21 @@
 'use client';
 
 import { CopyButton, CodeOutput } from '@/components/ui';
+import { EmptyState } from '@/components/layout';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { getLanguage } from './utils';
 
-export default function GeneratorTab({ 
-  input, 
-  setInput, 
-  files, 
-  activeFileIndex, 
-  setActiveFileIndex, 
-  loading, 
+export default function GeneratorTab({
+  input,
+  setInput,
+  files,
+  activeFileIndex,
+  setActiveFileIndex,
+  loading,
   error,
-  handleGenerate, 
-  handleClearAll 
+  handleGenerate,
+  handleClearAll
 }) {
 
   const activeFile = files[activeFileIndex] || null;
@@ -39,23 +40,23 @@ export default function GeneratorTab({
           <i className="fa-solid fa-layer-group"></i>
           Requirements
         </h3>
-        <textarea 
+        <textarea
           className="flex-grow main-input"
-          value={input} 
-          onChange={(e) => setInput(e.target.value)} 
-          placeholder="E.g., Create a React button component and a CSS file for styling..." 
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="E.g., Create a React button component and a CSS file for styling..."
           spellCheck="true"
         />
-        
+
         {error && <div className="error-message generator-error">{error}</div>}
-        
+
         <div className="action-row">
           <button className="secondary-button" onClick={handleClearAll}>
             Clear
           </button>
-          <button 
-            className="primary-button" 
-            onClick={handleGenerate} 
+          <button
+            className="primary-button"
+            onClick={handleGenerate}
             disabled={loading || !input.trim()}
           >
             {loading ? (
@@ -86,13 +87,13 @@ export default function GeneratorTab({
           {files.length > 0 ? (
             <div className="editor-wrapper">
               <div className="editor-toolbar">
-                <CodeOutput 
-                  code={activeFile?.content || ''} 
-                  language={activeFile ? getLanguage(activeFile.fileName) : ''} 
+                <CodeOutput
+                  code={activeFile?.content || ''}
+                  language={activeFile ? getLanguage(activeFile.fileName) : ''}
                 />
                 <CopyButton codeToCopy={activeFile?.content || ''} />
               </div>
-                      
+
               <div className="action-row">
                 <div className="spacer"></div>
                 <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
@@ -106,19 +107,16 @@ export default function GeneratorTab({
               </div>
             </div>
           ) : (
-            <div className="placeholder-container">
-              {loading ? (
-                <div className="status-message">
-                  <div className="spinner status-spinner"></div>
-                  <p>AI is building your solution based on your config...</p>
-                </div>
-              ) : (
-                <div className="status-message">
-                  <i className="fa-solid fa-laptop-code status-icon"></i>
-                  <p>Enter your requirements and configure your stack to generate files.</p>
-                </div>
-              )}
-            </div> 
+            <EmptyState
+              isLoading={loading}
+              condition={files.length === 0}
+              icon="fas fa-cubes"
+              title="Awaiting App Specifications"
+              description="Submit your solution requirements to automatically scaffold complete multi-file microservice or workspace directories."
+              hint="Configure target stack properties like <code>includeTests</code> or custom frameworks inside the Configuration layout panel."
+              loadingTitle="Scaffolding Workspace"
+              loadingDescription="Assembling file modules, writing functional standard boilerplate templates, and structuring architecture trees..."
+            />
           )}
         </div>
       </div>

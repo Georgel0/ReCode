@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { ModuleHeader } from '@/components/layout';
+import { ModuleHeader, EmptyState } from '@/components/layout';
 import { CopyButton } from '@/components/ui';
 import { useRegexGenerator, CHEATSHEET } from './useRegexGenerator';
 import './regexGenerator.css';
@@ -25,13 +25,13 @@ const TestCaseItem = ({ test, result, outputCode, flags, updateTestCase, removeT
       const elements = [];
       let match;
       regex.lastIndex = 0;
-      
+
       // Safety break to prevent infinite loops on zero-width matches
-      let safeGuard = 0; 
-      
+      let safeGuard = 0;
+
       while ((match = regex.exec(text)) !== null && safeGuard < 1000) {
         if (match[0].length === 0) regex.lastIndex++; // Handle zero-width matches
-        
+
         if (match.index > lastIndex) {
           elements.push(text.substring(lastIndex, match.index));
         }
@@ -54,22 +54,22 @@ const TestCaseItem = ({ test, result, outputCode, flags, updateTestCase, removeT
 
   return (
     <div className="test-case-row">
-      <button 
-        className={`expectation-toggle ${test.shouldMatch ? 'expect-match' : 'expect-fail'}`} 
+      <button
+        className={`expectation-toggle ${test.shouldMatch ? 'expect-match' : 'expect-fail'}`}
         onClick={() => updateTestCase(test.id, 'shouldMatch', !test.shouldMatch)}
         aria-label={`Toggle expectation. Currently ${test.shouldMatch ? 'expecting match' : 'expecting fail'}`}
       >
         <i className={`fa-solid ${test.shouldMatch ? 'fa-check' : 'fa-ban'}`}></i>
       </button>
-      
+
       <div className="test-input-wrapper">
-        <input 
-          type="text" 
-          value={test.text} 
-          onChange={(e) => updateTestCase(test.id, 'text', e.target.value)} 
+        <input
+          type="text"
+          value={test.text}
+          onChange={(e) => updateTestCase(test.id, 'text', e.target.value)}
           onScroll={handleScroll}
-          placeholder="Test string..." 
-          className="test-input-field" 
+          placeholder="Test string..."
+          className="test-input-field"
           aria-label="Test case input"
         />
         <div className="test-input-highlight-layer" ref={highlightLayerRef} aria-hidden="true">
@@ -99,8 +99,8 @@ export default function RegexGenerator() {
 
   return (
     <div className="module-container">
-      <ModuleHeader 
-        title="Regex Generator" 
+      <ModuleHeader
+        title="Regex Generator"
         description="Describe, Refine, and Battle-Test your Regular Expressions."
         resultData={lastResult}
       />
@@ -112,11 +112,11 @@ export default function RegexGenerator() {
             <div className="ext-grid">
               {Object.entries(CHEATSHEET).map(([category, items]) => (
                 <div key={category} className="cheatsheet-category">
-                  <h4 style={{color: 'var(--accent)', margin: '0 0 10px 0'}}>{category}</h4>
+                  <h4 style={{ color: 'var(--accent)', margin: '0 0 10px 0' }}>{category}</h4>
                   {items.map(item => (
-                    <div key={item.token} className="tailwind-code" style={{marginBottom:'5px'}}>
+                    <div key={item.token} className="tailwind-code" style={{ marginBottom: '5px' }}>
                       <code>{item.token} </code>
-                      <span style={{fontSize: '0.8rem', color: 'var(--text-secondary)'}}>{item.desc}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.desc}</span>
                     </div>
                   ))}
                 </div>
@@ -126,7 +126,7 @@ export default function RegexGenerator() {
           </div>
         </div>
       )}
-      
+
       {showTestInfo && (
         <div className="modal-overlay" onClick={() => setShowTestInfo(false)}>
           <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="test-info-title" onClick={e => e.stopPropagation()}>
@@ -167,16 +167,16 @@ export default function RegexGenerator() {
                 </span>
               )}
             </div>
-                  
+
             <div className="control-field">
               <label className="label-text">Flags</label>
               <div className="flag-group">
                 {['g', 'i', 'm', 's'].map(flag => (
                   <label key={flag} className="custom-check">
-                    <input 
-                      type="checkbox" 
-                      checked={flags[flag]} 
-                      onChange={() => setFlags({...flags, [flag]: !flags[flag]})}
+                    <input
+                      type="checkbox"
+                      checked={flags[flag]}
+                      onChange={() => setFlags({ ...flags, [flag]: !flags[flag] })}
                     />
                     <span className="box"><i className="fas fa-check"></i></span>
                     <span className="label-text">{flag}</span>
@@ -186,14 +186,14 @@ export default function RegexGenerator() {
             </div>
           </div>
 
-          <textarea 
-            value={input} 
-            onChange={(e) => setInput(e.target.value)} 
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             placeholder={refineMode ? "Refine the current regex..." : "Describe what you want to match..."}
             spellCheck="false"
-            style={{minHeight: '120px'}}
+            style={{ minHeight: '120px' }}
           />
-                
+
           <div className="action-row between center-y">
             {refineMode && (
               <button className="secondary-button" onClick={() => { setRefineMode(false); setInput(''); setOutputCode(''); }}>
@@ -212,11 +212,11 @@ export default function RegexGenerator() {
           <div className="results-container">
             {outputCode ? (
               <>
-                <div className="output-wrapper regex-output-box"> 
+                <div className="output-wrapper regex-output-box">
                   <div className="tailwind-code">
-                    <span style={{color: 'var(--text-secondary)', userSelect:'none'}}>/</span>
-                    <input type="text" value={outputCode} readOnly className="code-editor" style={{padding: '0 4px', height: 'auto'}} />
-                    <span style={{color: 'var(--text-secondary)', userSelect:'none'}}>
+                    <span style={{ color: 'var(--text-secondary)', userSelect: 'none' }}>/</span>
+                    <input type="text" value={outputCode} readOnly className="code-editor" style={{ padding: '0 4px', height: 'auto' }} />
+                    <span style={{ color: 'var(--text-secondary)', userSelect: 'none' }}>
                       / {Object.keys(flags).filter(k => flags[k]).join('')}
                     </span>
                     <CopyButton className="copy-btn" iconOnly={true} codeToCopy={fullString} />
@@ -238,8 +238,8 @@ export default function RegexGenerator() {
                 </div>
 
                 <div className="selector-card regex-test-bench">
-                  <div className="panel-header-row" style={{marginBottom: '10px'}}>
-                    <div className="selector-name"><i className="fa-solid fa-vial"> </i> 
+                  <div className="panel-header-row" style={{ marginBottom: '10px' }}>
+                    <div className="selector-name"><i className="fa-solid fa-vial"> </i>
                       <h4 style={{ margin: '5px' }}>Test Cases</h4>
                       <button className="info-trigger" onClick={() => setShowTestInfo(true)} aria-label="More information about test cases"><i className="fas fa-circle-info"></i></button>
                     </div>
@@ -248,7 +248,7 @@ export default function RegexGenerator() {
 
                   <div className="test-cases-list">
                     {testCases.map((test) => (
-                      <TestCaseItem 
+                      <TestCaseItem
                         key={test.id}
                         test={test}
                         result={matchResults[test.id]}
@@ -262,11 +262,16 @@ export default function RegexGenerator() {
                 </div>
               </>
             ) : (
-              <div className="placeholder-text">
-                {loading ?
-                  <div className="processing-state"><div className="pulse-ring"></div><p>Crafting your expression...</p></div> 
-                    : 'Describe your pattern to generate a regex.'}
-              </div>
+              <EmptyState
+                isLoading={loading}
+                condition={!outputCode}
+                icon="fas fa-asterisk"
+                title="Awaiting Pattern Rules"
+                description="Describe your target text pattern matching requirements in natural English to synthesize a bulletproof regular expression."
+                hint="Add multiple custom <code>Test Cases</code> below to watch real-time matching highlights trigger instantly."
+                loadingTitle="Crafting Regular Expression"
+                loadingDescription="Compiling modifier boundaries, tokenizing pattern descriptions, and building capture groups..."
+              />
             )}
           </div>
         </div>

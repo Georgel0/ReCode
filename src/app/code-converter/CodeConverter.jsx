@@ -2,7 +2,7 @@
 
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
-import { ModuleHeader } from '@/components/layout';
+import { ModuleHeader, EmptyState } from '@/components/layout';
 import { ConverterTabs } from './ConverterTabs';
 import { useCodeConverter } from './useCodeConverter';
 import './CodeConverter.css';
@@ -29,7 +29,7 @@ export default function CodeConverter() {
 
   return (
     <div className="module-container">
-      <ModuleHeader 
+      <ModuleHeader
         title="Universal Code Converter"
         description="Translate entire files or partial blocks between languages and frameworks."
       />
@@ -51,12 +51,12 @@ export default function CodeConverter() {
             </div>
             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} multiple />
           </div>
-            
+
           <div className="selector-bar">
-            <select 
-              value={activeFile?.language || 'javascript'} 
+            <select
+              value={activeFile?.language || 'javascript'}
               onChange={(e) => setFiles(prev => prev.map(f => f.id === activeTabId ? { ...f, language: e.target.value } : f))}
-              className="lang-select" 
+              className="lang-select"
             >
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
@@ -64,20 +64,20 @@ export default function CodeConverter() {
               <i className="fa-solid fa-wand-magic"></i> Format
             </button>
           </div>
-        
-          <ConverterTabs 
-            files={files} activeTabId={activeTabId} 
-            setActiveTabId={setActiveTabId} removeFile={removeFile} renameFile={renameFile} 
+
+          <ConverterTabs
+            files={files} activeTabId={activeTabId}
+            setActiveTabId={setActiveTabId} removeFile={removeFile} renameFile={renameFile}
           />
 
           <div className="sync-scroll-container" ref={sourceScrollRef} onScroll={(e) => handleScrollSync(e, targetScrollRef)}>
-            <CodeEditor 
-              value={activeFile?.content || ''} 
-              onValueChange={(code) => updateFile(activeTabId, code)} 
-              language={activeFile?.language || 'javascript'} 
+            <CodeEditor
+              value={activeFile?.content || ''}
+              onValueChange={(code) => updateFile(activeTabId, code)}
+              language={activeFile?.language || 'javascript'}
             />
           </div>
-          
+
           <div className="action-row">
             <label className="custom-check">
               <input type="checkbox" checked={isPartialMode} onChange={(e) => setIsPartialMode(e.target.checked)} />
@@ -103,7 +103,7 @@ export default function CodeConverter() {
               )}
             </div>
           </div>
-        
+
           <div className="selector-bar">
             <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} className="lang-select">
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
@@ -118,18 +118,18 @@ export default function CodeConverter() {
 
           <div className="results-container">
             {outputFiles.length > 0 ? (
-              <div className="code-output-container"> 
-                <ConverterTabs 
-                  files={outputFiles.map(f => ({id: f.sourceId, name: f.fileName}))} 
-                  activeTabId={activeTabId} setActiveTabId={setActiveTabId} 
-                  removeFile={() => {}} readOnly={true} 
+              <div className="code-output-container">
+                <ConverterTabs
+                  files={outputFiles.map(f => ({ id: f.sourceId, name: f.fileName }))}
+                  activeTabId={activeTabId} setActiveTabId={setActiveTabId}
+                  removeFile={() => { }} readOnly={true}
                 />
-                
+
                 <div className="sync-scroll-container output-wrapper" ref={targetScrollRef} onScroll={(e) => handleScrollSync(e, sourceScrollRef)}>
                   <CodeOutput language={targetLang} content={activeOutputFile?.content || '// File not found'} />
                   <CopyButton codeToCopy={activeOutputFile?.content || ''} />
                 </div>
-                  
+
                 <div className="action-row">
                   <div className="lint-controls">
                     <button className="secondary-button" onClick={runLinter} disabled={lintStatus === 'linting'}>
@@ -138,7 +138,7 @@ export default function CodeConverter() {
                     {lintStatus === 'success' && <span className="lint-badge success"><i className="fa-solid fa-check-circle"></i> Clean</span>}
                     {lintStatus === 'error' && <span className="lint-badge error"><i className="fa-solid fa-triangle-exclamation"></i> Warnings Found</span>}
                   </div>
-                  
+
                   <label className="custom-check">
                     <input type="checkbox" checked={syncScroll} onChange={(e) => setSyncScroll(e.target.checked)} />
                     <div className="box"><i className="fa-solid fa-check"></i></div>
@@ -147,15 +147,22 @@ export default function CodeConverter() {
                 </div>
               </div>
             ) : (
-              <div className="placeholder-text">
-                {loading ? <span><i className="fa-solid fa-circle-notch fa-spin"></i> Rebuilding AST...</span> : <span><i className="fas fa-ghost"></i> Result will appear here...</span>}
-              </div>
+              <EmptyState
+                isLoading={loading}
+                condition={outputFiles.length === 0}
+                icon="fas fa-ghost"
+                title="Awaiting Code Translation"
+                description="Your converted files will appear here after choosing a target environment and triggering the cross-compiler."
+                hint="Enable <code>Sync Scrolling</code> to perform precise side-by-side verification of source logic blocks."
+                loadingTitle="Rebuilding AST"
+                loadingDescription="Parsing original language nodes, converting syntax structures, and preparing output streams..."
+              />
             )}
           </div>
         </div>
       </div>
-      
-      <ConfirmModal 
+
+      <ConfirmModal
         isOpen={!!pendingDraft}
         title="Continue Previous Session?"
         message="You have unsaved files. Restore them?"

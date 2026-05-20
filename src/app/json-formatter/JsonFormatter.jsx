@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode } from '@/lib';
 import { CopyButton } from '@/components/ui';
-import { ModuleHeader } from '@/components/layout';
+import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 import JSON5 from 'json5';
 import JsonView from 'react18-json-view';
@@ -21,7 +21,7 @@ export default function JsonFormatter() {
   const [viewMode, setViewMode] = useState('code');
   const [isDragging, setIsDragging] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
-  
+
   const fileInputRef = useRef(null);
   const { moduleData, qualityMode } = useApp();
 
@@ -29,7 +29,7 @@ export default function JsonFormatter() {
     if (typeof window === 'undefined') return;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDarkTheme(mediaQuery.matches);
-    
+
     const handleChange = (e) => setIsDarkTheme(e.matches);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
@@ -66,7 +66,7 @@ export default function JsonFormatter() {
   const handleLocalFormat = () => {
     const sourceCode = outputCode.trim() || input.trim();
     if (!sourceCode) return;
-    
+
     setErrorMsg(null);
     try {
       const parsed = JSON.parse(sourceCode);
@@ -91,7 +91,7 @@ export default function JsonFormatter() {
   const handleMinify = () => {
     const sourceCode = outputCode.trim() || input.trim();
     if (!sourceCode) return;
-    
+
     setErrorMsg(null);
     try {
       const parsed = JSON5.parse(sourceCode);
@@ -108,7 +108,7 @@ export default function JsonFormatter() {
     setOutputCode('');
     setExplanation('');
     setErrorMsg(null);
-    
+
     try {
       const result = await convertCode('json', input, { qualityMode });
       const { code, info } = parseJsonResponse(result);
@@ -171,7 +171,7 @@ export default function JsonFormatter() {
 
   return (
     <div className="module-container">
-      <ModuleHeader 
+      <ModuleHeader
         title="JSON Formatter & Validator"
         description="Format instantly, or use AI to automatically repair broken JSON structures."
         resultData={lastResult}
@@ -182,11 +182,11 @@ export default function JsonFormatter() {
           <div className="panel-header-row">
             <h3>Input JSON</h3>
             <div className="header-actions">
-              <input 
-                type="file" 
-                accept=".json,.txt,.js" 
-                ref={fileInputRef} 
-                onChange={handleFileUpload} 
+              <input
+                type="file"
+                accept=".json,.txt,.js"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
                 className="hidden-input"
                 style={{ display: 'none' }}
               />
@@ -197,16 +197,16 @@ export default function JsonFormatter() {
             </div>
           </div>
 
-          <div 
+          <div
             className={`input-wrapper ${isDragging ? 'drag-active' : ''}`}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
           >
-            <textarea 
-              value={input} 
-              onChange={(e) => { setInput(e.target.value); setErrorMsg(null); }} 
-              placeholder='Paste JSON here, or drag & drop a file...' 
+            <textarea
+              value={input}
+              onChange={(e) => { setInput(e.target.value); setErrorMsg(null); }}
+              placeholder='Paste JSON here, or drag & drop a file...'
               spellCheck="false"
               className={`json-textarea ${errorMsg ? 'has-error' : ''}`}
             />
@@ -219,7 +219,7 @@ export default function JsonFormatter() {
           </div>
 
           {errorMsg && <div className="error-message"><i className="fa-solid fa-circle-exclamation"></i> {errorMsg}</div>}
-              
+
           <div className="action-row space-between">
             <button className="secondary-button" onClick={handleLocalFormat} disabled={!input.trim()}>
               <i className="fa-solid fa-bolt"></i> Format Locally
@@ -236,12 +236,12 @@ export default function JsonFormatter() {
             <h3>Formatted Output</h3>
             <div className="controls-wrapper">
               <div className="view-mode-toggles">
-                <button 
+                <button
                   className={`view-toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
                   onClick={() => setViewMode('code')}>
                   <i className="fa-solid fa-code"></i> Code
                 </button>
-                <button 
+                <button
                   className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
                   onClick={() => setViewMode('tree')}
                   disabled={!outputCode || !!errorMsg}>
@@ -258,11 +258,11 @@ export default function JsonFormatter() {
           <div className="results-container flex-results">
             {outputCode ? (
               <>
-                <div className="output-wrapper json-output-box"> 
+                <div className="output-wrapper json-output-box">
                   {viewMode === 'code' ? (
                     <>
-                      <textarea 
-                        value={outputCode} 
+                      <textarea
+                        value={outputCode}
                         onChange={(e) => setOutputCode(e.target.value)}
                         className="output-textarea json-textarea"
                         spellCheck="false"
@@ -271,8 +271,8 @@ export default function JsonFormatter() {
                     </>
                   ) : (
                     <div className="tree-view-container">
-                      <JsonView 
-                        src={getJsonForTree()} 
+                      <JsonView
+                        src={getJsonForTree()}
                         theme={isDarkTheme ? "ocean" : "rjv-default"}
                         iconStyle="triangle"
                         displayDataTypes={false}
@@ -294,14 +294,16 @@ export default function JsonFormatter() {
                 )}
               </>
             ) : (
-              <div className="placeholder-text">
-                {loading ? (
-                  <div className="processing-state">
-                    <div className="pulse-ring"></div>
-                    <p>AI is analyzing and rebuilding your JSON...</p>
-                  </div>
-                ) : 'Formatted JSON will appear here.'}
-              </div>
+              <EmptyState
+                isLoading={loading}
+                condition={!outputCode}
+                icon="fas fa-braces"
+                title="Awaiting JSON Payload"
+                description="Beautifully indented JSON files and interactive collapsible syntax tree nodes will map out here."
+                hint="You can paste raw <code>JSON5</code> objects—the parser will automatically append missing quotes and remove illegal comments."
+                loadingTitle="Structuring Hierarchies"
+                loadingDescription="Analyzing token tokens, repairing missing properties, and preparing interactive object trees..."
+              />
             )}
           </div>
         </div>

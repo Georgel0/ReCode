@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
-import { ModuleHeader } from '@/components/layout';
+import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 import { ComplexityTab, IssuesTab, TestingTab, ArchitectureTab } from './tabs';
 
@@ -228,21 +228,16 @@ export default function CodeAnalysis() {
               </div>
             </div>
           ) : (
-            <div className="placeholder-text empty-state-container">
-              {loading ? (
-                <div className="status-wrapper">
-                  <div className="spinner"></div>
-                  <span className="status-title">AI is analyzing your code...</span>
-                  <span className="status-subtitle">Checking complexity, security, and architecture</span>
-                </div>
-              ) : (
-                <div className="status-wrapper">
-                  <i className="fa-solid fa-laptop-code placeholder-icon"></i>
-                  <span className="status-title">Awaiting Code</span>
-                  <span className="status-subtitle">Paste your code and click 'Run Audit' to see deep insights.</span>
-                </div>
-              )}
-            </div>
+            <EmptyState
+              isLoading={loading}
+              condition={!analysisData}
+              icon="fas fa-laptop-code"
+              title="Awaiting Code Structure"
+              description="Paste your source code and click 'Run Audit' to reveal deep architectural, complexity, and security insights."
+              hint="Click <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings."
+              loadingTitle="Auditing Codebase"
+              loadingDescription="Checking cognitive complexity metrics, security vulnerabilities, and design patterns..."
+            />
           )}
         </div>
       </div>

@@ -217,22 +217,6 @@
   flex-shrink: 0;
 }
 
-.empty-state {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  opacity: 0.6;
-  gap: 1rem;
-}
-
-.empty-state i {
-  font-size: 2.5rem;
-  color: var(--accent);
-}
-
 .view-toggles {
   display: flex;
   background: var(--bg-primary);
@@ -334,15 +318,6 @@
   height: 100%;
   border: none;
   display: block;
-}
-
-.empty-state-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-secondary);
-  font-style: italic;
 }
 
 

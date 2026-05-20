@@ -2,6 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { Tooltip } from 'react-tooltip'
 import { CopyButton, CodeOutput } from '@/components/ui';
+import { EmptyState } from '@/components/layout';
 import { useTheme } from '@/context';
 import { REFACTOR_MODES } from './utils';
 import { formatBytes } from '@/lib';
@@ -99,25 +100,20 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
 
   const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
 
-  if (loadingStage !== 'idle') {
+  if (!activeOutput) {
     return (
-      <div className="placeholder-container-inner">
-        <div className="empty-state" aria-live="polite">
-          <i className="fa-solid fa-wand-magic-sparkles fa-bounce"></i>
-          <span>{loadingStage === 'analyzing' ? 'Analyzing code...' : loadingStage === 'optimizing' ? 'Applying optimizations...' : 'Validating changes...'}</span>
-        </div>
-      </div>
+      <EmptyState
+        isLoading={loadingStage !== 'idle'}
+        condition={outputFiles.length === 0}
+        icon="fas fa-wand-magic-sparkles"
+        title="Awaiting Refactoring Target"
+        description="Add your source files and select a transformation model to automatically update project code health."
+        hint="Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or <code>Type Safety</code> variants in the controller layout."
+        loadingTitle="Refactoring Project Architecture"
+        loadingDescription="Decoupling complex logical layers, resolving cyclical file dependencies, and rewriting code blocks..."
+      />
     );
   }
-
-  if (!activeOutput) return (
-    <div className="placeholder-container-inner">
-      <div className="empty-state" aria-live="polite">
-        <i className="fa-solid fa-code"></i>
-        <span>Better code will appear here...</span>
-      </div>
-    </div>
-  );
 
   return (
     <div className="output-panel-content flex-grow">

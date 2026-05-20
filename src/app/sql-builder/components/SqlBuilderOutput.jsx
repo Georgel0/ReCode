@@ -3,6 +3,7 @@
 import DOMPurify from 'dompurify';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { CodeOutput, CopyButton } from '@/components/ui';
+import { EmptyState } from '@/components/layout';
 
 export function SqlBuilderOutput({
   activeMode,
@@ -126,16 +127,16 @@ export function SqlBuilderOutput({
 
           </div>
         ) : (
-          <div className="placeholder-text placeholder-container-inner">
-            {loading || mockLoading ? (
-              <div className="processing-state">
-                <div className="pulse-ring"></div>
-                <p>AI is {mockLoading ? 'generating mock data...' : 'building your query...'}</p>
-              </div>
-            ) : (
-              'Generated SQL will appear here.'
-            )}
-          </div>
+          <EmptyState
+            isLoading={loading || mockLoading}
+            condition={!outputCode}
+            icon="fas fa-terminal"
+            title="Awaiting Query Definition"
+            description="Explain your targeted query operation objectives or design table relation models to generate pristine dialect-safe SQL code."
+            hint="Open the integrated <code>Test Runner</code> terminal layer below to test your query's performance live against virtual sandboxes."
+            loadingTitle="Forging Relational Syntax"
+            loadingDescription="Optimizing engine index lookup targets, sanitizing parameter fields, and checking database constraint rules..."
+          />
         )}
       </div>
     </div>
