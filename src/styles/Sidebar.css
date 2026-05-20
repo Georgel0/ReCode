@@ -418,7 +418,6 @@ html[data-theme='midnight-gold'] .nav-item:hover {
 .model-trigger-section:hover .second-model-trigger-btn {
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.15);
 }
 
 .model-trigger-btn {

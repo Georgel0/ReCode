@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES } from '../hooks/useDatabaseSeedingTab';
+import { ErdDiagram } from '../components/ErdDiagram';
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';
