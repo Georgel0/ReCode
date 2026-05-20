@@ -41,11 +41,17 @@ export default function MockDataGenerator() {
       </div>
 
       <div className="paradigm-content">
-        {activeParadigm === 'db' && (
+        <div className={`paradigm-pane ${activeParadigm === 'db' ? 'active' : ''}`}>
           <DatabaseSeedingTab onDataUpdate={setHeaderResultData} />
-        )}
-        {activeParadigm === 'api' && <ApiMocksTab />}
-        {activeParadigm === 'stream' && <StreamingEventsTab />}
+        </div>
+        
+        <div className={`paradigm-pane ${activeParadigm === 'api' ? 'active' : ''}`}>
+          <ApiMocksTab />
+        </div>
+        
+        <div className={`paradigm-pane ${activeParadigm === 'stream' ? 'active' : ''}`}>
+          <StreamingEventsTab />
+        </div>
       </div>
     </div>
   );

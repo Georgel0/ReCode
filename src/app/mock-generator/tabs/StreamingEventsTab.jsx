@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function StreamingEventsTab() {
   return (
-    <div className="mock-factory-container" style={{ display: 'block' }}>
+    <div className="mock-factory-container">
       <div className="mock-empty-state" style={{ height: '100%' }}>
         <i className="fas fa-stream" style={{ fontSize: '3rem', color: 'var(--accent)' }}></i>
         <h3>Streaming & Events (Coming Soon)</h3>

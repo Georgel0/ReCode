@@ -6,11 +6,11 @@ import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES } from '../hoo
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';
-  if (label.startsWith('FK'))            cls += ' col-type-badge--fk';
-  else if (label === 'UUID')             cls += ' col-type-badge--uuid';
+  if (label.startsWith('FK'))                         cls += ' col-type-badge--fk';
+  else if (label === 'UUID')                          cls += ' col-type-badge--uuid';
   else if (label === 'TIMESTAMP' || label === 'DATE') cls += ' col-type-badge--ts';
-  else if (label === 'PK')              cls += ' col-type-badge--pk';
-  else if (label === 'BOOL')            cls += ' col-type-badge--bool';
+  else if (label === 'PK')                            cls += ' col-type-badge--pk';
+  else if (label === 'BOOL')                          cls += ' col-type-badge--bool';
   else if (label === 'INT' || label === 'FLOAT')      cls += ' col-type-badge--num';
 
   return <span className={cls}>{label}</span>;
@@ -51,11 +51,14 @@ function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, o
   return (
     <td
       className="editable-cell"
-      title={`Double-click to edit · ${displayVal}`}
+      title="Double-click to edit · Triple-click to copy"
       onDoubleClick={() => onStartEdit(displayVal)}
       onClick={e => { if (e.detail === 3) onCopy(value); }}
     >
-      <span className="cell-value">{displayVal}</span>
+      <div className="cell-content-wrapper">
+        <span className="cell-value">{displayVal}</span>
+        <i className="fas fa-pencil-alt cell-edit-icon" />
+      </div>
     </td>
   );
 }
@@ -93,25 +96,32 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
   const colKeys   = activeTableData?.rows?.[0] ? Object.keys(activeTableData.rows[0]) : [];
   const sampleRow = activeTableData?.rows?.[0] ?? {};
 
+  const getQualityLabel = (val) => {
+    if (val === 100) return 'Perfect';
+    if (val >= 80) return 'Minor Edge Cases';
+    return 'Heavy Edge Cases';
+  };
+
   return (
     <>
       <div className="mock-factory-container">
 
         <div className="mock-sidebar">
           <div className="mock-sidebar-content">
-
-            <div className="mock-form-group">
-              <div className="flex-between sidebar-label-row">
-                <label>1. Architecture ({detectedLanguage})</label>
+            
+            <div className="mock-section">
+              <div className="mock-section-header">
+                <div className="mock-section-title">
+                  <i className="fas fa-sitemap" /> Architecture ({detectedLanguage})
+                </div>
                 <button
-                  className="text-btn text-xs"
+                  className="icon-text-btn"
                   onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}
                   disabled={savedSchemas.length === 0}
                   title={savedSchemas.length === 0 ? 'Save a schema first' : 'Toggle Saved Schemas'}
                 >
                   <i className={`fas ${schemaOptionsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
-                  {schemaOptionsVisible ? ' Close Library' : ' Saved Schemas'}
-                  {savedSchemas.length > 0 && ` (${savedSchemas.length})`}
+                  {savedSchemas.length > 0 && <span className="badge-count">{savedSchemas.length}</span>}
                 </button>
               </div>
 
@@ -122,7 +132,6 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                       <div
                         className="schema-library-item-name"
                         onClick={() => { setSchemaInput(s.schema); setSchemaOptionsVisible(false); }}
-                        title="Load this schema"
                       >
                         <i className="fas fa-file-code schema-library-item-icon" />
                         {s.name}
@@ -144,106 +153,127 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   value={schemaInput}
                   onValueChange={setSchemaInput}
                   language={detectedLanguage}
-                  placeholder="CREATE TABLE users (&#10;  id UUID PRIMARY KEY,&#10;  created_at TIMESTAMP&#10;);"
+                  placeholder="CREATE TABLE users (id UUID PRIMARY KEY, created_at TIMESTAMP);"
                 />
               </div>
 
-              <button
-                className="secondary-button btn-small"
-                onClick={handleSaveSchema}
-                disabled={!schemaInput.trim()}
-              >
-                <i className="fas fa-save" /> Save to Library
-              </button>
+              <div className="action-row-start">
+                <button
+                  className="secondary-button btn-small full-width"
+                  onClick={handleSaveSchema}
+                  disabled={!schemaInput.trim()}
+                >
+                  <i className="fas fa-save" /> Save to Library
+                </button>
+              </div>
             </div>
 
-            <div className="mock-form-group">
-              <label>2. Rule &amp; Distribution Assertions</label>
-              <select
-                className="theme-select-dropdown mb-1 text-sm"
-                value=""
-                onChange={e => {
-                  if (e.target.value) setRules(prev => prev ? `${prev}\n${e.target.value}` : e.target.value);
-                }}
-              >
-                {RULE_TEMPLATES.map(t => <option key={t.label} value={t.value}>{t.label}</option>)}
-              </select>
-              <textarea
-                className="mock-rule-input"
-                placeholder="e.g., 75% of users must have role 'Developer'."
-                value={rules}
-                onChange={e => setRules(e.target.value)}
-              />
-              {parsedRulesFeedback.length > 0 && (
-                <div className="rules-feedback">
-                  <strong>Rules Applied:</strong>
-                  <ul>
-                    {parsedRulesFeedback.map((r, i) => (
-                      <li key={i}><i className="fas fa-check text-green" /> {r}</li>
-                    ))}
-                  </ul>
+            <div className="mock-section">
+              <div className="mock-section-header">
+                <div className="mock-section-title">
+                  <i className="fas fa-balance-scale" /> Rules & Distributions
                 </div>
-              )}
-            </div>
-
-            <div className="form-grid-2">
-              <div className="mock-form-group">
-                <label>Locale</label>
-                <select value={locale} onChange={e => setLocale(e.target.value)} className="theme-select-dropdown">
-                  <option value="en-US">English (US)</option>
-                  <option value="en-GB">English (UK)</option>
-                  <option value="de-DE">German</option>
-                  <option value="fr-FR">French</option>
-                  <option value="ja-JP">Japanese</option>
-                </select>
               </div>
               <div className="mock-form-group">
-                <label>Volume (Rows)</label>
-                <select value={rowCount} onChange={e => setRowCount(e.target.value)} className="theme-select-dropdown">
-                  <option value="5">5 (Fast)</option>
-                  <option value="15">15 (Standard)</option>
-                  <option value="50">50 (Batch)</option>
-                  <option value="100">100 (Deep)</option>
+                <select
+                  className="theme-select-dropdown text-sm"
+                  value=""
+                  onChange={e => {
+                    if (e.target.value) setRules(prev => prev ? `${prev}\n${e.target.value}` : e.target.value);
+                  }}
+                >
+                  <option value="" disabled>+ Insert Template Rule...</option>
+                  {RULE_TEMPLATES.map(t => <option key={t.label} value={t.value}>{t.label}</option>)}
                 </select>
+                <textarea
+                  className="mock-rule-input"
+                  placeholder="e.g., 75% of users must have role 'Developer'."
+                  value={rules}
+                  onChange={e => setRules(e.target.value)}
+                />
+                {parsedRulesFeedback.length > 0 && (
+                  <div className="rules-feedback">
+                    <strong>Applied Directives:</strong>
+                    <ul>
+                      {parsedRulesFeedback.map((r, i) => (
+                        <li key={i}><i className="fas fa-check-circle" /> {r}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="mock-form-group">
-              <div className="flex-between">
-                <label>Data Quality: {dataQuality}%</label>
-                <span className="sub-label">{dataQuality < 100 ? 'Injecting Edge Cases' : 'Perfect'}</span>
+            <div className="mock-section">
+              <div className="mock-section-header">
+                <div className="mock-section-title">
+                  <i className="fas fa-sliders-h" /> Fabrication Settings
+                </div>
               </div>
-              <input
-                type="range" min="50" max="100"
-                value={dataQuality}
-                onChange={e => setDataQuality(parseInt(e.target.value, 10))}
-                className="slider"
-              />
+              
+              <div className="form-grid-2">
+                <div className="mock-form-group">
+                  <label className="input-label">Locale</label>
+                  <select value={locale} onChange={e => setLocale(e.target.value)} className="theme-select-dropdown text-sm">
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="de-DE">German</option>
+                    <option value="fr-FR">French</option>
+                    <option value="ja-JP">Japanese</option>
+                  </select>
+                </div>
+                <div className="mock-form-group">
+                  <label className="input-label">Volume</label>
+                  <select value={rowCount} onChange={e => setRowCount(e.target.value)} className="theme-select-dropdown text-sm">
+                    <option value="5">5 (Fast)</option>
+                    <option value="15">15 (Standard)</option>
+                    <option value="50">50 (Batch)</option>
+                    <option value="100">100 (Deep)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mock-form-group mock-quality-group">
+                <div className="flex-between">
+                  <label className="input-label">Data Quality</label>
+                  <span className="quality-value-badge">{dataQuality}%</span>
+                </div>
+                <input
+                  type="range" min="50" max="100"
+                  value={dataQuality}
+                  onChange={e => setDataQuality(parseInt(e.target.value, 10))}
+                  className="slider styled-slider"
+                />
+                <span className="slider-hint">{getQualityLabel(dataQuality)}</span>
+              </div>
+
+              <div className="mock-form-group">
+                <label className="input-label">Seed Lock <span className="optional-tag">Optional</span></label>
+                <div className="input-with-icon">
+                  <i className="fas fa-lock input-icon" />
+                  <input
+                    type="text"
+                    className="text-input with-icon"
+                    placeholder="e.g. 42 (Reproducible)"
+                    value={seed}
+                    onChange={e => setSeed(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="mock-form-group">
-              <label>Seed Lock (Optional)</label>
-              <input
-                type="text"
-                className="text-input"
-                placeholder="e.g. 42 (For reproducible data)"
-                value={seed}
-                onChange={e => setSeed(e.target.value)}
-              />
-            </div>
+          </div>
 
-            <div className="action-row column">
-              <button
-                className="primary-button full-width"
-                onClick={() => handleGenerate()}
-                disabled={isLoading || !schemaInput.trim()}
-              >
-                {isLoading
-                  ? <div className="spinner" />
-                  : <><i className="fas fa-bolt" /> Fabricate Data</>}
-              </button>
-            </div>
-
+          <div className="mock-sidebar-footer">
+            <button
+              className={`primary-button fabricate-action-btn ${isLoading ? 'loading' : ''}`}
+              onClick={() => handleGenerate()}
+              disabled={isLoading || !schemaInput.trim()}
+            >
+              {isLoading
+                ? <><div className="spinner-small" /> Synthesizing...</>
+                : <><i className="fas fa-bolt" /> Fabricate Database</>}
+            </button>
           </div>
         </div>
 
@@ -260,7 +290,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                       onClick={() => setActiveTab(idx)}
                     >
                       <i className="fas fa-table" /> {table.tableName}
-                      <span className="close-tab">({table.rows?.length ?? 0})</span>
+                      <span className="tab-count-badge">{table.rows?.length ?? 0}</span>
                     </button>
                     {canRegen && (
                       <button
@@ -287,7 +317,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                     onClick={() => setViewMode('table')}
                     title="Table view"
                   >
-                    <i className="fas fa-table" /> Table
+                    <i className="fas fa-th-list" /> Table
                   </button>
                   <button
                     className={`view-toggle-btn ${viewMode === 'erd' ? 'active' : ''}`}
@@ -301,7 +331,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
               <div className="mock-export-group">
                 <button
-                  className="secondary-button icon-only"
+                  className="secondary-button icon-only tool-btn"
                   title="Copy as JSON"
                   onClick={() =>
                     navigator.clipboard.writeText(
@@ -313,7 +343,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   <i className="fas fa-clipboard" />
                 </button>
                 <select
-                  className="theme-select-dropdown small-select"
+                  className="theme-select-dropdown action-select"
                   value=""
                   onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                   disabled={!generatedData}
@@ -331,20 +361,25 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
           <div className="mock-preview-area">
 
             {!generatedData && !isLoading && (
-              <div className="mock-empty-state">
-                <i className="fas fa-project-diagram" />
-                <h3>Workspace Target Empty</h3>
+              <div className="mock-empty-state styled-empty">
+                <div className="empty-state-icon-ring">
+                  <i className="fas fa-database" />
+                </div>
+                <h3>Awaiting Architecture</h3>
                 <p>
-                  Compile structures using the architecture interface.
-                  Add comments like <code>@faker:creditCard</code> to hint specific formats.
+                  Input your schema definitions in the sidebar to generate a highly interconnected relational database.
                 </p>
+                <div className="empty-hints">
+                  <span className="hint-chip"><i className="fas fa-lightbulb text-accent" /> Hint: Use <code>@faker:creditCard</code> for specific formatting.</span>
+                </div>
               </div>
             )}
 
             {isLoading && (
-              <div className="mock-empty-state">
-                <div className="spinner" />
-                <p>Synthesizing interconnected architecture…</p>
+              <div className="mock-empty-state loading-state-pane">
+                <div className="spinner-large" />
+                <h3>Synthesizing Reality</h3>
+                <p>Analyzing schema relationships and generating localized datasets...</p>
               </div>
             )}
 
@@ -374,7 +409,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                         onClick={() => setFilterQuery('')}
                         title="Clear filter"
                       >
-                        <i className="fas fa-times" />
+                        <i className="fas fa-times-circle" />
                       </button>
                     )}
                   </div>
@@ -383,73 +418,82 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                       {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
                     </span>
                   )}
-                  <span className="table-edit-hint">
-                    <i className="fas fa-pencil-alt" /> Double-click any cell to edit
-                  </span>
+                  <div className="table-controls-right">
+                     <span className="table-meta-tag"><i className="fas fa-info-circle" /> Triple-click cell to copy</span>
+                  </div>
                 </div>
 
-                <table className="mock-data-table">
-                  <thead>
-                    <tr>
-                      {colKeys.map(key => {
-                        const badges = inferColumnBadges(key, sampleRow[key], allTableNames);
-                        return (
-                          <th key={key}>
-                            <span className="th-col-name">{key}</span>
-                            {badges.map(b => <ColTypeBadge key={b} label={b} />)}
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedRows.length === 0 ? (
+                <div className="table-scroll-container">
+                  <table className="mock-data-table">
+                    <thead>
                       <tr>
-                        <td colSpan={colKeys.length} className="table-no-results">
-                          No rows match &ldquo;{filterQuery}&rdquo;
-                        </td>
+                        {colKeys.map(key => {
+                          const badges = inferColumnBadges(key, sampleRow[key], allTableNames);
+                          return (
+                            <th key={key}>
+                              <div className="th-content">
+                                <span className="th-col-name">{key}</span>
+                                <div className="th-badges">
+                                  {badges.map(b => <ColTypeBadge key={b} label={b} />)}
+                                </div>
+                              </div>
+                            </th>
+                          );
+                        })}
                       </tr>
-                    ) : (
-                      paginatedRows.map((row, rowIdx) => (
-                        <tr key={rowIdx}>
-                          {colKeys.map((colKey, colIdx) => {
-                            const isEditing =
-                              editingCell?.rowIdx === rowIdx &&
-                              editingCell?.colKey === colKey;
-                            return (
-                              <EditableCell
-                                key={colIdx}
-                                value={row[colKey]}
-                                isEditing={isEditing}
-                                editingValue={editingValue}
-                                onStartEdit={val => handleStartEdit(rowIdx, colKey, val)}
-                                onChange={setEditingValue}
-                                onCommit={handleCommitEdit}
-                                onCancel={handleCancelEdit}
-                                onCopy={handleCopyCell}
-                              />
-                            );
-                          })}
+                    </thead>
+                    <tbody>
+                      {paginatedRows.length === 0 ? (
+                        <tr>
+                          <td colSpan={colKeys.length} className="table-no-results">
+                            <i className="fas fa-search-minus empty-search-icon" />
+                            <p>No rows match &ldquo;{filterQuery}&rdquo;</p>
+                          </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        paginatedRows.map((row, rowIdx) => (
+                          <tr key={rowIdx}>
+                            {colKeys.map((colKey, colIdx) => {
+                              const isEditing =
+                                editingCell?.rowIdx === rowIdx &&
+                                editingCell?.colKey === colKey;
+                              return (
+                                <EditableCell
+                                  key={colIdx}
+                                  value={row[colKey]}
+                                  isEditing={isEditing}
+                                  editingValue={editingValue}
+                                  onStartEdit={val => handleStartEdit(rowIdx, colKey, val)}
+                                  onChange={setEditingValue}
+                                  onCommit={handleCommitEdit}
+                                  onCancel={handleCancelEdit}
+                                  onCopy={handleCopyCell}
+                                />
+                              );
+                            })}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
                 {totalPages > 1 && (
                   <div className="pagination-controls">
                     <button
+                      className="page-btn"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
-                      Prev
+                      <i className="fas fa-chevron-left" /> Prev
                     </button>
-                    <span>Page {currentPage} of {totalPages}</span>
+                    <span className="page-indicator">Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong></span>
                     <button
+                      className="page-btn"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      Next <i className="fas fa-chevron-right" />
                     </button>
                   </div>
                 )}
@@ -458,8 +502,8 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
             {generatedData?.explanation && (
               <div className="panel explanation-panel">
-                <h3>Generation Explanations</h3>
-                <div dangerouslySetInnerHTML={{ __html: generatedData.explanation }} />
+                <h3 className="explanation-title"><i className="fas fa-robot" /> Generation Analysis</h3>
+                <div className="explanation-body" dangerouslySetInnerHTML={{ __html: generatedData.explanation }} />
               </div>
             )}
 
@@ -474,18 +518,19 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
       {isSaveModalOpen && (
         <div className="modal-overlay" onClick={() => setIsSaveModalOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content save-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><i className="fas fa-save" /> Save Schema</h2>
+              <h2><i className="fas fa-cloud-upload-alt" /> Save Schema Template</h2>
             </div>
             <p className="modal-desc">
-              Name this schema template to save it to your library for quick access later.
+              Store this architecture in your local library for quick reuse across different mocking sessions.
             </p>
             <div className="mock-form-group">
+              <label className="input-label">Template Name</label>
               <input
                 type="text"
                 className="text-input full-width"
-                placeholder="e.g., E-commerce Users &amp; Orders"
+                placeholder="e.g., E-commerce Core v2"
                 value={newSchemaName}
                 onChange={e => { setNewSchemaName(e.target.value); setSaveSchemaError(''); }}
                 autoFocus
@@ -493,13 +538,13 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
               />
               {saveSchemaError && (
                 <div className="error-message">
-                  <i className="fas fa-exclamation-circle" /> {saveSchemaError}
+                  <i className="fas fa-exclamation-triangle" /> {saveSchemaError}
                 </div>
               )}
             </div>
-            <div className="modal-footer">
-              <button className="secondary-button" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
-              <button className="primary-button"   onClick={executeSaveSchema}>Save Template</button>
+            <div className="modal-footer split-footer">
+              <button className="secondary-button modal-btn" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
+              <button className="primary-button modal-btn" onClick={executeSaveSchema}>Save Template</button>
             </div>
           </div>
         </div>
