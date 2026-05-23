@@ -113,7 +113,7 @@ export default function GeneratorTab({
               icon="fas fa-cubes"
               title="Awaiting App Specifications"
               description="Submit your solution requirements to automatically scaffold complete multi-file microservice or workspace directories."
-              hint="Configure target stack properties like <code>includeTests</code> or custom frameworks inside the Configuration layout panel."
+              hint={<>Configure target stack properties like <code>includeTests</code> or custom frameworks inside the Configuration layout panel.</>}
               loadingTitle="Scaffolding Workspace"
               loadingDescription="Assembling file modules, writing functional standard boilerplate templates, and structuring architecture trees..."
             />

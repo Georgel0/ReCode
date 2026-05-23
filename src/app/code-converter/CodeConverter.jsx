@@ -150,10 +150,10 @@ export default function CodeConverter() {
               <EmptyState
                 isLoading={loading}
                 condition={outputFiles.length === 0}
-                icon="fas fa-ghost"
+                icon="fas fa-sync-alt"
                 title="Awaiting Code Translation"
                 description="Your converted files will appear here after choosing a target environment and triggering the cross-compiler."
-                hint="Enable <code>Sync Scrolling</code> to perform precise side-by-side verification of source logic blocks."
+                hint={<>Enable <code>Sync Scrolling</code> to perform precise side-by-side verification of source logic blocks.</>}
                 loadingTitle="Rebuilding AST"
                 loadingDescription="Parsing original language nodes, converting syntax structures, and preparing output streams..."
               />

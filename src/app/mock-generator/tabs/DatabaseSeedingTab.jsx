@@ -365,10 +365,10 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
             <EmptyState
               isLoading={isLoading}
               condition={!generatedData}
-              icon="fas fa-database"
+              icon="fas fa-table-cells"
               title="Awaiting Architecture"
               description="Input your schema definitions in the sidebar to generate a highly interconnected relational database."
-              hint="Use <code>@faker:creditCard</code> for specific formatting."
+              hint={<>Use <code>@faker:creditCard</code> for specific formatting.</>}
               loadingTitle="Synthesizing Reality"
               loadingDescription="Analyzing schema relationships and generating localized datasets..."
             />

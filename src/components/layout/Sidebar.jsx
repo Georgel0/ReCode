@@ -10,10 +10,10 @@ import { ConfirmModal } from '@/components/ui';
 const modules = [
   { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt', path: '/code-converter' },
   { id: 'refactor', label: 'Code Refactor', icon: 'fas fa-wand-magic-sparkles', path: '/code-refactor' },
-  { id: 'analysis', label: 'Code Analyzer', icon: 'fas fa-brain', path: '/code-analysis' },
-  { id: 'generator', label: 'Code Generator', icon: 'fas fa-magic', path: '/code-generator' },
+  { id: 'analysis', label: 'Code Analyzer', icon: 'fas fa-search', path: '/code-analysis' },
+  { id: 'generator', label: 'Code Generator', icon: 'fas fa-cubes', path: '/code-generator' },
   { id: 'css-tailwind', label: 'CSS Frameworks', icon: 'fab fa-css3-alt', path: '/css-frameworks' },
-  { id: 'regex', label: 'Regex Generator', icon: 'fas fa-search', path: '/regex-generator' },
+  { id: 'regex', label: 'Regex Generator', icon: 'fas fa-asterisk', path: '/regex-generator' },
   { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database', path: '/sql-builder' },
   { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt', path: '/json-formatter' },
   { id: 'mock', label: 'Mock Data Factory', icon: 'fas fa-table-cells', path: '/mock-generator' },

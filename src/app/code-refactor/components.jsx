@@ -23,9 +23,9 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
   };
 
   return (
-    <nav role="tablist" className="tabs-container" aria-label="Open files">
+    <div className="tabs-container" aria-label="Open files">
       {files.map((file, index) => (
-        <div
+        <button
           key={file.id}
           role="tab"
           aria-selected={activeTabId === file.id}
@@ -39,15 +39,15 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
             {file.name || 'untitled'}
             {file.size > 0 && <small className="file-size-badge"> ({formatBytes(file.size)})</small>}
           </span>
-          <button
+          <span
             className="close-tab"
             aria-label={`Close ${file.name}`}
             onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}>
             <i className="fa-solid fa-xmark"></i>
-          </button>
-        </div>
+          </span>
+        </button>
       ))}
-    </nav>
+    </div>
   );
 };
 
@@ -108,7 +108,7 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
         icon="fas fa-wand-magic-sparkles"
         title="Awaiting Refactoring Target"
         description="Add your source files and select a transformation model to automatically update project code health."
-        hint="Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or <code>Type Safety</code> variants in the controller layout."
+        hint={<>Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or <code>Type Safety</code> variants in the controller layout."</>}
         loadingTitle="Refactoring Project Architecture"
         loadingDescription="Decoupling complex logical layers, resolving cyclical file dependencies, and rewriting code blocks..."
       />

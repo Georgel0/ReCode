@@ -287,10 +287,10 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
               <EmptyState
                 isLoading={status === 'loading'}
                 condition={!data}
-                icon="fas fa-css3-alt"
+                icon="fab fa-css3-alt"
                 title="Awaiting Style Declarations"
                 description="Input your layout markup or custom CSS sheets to convert native layout definitions into optimized utility framework classes."
-                hint="Toggle between <code>Tailwind</code>, <code>Bootstrap</code>, or <code>UnoCSS</code> presets inside the config tab on the fly."
+                hint={<>Toggle between <code>Tailwind</code>, <code>Bootstrap</code>, or <code>UnoCSS</code> presets inside the config tab on the fly.</>}
                 loadingTitle="Mapping Atomic Layouts"
                 loadingDescription="Parsing style cascading trees and matching native style variables against functional utilities..."
               />

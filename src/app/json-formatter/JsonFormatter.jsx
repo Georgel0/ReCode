@@ -297,10 +297,10 @@ export default function JsonFormatter() {
               <EmptyState
                 isLoading={loading}
                 condition={!outputCode}
-                icon="fas fa-braces"
+                icon="fas fa-list-alt"
                 title="Awaiting JSON Payload"
                 description="Beautifully indented JSON files and interactive collapsible syntax tree nodes will map out here."
-                hint="You can paste raw <code>JSON5</code> objects—the parser will automatically append missing quotes and remove illegal comments."
+                hint={<>You can paste raw <code>JSON5</code> objects—the parser will automatically append missing quotes and remove illegal comments."</>}
                 loadingTitle="Structuring Hierarchies"
                 loadingDescription="Analyzing token tokens, repairing missing properties, and preparing interactive object trees..."
               />

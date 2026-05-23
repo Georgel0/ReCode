@@ -268,7 +268,7 @@ export default function RegexGenerator() {
                 icon="fas fa-asterisk"
                 title="Awaiting Pattern Rules"
                 description="Describe your target text pattern matching requirements in natural English to synthesize a bulletproof regular expression."
-                hint="Add multiple custom <code>Test Cases</code> below to watch real-time matching highlights trigger instantly."
+                hint={<>Add multiple custom <code>Test Cases</code> below to watch real-time matching highlights trigger instantly."</>}
                 loadingTitle="Crafting Regular Expression"
                 loadingDescription="Compiling modifier boundaries, tokenizing pattern descriptions, and building capture groups..."
               />

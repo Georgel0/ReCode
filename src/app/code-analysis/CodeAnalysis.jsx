@@ -231,10 +231,10 @@ export default function CodeAnalysis() {
             <EmptyState
               isLoading={loading}
               condition={!analysisData}
-              icon="fas fa-laptop-code"
+              icon="fas fa-search"
               title="Awaiting Code Structure"
               description="Paste your source code and click 'Run Audit' to reveal deep architectural, complexity, and security insights."
-              hint="Click <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings."
+              hint={<>Click <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings.</>}
               loadingTitle="Auditing Codebase"
               loadingDescription="Checking cognitive complexity metrics, security vulnerabilities, and design patterns..."
             />

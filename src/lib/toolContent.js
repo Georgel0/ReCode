@@ -165,14 +165,14 @@ export const tools = [
   {
     name: 'Code Analysis',
     path: '/code-analysis',
-    icon: 'fas fa-magnifying-glass-chart',
+    icon: 'fas fa-search',
     desc: 'Deep-dive into complexity and security.',
     info: 'Perform a full health audit on your code. This tool provides a dashboard covering Big O time/space complexity, identifies security vulnerabilities like injection risks, and detects logical edge cases that could lead to runtime crashes.'
   },
   {
     name: 'Code Generator',
     path: '/code-generator',
-    icon: 'fas fa-code',
+    icon: 'fas fa-cubes',
     desc: 'Generate boilerplate from natural language.',
     info: 'Bridge the gap between thought and execution. Describe your requirements in plain English (e.g., "A React hook for debounced API calls") and receive fully functional, documented code snippets ready to be dropped into your project.'
   },
@@ -193,7 +193,7 @@ export const tools = [
   {
     name: 'Regex Generator',
     path: '/regex-generator',
-    icon: 'fas fa-arrow-right-to-bracket',
+    icon: 'fas fa-asterisk',
     desc: 'Pattern matching made human-readable.',
     info: 'Regular expressions are notoriously difficult to write. Describe the pattern you want to match (e.g., "extract prices from a string") and receive the exact regex string along with a human-readable explanation of how the pattern works.'
   },

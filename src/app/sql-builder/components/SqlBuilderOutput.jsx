@@ -130,10 +130,10 @@ export function SqlBuilderOutput({
           <EmptyState
             isLoading={loading || mockLoading}
             condition={!outputCode}
-            icon="fas fa-terminal"
+            icon="fas fa-database"
             title="Awaiting Query Definition"
             description="Explain your targeted query operation objectives or design table relation models to generate pristine dialect-safe SQL code."
-            hint="Open the integrated <code>Test Runner</code> terminal layer below to test your query's performance live against virtual sandboxes."
+            hint={<>Open the integrated <code>Test Runner</code> terminal layer below to test your query's performance live against virtual sandboxes.</>}
             loadingTitle="Forging Relational Syntax"
             loadingDescription="Optimizing engine index lookup targets, sanitizing parameter fields, and checking database constraint rules..."
           />
