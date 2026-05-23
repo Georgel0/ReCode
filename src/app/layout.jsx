@@ -26,6 +26,13 @@ const themeCheckScript = `
 })();
 `;
 
+const siteNameJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "ReCode",
+  "url": "https://recode-alpha.vercel.app/"
+};
+
 
 export default function RootLayout({ children }) {
   return (
@@ -59,6 +66,7 @@ export default function RootLayout({ children }) {
         
         <script dangerouslySetInnerHTML={{ __html: themeCheckScript }} />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js" strategy="beforeInteractive" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNameJsonLd) }} />
       </head>
       <body>
         <ThemeProvider>
