@@ -1,206 +1,328 @@
 'use client';
-import { useRef, useEffect } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useTheme } from '@/context';
+
+function inferMermaidType(colName, sampleValue) {
+  const lower = colName.toLowerCase();
+  const strVal = sampleValue !== null && sampleValue !== undefined ? String(sampleValue) : '';
+
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(strVal)) return 'string';
+
+  const dateCols = ['created_at', 'updated_at', 'deleted_at', 'timestamp', 'date', 'time', 'datetime'];
+  if (dateCols.some(d => lower.includes(d))) return 'datetime';
+
+  if (strVal === 'true' || strVal === 'false') return 'boolean';
+  if (/^-?\d+$/.test(strVal) && strVal.length < 15) return 'int';
+  if (/^-?\d+\.\d+$/.test(strVal)) return 'float';
+
+  return 'string';
+}
+
+function sanitise(name) {
+  return name.replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+function buildMermaidERD(tables, relationships) {
+  if (!tables?.length) return '';
+
+  let erd = 'erDiagram\n';
+
+  relationships.forEach(rel => {
+    const from = sanitise(rel.fromTable);
+    const to = sanitise(rel.toTable);
+    const col = sanitise(rel.fromCol);
+    erd += `    ${to} ||--o{ ${from} : "${col}"\n`;
+  });
+
+  tables.forEach(table => {
+    const columns = table.rows?.length ? Object.keys(table.rows[0]) : [];
+    const sampleRow = table.rows?.[0] ?? {};
+    const entity = sanitise(table.tableName);
+
+    erd += `    ${entity} {\n`;
+    columns.forEach(col => {
+      const type = inferMermaidType(col, sampleRow[col]);
+      const lower = col.toLowerCase();
+      const isPK = lower === 'id' || (lower.endsWith('id') && !lower.includes('_'));
+      const isFK = lower.endsWith('_id') && lower !== 'id';
+      const modifier = isPK ? ' PK' : isFK ? ' FK' : '';
+      erd += `        ${type} ${sanitise(col)}${modifier}\n`;
+    });
+    erd += `    }\n`;
+  });
+
+  return erd;
+}
+
+function getMermaidThemeVars(isDark) {
+  if (isDark) {
+    return {
+      background: 'transparent',
+      primaryColor: '#1e293b',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#334155',
+      lineColor: '#38bdf8',
+      secondaryColor: '#0f172a',
+      tertiaryColor: '#1a2744',
+      mainBkg: '#1e293b',
+      nodeBorder: '#334155',
+      attributeBackgroundColorEven: '#1e293b',
+      attributeBackgroundColorOdd: '#162032',
+      titleColor: '#e2e8f0',
+      edgeLabelBackground: '#1e293b',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      fontSize: '13px',
+    };
+  }
+  return {
+    background: 'transparent',
+    primaryColor: '#f8fafc',
+    primaryTextColor: '#1e293b',
+    primaryBorderColor: '#cbd5e1',
+    lineColor: '#0ea5e9',
+    secondaryColor: '#f1f5f9',
+    tertiaryColor: '#e2e8f0',
+    mainBkg: '#ffffff',
+    nodeBorder: '#cbd5e1',
+    attributeBackgroundColorEven: '#f8fafc',
+    attributeBackgroundColorOdd: '#f1f5f9',
+    titleColor: '#1e293b',
+    edgeLabelBackground: '#ffffff',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '13px',
+  };
+}
+
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.12;
 
 export function ErdDiagram({ tables, relationships }) {
-  const canvasRef = useRef(null);
+  const { currentTheme } = useTheme();
+  const isDark = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+
+  // Mermaid render target
+  const svgHostRef = useRef(null);
+  // Outer clip container that receives pointer events
+  const viewportRef = useRef(null);
+
+  const [isRendering, setIsRendering] = useState(false);
+  const [renderError, setRenderError] = useState(null);
+
+  // Pan / zoom state
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0 });
+
+  const diagram = useMemo(
+    () => buildMermaidERD(tables, relationships),
+    [tables, relationships],
+  );
+
+  // Reset view whenever a new diagram is rendered
+  const resetView = useCallback(() => setTransform({ x: 0, y: 0, scale: 1 }), []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !tables?.length) return;
+    if (!diagram || !svgHostRef.current) return;
 
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const W = canvas.offsetWidth;
-    const H = canvas.offsetHeight;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    ctx.scale(dpr, dpr);
+    let cancelled = false;
+    setIsRendering(true);
+    setRenderError(null);
 
-    // Theming from CSS variables
-    const style = getComputedStyle(document.documentElement);
-    const bgSecondary = style.getPropertyValue('--bg-secondary').trim() || '#1a1a1a';
-    const bgTertiary = style.getPropertyValue('--bg-tertiary').trim() || '#2a2a2a';
-    const borderColor = style.getPropertyValue('--border').trim() || '#333';
-    const textPrimary = style.getPropertyValue('--text-primary').trim() || '#e0e0e0';
-    const textSecondary = style.getPropertyValue('--text-secondary').trim() || '#8b949e';
-    const accent = style.getPropertyValue('--accent').trim() || '#38bdf8';
+    (async () => {
+      try {
+        const mermaid = (await import('mermaid')).default;
 
-    ctx.clearRect(0, 0, W, H);
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? 'dark' : 'default',
+          themeVariables: getMermaidThemeVars(isDark),
+          er: {
+            diagramPadding: 24,
+            layoutDirection: 'TB',
+            minEntityWidth: 120,
+            minEntityHeight: 80,
+            entityPadding: 16,
+            useMaxWidth: false, // we control sizing ourselves
+          },
+          securityLevel: 'loose',
+        });
 
-    const TABLE_W = 160;
-    const TABLE_H_BASE = 36;
-    const ROW_H = 20;
-    const PADDING = 40;
+        if (cancelled) return;
 
-    // Compute positions in a simple grid layout
-    const cols = Math.max(1, Math.floor(W / (TABLE_W + PADDING * 2)));
-    const positions = {};
+        const renderId = `erd-mermaid-${Date.now()}`;
+        const { svg } = await mermaid.render(renderId, diagram);
 
-    tables.forEach((table, idx) => {
-      const col = idx % cols;
-      const row = Math.floor(idx / cols);
-      const columns = table.rows?.length ? Object.keys(table.rows[0]) : [];
-      const tableH = TABLE_H_BASE + columns.length * ROW_H + 8;
+        if (cancelled || !svgHostRef.current) return;
 
-      positions[table.tableName] = {
-        x: PADDING + col * (TABLE_W + PADDING * 2),
-        y: PADDING + row * (tableH + PADDING),
-        w: TABLE_W,
-        h: tableH,
-        columns,
-      };
-    });
+        svgHostRef.current.innerHTML = svg;
 
-    // Draw relationships first (behind boxes)
-    relationships.forEach(rel => {
-      const from = positions[rel.fromTable];
-      const to = positions[rel.toTable];
-      if (!from || !to) return;
-
-      const fromX = from.x + from.w;
-      const fromY = from.y + TABLE_H_BASE / 2;
-      const toX = to.x;
-      const toY = to.y + TABLE_H_BASE / 2;
-
-      ctx.beginPath();
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 3]);
-      ctx.globalAlpha = 0.6;
-
-      const cpX = (fromX + toX) / 2;
-      ctx.moveTo(fromX, fromY);
-      ctx.bezierCurveTo(cpX, fromY, cpX, toY, toX, toY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.globalAlpha = 1;
-
-      // Arrowhead
-      ctx.beginPath();
-      ctx.fillStyle = accent;
-      ctx.globalAlpha = 0.8;
-      const angle = Math.atan2(toY - fromY, toX - fromX);
-      ctx.translate(toX, toY);
-      ctx.rotate(angle);
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-8, -4);
-      ctx.lineTo(-8, 4);
-      ctx.closePath();
-      ctx.fill();
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.globalAlpha = 1;
-
-      // Label
-      ctx.font = '10px Inter, system-ui, sans-serif';
-      ctx.fillStyle = textSecondary;
-      ctx.globalAlpha = 0.85;
-      ctx.fillText(`${rel.fromCol}`, (fromX + toX) / 2 - 20, (fromY + toY) / 2 - 4);
-      ctx.globalAlpha = 1;
-    });
-
-    // Draw table boxes
-    tables.forEach(table => {
-      const pos = positions[table.tableName];
-      if (!pos) return;
-      const { x, y, w, h, columns } = pos;
-
-      // Box shadow effect
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 2;
-
-      // Box background
-      ctx.beginPath();
-      ctx.roundRect(x, y, w, h, 6);
-      ctx.fillStyle = bgSecondary;
-      ctx.fill();
-      ctx.strokeStyle = borderColor;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-
-      // Header
-      ctx.beginPath();
-      ctx.roundRect(x, y, w, TABLE_H_BASE, [6, 6, 0, 0]);
-      ctx.fillStyle = bgTertiary;
-      ctx.fill();
-
-      // Accent left border on header
-      ctx.beginPath();
-      ctx.moveTo(x, y + 6);
-      ctx.lineTo(x, y + TABLE_H_BASE - 6);
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.lineWidth = 1;
-
-      // Table name
-      ctx.font = 'bold 12px Inter, system-ui, sans-serif';
-      ctx.fillStyle = textPrimary;
-      ctx.fillText(table.tableName, x + 12, y + TABLE_H_BASE / 2 + 4);
-
-      // Row count badge
-      const countLabel = `${table.rows?.length ?? 0} rows`;
-      ctx.font = '10px Inter, system-ui, sans-serif';
-      ctx.fillStyle = textSecondary;
-      ctx.fillText(countLabel, x + w - ctx.measureText(countLabel).width - 8, y + TABLE_H_BASE / 2 + 4);
-
-      // Column list
-      ctx.font = '11px Inter, system-ui, sans-serif';
-      columns.forEach((col, ci) => {
-        const colY = y + TABLE_H_BASE + ci * ROW_H + ROW_H / 2 + 6;
-
-        if (ci % 2 === 0) {
-          ctx.fillStyle = 'rgba(255,255,255,0.02)';
-          ctx.fillRect(x + 1, y + TABLE_H_BASE + ci * ROW_H + 4, w - 2, ROW_H);
+        // Let the SVG size itself naturally; we control scale via CSS transform
+        const svgEl = svgHostRef.current.querySelector('svg');
+        if (svgEl) {
+          svgEl.removeAttribute('width');
+          svgEl.removeAttribute('height');
+          svgEl.style.display = 'block';
         }
 
-        const lower = col.toLowerCase();
-        const isPK = lower === 'id' || (lower.endsWith('id') && !lower.includes('_'));
-        const isFK = lower.endsWith('_id') && lower !== 'id';
-        const isTs = ['created_at', 'updated_at', 'deleted_at', 'timestamp'].some(d => lower.includes(d));
-
-        let icon = '  ';
-        let iconColor = textSecondary;
-        if (isPK) { icon = '🔑'; iconColor = '#fbbf24'; }
-        else if (isFK) { icon = '🔗'; iconColor = accent; }
-        else if (isTs) { icon = '🕐'; iconColor = '#a78bfa'; }
-
-        ctx.fillStyle = iconColor;
-        ctx.font = '10px sans-serif';
-        ctx.fillText(icon, x + 8, colY + 2);
-
-        ctx.font = '11px Inter, system-ui, sans-serif';
-        ctx.fillStyle = isFK ? accent : textPrimary;
-        const maxW = w - 28;
-        let colLabel = col;
-        while (ctx.measureText(colLabel).width > maxW && colLabel.length > 4) {
-          colLabel = colLabel.slice(0, -1);
+        resetView();
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[ErdDiagram] Mermaid render error:', err);
+          setRenderError(err?.message ?? 'Failed to render ERD diagram.');
         }
-        if (colLabel !== col) colLabel += '…';
-        ctx.fillText(colLabel, x + 24, colY + 2);
-      });
+      } finally {
+        if (!cancelled) setIsRendering(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [diagram, isDark, resetView]);
+
+  const clampScale = (s) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, s));
+
+  // Zoom toward a point (cx, cy) in viewport space.
+  const zoomAt = useCallback((cx, cy, delta) => {
+    setTransform(prev => {
+      const newScale = clampScale(prev.scale + delta);
+      const ratio = newScale / prev.scale;
+      // Adjust translation so the point under the cursor stays fixed
+      const newX = cx - ratio * (cx - prev.x);
+      const newY = cy - ratio * (cy - prev.y);
+      return { x: newX, y: newY, scale: newScale };
     });
-  }, [tables, relationships]);
+  }, []);
+
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
+      zoomAt(cx, cy, delta);
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [zoomAt]);
+
+  const onPointerDown = useCallback((e) => {
+    // Only primary button (left click / single touch)
+    if (e.button !== undefined && e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: transform.x,
+      originY: transform.y,
+    };
+  }, [transform.x, transform.y]);
+
+  const onPointerMove = useCallback((e) => {
+    if (!dragRef.current.active) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    setTransform(prev => ({
+      ...prev,
+      x: dragRef.current.originX + dx,
+      y: dragRef.current.originY + dy,
+    }));
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    dragRef.current.active = false;
+  }, []);
+
+  const zoomIn = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    zoomAt(width / 2, height / 2, ZOOM_STEP);
+  }, [zoomAt]);
+
+  const zoomOut = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    zoomAt(width / 2, height / 2, -ZOOM_STEP);
+  }, [zoomAt]);
 
   if (!tables?.length) return null;
 
+  const isDragging = dragRef.current.active;
+
   return (
-    <div className="erd-canvas-wrapper">
-      <canvas ref={canvasRef} className="erd-canvas" />
-      {relationships.length > 0 && (
+    <div className="erd-mermaid-wrapper">
+
+      {!isRendering && !renderError && (
+        <div className="erd-toolbar">
+          <button className="erd-tool-btn" onClick={zoomIn} title="Zoom in">
+            <i className="fas fa-search-plus" />
+          </button>
+          <span className="erd-zoom-label">{Math.round(transform.scale * 100)}%</span>
+          <button className="erd-tool-btn" onClick={zoomOut} title="Zoom out">
+            <i className="fas fa-search-minus" />
+          </button>
+          <div className="erd-toolbar-divider" />
+          <button className="erd-tool-btn" onClick={resetView} title="Reset view">
+            <i className="fas fa-compress-arrows-alt" />
+          </button>
+          <span className="erd-toolbar-hint">
+            <i className="fas fa-hand-paper" /> Drag to pan · Scroll to zoom
+          </span>
+        </div>
+      )}
+
+      {isRendering && (
+        <div className="erd-overlay erd-loading">
+          <i className="fas fa-circle-notch fa-spin" />
+          <span>Rendering diagram…</span>
+        </div>
+      )}
+
+      {renderError && !isRendering && (
+        <div className="erd-overlay erd-error">
+          <i className="fas fa-exclamation-triangle" />
+          <span>Render error: {renderError}</span>
+        </div>
+      )}
+
+      <div
+        ref={viewportRef}
+        className={`erd-viewport${isDragging ? ' erd-viewport--dragging' : ''}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
+      >
+        <div
+          className="erd-canvas-layer"
+          style={{
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+            transformOrigin: '0 0',
+          }}
+        >
+          <div ref={svgHostRef} className="erd-svg-host" />
+        </div>
+      </div>
+
+      {!isRendering && !renderError && relationships.length > 0 && (
         <div className="erd-legend">
           <span className="erd-legend-item">
             <span className="erd-legend-line" />
             FK Relationship
           </span>
-          <span className="erd-legend-item">🔑 PK</span>
-          <span className="erd-legend-item">🔗 FK</span>
-          <span className="erd-legend-item">🕐 TIMESTAMP</span>
+          <span className="erd-legend-item">PK — Primary Key</span>
+          <span className="erd-legend-item">FK — Foreign Key</span>
         </div>
       )}
-      {relationships.length === 0 && (
+
+      {!isRendering && relationships.length === 0 && (
         <div className="erd-no-relations">
           No FK relationships detected between tables
         </div>

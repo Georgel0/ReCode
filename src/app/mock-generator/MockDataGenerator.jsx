@@ -7,6 +7,7 @@ import ApiMocksTab from './tabs/ApiMocksTab';
 import StreamingEventsTab from './tabs/StreamingEventsTab';
 import './MockDataGenerator.css';
 import './styles/DatabaseSeedingTab.css';
+import './styles/ErdDiagram.css';
 
 export default function MockDataGenerator() {
   const [activeParadigm, setActiveParadigm] = useState('db');

@@ -3,7 +3,7 @@ import { ToolFooter } from '@/components/layout';
 import { getToolContent } from '@/lib/toolContent';
 
 export const metadata = {
-  title: 'Enterprise Mock Data Factory | AI Tools',
+  title: 'Mock Data Factory',
   description: 'Generate high-fidelity, relational mock data by pasting SQL, JSON, or TypeScript schemas.',
 };
 

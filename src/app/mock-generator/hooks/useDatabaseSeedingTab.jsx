@@ -5,7 +5,6 @@ import { useApp } from '@/context';
 import { convertCode } from '@/lib/api';
 
 export const RULE_TEMPLATES = [
-  { label: "Select a rule template...", value: "" },
   { label: "Date Range (Last 30 Days)", value: "All created_at dates must be within the last 30 days." },
   { label: "Percentage Split", value: "70% of users should have status 'active', 30% 'inactive'." },
   { label: "Sequential IDs", value: "Primary keys should be sequential integers starting at 1000." },
@@ -321,17 +320,22 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
   const handleCommitEdit = useCallback(() => {
     if (!editingCell || !generatedData) return;
     const { rowIdx, colKey } = editingCell;
-    const absoluteRowIdx = (currentPage - 1) * ITEMS_PER_PAGE + rowIdx;
+
+    // Resolve the target row by reference so edits are correct even when a
+    // filter is active (filteredRows is a subset of table.rows with different
+    // indices, so using an integer index directly into table.rows is wrong).
+    const absoluteFilteredIdx = (currentPage - 1) * ITEMS_PER_PAGE + rowIdx;
+    const targetRow = filteredRows[absoluteFilteredIdx];
+    if (!targetRow) return;
 
     setGeneratedData(prev => {
       const updatedTables = prev.tables.map((table, idx) => {
         if (idx !== activeTab) return table;
 
-        const updatedRows = table.rows.map((row, rIdx) => {
-          if (rIdx !== absoluteRowIdx) return row;
+        const updatedRows = table.rows.map((row) => {
+          if (row !== targetRow) return row;
 
           let newVal = editingValue;
-          // Try to parse JSON objects/arrays
           if ((newVal.startsWith('{') || newVal.startsWith('['))) {
             try { newVal = JSON.parse(newVal); } catch (_) { }
           }
@@ -344,7 +348,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
 
     setEditingCell(null);
     setEditingValue('');
-  }, [editingCell, editingValue, currentPage, activeTab, generatedData]);
+  }, [editingCell, editingValue, currentPage, activeTab, generatedData, filteredRows]);
 
   const handleCancelEdit = useCallback(() => {
     setEditingCell(null);

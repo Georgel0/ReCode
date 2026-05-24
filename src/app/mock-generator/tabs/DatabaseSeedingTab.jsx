@@ -159,7 +159,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                 />
               </div>
 
-              <div className="action-row-start">
+              <div className="action-row start">
                 <button
                   className="secondary-button btn-small full-width"
                   onClick={handleSaveSchema}
