@@ -1,68 +1,130 @@
+.converter-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.control-bar-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.control-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.control-bar-group--right {
+  justify-content: flex-end;
+}
+
+.control-bar-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+}
+
+.convert-btn {
+  padding: 0.7rem 1.6rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.convert-arrow {
+  margin-left: 4px;
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+.btn-icon-only {
+  padding: 0.65rem 0.9rem;
+  flex-shrink: 0;
+}
+
 .sync-scroll-container {
   flex: 1;
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   position: relative;
-  min-height: 400px;
+  min-height: 380px;
 }
 
-.sync-scroll-container>.editor-container {
+.sync-scroll-container > .editor-container {
   border: none;
   border-radius: 0;
+}
+
+.converter-output-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }
 
 .lint-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .lint-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  animation: popIn 0.3s ease-out;
+  animation: popIn 0.25s ease-out;
 }
 
 .lint-badge.success {
-  background-color: rgba(32, 178, 170, 0.15);
+  background-color: rgba(32, 178, 170, 0.12);
   color: #20b2aa;
   border: 1px solid #20b2aa;
 }
 
 .lint-badge.error {
-  background-color: rgba(255, 77, 77, 0.15);
+  background-color: rgba(255, 77, 77, 0.12);
   color: #ff4d4d;
   border: 1px solid #ff4d4d;
 }
 
 @keyframes popIn {
-  0% {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0%   { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1);    opacity: 1; }
 }
 
 .header-actions {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .tab-input {
   background: var(--bg-color, #1e1e1e);
   color: var(--text-color, #fff);
-  border: 1px solid var(--primary-color, #007bff);
+  border: 1px solid var(--accent, #007bff);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 0.9rem;
@@ -71,14 +133,53 @@
 }
 
 .btn-danger {
-  background-color: rgba(255, 77, 77, 0.1);
+  background-color: rgba(255, 77, 77, 0.08);
   color: #ff4d4d;
-  border: 1px solid #ff4d4d;
+  border: 1px solid rgba(255, 77, 77, 0.5);
 }
 
 .btn-danger:hover {
   background-color: #ff4d4d;
   color: white;
+  border-color: #ff4d4d;
+}
+
+
+@media (max-width: 1100px) {
+  .converter-control-bar {
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .control-bar-group {
+    flex: unset;
+  }
+}
+
+@media (max-width: 960px) {
+  .converter-control-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .control-bar-group,
+  .control-bar-group--right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .control-bar-cta {
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .convert-btn {
+    flex: 1;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 768px) {
@@ -89,7 +190,7 @@
   .panel-header-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .header-actions {
@@ -99,5 +200,11 @@
   .header-actions button {
     flex: 1;
     justify-content: center;
+  }
+
+  .converter-output-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 }
