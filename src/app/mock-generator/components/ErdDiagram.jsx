@@ -98,7 +98,7 @@ const ZOOM_MIN = 0.25;
 const ZOOM_MAX = 3;
 const ZOOM_STEP = 0.12;
 
-export function ErdDiagram({ tables, relationships }) {
+export function ErdDiagram({ tables, relationships = [] }) {
   const { currentTheme } = useTheme();
   const isDark = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
 
@@ -157,11 +157,8 @@ export function ErdDiagram({ tables, relationships }) {
 
         svgHostRef.current.innerHTML = svg;
 
-        // Let the SVG size itself naturally; we control scale via CSS transform
         const svgEl = svgHostRef.current.querySelector('svg');
         if (svgEl) {
-          svgEl.removeAttribute('width');
-          svgEl.removeAttribute('height');
           svgEl.style.display = 'block';
         }
 

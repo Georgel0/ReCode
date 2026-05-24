@@ -115,6 +115,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
   const [rowCount, setRowCount] = useState('15');
   const [seed, setSeed] = useState('');
   const [dataQuality, setDataQuality] = useState(100);
+  const [includeAnalysis, setIncludeAnalysis] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
@@ -159,6 +160,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
       if (moduleData.rowCount) setRowCount(String(moduleData.rowCount));
       if (moduleData.seed) setSeed(moduleData.seed);
       if (moduleData.dataQuality) setDataQuality(moduleData.dataQuality);
+      if (moduleData.includeAnalysis !== undefined) setIncludeAnalysis(moduleData.includeAnalysis);
 
       const rawOutput = moduleData.output || moduleData.fullOutput;
       if (rawOutput) {
@@ -242,6 +244,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
         rowCount: targetRows,
         seed: seed || undefined,
         dataQuality,
+        includeAnalysis,
       });
 
       setGeneratedData(data);
@@ -255,7 +258,8 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
           type: 'mock',
           input: schemaInput,
           output: JSON.stringify(data),
-          rules, locale, rowCount, seed, dataQuality,
+          rules, locale, rowCount, seed, dataQuality, 
+          includeAnalysis,
         });
       }
     } catch (error) {
@@ -284,6 +288,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
         rowCount: parseInt(rowCount, 10),
         seed: seed || undefined,
         dataQuality,
+        includeAnalysis,
       });
 
       const newTable = data.tables.find(
@@ -479,6 +484,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     rowCount, setRowCount,
     seed, setSeed,
     dataQuality, setDataQuality,
+    includeAnalysis, setIncludeAnalysis,
     detectedLanguage,
 
     // Output

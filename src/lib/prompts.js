@@ -446,6 +446,10 @@ export const PROMPT_CONFIG = {
         ? `Seed provided: ${ctx.seed}. Use this as the cryptographic seed for your internal pseudo-random generation to ensure deterministic, repeatable outputs.`
         : `No explicit seed provided. Generate randomly.`;
 
+      const analysisInstruction = ctx?.includeAnalysis
+        ? `5. In 'parsedRules', echo back a concise list of the custom rules and FK relationships you successfully mapped.\n        6. Provide an 'explanation' detailing constraints handled or anomalies caught.`
+        : `5. In 'parsedRules', echo back a concise list of the custom rules and FK relationships you successfully mapped.\n        6. CRITICAL: DO NOT generate the 'explanation' field. Omit it entirely.`;
+
       return withSchema(
         `You are an Expert Database Architect and QA Data Synthesis Specialist.
         Your Task: Transform data schemas into highly realistic, interconnected mock datasets.
@@ -461,11 +465,10 @@ export const PROMPT_CONFIG = {
         2. Respect Custom Annotations: If a column has comments like @faker:creditCard or @regex:[A-Z]{3}-\\d{4}, generate data strictly matching that format.
         3. ${dqInstruction}
         4. Apply behavioral distributions, conditional chronology ranges, and values described inside the rules parameters.
-        5. In 'parsedRules', echo back a concise list of the custom rules and FK relationships you successfully mapped.`,
+        ${analysisInstruction}`,
         `{
           "tables": [ { "tableName": "string", "rows": [ { "column_name": "value" } ] } ],
-          "parsedRules": ["string"],
-          "explanation": "string"
+          "parsedRules": ["string"]
         }`
       )
     },

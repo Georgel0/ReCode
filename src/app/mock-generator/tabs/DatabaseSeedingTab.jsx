@@ -70,7 +70,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
   const {
     schemaInput, setSchemaInput, rules, setRules, locale, setLocale, rowCount, setRowCount,
-    seed, setSeed, dataQuality, setDataQuality, detectedLanguage,
+    seed, setSeed, dataQuality, setDataQuality, detectedLanguage, includeAnalysis, setIncludeAnalysis,
 
     isLoading, generatedData, activeTab,
     setActiveTab, parsedRulesFeedback, regenLoadingIdx,
@@ -262,6 +262,15 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   />
                 </div>
               </div>
+              <label className="custom-check" style={{ marginTop: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={includeAnalysis}
+                  onChange={(e) => setIncludeAnalysis(e.target.checked)}
+                />
+                <div className="box"><i className="fas fa-check" /></div>
+                <span className="label-text">Generate Data Analysis & Explanations</span>
+              </label>
             </div>
 
           </div>
