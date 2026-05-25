@@ -62,7 +62,7 @@ export default function LandingPage() {
        <ScrollAnimation direction="right">
         <div className="lp-image-container">
          <img 
-          src="/architecture.png" 
+          src="/assets/architecture.png" 
           alt="ReCode Hybrid Engine Architecture"
           className="lp-feature-img"
          />
@@ -130,7 +130,7 @@ export default function LandingPage() {
         <ScrollAnimation direction="left">
          <div className="lp-image-container">
           <img 
-           src="/infrastructure.webp" 
+           src="/assets/infrastructure.webp" 
            alt="ReCode Infrastructure Preview" 
            className="lp-feature-img"
           />

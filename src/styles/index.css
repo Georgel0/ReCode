@@ -120,8 +120,8 @@ textarea:focus {
   height: 24px;
   margin-right: 8px;
   background-color: var(--accent);
-  -webkit-mask-image: url('/logo.svg');
-  mask-image: url('/logo.svg');
+  -webkit-mask-image: url('/assets/logo.svg');
+  mask-image: url('/assets/logo.svg');
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
