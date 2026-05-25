@@ -6,6 +6,8 @@
   border: 1px solid var(--border);
   box-shadow: var(--shadow-subtle);
   min-width: 0;
+  max-height: 2000px;
+  overflow-y: auto;
 }
 
 .panel h3 {

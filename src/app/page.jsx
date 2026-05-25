@@ -15,7 +15,7 @@ export default function LandingPage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const slideCount = 10;
 
-  const slides = Array.from({ length: slideCount }, (_, i) => `/assets/preview-${i + 1}.jpg`);
+  const slides = Array.from({ length: slideCount }, (_, i) => `/assets/preview-images/preview-${i + 1}.png`);
 
   const nextSlide = useCallback(() => {
     setActiveSlide((prev) => (prev + 1) % slideCount);

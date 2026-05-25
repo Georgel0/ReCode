@@ -144,7 +144,7 @@ export default function RegexGenerator() {
         </div>
       )}
 
-      <div className="converter-grid">
+      <div className="reg-converter-grid">
         <div className="panel">
           <div className="panel-header-row">
             <h3>{refineMode ? 'Refine Pattern' : 'Pattern Description'}</h3>
