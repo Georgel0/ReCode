@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { CodeEditor, ConfirmModal } from '@/components/ui';
+import { CodeEditor, ConfirmModal, ErdDiagram } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES } from '../hooks/useDatabaseSeedingTab';
-import { ErdDiagram } from '../components/ErdDiagram';
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';

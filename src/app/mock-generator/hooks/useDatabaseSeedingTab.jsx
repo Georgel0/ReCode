@@ -13,7 +13,6 @@ export const RULE_TEMPLATES = [
 
 export const ITEMS_PER_PAGE = 15;
 
-// Schema parsing helpers
 /**
  * Infers column type badges from a column name + sample value.
  * Returns an array of badge labels, e.g. ['UUID', 'PK'] or ['FK →'].
