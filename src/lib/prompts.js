@@ -1,177 +1,15 @@
 /**
- * @fileoverview AI Prompt Configuration & Schema Registry.
+ * @fileoverview AI Prompt Configuration Registry.
  *
- * Defines system personas, prompt templates, and Zod validation schemas for
- * every AI-driven feature in the application. Keeps LLM outputs type-safe
- * and consistent with the UI expectations.
+ * Defines system personas and prompt templates for every AI-driven feature
+ * in the application. Imports Zod schemas and the `withSchema` helper from
+ * the schema registry to keep LLM outputs type-safe and consistent with UI
+ * expectations.
  *
  * @module lib/prompts
  */
 
-import { z } from 'zod';
-
-/**
- * Zod schemas describing the exact JSON structure the AI must return.
- * Used by `generateObject` for structured output and `extractJson` for
- * fallback parsing.
- */
-export const OUTPUT_SCHEMAS = {
-  // JSON repair
-  json: z.object({
-    formattedJson: z.string().describe('The fixed and valid JSON string'),
-    explanation: z.string().describe('Bulleted list of specific syntax errors fixed'),
-  }),
-
-  // Code refactor / translate (multi-file)
-  refactor: z.object({
-    files: z.array(z.object({
-      sourceId: z.union([z.string(), z.number()])
-        .describe('The original unique ID provided in the input'),
-      fileName: z.string()
-        .describe('The file name (may be updated if refactoring suggests better naming)'),
-      content: z.string().describe('The full refactored code'),
-    })),
-  }),
-
-  // Code generator (multi-file)
-  generator: z.object({
-    files: z.array(z.object({
-      fileName: z.string(),
-      content: z.string(),
-    })),
-  }),
-
-  // Static code analysis
-  analysis: z.object({
-    summary: z.string(),
-    score: z.number().min(0).max(100),
-
-    complexity: z.object({
-      time: z.string().describe('Time complexity in Big O notation'),
-      space: z.string().describe('Space complexity in Big O notation'),
-      explanation: z.array(z.string()).describe('Bullet points explaining the complexity'),
-      bottleneck: z.string().optional()
-        .describe('The specific function/loop causing the worst-case time complexity'),
-      tradeoffs: z.string().optional()
-        .describe("Space-time tradeoff suggestions, e.g., 'Using a HashMap drops time to O(n)'"),
-      metrics: z.object({
-        cyclomatic: z.number().describe('Cyclomatic complexity (lower is better)'),
-        cognitive: z.number().describe('Cognitive complexity (lower is better)'),
-        maintainability: z.number().describe('Maintainability index 0–100 (higher is better)'),
-      }),
-    }),
-
-    security: z.array(z.object({
-      severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
-      location: z.string().optional().describe('Function name, line number, or snippet'),
-      issue: z.string().describe('What the vulnerability is'),
-      resolution: z.string().describe('How to fix it'),
-    })).optional(),
-
-    bugs: z.array(z.object({
-      severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
-      location: z.string().optional(),
-      issue: z.string(),
-      resolution: z.string(),
-    })).optional(),
-
-    improvements: z.array(z.object({
-      severity: z.enum(['High', 'Medium', 'Low']),
-      location: z.string().optional(),
-      issue: z.string(),
-      resolution: z.string(),
-    })).optional(),
-
-    bestPractices: z.array(z.object({
-      issue: z.string(),
-      resolution: z.string(),
-    })).optional(),
-
-    testing: z.object({
-      edgeCases: z.array(z.string()).optional()
-        .describe('Edge cases the code fails to handle'),
-      unitTests: z.array(z.string()).optional()
-        .describe('Plain-English descriptions of recommended unit tests'),
-    }).optional(),
-
-    architecture: z.object({
-      smells: z.array(z.string()).optional()
-        .describe('Code smells like tight coupling, god objects, or SOLID violations'),
-      dependencies: z.array(z.string()).optional()
-        .describe('Warnings about outdated or non-standard ecosystem practices'),
-    }).optional(),
-  }),
-
-  // Regex generator
-  regex: z.object({
-    pattern: z.string().describe('The raw regex string without delimiting slashes'),
-    summary: z.string().describe('One-sentence summary of what the pattern does'),
-    breakdown: z.array(z.object({
-      token: z.string().describe('The specific part of the regex'),
-      description: z.string().describe('What this token does'),
-    })).describe('Token-by-token breakdown of the regex logic'),
-  }),
-
-  // CSS framework converter
-  'css-framework-json': z.object({
-    // "CSS only" mode → Tailwind
-    conversions: z.array(z.object({
-      selector: z.string().describe('The original CSS selector'),
-      tailwindClasses: z.string().describe('The equivalent utility classes'),
-    })).optional(),
-
-    // "HTML + CSS" mode
-    convertedHtml: z.string().optional()
-      .describe('Full HTML string with framework classes applied'),
-
-    // SASS / LESS / Stylus
-    convertedCode: z.string().optional()
-      .describe('The refactored stylesheet code'),
-
-    extra: z.string().optional()
-      .describe("Leftover CSS, required @layer styles, or variables the user must add manually"),
-  }),
-
-  // SQL builder / converter / optimizer / simulator
-  sql: z.object({
-    query: z.string()
-      .describe(
-        "The generated, converted, or optimized raw SQL code. " +
-        "For 'simulate' mode: a raw JSON string representing the execution result."
-      ),
-    explanation: z.string().optional()
-      .describe('HTML-formatted explanation of logic, changes, query plan, or simulation notes.'),
-    warnings: z.array(z.string()).optional()
-      .describe('Dialect incompatibilities, performance issues, or missing schema references.'),
-    recommendedIndexes: z.array(z.string()).optional()
-      .describe('Explicit CREATE INDEX statements suggested by the optimizer.'),
-  }),
-
-  mock: z.object({
-    tables: z.array(z.object({
-      tableName: z.string().describe('Name of the database table'),
-      rows: z.array(z.any()).describe('Array of objects representing records generated for this table')
-    })).describe('Collection of individual database relational tables'),
-    parsedRules: z.array(z.string()).optional().describe('An array of bullet points echoing back the specific rules, distributions, and FK relationships the engine understood and applied.'),
-    explanation: z.string().optional().describe('HTML-formatted summary explaining constraints handled or anomalies caught')
-  }),
-};
-
-/**
- * Wraps a base system prompt with strict JSON-only output instructions.
- *
- * @param {string} basePrompt  - Persona and task instructions.
- * @param {string} schemaDesc  - String representation of the expected JSON shape.
- * @returns {string}
- */
-const withSchema = (basePrompt, schemaDesc) => `${basePrompt}
-
-CRITICAL OUTPUT RULES:
-1. You MUST return a valid JSON object.
-2. Use this EXACT structure:
-${schemaDesc}
-3. Output ONLY the JSON. No conversational text before or after the object.
-4. Escape all double quotes inside string values.`;
+import { OUTPUT_SCHEMAS, withSchema } from './schemas.js';
 
 /**
  * @typedef {Object} TaskConfig
@@ -475,5 +313,111 @@ export const PROMPT_CONFIG = {
     user: (input) => `Database Layout Specification:\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.mock,
-  }
+  },
+
+  'api-mocks': {
+    system: (ctx) => {
+      const frameworkGuide = {
+        msw: `Generate MSW v2 (msw@^2) handlers using the 'http' and 'HttpResponse' imports.
+        - Each handler must be a self-contained call: http.get('/path', resolver), etc.
+        - Use HttpResponse.json(fixtureData, { status: N }) for responses.
+        - If delayMs > 0, wrap the resolver body with: await delay(${ctx?.delayMs ?? 0})
+        - Export a single handlers array: export const handlers = [...].`,
+
+        nextjs: `Generate Next.js 14+ App Router Route Handlers.
+        - Each file exports named async functions: export async function GET(request) { ... }
+        - Use NextResponse.json(data, { status: N }) from 'next/server'.
+        - Include the file path comment at the top of each handler, e.g. // app/api/users/route.ts
+        - Group related CRUD handlers into the same file comment block.`,
+
+        axios: `Generate Axios Mock Adapter handler registrations.
+        - Each handler is a mock.onGet/onPost/etc. call on the 'mock' adapter instance.
+        - Assume: import MockAdapter from 'axios-mock-adapter'; const mock = new MockAdapter(axios, { delayResponse: ${ctx?.delayMs ?? 0} });
+        - Use mock.onGet('/path').reply(status, fixtureData) pattern.
+        - Export a setupMocks() function containing all registrations.`,
+
+        json: `Generate only JSON fixture objects — no framework code.
+        - The 'code' field should be a well-commented JSON string (using // comments) describing the shape.
+        - Use realistic, deeply nested data with proper types and values.
+        - Include a helpful comment header: // GET /api/users — 200 OK`,
+      };
+
+      const authNote = ctx?.authStyle !== 'none'
+        ? `AUTH: Simulate ${ctx.authStyle} authentication. For ${ctx.authStyle === 'bearer' ? 'Bearer/JWT' : ctx.authStyle === 'apikey' ? 'API Key header' : 'session cookie'} protected routes, include a guard comment or conditional check inside the handler that returns 401 when the header is absent.`
+        : 'AUTH: No authentication simulation required.';
+
+      const paginationNote = ctx?.paginationStyle !== 'none'
+        ? `PAGINATION: Apply ${ctx.paginationStyle} pagination pattern. For list endpoints, include the appropriate pagination metadata in the fixture (${ctx.paginationStyle === 'offset' ? '{ data: [...], total, limit, offset }' :
+          ctx.paginationStyle === 'cursor' ? '{ data: [...], nextCursor, hasMore }' :
+            '{ data: [...], page, perPage, totalPages, totalItems }'
+        }).`
+        : 'PAGINATION: No pagination required.';
+
+      const errorNote = ctx?.errorRate > 0
+        ? `ERROR INJECTION: Approximately ${ctx.errorRate}% of endpoints should include a realistic error scenario handler. Add a commented variant showing how to return a 4xx/5xx response (e.g. 404 not found, 422 validation error, 500 internal).`
+        : '';
+
+      const typeNote = ctx?.includeTypes
+        ? `TYPES: Prepend TypeScript interface/type definitions for request params and response shapes above each handler.`
+        : '';
+
+      const analysisNote = ctx?.includeAnalysis
+        ? `5. In 'parsedSpec', list each endpoint resolved as a concise bullet: "GET /users → UserListResponse (paginated)".
+         6. In 'explanation', provide an HTML-formatted coverage summary covering: endpoints generated, auth patterns, pagination, and any spec ambiguities resolved.`
+        : `5. In 'parsedSpec', list each endpoint resolved as a concise bullet.
+         6. CRITICAL: DO NOT include the 'explanation' field. Omit it entirely.`;
+
+      return withSchema(
+        `You are a Senior API Architect and Mock Infrastructure Specialist.
+      Your Task: Transform API specifications into production-quality mock handlers with realistic fixture data.
+ 
+      INPUT SPEC FORMAT: ${ctx?.detectedFormat ?? 'auto'} (${ctx?.detectedFormat === 'graphql' ? 'GraphQL SDL — derive REST-style handlers for each Query/Mutation field' :
+          ctx?.detectedFormat === 'openapi' ? 'OpenAPI/Swagger definition — follow the paths and operations exactly' :
+            ctx?.detectedFormat === 'typescript' ? 'TypeScript interfaces — infer CRUD endpoints from entity shapes' :
+              ctx?.detectedFormat === 'json' ? 'JSON sample — infer entity shape and generate standard CRUD endpoints' :
+                ctx?.detectedFormat === 'rest' ? 'Explicit REST spec — implement exactly as specified' :
+                  'Auto-detected — infer the most appropriate endpoint structure'
+        })
+ 
+      TARGET FRAMEWORK: ${ctx?.framework ?? 'msw'}
+      ${frameworkGuide[ctx?.framework ?? 'msw']}
+ 
+      CONSTRAINTS:
+      - Generate exactly ${ctx?.endpointCount ?? 5} endpoints covering meaningful CRUD/query operations.
+      - ${authNote}
+      - ${paginationNote}
+      ${errorNote ? `- ${errorNote}` : ''}
+      ${typeNote ? `- ${typeNote}` : ''}
+      - Fixture data must be realistic: proper names, emails, UUIDs, ISO dates, monetary amounts — not "foo" or "string1".
+      - Every 'code' field must be immediately copy-pasteable with no placeholders.
+ 
+      OUTPUT RULES:
+      1. One object per endpoint in the 'handlers' array.
+      2. 'fixtureData' must be valid JSON that exactly matches the response the 'code' would return.
+      3. 'statusCode' must be the primary success code (200 for GET/PUT/PATCH/DELETE, 201 for POST).
+      4. 'delayMs' should be ${ctx?.delayMs ?? 0} for all handlers (0 = no delay).
+      ${analysisNote}`,
+
+        `{
+        "handlers": [
+          {
+            "name": "string",
+            "method": "GET | POST | PUT | PATCH | DELETE",
+            "path": "/api/...",
+            "description": "string",
+            "statusCode": 200,
+            "delayMs": 0,
+            "code": "string (full framework-specific handler code)",
+            "fixtureData": {}
+          }
+        ],
+        "parsedSpec": ["string"],
+        "explanation": "string (HTML, omit if not requested)"
+      }`
+      );
+    },
+    user: (input) => `API Specification:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS['api-mocks'],
+  },
 };

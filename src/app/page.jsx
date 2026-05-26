@@ -107,7 +107,7 @@ export default function LandingPage() {
                         <i className="fas fa-circle-info"></i>
                         <div className="speech-bubble">
                           <p>
-                            <i className={tool.icon}></i>
+                            <i className={tool.icon} style={{marginRight: '10px'}}></i>
                             {tool.info}
                           </p>
                         </div>
