@@ -279,9 +279,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
                         <span className="history-type">
                           {item.type === 'converter'
                             ? `${item.sourceLang?.toUpperCase()} to ${item.targetLang?.toUpperCase()}`
-                            : item.type === 'mock'
-                              ? 'Mock Data Factory'
-                              : item.type.charAt(0).toUpperCase() + item.type.slice(1)
+                            : item.type.charAt(0).toUpperCase() + item.type.slice(1)
                           }
                         </span>
 
@@ -349,9 +347,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
                         <span>
                           {item.type === 'converter'
                             ? `${item.sourceLang?.toUpperCase() || 'Unknown'} to ${item.targetLang?.toUpperCase() || 'Unknown'}`
-                            : item.type === 'mock'
-                              ? 'Mock Data Factory'
-                              : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                            : item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                         </span>
                       </div>
                       <span className="detail-card-date">

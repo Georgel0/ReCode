@@ -5,23 +5,23 @@ import { useApp } from '@/context';
 import { convertCode } from '@/lib/api';
 
 export const FRAMEWORK_OPTIONS = [
-  { value: 'msw',    label: 'MSW v2 (Mock Service Worker)',  icon: 'fa-shield-halved' },
-  { value: 'nextjs', label: 'Next.js App Router Routes',     icon: 'fa-route' },
-  { value: 'axios',  label: 'Axios Mock Adapter',            icon: 'fa-circle-nodes' },
-  { value: 'json',   label: 'JSON Fixtures Only',            icon: 'fa-file-code' },
+  { value: 'msw', label: 'MSW v2 (Mock Service Worker)', icon: 'fa-shield-halved' },
+  { value: 'nextjs', label: 'Next.js App Router Routes', icon: 'fa-route' },
+  { value: 'axios', label: 'Axios Mock Adapter', icon: 'fa-circle-nodes' },
+  { value: 'json', label: 'JSON Fixtures Only', icon: 'fa-file-code' },
 ];
 
 export const PAGINATION_OPTIONS = [
-  { value: 'none',   label: 'None' },
+  { value: 'none', label: 'None' },
   { value: 'offset', label: 'Offset / Limit' },
   { value: 'cursor', label: 'Cursor-based' },
-  { value: 'page',   label: 'Page / Per Page' },
+  { value: 'page', label: 'Page / Per Page' },
 ];
 
 export const AUTH_OPTIONS = [
-  { value: 'none',    label: 'None' },
-  { value: 'bearer',  label: 'Bearer / JWT' },
-  { value: 'apikey',  label: 'API Key Header' },
+  { value: 'none', label: 'None' },
+  { value: 'bearer', label: 'Bearer / JWT' },
+  { value: 'apikey', label: 'API Key Header' },
   { value: 'session', label: 'Session Cookie' },
 ];
 
@@ -184,10 +184,10 @@ export { FORMAT_LABELS, FORMAT_ICONS };
 export function getMethodMeta(method = '') {
   const m = method.toUpperCase();
   const map = {
-    GET:    { cls: 'method-badge--get',    label: 'GET' },
-    POST:   { cls: 'method-badge--post',   label: 'POST' },
-    PUT:    { cls: 'method-badge--put',    label: 'PUT' },
-    PATCH:  { cls: 'method-badge--patch',  label: 'PATCH' },
+    GET: { cls: 'method-badge--get', label: 'GET' },
+    POST: { cls: 'method-badge--post', label: 'POST' },
+    PUT: { cls: 'method-badge--put', label: 'PUT' },
+    PATCH: { cls: 'method-badge--patch', label: 'PATCH' },
     DELETE: { cls: 'method-badge--delete', label: 'DELETE' },
   };
   return map[m] ?? { cls: 'method-badge--get', label: m };
@@ -196,33 +196,34 @@ export function getMethodMeta(method = '') {
 export function useApiMocksTab({ onDataUpdate } = {}) {
   const { moduleData, qualityMode } = useApp();
 
-  const [specInput, setSpecInput]               = useState('');
-  const [framework, setFramework]               = useState('msw');
-  const [endpointCount, setEndpointCount]       = useState(5);
-  const [delayMs, setDelayMs]                   = useState(0);
-  const [errorRate, setErrorRate]               = useState(0);
-  const [paginationStyle, setPaginationStyle]   = useState('none');
-  const [authStyle, setAuthStyle]               = useState('none');
-  const [includeTypes, setIncludeTypes]         = useState(true);
-  const [includeAnalysis, setIncludeAnalysis]   = useState(false);
+  const [specInput, setSpecInput] = useState('');
+  const [framework, setFramework] = useState('msw');
+  const [endpointCount, setEndpointCount] = useState(5);
+  const [delayMs, setDelayMs] = useState(0);
+  const [errorRate, setErrorRate] = useState(0);
+  const [paginationStyle, setPaginationStyle] = useState('none');
+  const [authStyle, setAuthStyle] = useState('none');
+  const [includeTypes, setIncludeTypes] = useState(true);
+  const [includeAnalysis, setIncludeAnalysis] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const [isLoading, setIsLoading]               = useState(false);
-  const [generatedData, setGeneratedData]       = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [generatedData, setGeneratedData] = useState(null);
   const [activeHandlerIdx, setActiveHandlerIdx] = useState(0);
-  const [viewMode, setViewMode]                 = useState('code');   // 'code' | 'fixture'
-  const [filterQuery, setFilterQuery]           = useState('');
+  const [viewMode, setViewMode] = useState('code');   // 'code' | 'fixture'
+  const [filterQuery, setFilterQuery] = useState('');
   const [parsedSpecFeedback, setParsedSpecFeedback] = useState([]);
 
   const [copyFlash, setCopyFlash] = useState(null); // null | 'handler' | 'all'
 
-  const [savedSpecs, setSavedSpecs]           = useState([]);
-  const [specsVisible, setSpecsVisible]       = useState(false);
+  const [savedSpecs, setSavedSpecs] = useState([]);
+  const [specsVisible, setSpecsVisible] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-  const [newSpecName, setNewSpecName]         = useState('');
-  const [saveSpecError, setSaveSpecError]     = useState('');
+  const [newSpecName, setNewSpecName] = useState('');
+  const [saveSpecError, setSaveSpecError] = useState('');
 
   const [modalConfig, setModalConfig] = useState({
-    isOpen: false, title: '', message: '', onConfirm: () => {},
+    isOpen: false, title: '', message: '', onConfirm: () => { },
   });
 
   useEffect(() => {
@@ -238,12 +239,12 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   useEffect(() => {
     if (moduleData && moduleData.type === 'api-mocks') {
       setSpecInput(moduleData.input || '');
-      if (moduleData.framework)      setFramework(moduleData.framework);
-      if (moduleData.endpointCount)  setEndpointCount(moduleData.endpointCount);
+      if (moduleData.framework) setFramework(moduleData.framework);
+      if (moduleData.endpointCount) setEndpointCount(moduleData.endpointCount);
       if (moduleData.delayMs != null) setDelayMs(moduleData.delayMs);
       if (moduleData.errorRate != null) setErrorRate(moduleData.errorRate);
       if (moduleData.paginationStyle) setPaginationStyle(moduleData.paginationStyle);
-      if (moduleData.authStyle)       setAuthStyle(moduleData.authStyle);
+      if (moduleData.authStyle) setAuthStyle(moduleData.authStyle);
       if (moduleData.includeTypes != null) setIncludeTypes(moduleData.includeTypes);
       if (moduleData.includeAnalysis != null) setIncludeAnalysis(moduleData.includeAnalysis);
 
@@ -357,7 +358,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       : activeHandler.code;
     navigator.clipboard.writeText(text)
       .then(() => flashCopy('handler'))
-      .catch(() => {});
+      .catch(() => { });
   }, [activeHandler, viewMode, flashCopy]);
 
   const handleCopyAll = useCallback(() => {
@@ -366,7 +367,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     const allCode = generatedData.handlers.map(h => h.code).join('\n\n// ────────────────────────────\n\n');
     navigator.clipboard.writeText(allCode)
       .then(() => flashCopy('all'))
-      .catch(() => {});
+      .catch(() => { });
   }, [generatedData, flashCopy]);
 
   const downloadFile = (content, filename, type) => {
@@ -385,8 +386,8 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       const fileHeader = framework === 'msw'
         ? `// MSW v2 Handlers – generated by Mock Data Factory\nimport { http, HttpResponse } from 'msw';\n\nexport const handlers = [\n`
         : framework === 'nextjs'
-        ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
-        : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
+          ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
+          : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
 
       const allCode = generatedData.handlers.map(h => h.code).join('\n\n');
       const fileFooter = framework === 'msw' ? '\n];\n' : '';
@@ -435,10 +436,10 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
 
   const triggerExportModal = useCallback((type) => {
     const labels = {
-      'all-ts':        `All Handlers (.ts)`,
+      'all-ts': `All Handlers (.ts)`,
       'fixtures-json': 'JSON Fixtures',
-      'active-ts':     `Active Handler (.ts)`,
-      'postman':       'Postman Collection (.json)',
+      'active-ts': `Active Handler (.ts)`,
+      'postman': 'Postman Collection (.json)',
     };
 
     setModalConfig({
@@ -492,13 +493,14 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     authStyle, setAuthStyle,
     includeTypes, setIncludeTypes,
     includeAnalysis, setIncludeAnalysis,
+    isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 
     // Output
     isLoading,
     generatedData,
     activeHandlerIdx,
-    setActiveHandlerIdx: (idx) => { setActiveHandlerIdx(idx); },
+    setActiveHandlerIdx,
     viewMode, setViewMode,
     filterQuery, setFilterQuery,
     filteredHandlers,

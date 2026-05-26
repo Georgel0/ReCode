@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ModuleHeader } from '@/components/layout';
+import { useApp } from '@/context';
+
 import DatabaseSeedingTab from './tabs/DatabaseSeedingTab';
 import ApiMocksTab from './tabs/ApiMocksTab';
 import StreamingEventsTab from './tabs/StreamingEventsTab';
+
 import './MockDataGenerator.css';
 import './styles/DatabaseSeedingTab.css';
 import '@/styles/ErdDiagram.css';
@@ -12,6 +15,13 @@ import '@/styles/ErdDiagram.css';
 export default function MockDataGenerator() {
   const [activeParadigm, setActiveParadigm] = useState('db');
   const [headerResultData, setHeaderResultData] = useState(null);
+
+  const { moduleData } = useApp();
+
+  useEffect(() => {
+    if (moduleData?.type === 'api-mocks') setActiveParadigm('api');
+    else if (moduleData?.type === 'mock') setActiveParadigm('db');
+  }, [moduleData]);
 
   return (
     <div className="module-container flex-col-container">
@@ -46,11 +56,11 @@ export default function MockDataGenerator() {
         <div className={`paradigm-pane ${activeParadigm === 'db' ? 'active' : ''}`}>
           <DatabaseSeedingTab onDataUpdate={setHeaderResultData} />
         </div>
-        
+
         <div className={`paradigm-pane ${activeParadigm === 'api' ? 'active' : ''}`}>
-          <ApiMocksTab />
+          <ApiMocksTab onDataUpdate={setHeaderResultData} />
         </div>
-        
+
         <div className={`paradigm-pane ${activeParadigm === 'stream' ? 'active' : ''}`}>
           <StreamingEventsTab />
         </div>

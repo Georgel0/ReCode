@@ -373,7 +373,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
             <EmptyState
               isLoading={isLoading}
               condition={!generatedData}
-              icon="fas fa-table-cells"
+              icon="fas fa-database"
               title="Awaiting Architecture"
               description="Input your schema definitions in the sidebar to generate a highly interconnected relational database."
               hint={<>Use <code>@faker:creditCard</code> for specific formatting.</>}

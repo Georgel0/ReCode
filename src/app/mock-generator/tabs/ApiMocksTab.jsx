@@ -15,7 +15,6 @@ import {
 } from '../hooks/useApiMocksTab';
 import '../styles/ApiMocksTab.css';
 
-
 function MethodBadge({ method }) {
   const { cls, label } = getMethodMeta(method);
   return <span className={`method-badge ${cls}`}>{label}</span>;
@@ -89,7 +88,7 @@ function FixtureDisplay({ handler }) {
   );
 }
 
-// Summary pill strip shown in the toolbar when data is available.
+// Summary pill strip shown when data is available.
 function MethodSummaryPills({ methodCounts }) {
   return (
     <div className="method-summary-pills">
@@ -118,6 +117,7 @@ export default function ApiMocksTab({ onDataUpdate }) {
     authStyle, setAuthStyle,
     includeTypes, setIncludeTypes,
     includeAnalysis, setIncludeAnalysis,
+    isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 
     isLoading,
@@ -259,7 +259,7 @@ export default function ApiMocksTab({ onDataUpdate }) {
                       title={opt.label}
                     >
                       <i className={`fas ${opt.icon}`} />
-                      <span>{opt.label}</span>
+                      <span className="framework-card-label">{opt.label}</span>
                     </button>
                   ))}
                 </div>
@@ -267,16 +267,16 @@ export default function ApiMocksTab({ onDataUpdate }) {
 
               <div className="form-grid-2">
                 <div className="mock-form-group">
-                  <label className="input-label">
-                    Endpoints
-                    <span className="quality-value-badge">{endpointCount}</span>
-                  </label>
-                  <input
-                    type="range" min="1" max="20"
-                    className="styled-slider"
-                    value={endpointCount}
-                    onChange={e => setEndpointCount(parseInt(e.target.value, 10))}
-                  />
+                  <label className="input-label">Endpoints</label>
+                  <div className="slider-row">
+                    <input
+                      type="range" min="1" max="20"
+                      className="styled-slider"
+                      value={endpointCount}
+                      onChange={e => setEndpointCount(parseInt(e.target.value, 10))}
+                    />
+                    <div className="slider-value-display">{endpointCount}</div>
+                  </div>
                   <span className="slider-hint">
                     {endpointCount <= 3 ? 'Minimal' : endpointCount <= 8 ? 'Standard' : 'Full Coverage'}
                   </span>
@@ -319,32 +319,32 @@ export default function ApiMocksTab({ onDataUpdate }) {
 
               <div className="form-grid-2">
                 <div className="mock-form-group">
-                  <label className="input-label">
-                    Delay
-                    <span className="quality-value-badge">{delayMs}ms</span>
-                  </label>
-                  <input
-                    type="range" min="0" max="3000" step="50"
-                    className="styled-slider"
-                    value={delayMs}
-                    onChange={e => setDelayMs(parseInt(e.target.value, 10))}
-                  />
+                  <label className="input-label">Delay</label>
+                  <div className="slider-row">
+                    <input
+                      type="range" min="0" max="3000" step="50"
+                      className="styled-slider"
+                      value={delayMs}
+                      onChange={e => setDelayMs(parseInt(e.target.value, 10))}
+                    />
+                    <div className="slider-value-display">{delayMs}ms</div>
+                  </div>
                   <span className="slider-hint">
-                    {delayMs === 0 ? 'Instant' : delayMs < 500 ? 'Fast' : delayMs < 1500 ? 'Realistic' : 'Slow / Throttled'}
+                    {delayMs === 0 ? 'Instant' : delayMs < 500 ? 'Fast' : delayMs < 1500 ? 'Realistic' : 'Slow'}
                   </span>
                 </div>
 
                 <div className="mock-form-group">
-                  <label className="input-label">
-                    Error Rate
-                    <span className="quality-value-badge">{errorRate}%</span>
-                  </label>
-                  <input
-                    type="range" min="0" max="50" step="5"
-                    className="styled-slider"
-                    value={errorRate}
-                    onChange={e => setErrorRate(parseInt(e.target.value, 10))}
-                  />
+                  <label className="input-label">Error Rate</label>
+                  <div className="slider-row">
+                    <input
+                      type="range" min="0" max="50" step="5"
+                      className="styled-slider"
+                      value={errorRate}
+                      onChange={e => setErrorRate(parseInt(e.target.value, 10))}
+                    />
+                    <div className="slider-value-display">{errorRate}%</div>
+                  </div>
                   <span className="slider-hint">
                     {errorRate === 0 ? 'No Errors' : errorRate < 20 ? 'Low Failure Rate' : 'Chaos Mode'}
                   </span>
@@ -361,7 +361,7 @@ export default function ApiMocksTab({ onDataUpdate }) {
                 <span className="label-text">Include TypeScript Type Definitions</span>
               </label>
 
-              <label className="custom-check" style={{ marginTop: '0.5rem' }}>
+              <label className="custom-check check-margin-top">
                 <input
                   type="checkbox"
                   checked={includeAnalysis}
@@ -401,29 +401,92 @@ export default function ApiMocksTab({ onDataUpdate }) {
 
         <div className="mock-main">
           <div className="mock-toolbar">
-            <div className="tabs-container">
-              {filteredHandlers.map((handler, idx) => {
-                const { cls } = getMethodMeta(handler.method);
-                return (
-                  <button
-                    key={idx}
-                    className={`tab-btn handler-tab ${activeHandlerIdx === idx ? 'active' : ''}`}
-                    onClick={() => setActiveHandlerIdx(idx)}
-                    title={handler.description}
-                  >
-                    <span className={`handler-tab-method ${cls}`}>
-                      {handler.method?.toUpperCase()}
-                    </span>
-                    <span className="handler-tab-path">{handler.path}</span>
-                  </button>
-                );
-              })}
+
+            <div className="tabs-navigation-row">
+              <div className="tabs-scroll-wrapper">
+                <div className="api-tabs-container">
+                  {filteredHandlers.map((handler, idx) => {
+                    const { cls } = getMethodMeta(handler.method);
+                    return (
+                      <button
+                        key={idx}
+                        className={`tab-btn handler-tab ${activeHandlerIdx === idx ? 'active' : ''}`}
+                        onClick={() => setActiveHandlerIdx(idx)}
+                        title={handler.description}
+                      >
+                        <span className={`handler-tab-method ${cls}`}>
+                          {handler.method?.toUpperCase()}
+                        </span>
+                        <span className="handler-tab-path">{handler.path}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="tabs-dropdown-wrapper">
+                <button
+                  className={`tab-dropdown-toggle ${isDropdownOpen ? 'active' : ''}`}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  title="Show all endpoints"
+                >
+                  <i className="fas fa-list" />
+                </button>
+
+                {isDropdownOpen && (
+                  <>
+                    <div
+                      className="dropdown-backdrop"
+                      onClick={() => setIsDropdownOpen(false)}
+                    />
+
+                    <div className="tabs-dropdown-menu">
+                      {filteredHandlers.map((handler, idx) => {
+                        const { cls } = getMethodMeta(handler.method);
+                        return (
+                          <button
+                            key={`drop-${idx}`}
+                            className={`dropdown-item ${activeHandlerIdx === idx ? 'active' : ''}`}
+                            onClick={() => {
+                              setActiveHandlerIdx(idx);
+                              setIsDropdownOpen(false);
+                            }}
+                          >
+                            <span className={`handler-tab-method ${cls}`}>
+                              {handler.method?.toUpperCase()}
+                            </span>
+                            <span className="handler-tab-path">{handler.path}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="toolbar-right">
               {generatedData && (
                 <>
-                  <MethodSummaryPills methodCounts={methodCounts} />
+                  <div className="toolbar-filter-wrap">
+                    <i className="fas fa-search toolbar-filter-icon" />
+                    <input
+                      type="text"
+                      className="toolbar-filter-input"
+                      placeholder="Filter endpoints..."
+                      value={filterQuery}
+                      onChange={e => { setFilterQuery(e.target.value); setActiveHandlerIdx(0); }}
+                    />
+                    {filterQuery && (
+                      <button
+                        className="toolbar-filter-clear"
+                        onClick={() => setFilterQuery('')}
+                        title="Clear filter"
+                      >
+                        <i className="fas fa-times-circle" />
+                      </button>
+                    )}
+                  </div>
 
                   <div className="view-mode-toggles">
                     <button
@@ -510,6 +573,7 @@ export default function ApiMocksTab({ onDataUpdate }) {
                     )}
                   </div>
                   <div className="handler-header-right">
+                    {generatedData && <MethodSummaryPills methodCounts={methodCounts} />}
                     <span className="handler-name-tag">
                       <i className="fas fa-tag" /> {activeHandler.name}
                     </span>
@@ -520,39 +584,17 @@ export default function ApiMocksTab({ onDataUpdate }) {
                   <p className="handler-description">{activeHandler.description}</p>
                 )}
 
-                {generatedData?.handlers?.length > 3 && (
-                  <div className="table-filter-bar handler-filter-bar">
-                    <div className="table-filter-input-wrap">
-                      <i className="fas fa-search table-filter-icon" />
-                      <input
-                        type="text"
-                        className="table-filter-input"
-                        placeholder="Filter handlers by method, path, or name…"
-                        value={filterQuery}
-                        onChange={e => { setFilterQuery(e.target.value); setActiveHandlerIdx(0); }}
-                      />
-                      {filterQuery && (
-                        <button
-                          className="table-filter-clear"
-                          onClick={() => setFilterQuery('')}
-                          title="Clear filter"
-                        >
-                          <i className="fas fa-times-circle" />
-                        </button>
-                      )}
-                    </div>
-                    {filterQuery && (
-                      <span className="table-meta-tag">
-                        {filteredHandlers.length} match{filteredHandlers.length !== 1 ? 'es' : ''}
-                      </span>
-                    )}
-                  </div>
-                )}
-
                 <div className="handler-code-pane">
                   {viewMode === 'code'
-                    ? <CodeDisplay code={activeHandler.code} language="typescript" />
-                    : <FixtureDisplay handler={activeHandler} />
+                    ? <CodeDisplay
+                      code={activeHandler.code}
+                      language="typescript"
+                      key={activeHandler.name}
+                    />
+                    : <FixtureDisplay
+                      handler={activeHandler}
+                      key={activeHandler.name}
+                    />
                   }
                 </div>
 
