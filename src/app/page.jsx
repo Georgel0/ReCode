@@ -12,6 +12,7 @@ export default function LandingPage() {
   const [activeInfo, setActiveInfo] = useState(null);
   const [lastModule, setLastModule] = useState("/code-converter");
 
+  const [fullScreenImage, setFullScreenImage] = useState(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const slideCount = 10;
 
@@ -152,6 +153,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
       <section className="lp-section bg-alt">
         <div className="lp-container">
           <ScrollAnimation direction="up">
@@ -169,9 +171,12 @@ export default function LandingPage() {
             <div className="carousel-track">
               {slides.map((src, index) => {
                 let positionClass = "hidden";
+
                 if (index === activeSlide) positionClass = "active";
                 else if (index === (activeSlide - 1 + slideCount) % slideCount) positionClass = "prev";
                 else if (index === (activeSlide + 1) % slideCount) positionClass = "next";
+                else if (index === (activeSlide - 2 + slideCount) % slideCount) positionClass = "hidden-left";
+                else if (index === (activeSlide + 2) % slideCount) positionClass = "hidden-right";
 
                 return (
                   <div
@@ -180,6 +185,7 @@ export default function LandingPage() {
                     onClick={() => {
                       if (positionClass === 'prev') prevSlide();
                       if (positionClass === 'next') nextSlide();
+                      if (positionClass === 'active') setFullScreenImage(src); // Trigger fullscreen
                     }}
                   >
                     <img src={src} alt={`App Interface Preview ${index + 1}`} />
@@ -236,6 +242,17 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {fullScreenImage && (
+        <div className="lp-modal-overlay" onClick={() => setFullScreenImage(null)}>
+          <div className="lp-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lp-modal-close" onClick={() => setFullScreenImage(null)}>
+              <i className="fas fa-times"></i>
+            </button>
+            <img src={fullScreenImage} alt="Fullscreen View" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export default function MockDataGenerator() {
   return (
     <div className="module-container flex-col-container">
       <ModuleHeader
-        title="Enterprise Mock Data Factory"
+        title="Mock Data Factory"
         description="Transform schemas into highly interconnected relational targets, API mock handlers, and event streams."
         resultData={headerResultData}
       />

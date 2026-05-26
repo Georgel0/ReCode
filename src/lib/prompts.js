@@ -228,7 +228,7 @@ export const PROMPT_CONFIG = {
     schema: OUTPUT_SCHEMAS.refactor,
   },
 
-  translate: {
+  converter: {
     system: (ctx) => withSchema(
       `You are an Expert Polyglot Developer.
         Your Task: Translate source code from ${ctx?.sourceLang || 'the source language'} to ${ctx?.targetLang || 'the target language'}.

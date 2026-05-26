@@ -43,12 +43,16 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
     type: null // 'single' or 'all'
   });
 
-  const [autoSave, setAutoSave] = useState(() => {
+  const [autoSave, setAutoSave] = useState(false);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('recode_autoSave') === 'true';
+      const savedAutoSave = localStorage.getItem('recode_autoSave') === 'true';
+      if (savedAutoSave !== autoSave) {
+        setAutoSave(savedAutoSave);
+      }
     }
-    return false;
-  });
+  }, []);
 
   const current = qualityConfig[qualityMode] || qualityConfig.fast;
 
