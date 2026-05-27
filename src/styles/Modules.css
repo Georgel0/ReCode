@@ -563,6 +563,7 @@ html[data-theme='quartz'] .copy-btn {
   .module-header {
     margin-bottom: 20px;
     padding-bottom: 12px;
+    padding: 1rem;
   }
 
   .controls-wrapper {

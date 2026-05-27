@@ -505,41 +505,41 @@ export default function ApiMocksTab({ onDataUpdate }) {
                       <i className="fas fa-brackets-curly" /> Fixture
                     </button>
                   </div>
+
+                  <div className="mock-export-group">
+                    <button
+                      className="secondary-button icon-only tool-btn"
+                      title={copyFlash === 'handler' ? 'Copied!' : 'Copy active handler'}
+                      onClick={handleCopyActiveHandler}
+                      disabled={!activeHandler}
+                    >
+                      <i className={`fas ${copyFlash === 'handler' ? 'fa-check' : 'fa-clipboard'}`} />
+                    </button>
+
+                    <button
+                      className="secondary-button icon-only tool-btn"
+                      title={copyFlash === 'all' ? 'Copied!' : 'Copy all handler code'}
+                      onClick={handleCopyAll}
+                      disabled={!generatedData}
+                    >
+                      <i className={`fas ${copyFlash === 'all' ? 'fa-check' : 'fa-copy'}`} />
+                    </button>
+
+                    <select
+                      className="theme-select-dropdown action-select"
+                      value=""
+                      onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
+                      disabled={!generatedData}
+                    >
+                      <option value="">Export As…</option>
+                      <option value="all-ts">All Handlers (.ts)</option>
+                      <option value="fixtures-json">JSON Fixtures</option>
+                      <option value="active-ts">Active Handler (.ts)</option>
+                      <option value="postman">Postman Collection (.json)</option>
+                    </select>
+                  </div>
                 </>
               )}
-
-              <div className="mock-export-group">
-                <button
-                  className="secondary-button icon-only tool-btn"
-                  title={copyFlash === 'handler' ? 'Copied!' : 'Copy active handler'}
-                  onClick={handleCopyActiveHandler}
-                  disabled={!activeHandler}
-                >
-                  <i className={`fas ${copyFlash === 'handler' ? 'fa-check' : 'fa-clipboard'}`} />
-                </button>
-
-                <button
-                  className="secondary-button icon-only tool-btn"
-                  title={copyFlash === 'all' ? 'Copied!' : 'Copy all handler code'}
-                  onClick={handleCopyAll}
-                  disabled={!generatedData}
-                >
-                  <i className={`fas ${copyFlash === 'all' ? 'fa-check' : 'fa-copy'}`} />
-                </button>
-
-                <select
-                  className="theme-select-dropdown action-select"
-                  value=""
-                  onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
-                  disabled={!generatedData}
-                >
-                  <option value="">Export As…</option>
-                  <option value="all-ts">All Handlers (.ts)</option>
-                  <option value="fixtures-json">JSON Fixtures</option>
-                  <option value="active-ts">Active Handler (.ts)</option>
-                  <option value="postman">Postman Collection (.json)</option>
-                </select>
-              </div>
             </div>
           </div>
 

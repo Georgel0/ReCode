@@ -321,50 +321,52 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
 
             <div className="toolbar-right">
               {generatedData && (
-                <div className="view-mode-toggles">
-                  <button
-                    className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
-                    onClick={() => setViewMode('table')}
-                    title="Table view"
-                  >
-                    <i className="fas fa-th-list" /> Table
-                  </button>
-                  <button
-                    className={`view-toggle-btn ${viewMode === 'erd' ? 'active' : ''}`}
-                    onClick={() => setViewMode('erd')}
-                    title="Entity Relationship Diagram"
-                  >
-                    <i className="fas fa-project-diagram" /> ERD
-                  </button>
-                </div>
-              )}
+                <>
+                  <div className="view-mode-toggles">
+                    <button
+                      className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+                      onClick={() => setViewMode('table')}
+                      title="Table view"
+                    >
+                      <i className="fas fa-th-list" /> Table
+                    </button>
+                    <button
+                      className={`view-toggle-btn ${viewMode === 'erd' ? 'active' : ''}`}
+                      onClick={() => setViewMode('erd')}
+                      title="Entity Relationship Diagram"
+                    >
+                      <i className="fas fa-project-diagram" /> ERD
+                    </button>
+                  </div>
 
-              <div className="mock-export-group">
-                <button
-                  className="secondary-button icon-only tool-btn"
-                  title="Copy as JSON"
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      JSON.stringify(activeTableData, null, 2)
-                    ).catch(() => console.warn('Clipboard write failed'))
-                  }
-                  disabled={!generatedData}
-                >
-                  <i className="fas fa-clipboard" />
-                </button>
-                <select
-                  className="theme-select-dropdown action-select"
-                  value=""
-                  onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
-                  disabled={!generatedData}
-                >
-                  <option value="">Export As…</option>
-                  <option value="csv">CSV (Active Table)</option>
-                  <option value="json">JSON (All Tables)</option>
-                  <option value="sql">SQL Seeds</option>
-                  <option value="prisma">Prisma Seed (.ts)</option>
-                </select>
-              </div>
+                  <div className="mock-export-group">
+                    <button
+                      className="secondary-button icon-only tool-btn"
+                      title="Copy as JSON"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          JSON.stringify(activeTableData, null, 2)
+                        ).catch(() => console.warn('Clipboard write failed'))
+                      }
+                      disabled={!generatedData}
+                    >
+                      <i className="fas fa-clipboard" />
+                    </button>
+                    <select
+                      className="theme-select-dropdown action-select"
+                      value=""
+                      onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
+                      disabled={!generatedData}
+                    >
+                      <option value="">Export As…</option>
+                      <option value="csv">CSV (Active Table)</option>
+                      <option value="json">JSON (All Tables)</option>
+                      <option value="sql">SQL Seeds</option>
+                      <option value="prisma">Prisma Seed (.ts)</option>
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

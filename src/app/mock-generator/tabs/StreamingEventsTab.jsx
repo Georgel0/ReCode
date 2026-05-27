@@ -365,23 +365,23 @@ export default function StreamingEventsTab({ onDataUpdate }) {
             </div>
 
           </div>
-                <div className="mock-sidebar-footer">
-        <button
-          className={`primary-button fabricate-action-btn ${isLoading ? 'loading' : ''}`}
-          onClick={handleGenerate}
-          disabled={isLoading || !schemaInput.trim()}
-        >
-          {isLoading
-            ? <><i className="fas fa-spinner fa-spin" /> Synthesizing…</>
-            : <><i className="fas fa-bolt" /> Generate Stream</>}
-        </button>
-      </div>
+          <div className="mock-sidebar-footer">
+            <button
+              className={`primary-button fabricate-action-btn ${isLoading ? 'loading' : ''}`}
+              onClick={handleGenerate}
+              disabled={isLoading || !schemaInput.trim()}
+            >
+              {isLoading
+                ? <><i className="fas fa-spinner fa-spin" /> Synthesizing…</>
+                : <><i className="fas fa-bolt" /> Generate Stream</>}
+            </button>
+          </div>
         </div>
 
         <div className="mock-preview-area">
 
           {generatedData && !isLoading && (
-            <div className="db-mock-toolbar flex-row">
+            <div className="mock-toolbar flex-row">
 
               <div className="tab-list" style={{ flex: 1, overflowX: 'auto', display: 'flex' }}>
                 {generatedData.streams.map((s, idx) => (
@@ -397,7 +397,7 @@ export default function StreamingEventsTab({ onDataUpdate }) {
                 ))}
               </div>
 
-              <div className="db-toolbar-right flex-row">
+              <div className="toolbar-right flex-row">
                 <div className="view-mode-toggles">
                   <button
                     className={`view-toggle-btn ${viewMode === 'events' ? 'active' : ''}`}
@@ -564,35 +564,37 @@ export default function StreamingEventsTab({ onDataUpdate }) {
 
           {activeStreamData && !isLoading && viewMode === 'timeline' && (
             <div className="stream-timeline-wrapper">
-              {activeStreamData.events.map((evt, i) => {
-                const ts = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
-                const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
-                const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
-                return (
-                  <div key={i} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
-                    <div className="timeline-dot" />
-                    <div className="timeline-body">
-                      <div className="timeline-header-row">
-                        <span className="timeline-event-type">{type}</span>
-                        {ts && <span className="timeline-ts">{ts}</span>}
-                      </div>
-                      <div className="timeline-payload">
-                        {Object.entries(evt)
-                          .filter(([k]) => k !== 'event_type' && k !== 'type' && k !== 'name' && k !== 'timestamp' && k !== 'ts' && k !== 'event_time' && k !== 'created_at')
-                          .slice(0, 4)
-                          .map(([k, v]) => (
-                            <span key={k} className="timeline-kv">
-                              <span className="timeline-key">{k}</span>
-                              <span className="timeline-val">
-                                {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}
+              <div className="stream-timeline-inner">
+                {activeStreamData.events.map((evt, i) => {
+                  const ts = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
+                  const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
+                  const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
+                  return (
+                    <div key={i} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
+                      <div className="timeline-dot" />
+                      <div className="timeline-body">
+                        <div className="timeline-header-row">
+                          <span className="timeline-event-type">{type}</span>
+                          {ts && <span className="timeline-ts">{ts}</span>}
+                        </div>
+                        <div className="timeline-payload">
+                          {Object.entries(evt)
+                            .filter(([k]) => k !== 'event_type' && k !== 'type' && k !== 'name' && k !== 'timestamp' && k !== 'ts' && k !== 'event_time' && k !== 'created_at')
+                            .slice(0, 4)
+                            .map(([k, v]) => (
+                              <span key={k} className="timeline-kv">
+                                <span className="timeline-key">{k}</span>
+                                <span className="timeline-val">
+                                  {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}
+                                </span>
                               </span>
-                            </span>
-                          ))}
+                            ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
 

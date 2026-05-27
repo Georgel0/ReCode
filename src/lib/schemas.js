@@ -181,7 +181,7 @@ export const OUTPUT_SCHEMAS = {
         .describe('Array of event objects. Every event must have a timestamp field in ISO-8601 format and share the same top-level shape within a stream.'),
     })).describe('One entry per logical event stream. A single run may produce multiple correlated streams (e.g. "sessions" + "page_views" + "purchases").'),
 
-    stateMachine: z.union([z.string(), z.record(z.any())]).optional()
+    stateMachine: z.any().optional()
       .describe('If includeStateMachine is true: a JSON object (or Mermaid stateDiagram-v2 string) describing the states and valid transitions that generated the event sequence.'),
 
     parsedRules: z.array(z.string()).optional()

@@ -1,17 +1,23 @@
 .stream-timeline-wrapper {
   flex: 1;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.stream-timeline-inner {
+  position: relative;
+  width: 100%;
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0;
-  position: relative;
 }
 
-.stream-timeline-wrapper::before {
+.stream-timeline-inner::before {
   content: '';
   position: absolute;
-  left: 2.25rem;
+  left: 1.8rem;
   top: 0;
   bottom: 0;
   width: 2px;
@@ -53,6 +59,7 @@
   padding: 0.6rem 0.9rem;
   transition: border-color 0.2s;
   min-width: 0;
+  overflow: hidden;
 }
 
 .timeline-body:hover {
@@ -182,6 +189,7 @@
   accent-color: var(--accent);
   width: 14px;
   height: 14px;
+  border-radius: 50%;
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -202,12 +210,12 @@
 }
 
 @media (max-width: 768px) {
-  .stream-timeline-wrapper {
+  .stream-timeline-inner {
     padding: 0.75rem;
   }
 
-  .stream-timeline-wrapper::before {
-    left: 1.6rem;
+  .stream-timeline-inner::before {
+    left: 17px;
   }
 
   .timeline-payload {
