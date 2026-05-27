@@ -13,7 +13,6 @@ import {
   FORMAT_ICONS,
   getMethodMeta,
 } from '../hooks/useApiMocksTab';
-import '../styles/ApiMocksTab.css';
 
 function MethodBadge({ method }) {
   const { cls, label } = getMethodMeta(method);
@@ -425,13 +424,15 @@ export default function ApiMocksTab({ onDataUpdate }) {
               </div>
 
               <div className="tabs-dropdown-wrapper">
-                <button
-                  className={`tab-dropdown-toggle ${isDropdownOpen ? 'active' : ''}`}
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  title="Show all endpoints"
-                >
-                  <i className="fas fa-list" />
-                </button>
+                {generatedData && (
+                  <button
+                    className={`tab-dropdown-toggle ${isDropdownOpen ? 'active' : ''}`}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    title="Show all endpoints"
+                  >
+                    <i className="fas fa-list" />
+                  </button>
+                )}
 
                 {isDropdownOpen && (
                   <>

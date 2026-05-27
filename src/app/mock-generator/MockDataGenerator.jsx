@@ -8,8 +8,9 @@ import DatabaseSeedingTab from './tabs/DatabaseSeedingTab';
 import ApiMocksTab from './tabs/ApiMocksTab';
 import StreamingEventsTab from './tabs/StreamingEventsTab';
 
-import './MockDataGenerator.css';
+import './styles/MockDataGenerator.css';
 import './styles/DatabaseSeedingTab.css';
+import './styles/ApiMocksTab.css'
 import '@/styles/ErdDiagram.css';
 
 export default function MockDataGenerator() {
