@@ -14,10 +14,18 @@ import './styles/ApiMocksTab.css'
 import '@/styles/ErdDiagram.css';
 
 export default function MockDataGenerator() {
+  const { moduleData } = useApp();
+
   const [activeParadigm, setActiveParadigm] = useState('db');
   const [headerResultData, setHeaderResultData] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const { moduleData } = useApp();
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (moduleData?.type === 'api-mocks') setActiveParadigm('api');
@@ -36,20 +44,23 @@ export default function MockDataGenerator() {
         <button
           className={`paradigm-btn ${activeParadigm === 'db' ? 'active' : ''}`}
           onClick={() => setActiveParadigm('db')}
+          title="Database Seeding"
         >
-          <i className="fas fa-database"></i> Database Seeding
+          <i className="fas fa-database"></i> {isMobile ? '' : 'Database Seeding'}
         </button>
         <button
           className={`paradigm-btn ${activeParadigm === 'api' ? 'active' : ''}`}
           onClick={() => setActiveParadigm('api')}
+          title="API & Frontend Mocks"
         >
-          <i className="fas fa-network-wired"></i> API & Frontend Mocks
+          <i className="fas fa-network-wired"></i> {isMobile ? '' : 'API & Frontend Mocks'}
         </button>
         <button
           className={`paradigm-btn ${activeParadigm === 'stream' ? 'active' : ''}`}
           onClick={() => setActiveParadigm('stream')}
+          title="Streaming & Events"
         >
-          <i className="fas fa-stream"></i> Streaming & Events
+          <i className="fas fa-stream"></i> {isMobile ? '' : 'Streaming & Events'}
         </button>
       </div>
 

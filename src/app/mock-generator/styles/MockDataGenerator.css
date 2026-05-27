@@ -84,8 +84,8 @@
 
 .mock-factory-container {
   display: flex;
+  justify-content: center;
   height: 75vh;
-  max-height: 2000px;
   width: 100%;
   background-color: var(--bg-primary);
   border: 1px solid var(--border);
@@ -106,7 +106,7 @@
 }
 
 .mock-sidebar-content {
-  padding: 1.5rem;
+  padding: 1rem;
   overflow-y: auto;
   flex: 1;
   display: flex;
@@ -158,7 +158,6 @@
 }
 
 .mock-export-group {
-  padding: .4em;
   display: flex;
   gap: 0.5rem;
 }
@@ -182,6 +181,17 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  padding: .4rem;
+}
+
+.input-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .8rem;
 }
 
 .explanation-panel {
@@ -211,6 +221,12 @@
 
 .explanation-body strong {
   color: var(--text-primary);
+}
+
+.form-grid-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 @media (max-width: 1024px) {
@@ -246,5 +262,9 @@
     flex-wrap: wrap;
     justify-content: space-between;
     width: 100%;
+  }
+
+  .paradigm-selector {
+    justify-content: center;
   }
 }
