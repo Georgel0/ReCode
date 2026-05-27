@@ -11,7 +11,7 @@ import StreamingEventsTab from './tabs/StreamingEventsTab';
 import './styles/MockDataGenerator.css';
 import './styles/DatabaseSeedingTab.css';
 import './styles/ApiMocksTab.css'
-import '@/styles/ErdDiagram.css';
+import './styles/StreamingEventsTab.css';
 
 export default function MockDataGenerator() {
   const { moduleData } = useApp();

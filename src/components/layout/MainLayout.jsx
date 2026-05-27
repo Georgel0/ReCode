@@ -10,127 +10,128 @@ import { Sidebar } from '@/components/layout';
 import { ModelSelector } from '@/components/ui';
 
 export function MainLayout({ children }) {
- const [sidebarOpen, setSidebarOpen] = useState(false);
- const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
- const [showModelSelector, setShowModelSelector] = useState(false);
- const [hrefLaunch, setHrefLaunch] = useState('/code-converter')
- 
- const { qualityMode, setQualityMode, toggleQualityMode, setModuleData } = useApp();
- 
- const { currentTheme } = useTheme();
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
- 
- const pathname = usePathname();
- const router = useRouter();
- 
- const isLandingPage = pathname === '/';
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showModelSelector, setShowModelSelector] = useState(false);
+  const [hrefLaunch, setHrefLaunch] = useState('/code-converter')
 
- useEffect(() => {
-  const saved = localStorage.getItem('recode_sidebar_collapsed');
-  if (saved !== null) setSidebarCollapsed(saved === 'true');
- }, []);
- 
- useEffect(() => {
-  const saved = localStorage.getItem('recode_last_module');
-  if (saved) setHrefLaunch(saved);
- }, []);
- 
- useEffect(() => {
-  if (isLandingPage) return;
-  
-  localStorage.setItem('recode_last_module', pathname);
-  
-  const hasQualityModeSet = localStorage.getItem('recode_quality_mode');
-  if (!hasQualityModeSet) setShowModelSelector(true);
- }, [pathname, isLandingPage]);
- 
- const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
- const toggleDesktopCollapse = () => {
-  setSidebarCollapsed((prev) => {
-    const newValue = !prev;
-    localStorage.setItem('recode_sidebar_collapsed', String(newValue));
-    return newValue;
-  });
- };
- 
- const loadFromHistory = (historyItem) => {
-  let targetPath = '/code-converter';
-  if (historyItem.type === 'sql') targetPath = '/sql-builder';
-  if (historyItem.type === 'analysis') targetPath = '/code-analysis';
-  if (historyItem.type === 'generator') targetPath = '/code-generator';
-  if (historyItem.type === 'refactor') targetPath = '/code-refactor';
-  if (historyItem.type === 'regex') targetPath = '/regex-generator';
-  if (historyItem.type === 'json') targetPath = '/json-formatter';
-  if (historyItem.type === 'mock') targetPath = '/mock-generator';
-  if (historyItem.type === 'api-mocks') targetPath = '/mock-generator';
-  if (historyItem.type === 'css-tailwind' || historyItem.type === 'css-framework') targetPath = '/css-frameworks';
-  
-  setModuleData(historyItem);
-  toast.success(`Loaded ${historyItem.type} from history`)
-  router.push(targetPath);
- };
- 
- return (
-  <div className={`app-wrapper ${isLandingPage ? 'landing-mode' : ''}`}>
-   
-   <Toaster position="bottom-right" theme={isDarkTheme ? 'dark' : 'light'} />
-      
-   {!isLandingPage && (
-    <Sidebar 
-     activeModule={pathname}
-     isOpen={sidebarOpen}
-     isCollapsed={sidebarCollapsed} 
-     toggleCollapse={toggleDesktopCollapse} 
-     toggleSidebar={toggleSidebar}
-     loadFromHistory={loadFromHistory}
-     qualityMode={qualityMode}
-     toggleQuality={toggleQualityMode}
-     openModelSelector={() => setShowModelSelector(true)}
-    />
-   )}
+  const { qualityMode, setQualityMode, toggleQualityMode, setModuleData } = useApp();
 
-   <main className="main-content">
-    <div className={`mobile-header ${isLandingPage ? 'landing-header' : ''}`}> 
-     {isLandingPage ? (
-      <>
-       <Link href="/" className="logo-link">
-        <div className="logo-group">
-         <div className="logo-image" style={{ backgroundColor: '#38bdf8' }} />
-         <span style={{ color: '#fff' }}>ReCode</span>
-        </div>
-       </Link>
-       <Link 
-        href={hrefLaunch} 
-        className="launch-app-btn">
-        Launch App
-       </Link>
-      </>
-     ) : (
-      <>
-       <button className="sidebar-toggle" onClick={toggleSidebar}>☰</button>
-        <Link href="/" className="logo-link">
-         <div className="logo-group">
-          <div className="logo-image" />
-          <span>ReCode</span>
-         </div>
-        </Link>
-        <div style={{ width: '24px' }}></div> 
-       </>
+  const { currentTheme } = useTheme();
+  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isLandingPage = pathname === '/';
+
+  useEffect(() => {
+    const saved = localStorage.getItem('recode_sidebar_collapsed');
+    if (saved !== null) setSidebarCollapsed(saved === 'true');
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('recode_last_module');
+    if (saved) setHrefLaunch(saved);
+  }, []);
+
+  useEffect(() => {
+    if (isLandingPage) return;
+
+    localStorage.setItem('recode_last_module', pathname);
+
+    const hasQualityModeSet = localStorage.getItem('recode_quality_mode');
+    if (!hasQualityModeSet) setShowModelSelector(true);
+  }, [pathname, isLandingPage]);
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleDesktopCollapse = () => {
+    setSidebarCollapsed((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('recode_sidebar_collapsed', String(newValue));
+      return newValue;
+    });
+  };
+
+  const loadFromHistory = (historyItem) => {
+    let targetPath = '/code-converter';
+    if (historyItem.type === 'sql') targetPath = '/sql-builder';
+    if (historyItem.type === 'analysis') targetPath = '/code-analysis';
+    if (historyItem.type === 'generator') targetPath = '/code-generator';
+    if (historyItem.type === 'refactor') targetPath = '/code-refactor';
+    if (historyItem.type === 'regex') targetPath = '/regex-generator';
+    if (historyItem.type === 'json') targetPath = '/json-formatter';
+    if (historyItem.type === 'mock') targetPath = '/mock-generator';
+    if (historyItem.type === 'stream') targetPath = '/mock-generator';
+    if (historyItem.type === 'api-mocks') targetPath = '/mock-generator';
+    if (historyItem.type === 'css-tailwind' || historyItem.type === 'css-framework') targetPath = '/css-frameworks';
+
+    setModuleData(historyItem);
+    toast.success(`Loaded ${historyItem.type} from history`)
+    router.push(targetPath);
+  };
+
+  return (
+    <div className={`app-wrapper ${isLandingPage ? 'landing-mode' : ''}`}>
+
+      <Toaster position="bottom-right" theme={isDarkTheme ? 'dark' : 'light'} />
+
+      {!isLandingPage && (
+        <Sidebar
+          activeModule={pathname}
+          isOpen={sidebarOpen}
+          isCollapsed={sidebarCollapsed}
+          toggleCollapse={toggleDesktopCollapse}
+          toggleSidebar={toggleSidebar}
+          loadFromHistory={loadFromHistory}
+          qualityMode={qualityMode}
+          toggleQuality={toggleQualityMode}
+          openModelSelector={() => setShowModelSelector(true)}
+        />
       )}
-     </div>
-        
-    {children}
-   </main>
-      
-   {!isLandingPage && <ModelSelector
-    currentMode={qualityMode}
-    isOpen={showModelSelector}
-    onSelect={(mode) => {
-     setQualityMode(mode);
-     setShowModelSelector(false);
-    }}
-    onClose={() => setShowModelSelector(false)}
-   />}
-  </div>
- );
+
+      <main className="main-content">
+        <div className={`mobile-header ${isLandingPage ? 'landing-header' : ''}`}>
+          {isLandingPage ? (
+            <>
+              <Link href="/" className="logo-link">
+                <div className="logo-group">
+                  <div className="logo-image" style={{ backgroundColor: '#38bdf8' }} />
+                  <span style={{ color: '#fff' }}>ReCode</span>
+                </div>
+              </Link>
+              <Link
+                href={hrefLaunch}
+                className="launch-app-btn">
+                Launch App
+              </Link>
+            </>
+          ) : (
+            <>
+              <button className="sidebar-toggle" onClick={toggleSidebar}>☰</button>
+              <Link href="/" className="logo-link">
+                <div className="logo-group">
+                  <div className="logo-image" />
+                  <span>ReCode</span>
+                </div>
+              </Link>
+              <div style={{ width: '24px' }}></div>
+            </>
+          )}
+        </div>
+
+        {children}
+      </main>
+
+      {!isLandingPage && <ModelSelector
+        currentMode={qualityMode}
+        isOpen={showModelSelector}
+        onSelect={(mode) => {
+          setQualityMode(mode);
+          setShowModelSelector(false);
+        }}
+        onClose={() => setShowModelSelector(false)}
+      />}
+    </div>
+  );
 }

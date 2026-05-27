@@ -104,14 +104,6 @@
   border-radius: 12px;
 }
 
-.styled-slider {
-  width: 100%;
-  margin: 0.5rem 0;
-  accent-color: var(--accent);
-  cursor: ew-resize;
-  height: 4px;
-}
-
 .slider-hint {
   font-size: 0.75rem;
   color: var(--text-secondary);

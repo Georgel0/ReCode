@@ -229,6 +229,14 @@
   gap: 1rem;
 }
 
+.styled-slider {
+  width: 100%;
+  margin: 0.5rem 0;
+  accent-color: var(--accent);
+  cursor: ew-resize;
+  height: 4px;
+}
+
 @media (max-width: 1024px) {
   .mock-factory-container {
     flex-direction: column;

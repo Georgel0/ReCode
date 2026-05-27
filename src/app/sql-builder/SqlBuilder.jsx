@@ -15,7 +15,6 @@ import './styles/sqlBuilder.css';
 import './styles/testRunner.css';
 import './styles/schema.css';
 import './styles/sandbox.css';
-import '@/styles/ErdDiagram.css';
 
 function splitByTopLevelCommas(str) {
   const result = [];

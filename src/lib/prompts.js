@@ -420,4 +420,88 @@ export const PROMPT_CONFIG = {
     responseType: 'object',
     schema: OUTPUT_SCHEMAS['api-mocks'],
   },
+
+  stream: {
+    system: (ctx) => {
+      const dqInstruction = ctx?.dataQuality < 100
+        ? `CRITICAL: Data Quality is set to ${ctx.dataQuality}%. Intentionally inject edge cases into ~${100 - ctx.dataQuality}% of events: duplicate timestamps, missing optional fields, out-of-order sequence numbers, and boundary metric values (0, -1, NaN-like strings).`
+        : `Ensure 100% data quality. All timestamps strictly valid ISO-8601. No missing required fields unless the schema marks them optional.`;
+
+      const seedInstruction = ctx?.seed
+        ? `Seed provided: "${ctx.seed}". Use this as a deterministic basis for all random choices — identical seed must produce identical output.`
+        : `No seed provided. Generate randomly.`;
+
+      const paradigmGuides = {
+        telemetry: `Generate time-series metric events: CPU/memory/latency readings, counter increments, gauge snapshots. Include a numeric 'value' field and a 'unit' field on every event.`,
+        access_log: `Generate HTTP access log events mirroring the Combined Log Format fields: method, path, status_code, response_time_ms, user_agent, ip. Status codes should follow realistic distributions (70% 2xx, 20% 3xx, 8% 4xx, 2% 5xx).`,
+        journey: `Generate a chronological customer journey: each event represents one step in a user session (page_view → add_to_cart → checkout_start → purchase or abandonment). Preserve causal ordering: a purchase event can only follow a checkout_start by the same session_id.`,
+        iot: `Generate IoT sensor readings: device_id, sensor_type, raw_value, unit, battery_level, signal_strength. Include occasional anomaly spikes (~5% of readings deviating >3σ from the mean).`,
+        audit: `Generate immutable audit trail events: actor_id, action (CREATE|UPDATE|DELETE|LOGIN|LOGOUT|EXPORT), resource_type, resource_id, before_state (JSON or null), after_state (JSON or null), ip_address.`,
+        custom: `Derive the event shape directly from the user's schema. Infer field types, relationships, and temporal patterns from the provided definition.`,
+      };
+
+      const paradigmNote = paradigmGuides[ctx?.streamParadigm ?? 'custom'] ?? paradigmGuides.custom;
+
+      const formatGuide = {
+        json: `Emit plain JSON objects. Each item in 'events' is a flat-to-moderately-nested JSON object.`,
+        kafka: `Wrap each event as a Kafka message envelope: { "topic": "<streamName>", "partition": <0–3>, "offset": <sequential>, "key": "<partition_key_value>", "value": { ...event fields }, "headers": { "content-type": "application/json" } }`,
+        eventbridge: `Wrap each event in AWS EventBridge envelope: { "version": "0", "id": "<uuid>", "source": "com.app.<streamName>", "detail-type": "<EventType>", "time": "<ISO8601>", "detail": { ...event fields } }`,
+        cloudevents: `Wrap each event in CloudEvents v1.0 envelope: { "specversion": "1.0", "type": "com.app.<streamName>.<event_type>", "source": "/app/<streamName>", "id": "<uuid>", "time": "<ISO8601>", "datacontenttype": "application/json", "data": { ...event fields } }`,
+        pubsub: `Wrap each event as a Google Pub/Sub message: { "messageId": "<string>", "publishTime": "<ISO8601>", "attributes": { "event_type": "<string>" }, "data": "<base64-encoded JSON string of event fields>" }`,
+        kinesis: `Wrap each event as an AWS Kinesis record: { "sequenceNumber": "<sequential_string>", "approximateArrivalTimestamp": <epoch_ms>, "partitionKey": "<string>", "data": { ...event fields } }`,
+      };
+
+      const formatNote = formatGuide[ctx?.eventFormat ?? 'json'] ?? formatGuide.json;
+
+      const stateMachineNote = ctx?.includeStateMachine
+        ? `STATE MACHINE: After generating events, produce a 'stateMachine' field. Format it as a Mermaid stateDiagram-v2 string listing every state and valid transition observed in the generated sequence (e.g. "idle --> active : session_start"). This must accurately reflect the transitions present in the emitted events — do not invent transitions that don't appear.`
+        : `STATE MACHINE: Do NOT include the 'stateMachine' field. Omit it entirely.`;
+
+      const analysisNote = ctx?.includeAnalysis
+        ? `ANALYSIS: In 'parsedRules', echo back the specific temporal rules and distributions applied. In 'explanation', provide an HTML-formatted summary: streams generated, event count per stream, temporal patterns used, and any schema ambiguities resolved.`
+        : `ANALYSIS: In 'parsedRules', echo back a concise bullet list of rules applied. CRITICAL: DO NOT generate the 'explanation' field. Omit it entirely.`;
+
+      return withSchema(
+        `You are an Expert Event Architect and Stream Data Synthesis Specialist.
+      Your Task: Transform an event schema or state machine definition into a realistic, temporally coherent event stream.
+ 
+      TECHNICAL CONSTRAINTS:
+      - Stream Paradigm:  ${ctx?.streamParadigm ?? 'custom'} — ${paradigmNote}
+      - Output Format:    ${ctx?.eventFormat ?? 'json'} — ${formatNote}
+      - Events per Stream: ${ctx?.eventCount ?? 25}
+      - Custom Rules:     ${ctx?.rules || 'None provided'}
+      - ${seedInstruction}
+ 
+      TEMPORAL GENERATION RULES:
+      1. All timestamps must be ISO-8601 and strictly monotonically increasing within each stream unless the rules explicitly request out-of-order delivery.
+      2. Respect causal ordering: if event B is logically caused by event A (e.g. a purchase follows a checkout), B's timestamp must be after A's timestamp for the same session/entity.
+      3. If multiple streams are present, align cross-stream timestamps so correlated events (sharing a session_id, user_id, or trace_id) appear at plausible relative times.
+      4. Apply all temporal rules from the CUSTOM RULES section precisely — burst patterns, business-hours clustering, quiet periods, etc.
+      5. ${dqInstruction}
+ 
+      REALISM RULES:
+      6. Values must be realistic: proper UUIDs, real-looking email addresses, plausible metric ranges, coherent HTTP paths, valid ISO country codes. Never use "string1", "foo", or placeholder text.
+      7. Numeric fields must have domain-appropriate ranges (e.g. HTTP latency 10–2000ms, CPU 0–100%).
+      8. If the schema uses FK-style references (user_id linking sessions to users), the referenced IDs must form a consistent pool — don't generate a new random UUID for every single event.
+ 
+      ${stateMachineNote}
+      ${analysisNote}`,
+
+        `{
+        "streams": [
+          {
+            "streamName": "string",
+            "events": [ { "timestamp": "ISO8601", "...field": "value" } ]
+          }
+        ],
+        "stateMachine": "string (Mermaid stateDiagram-v2) | object — omit if not requested",
+        "parsedRules": ["string"],
+        "explanation": "string (HTML) — omit if not requested"
+      }`
+      );
+    },
+    user: (input) => `Event Stream Specification:\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.stream,
+  },
 };

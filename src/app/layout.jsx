@@ -8,6 +8,7 @@ import '@/styles/index.css';
 import '@/styles/Components.css';
 import '@/styles/Sidebar.css';
 import '@/styles/Modules.css';
+import '@/styles/ErdDiagram.css';
 
 export const viewport = {
   width: 'device-width',

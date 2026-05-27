@@ -172,6 +172,24 @@ export const OUTPUT_SCHEMAS = {
     explanation: z.string().optional()
       .describe('HTML-formatted coverage summary explaining generated handlers, edge cases, and auth patterns'),
   }),
+
+  stream: z.object({
+    streams: z.array(z.object({
+      streamName: z.string()
+        .describe('Logical name for the event stream or topic, e.g. "user_activity" or "sensor_readings"'),
+      events: z.array(z.any())
+        .describe('Array of event objects. Every event must have a timestamp field in ISO-8601 format and share the same top-level shape within a stream.'),
+    })).describe('One entry per logical event stream. A single run may produce multiple correlated streams (e.g. "sessions" + "page_views" + "purchases").'),
+
+    stateMachine: z.union([z.string(), z.record(z.any())]).optional()
+      .describe('If includeStateMachine is true: a JSON object (or Mermaid stateDiagram-v2 string) describing the states and valid transitions that generated the event sequence.'),
+
+    parsedRules: z.array(z.string()).optional()
+      .describe('Bullet points echoing the specific temporal rules, burst patterns, and distributions the engine applied.'),
+
+    explanation: z.string().optional()
+      .describe('HTML-formatted summary describing stream topology, temporal patterns applied, and any schema anomalies resolved.'),
+  }),
 };
 
 /**
