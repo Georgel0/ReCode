@@ -31,6 +31,52 @@ export const STREAM_PARADIGMS = [
   { value: 'custom', label: 'Custom Schema', icon: 'fa-code' },
 ];
 
+export const SAMPLE_TEMPLATES = [
+  {
+    label: "E-Commerce Checkout Journey (Funnel)",
+    schema: `{
+  "event_type": "page_view | add_to_cart | begin_checkout | purchase",
+  "user_id": "UUID",
+  "session_id": "string",
+  "product_id": "string?",
+  "cart_value": "float?",
+  "timestamp": "ISO8601"
+}`,
+    rules: "Events within a session must strictly follow the funnel: page_view -> add_to_cart -> begin_checkout -> purchase.\nNot all sessions reach purchase (simulate realistic drop-offs).\nTimestamps within a session must be monotonic, separated by 5-60 seconds.",
+    streamParadigm: "journey",
+    eventFormat: "json"
+  },
+  {
+    label: "IoT Thermostat Telemetry",
+    schema: `{
+  "device_id": "UUID",
+  "event_type": "telemetry",
+  "temperature": "float",
+  "humidity": "float",
+  "hvac_status": "cooling | heating | idle",
+  "timestamp": "ISO8601"
+}`,
+    rules: "Temperature should fluctuate realistically between 68.0 and 74.0.\nHVAC status triggers 'cooling' when temp > 73.0, and goes 'idle' when temp drops below 69.0.\nEvents arrive in exact 1-minute increments.",
+    streamParadigm: "iot",
+    eventFormat: "kafka"
+  },
+  {
+    label: "Server Access Logs (Audit)",
+    schema: `{
+  "request_id": "UUID",
+  "ip_address": "string",
+  "method": "GET | POST | PUT | DELETE",
+  "path": "string",
+  "status_code": "integer",
+  "latency_ms": "integer",
+  "timestamp": "ISO8601"
+}`,
+    rules: "90% of requests should be GET requests with status 200.\n5% should be POST requests.\n5% should simulate errors (status 400, 401, 404, or 500).\nLatency for errors should be significantly higher.",
+    streamParadigm: "access_log",
+    eventFormat: "json"
+  }
+];
+
 export const ITEMS_PER_PAGE = 15;
 
 export function useStreamingEventsTab({ onDataUpdate }) {
@@ -120,6 +166,18 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     () => generatedData?.streams?.map(s => s.streamName) ?? [],
     [generatedData]
   );
+
+  const handleLoadSample = useCallback((sample) => {
+    if (!sample) return;
+    setSchemaInput(sample.schema);
+    if (sample.rules) {
+      setRules(sample.rules);
+    } else {
+      setRules('');
+    }
+    if (sample.streamParadigm) setStreamParadigm(sample.streamParadigm);
+    if (sample.eventFormat) setEventFormat(sample.eventFormat);
+  }, []);
 
   const filteredEvents = useMemo(() => {
     if (!activeStreamData?.events) return [];
@@ -395,5 +453,8 @@ export function useStreamingEventsTab({ onDataUpdate }) {
 
     // Modal
     modalConfig, setModalConfig,
+
+    // Sample
+    SAMPLE_TEMPLATES, handleLoadSample,
   };
 }

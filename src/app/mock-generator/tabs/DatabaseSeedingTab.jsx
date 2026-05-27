@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import { CodeEditor, ConfirmModal, ErdDiagram } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
-import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES } from '../hooks/useDatabaseSeedingTab';
+import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES, SAMPLE_SCHEMAS, } from '../hooks/useDatabaseSeedingTab';
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';
@@ -92,6 +92,8 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
     modalConfig, setModalConfig,
 
     activeTableData, hasNoInboundFKs,
+
+    handleLoadSample,
   } = db;
 
   const colKeys = activeTableData?.rows?.[0] ? Object.keys(activeTableData.rows[0]) : [];
@@ -124,6 +126,22 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                   <i className={`fas ${schemaOptionsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
                   {savedSchemas.length > 0 && <span className="badge-count">{savedSchemas.length}</span>}
                 </button>
+              </div>
+
+              <div className="mock-form-group">
+                <select
+                  className="theme-select-dropdown"
+                  value=""
+                  onChange={e => {
+                    const selected = SAMPLE_SCHEMAS.find(s => s.label === e.target.value);
+                    if (selected) handleLoadSample(selected);
+                  }}
+                >
+                  <option value="" disabled>⚡ Load Starter Sample Architecture...</option>
+                  {SAMPLE_SCHEMAS.map(s => (
+                    <option key={s.label} value={s.label}>{s.label}</option>
+                  ))}
+                </select>
               </div>
 
               {schemaOptionsVisible && savedSchemas.length > 0 && (
@@ -177,7 +195,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
               </div>
               <div className="mock-form-group">
                 <select
-                  className="theme-select-dropdown text-sm"
+                  className="theme-select-dropdown"
                   value=""
                   onChange={e => {
                     if (e.target.value) setRules(prev => prev ? `${prev}\n${e.target.value}` : e.target.value);
@@ -215,7 +233,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
               <div className="form-grid-2">
                 <div className="mock-form-group">
                   <label className="input-label">Locale</label>
-                  <select value={locale} onChange={e => setLocale(e.target.value)} className="theme-select-dropdown text-sm">
+                  <select value={locale} onChange={e => setLocale(e.target.value)} className="theme-select-dropdown">
                     <option value="en-US">English (US)</option>
                     <option value="en-GB">English (UK)</option>
                     <option value="de-DE">German</option>
@@ -225,7 +243,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                 </div>
                 <div className="mock-form-group">
                   <label className="input-label">Volume</label>
-                  <select value={rowCount} onChange={e => setRowCount(e.target.value)} className="theme-select-dropdown text-sm">
+                  <select value={rowCount} onChange={e => setRowCount(e.target.value)} className="theme-select-dropdown">
                     <option value="5">5 (Fast)</option>
                     <option value="15">15 (Standard)</option>
                     <option value="50">50 (Batch)</option>

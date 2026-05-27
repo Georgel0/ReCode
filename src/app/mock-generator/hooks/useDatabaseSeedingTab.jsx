@@ -11,6 +11,44 @@ export const RULE_TEMPLATES = [
   { label: "FK Pool Mapping", value: "orders.user_id must perfectly map to generated users.id values." }
 ];
 
+export const SAMPLE_SCHEMAS = [
+  {
+    label: "E-Commerce Core (SQL)",
+    schema: `CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR(255) UNIQUE,
+  full_name VARCHAR(100),
+  created_at TIMESTAMP
+);
+
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  total_amount FLOAT,
+  status VARCHAR(50),
+  created_at TIMESTAMP
+);`,
+    rules: "All orders.user_id must perfectly map to generated users.id values.\n70% of orders should have status 'completed', 20% 'pending', 10% 'cancelled'."
+  },
+  {
+    label: "SaaS Workspace (Prisma)",
+    schema: `model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  plan      String
+  createdAt DateTime @default(now())
+}
+
+model Member {
+  id          String   @id @default(uuid())
+  workspaceId String
+  email       String
+  role        String
+}`,
+    rules: "75% of members must have role 'Member', 25% 'Admin'.\nAll Member.workspaceId values must reference valid Workspace records."
+  }
+];
+
 export const ITEMS_PER_PAGE = 15;
 
 /**
@@ -202,6 +240,16 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     [generatedData]
   );
 
+  const handleLoadSample = useCallback((sample) => {
+    if (!sample) return;
+    setSchemaInput(sample.schema);
+    if (sample.rules) {
+      setRules(sample.rules);
+    } else {
+      setRules('');
+    }
+  }, []);
+
   const fkRelationships = useMemo(
     () => extractFkRelationships(generatedData?.tables),
     [generatedData]
@@ -257,7 +305,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
           type: 'mock',
           input: schemaInput,
           output: JSON.stringify(data),
-          rules, locale, rowCount, seed, dataQuality, 
+          rules, locale, rowCount, seed, dataQuality,
           includeAnalysis,
         });
       }
@@ -530,6 +578,10 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
 
     // Modals
     modalConfig, setModalConfig,
+
+    // Sample
+    SAMPLE_SCHEMAS,
+    handleLoadSample,
 
     // Helpers
     activeTableData,

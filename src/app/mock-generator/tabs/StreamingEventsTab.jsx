@@ -9,6 +9,7 @@ import {
   EVENT_FORMATS,
   STREAM_PARADIGMS,
   ITEMS_PER_PAGE,
+  SAMPLE_TEMPLATES,
 } from '../hooks/useStreamingEventsTab';
 
 function inferEventBadges(colName, sampleValue) {
@@ -118,7 +119,7 @@ export default function StreamingEventsTab({ onDataUpdate }) {
     saveTemplateError, setSaveTemplateError,
     handleSaveTemplate, executeSaveTemplate, handleDeleteTemplate,
 
-    modalConfig, setModalConfig,
+    modalConfig, setModalConfig, handleLoadSample,
   } = st;
 
   const sampleEvent = activeStreamData?.events?.[0] ?? {};
@@ -154,6 +155,22 @@ export default function StreamingEventsTab({ onDataUpdate }) {
                     <span className="badge-count">{savedTemplates.length}</span>
                   )}
                 </button>
+              </div>
+
+              <div className="mock-form-group">
+                <select
+                  className="theme-select-dropdown"
+                  value=""
+                  onChange={e => {
+                    const selected = SAMPLE_TEMPLATES.find(s => s.label === e.target.value);
+                    if (selected) handleLoadSample(selected);
+                  }}
+                >
+                  <option value="" disabled>⚡ Load Starter Sample Stream...</option>
+                  {SAMPLE_TEMPLATES.map(s => (
+                    <option key={s.label} value={s.label}>{s.label}</option>
+                  ))}
+                </select>
               </div>
 
               {templatesVisible && savedTemplates.length > 0 && (
@@ -234,7 +251,7 @@ export default function StreamingEventsTab({ onDataUpdate }) {
               </div>
               <div className="mock-form-group">
                 <select
-                  className="theme-select-dropdown text-sm"
+                  className="theme-select-dropdown"
                   value=""
                   onChange={e => {
                     if (e.target.value)
