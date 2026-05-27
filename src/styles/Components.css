@@ -876,6 +876,8 @@ select option {
 @media (max-width: 768px) {
   .mobile-header {
     display: flex;
+    padding: 0.6rem 0.8rem;
+
   }
 
   .module-header {
