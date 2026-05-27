@@ -7,9 +7,7 @@
   display: flex;
   gap: 1.5rem;
   margin-top: -10px;
-  margin-bottom: 0;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -21,6 +19,7 @@
 .paradigm-btn {
   background: transparent;
   border: none;
+  border-bottom: 2px solid transparent;
   color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 500;
@@ -29,9 +28,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
   white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .paradigm-btn:hover {
@@ -67,20 +65,10 @@
 .spinner-small {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-.spinner-large {
-  width: 48px;
-  height: 48px;
-  border: 3px solid var(--bg-tertiary);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
 }
 
 .mock-empty-state {

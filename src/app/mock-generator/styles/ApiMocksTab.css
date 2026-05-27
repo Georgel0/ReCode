@@ -161,6 +161,14 @@
   gap: 1rem;
 }
 
+.tabs-navigation-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .tabs-scroll-wrapper {
   flex: 1;
   min-width: 0;
@@ -285,7 +293,9 @@
   font-family: monospace;
 }
 
-.method-pill strong { font-size: 0.7rem; }
+.method-pill strong {
+  font-size: 0.7rem;
+}
 
 .method-pill.method-badge--get    { background: rgba(16, 185, 129, 0.08); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
 .method-pill.method-badge--post   { background: rgba(56, 189, 248, 0.08); color: var(--accent); border-color: rgba(56, 189, 248, 0.2); }
@@ -413,7 +423,11 @@
   width: 8px;
   height: 8px;
 }
-.api-code-display pre::-webkit-scrollbar-track { background: transparent; }
+
+.api-code-display pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .api-code-display pre::-webkit-scrollbar-thumb {
   background: var(--bg-tertiary);
   border-radius: 4px;
@@ -470,22 +484,6 @@
   flex-shrink: 0;
 }
 
-.tabs-navigation-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.tabs-scroll-wrapper {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
-  mask-image: linear-gradient(to right, black 90%, transparent 100%);
-}
-
 .tabs-dropdown-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -532,9 +530,11 @@
 .tabs-dropdown-menu::-webkit-scrollbar {
   width: 6px;
 }
+
 .tabs-dropdown-menu::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .tabs-dropdown-menu::-webkit-scrollbar-thumb {
   background: var(--bg-tertiary);
   border-radius: 4px;
@@ -568,7 +568,6 @@
   z-index: 90;
   cursor: default;
 }
-
 
 @media (max-width: 1024px) {
   .method-summary-pills {
@@ -609,10 +608,7 @@
     min-width: 180px;
   }
 
-  .toolbar-filter-input {
-    width: 100%;
-  }
-  
+  .toolbar-filter-input,
   .toolbar-filter-input:focus {
     width: 100%;
   }
@@ -651,15 +647,5 @@
 
   .framework-card i {
     font-size: 0.9rem;
-  }
-  
-  .view-mode-toggles, .mock-export-group {
-    flex-wrap: wrap;
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .action-select {
-    flex: 1;
   }
 }

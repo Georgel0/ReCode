@@ -118,7 +118,8 @@
   color: var(--text-secondary);
 }
 
-.text-input, .theme-select-dropdown {
+.text-input,
+.theme-select-dropdown {
   width: 100%;
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -130,7 +131,8 @@
   transition: all 0.2s;
 }
 
-.text-input:focus, .theme-select-dropdown:focus {
+.text-input:focus,
+.theme-select-dropdown:focus {
   border-color: var(--accent);
   outline: none;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
@@ -154,12 +156,12 @@
 }
 
 .mock-section .mock-form-group {
-  display: block; 
+  display: block;
   width: 100%;
 }
 
 .mock-section .mock-form-group .theme-select-dropdown {
-  margin-bottom: 0.4rem; 
+  margin-bottom: 0.4rem;
 }
 
 .mock-section .mock-form-group .rules-feedback {
@@ -167,15 +169,15 @@
 }
 
 .mock-rule-input {
-  display: block;      
-  width: 100%;         
-  height: 90px;        
+  display: block;
+  width: 100%;
+  height: 90px;
   min-height: 90px;
-  max-height: 300px;    
-  resize: vertical;   
+  max-height: 300px;
+  resize: vertical;
   font-size: 0.85rem;
   padding: 0.75rem;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 
 .form-grid-2 {
@@ -229,7 +231,7 @@
 }
 
 .tab-count-badge {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 0.7rem;
@@ -286,7 +288,7 @@
 .view-toggle-btn.active {
   background: var(--bg-secondary);
   color: var(--text-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .mock-export-group {
@@ -399,7 +401,7 @@
   table-layout: auto;
 }
 
-.mock-data-table th, 
+.mock-data-table th,
 .mock-data-table td {
   padding: 0.75rem 1rem;
   text-align: left;
@@ -490,12 +492,12 @@
   color: var(--text-secondary);
 }
 
-.col-type-badge--pk { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
-.col-type-badge--fk { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
-.col-type-badge--uuid { background: rgba(139, 92, 246, 0.1); color: #a78bfa; border-color: rgba(139, 92, 246, 0.3); }
-.col-type-badge--ts { background: rgba(56, 189, 248, 0.1); color: var(--accent); border-color: rgba(56, 189, 248, 0.3); }
-.col-type-badge--bool { background: rgba(236, 72, 153, 0.1); color: #f472b6; border-color: rgba(236, 72, 153, 0.3); }
-.col-type-badge--num { background: rgba(249, 115, 22, 0.1); color: #fb923c; border-color: rgba(249, 115, 22, 0.3); }
+.col-type-badge--pk   { background: rgba(16, 185, 129, 0.1);  color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+.col-type-badge--fk   { background: rgba(245, 158, 11, 0.1);  color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+.col-type-badge--uuid { background: rgba(139, 92, 246, 0.1);  color: #a78bfa; border-color: rgba(139, 92, 246, 0.3); }
+.col-type-badge--ts   { background: rgba(56, 189, 248, 0.1);  color: var(--accent); border-color: rgba(56, 189, 248, 0.3); }
+.col-type-badge--bool { background: rgba(236, 72, 153, 0.1);  color: #f472b6; border-color: rgba(236, 72, 153, 0.3); }
+.col-type-badge--num  { background: rgba(249, 115, 22, 0.1);  color: #fb923c; border-color: rgba(249, 115, 22, 0.3); }
 
 .pagination-controls {
   display: flex;
@@ -535,16 +537,6 @@
   color: var(--text-secondary);
 }
 
-.styled-empty {
-  text-align: center;
-  padding: 4rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
 .empty-state-icon-ring {
   width: 80px;
   height: 80px;
@@ -558,35 +550,6 @@
   color: var(--accent);
   margin-bottom: 1.5rem;
 }
-
-.styled-empty h3 {
-  font-size: 1.25rem;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.styled-empty p {
-  color: var(--text-secondary);
-  max-width: 400px;
-  line-height: 1.5;
-  margin: 0 0 1.5rem 0;
-}
-
-.empty-hints {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.hint-chip {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.text-accent { color: var(--accent); }
 
 .loading-state-pane {
   display: flex;
@@ -746,12 +709,16 @@
   margin-right: 0.4rem;
 }
 
+.text-accent {
+  color: var(--accent);
+}
 
 @media (max-width: 1024px) {
   .mock-factory-container {
     flex-direction: column;
     height: auto;
   }
+
   .mock-sidebar {
     width: 100%;
     min-width: 100%;
@@ -764,10 +731,12 @@
   .form-grid-2 {
     grid-template-columns: 1fr;
   }
+
   .toolbar-right {
     width: 100%;
     justify-content: space-between;
   }
+
   .mock-toolbar {
     flex-direction: column;
     align-items: stretch;
