@@ -158,7 +158,12 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     setEditingCell(null);
   }, [activeStream]);
 
-  useEffect(() => { setCurrentPage(1); }, [filterQuery]);
+  useEffect(() => {
+    setCurrentPage(1);
+    setEditingCell(null);
+  }, [filterQuery]);
+
+  useEffect(() => { setEditingCell(null); }, [currentPage]);
 
   const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
@@ -201,9 +206,12 @@ export function useStreamingEventsTab({ onDataUpdate }) {
   const colKeys = useMemo(() => {
     if (!activeStreamData?.events?.length) return [];
     const allKeys = new Set();
-    activeStreamData.events.slice(0, 5).forEach(evt => {
-      if (typeof evt === 'object' && evt !== null) Object.keys(evt).forEach(k => allKeys.add(k));
+
+    activeStreamData.events.forEach(evt => {
+      if (typeof evt === 'object' && evt !== null)
+        Object.keys(evt).forEach(k => allKeys.add(k));
     });
+
     return Array.from(allKeys);
   }, [activeStreamData]);
 
@@ -238,6 +246,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
       setActiveStreamRaw(0);
       setCurrentPage(1);
       setFilterQuery('');
+      setEditingCell(null);
 
       if (onDataUpdate) {
         onDataUpdate({
@@ -318,7 +327,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     a.href = url;
     a.download = filename;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const executeExport = useCallback((type) => {
@@ -333,8 +342,10 @@ export function useStreamingEventsTab({ onDataUpdate }) {
       const stream = generatedData.streams[activeStream];
       if (!stream?.events?.length) return;
 
-      const keys = Object.keys(stream.events[0]);
       const rows = [keys.join(',')];
+      const keys = [...new Set(
+        stream.events.flatMap(e => Object.keys(e))
+      )];
 
       stream.events.forEach(evt => {
         rows.push(keys.map(k => {
@@ -402,6 +413,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     setActiveStreamRaw(idx);
     setCurrentPage(1);
     setFilterQuery('');
+    setEditingCell(null);
   }, []);
 
   return {
@@ -455,6 +467,6 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     modalConfig, setModalConfig,
 
     // Sample
-    SAMPLE_TEMPLATES, handleLoadSample,
+    handleLoadSample,
   };
 }

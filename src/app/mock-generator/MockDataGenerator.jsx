@@ -74,7 +74,7 @@ export default function MockDataGenerator() {
         </div>
 
         <div className={`paradigm-pane ${activeParadigm === 'stream' ? 'active' : ''}`}>
-          <StreamingEventsTab />
+          <StreamingEventsTab onDataUpdate={setHeaderResultData} />
         </div>
       </div>
     </div>

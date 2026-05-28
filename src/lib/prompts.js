@@ -306,7 +306,7 @@ export const PROMPT_CONFIG = {
         ${analysisInstruction}`,
         `{
           "tables": [ { "tableName": "string", "rows": [ { "column_name": "value" } ] } ],
-          "parsedRules": ["string"]
+          "parsedRules": ["string"]${ctx?.includeAnalysis ? `,\n          "explanation": "string (HTML)"` : ''}
         }`
       )
     },
@@ -411,8 +411,7 @@ export const PROMPT_CONFIG = {
             "fixtureData": {}
           }
         ],
-        "parsedSpec": ["string"],
-        "explanation": "string (HTML, omit if not requested)"
+        "parsedSpec": ["string"]${ctx?.includeAnalysis ? `,\n        "explanation": "string (HTML)"` : ''}
       }`
       );
     },
@@ -461,6 +460,12 @@ export const PROMPT_CONFIG = {
         ? `ANALYSIS: In 'parsedRules', echo back the specific temporal rules and distributions applied. In 'explanation', provide an HTML-formatted summary: streams generated, event count per stream, temporal patterns used, and any schema ambiguities resolved.`
         : `ANALYSIS: In 'parsedRules', echo back a concise bullet list of rules applied. CRITICAL: DO NOT generate the 'explanation' field. Omit it entirely.`;
 
+      const schemaOptionalFields = [
+        ctx?.includeStateMachine ? `  "stateMachine": "string (Mermaid stateDiagram-v2) | object",` : null,
+        `  "parsedRules": ["string"],`,
+        ctx?.includeAnalysis ? `  "explanation": "string (HTML)"` : null,
+      ].filter(Boolean).join('\n');
+
       return withSchema(
         `You are an Expert Event Architect and Stream Data Synthesis Specialist.
       Your Task: Transform an event schema or state machine definition into a realistic, temporally coherent event stream.
@@ -494,9 +499,7 @@ export const PROMPT_CONFIG = {
             "events": [ { "timestamp": "ISO8601", "...field": "value" } ]
           }
         ],
-        "stateMachine": "string (Mermaid stateDiagram-v2) | object — omit if not requested",
-        "parsedRules": ["string"],
-        "explanation": "string (HTML) — omit if not requested"
+        ${schemaOptionalFields}
       }`
       );
     },
