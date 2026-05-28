@@ -3,12 +3,14 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AppProvider, ThemeProvider } from '@/context';
 import { MainLayout } from '@/components/layout';
+import { CodeHighlightAnalyzer } from '@/components/ui';
 
 import '@/styles/index.css';
 import '@/styles/Components.css';
 import '@/styles/Sidebar.css';
 import '@/styles/Modules.css';
 import '@/styles/ErdDiagram.css';
+import '@/styles/CodeAnalysisHelper.css';
 
 export const viewport = {
   width: 'device-width',
@@ -87,6 +89,7 @@ export default function RootLayout({ children }) {
             <MainLayout>
               {children}
             </MainLayout>
+            <CodeHighlightAnalyzer />
           </AppProvider>
         </ThemeProvider>
 

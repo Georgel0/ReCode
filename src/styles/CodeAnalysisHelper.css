@@ -1,0 +1,78 @@
+/* Floating Popup Action Button Styles */
+.floating-analyze-btn {
+  position: absolute;
+  transform: translateX(-50%);
+  background-color: #0070f3; /* Adjust to match your app's standard branding accent */
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  z-index: 99999; /* Ensure high stacking priority over normal layouts */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  animation: popIn 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.floating-analyze-btn:hover {
+  background-color: #0051a8;
+}
+
+.floating-analyze-btn:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.floating-analyze-btn i {
+  font-size: 11px;
+}
+
+/* Info Icon and Tooltip Wrapper Styles */
+.code-analysis-info-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+.code-analysis-info-icon {
+  color: #888888;
+  font-size: 16px;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.code-analysis-info-icon:hover {
+  color: #0070f3;
+}
+
+/* Custom styles adjusting the react-tooltip module layout */
+.custom-analysis-tooltip {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  padding: 10px 14px !important;
+  max-width: 260px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
