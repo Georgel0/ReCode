@@ -222,11 +222,16 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     return activeStreamData.events.map(e => JSON.stringify(e)).join('\n');
   }, [activeStreamData]);
 
+  const rawFullContent = useMemo(() => {
+    if (!generatedData) return '';
+    return JSON.stringify(generatedData, null, 2);
+  }, [generatedData]);
+
   const handleGenerate = useCallback(async () => {
     if (!schemaInput.trim()) return;
     setIsLoading(true);
     setParsedRulesFeedback([]);
-    setGeneratedData(null); // clear stale data so panels don't flash old content
+    setGeneratedData(null);
     setViewMode('events');
 
     try {
@@ -457,6 +462,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     filteredEvents,
     colKeys,
     rawJsonContent,
+    rawFullContent,
 
     // Cell editing
     editingCell, editingValue, setEditingValue,

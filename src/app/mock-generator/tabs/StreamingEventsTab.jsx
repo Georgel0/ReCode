@@ -107,7 +107,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
     viewMode, setViewMode, filterQuery, setFilterQuery,
     currentPage, setCurrentPage, totalPages, paginatedEvents, filteredEvents,
-    colKeys, rawJsonContent,
+    colKeys, rawJsonContent, rawFullContent,
 
     editingCell, editingValue, setEditingValue,
     handleStartEdit, handleCommitEdit, handleCancelEdit, handleCopyCell,
@@ -466,9 +466,10 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             loadingDescription="Modeling state transitions and generating temporally coherent event sequences..."
           />
 
-          {activeStreamData && !isLoading && viewMode === 'events' && (
-            <div className="mock-table-wrapper">
-              <div className="table-filter-bar">
+          <div className="stream-view-scroll-area">
+            {activeStreamData && !isLoading && viewMode === 'events' && (
+              <div className="mock-table-wrapper">
+                <div className="table-filter-bar">
                 <div className="table-filter-input-wrap">
                   <i className="fas fa-search table-filter-icon" />
                   <input
@@ -579,81 +580,86 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             </div>
           )}
 
-          {activeStreamData && !isLoading && viewMode === 'timeline' && (
-            <div className="stream-timeline-wrapper">
-              <div className="stream-timeline-inner">
-                {activeStreamData.events.map((evt, i) => {
-                  const ts = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
-                  const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
-                  const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
-                  return (
-                    <div key={i} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
-                      <div className="timeline-dot" />
-                      <div className="timeline-body">
-                        <div className="timeline-header-row">
-                          <span className="timeline-event-type">{type}</span>
-                          {ts && <span className="timeline-ts">{ts}</span>}
-                        </div>
-                        <div className="timeline-payload">
-                          {Object.entries(evt)
-                            .filter(([k]) => k !== 'event_type' && k !== 'type' && k !== 'name' && k !== 'timestamp' && k !== 'ts' && k !== 'event_time' && k !== 'created_at')
-                            .slice(0, 4)
-                            .map(([k, v]) => (
-                              <span key={k} className="timeline-kv">
-                                <span className="timeline-key">{k}</span>
-                                <span className="timeline-val">
-                                  {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}
+            {activeStreamData && !isLoading && viewMode === 'timeline' && (
+              <div className="stream-timeline-wrapper">
+                <div className="stream-timeline-inner">
+                  {activeStreamData.events.map((evt, i) => {
+                    const ts = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
+                    const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
+                    const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
+                    return (
+                      <div key={i} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
+                        <div className="timeline-dot" />
+                        <div className="timeline-body">
+                          <div className="timeline-header-row">
+                            <span className="timeline-event-type">{type}</span>
+                            {ts && <span className="timeline-ts">{ts}</span>}
+                          </div>
+                          <div className="timeline-payload">
+                            {Object.entries(evt)
+                              .filter(([k]) => k !== 'event_type' && k !== 'type' && k !== 'name' && k !== 'timestamp' && k !== 'ts' && k !== 'event_time' && k !== 'created_at')
+                              .slice(0, 4)
+                              .map(([k, v]) => (
+                                <span key={k} className="timeline-kv">
+                                  <span className="timeline-key">{k}</span>
+                                  <span className="timeline-val">
+                                    {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}
+                                  </span>
                                 </span>
-                              </span>
-                            ))}
+                              ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeStreamData && !isLoading && viewMode === 'raw' && (
-            <div className="stream-raw-wrapper">
-              <div className="stream-raw-toolbar">
-                <span className="table-meta-tag">
-                  <i className="fas fa-file-alt" /> Newline-delimited JSON ({activeStreamData.events.length} events)
-                </span>
-                <button
-                  className="secondary-button btn-small"
-                  onClick={() => navigator.clipboard.writeText(rawJsonContent)}
-                >
-                  <i className="fas fa-copy" /> Copy All
-                </button>
+            {activeStreamData && !isLoading && viewMode === 'raw' && (
+              <div className="stream-raw-wrapper">
+                <div className="stream-raw-toolbar">
+                  <span className="table-meta-tag">
+                    <i className="fas fa-file-alt" /> Newline-delimited JSON ({activeStreamData.events.length} events)
+                  </span>
+                  <button
+                    className="secondary-button btn-small"
+                    onClick={() => navigator.clipboard.writeText(rawJsonContent)}
+                  >
+                    <i className="fas fa-copy" /> Copy Events
+                  </button>
+                </div>
+                <pre className="stream-raw-pre">{rawJsonContent}</pre>
               </div>
-              <pre className="stream-raw-pre">{rawJsonContent}</pre>
-            </div>
-          )}
+            )}
+          </div>
 
-          {generatedData?.stateMachine && !isLoading && viewMode !== 'raw' && (
-            <div className="panel explanation-panel" style={{ margin: '0 1rem 1rem' }}>
-              <h3 className="explanation-title">
-                <i className="fas fa-project-diagram" /> State Machine
-              </h3>
-              <pre className="stream-state-machine">
-                {typeof generatedData.stateMachine === 'string'
-                  ? generatedData.stateMachine
-                  : JSON.stringify(generatedData.stateMachine, null, 2)}
-              </pre>
-            </div>
-          )}
+          {!isLoading && (generatedData?.stateMachine || generatedData?.explanation) && (
+            <div className="stream-analysis-panels">
+              {generatedData.stateMachine && (
+                <div className="panel explanation-panel">
+                  <h3 className="explanation-title">
+                    <i className="fas fa-project-diagram" /> State Machine
+                  </h3>
+                  <pre className="stream-state-machine">
+                    {typeof generatedData.stateMachine === 'string'
+                      ? generatedData.stateMachine
+                      : JSON.stringify(generatedData.stateMachine, null, 2)}
+                  </pre>
+                </div>
+              )}
 
-          {generatedData?.explanation && !isLoading && viewMode !== 'raw' && (
-            <div className="panel explanation-panel" style={{ margin: '0 1rem 1rem' }}>
-              <h3 className="explanation-title">
-                <i className="fas fa-robot" /> Generation Analysis
-              </h3>
-              <div
-                className="explanation-body"
-                dangerouslySetInnerHTML={{ __html: generatedData.explanation }}
-              />
+              {generatedData.explanation && (
+                <div className="panel explanation-panel">
+                  <h3 className="explanation-title">
+                    <i className="fas fa-robot" /> Generation Analysis
+                  </h3>
+                  <div
+                    className="explanation-body"
+                    dangerouslySetInnerHTML={{ __html: generatedData.explanation }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
