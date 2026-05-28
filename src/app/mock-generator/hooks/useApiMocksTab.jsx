@@ -193,7 +193,7 @@ export function getMethodMeta(method = '') {
   return map[m] ?? { cls: 'method-badge--get', label: m };
 }
 
-export function useApiMocksTab({ onDataUpdate } = {}) {
+export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
@@ -237,6 +237,8 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   }, []);
 
   useEffect(() => {
+    if (!isActive) return;
+
     if (moduleData && moduleData.type === 'api-mocks') {
       setSpecInput(moduleData.input || '');
       if (moduleData.framework) setFramework(moduleData.framework);
@@ -261,7 +263,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         }
       }
     }
-  }, [moduleData]);
+  }, [isActive, moduleData]);
 
   // Reset active handler & filter when data changes
   useEffect(() => {

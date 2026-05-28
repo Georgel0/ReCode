@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal, ErdDiagram } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES, SAMPLE_SCHEMAS, } from '../hooks/useDatabaseSeedingTab';
@@ -64,8 +65,8 @@ function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, o
   );
 }
 
-export default function DatabaseSeedingTab({ onDataUpdate }) {
-  const db = useDatabaseSeedingTab({ onDataUpdate });
+export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
+  const db = useDatabaseSeedingTab({ onDataUpdate, isActive });
 
   const {
     schemaInput, setSchemaInput, rules, setRules, locale, setLocale, rowCount, setRowCount,
@@ -477,7 +478,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
                                 editingCell?.colKey === colKey;
                               return (
                                 <EditableCell
-                                  key={colIdx}
+                                  key={colKey}
                                   value={row[colKey]}
                                   isEditing={isEditing}
                                   editingValue={editingValue}
@@ -521,7 +522,7 @@ export default function DatabaseSeedingTab({ onDataUpdate }) {
             {generatedData?.explanation && (
               <div className="panel explanation-panel">
                 <h3 className="explanation-title"><i className="fas fa-robot" /> Generation Analysis</h3>
-                <div className="explanation-body" dangerouslySetInnerHTML={{ __html: generatedData.explanation }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedData.explanation) }} />
               </div>
             )}
 

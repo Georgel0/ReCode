@@ -91,8 +91,8 @@ function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, o
   );
 }
 
-export default function StreamingEventsTab({ onDataUpdate }) {
-  const st = useStreamingEventsTab({ onDataUpdate });
+export default function StreamingEventsTab({ onDataUpdate, isActive }) {
+  const st = useStreamingEventsTab({ onDataUpdate, isActive });
 
   const {
     schemaInput, setSchemaInput, rules, setRules,

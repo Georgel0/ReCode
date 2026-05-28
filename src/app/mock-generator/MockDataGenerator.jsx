@@ -30,6 +30,7 @@ export default function MockDataGenerator() {
   useEffect(() => {
     if (moduleData?.type === 'api-mocks') setActiveParadigm('api');
     else if (moduleData?.type === 'mock') setActiveParadigm('db');
+    else if (moduleData?.type === 'stream') setActiveParadigm('stream');
   }, [moduleData]);
 
   return (
@@ -66,15 +67,15 @@ export default function MockDataGenerator() {
 
       <div className="paradigm-content">
         <div className={`paradigm-pane ${activeParadigm === 'db' ? 'active' : ''}`}>
-          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} />
+          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} isActive={activeParadigm === 'db'} />
         </div>
 
         <div className={`paradigm-pane ${activeParadigm === 'api' ? 'active' : ''}`}>
-          <ApiMocksTab onDataUpdate={setHeaderResultData} />
+          <ApiMocksTab onDataUpdate={setHeaderResultData} isActive={activeParadigm === 'api'} />
         </div>
 
         <div className={`paradigm-pane ${activeParadigm === 'stream' ? 'active' : ''}`}>
-          <StreamingEventsTab onDataUpdate={setHeaderResultData} />
+          <StreamingEventsTab onDataUpdate={setHeaderResultData} isActive={activeParadigm === 'stream'} />
         </div>
       </div>
     </div>

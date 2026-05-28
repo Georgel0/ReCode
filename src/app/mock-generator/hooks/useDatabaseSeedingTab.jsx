@@ -65,8 +65,8 @@ export function inferColumnBadges(colName, sampleValue, allTableNames = []) {
   if (uuidRegex.test(strVal)) badges.push('UUID');
 
   // Primary key
-  if (lower === 'id' || lower.endsWith('_id') === false && lower.endsWith('id')) {
-    if (!lower.includes('_')) badges.push('PK');
+  if (lower === 'id') {
+    badges.push('PK');
   }
 
   // Foreign key — column ends with _id and references a known table
@@ -143,7 +143,7 @@ export function hasNoInboundFKs(tableName, allRelationships) {
   return !allRelationships.some(r => r.toTable === tableName);
 }
 
-export function useDatabaseSeedingTab({ onDataUpdate }) {
+export function useDatabaseSeedingTab({ onDataUpdate, isActive }) {
   const { moduleData, qualityMode } = useApp();
 
   const [schemaInput, setSchemaInput] = useState('');
@@ -190,6 +190,8 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
   }, []);
 
   useEffect(() => {
+    if (!isActive) return;
+
     if (moduleData && moduleData.type === 'mock') {
       setSchemaInput(moduleData.input || '');
       if (moduleData.rules) setRules(moduleData.rules);
@@ -213,7 +215,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
         }
       }
     }
-  }, [moduleData]);
+  }, [isActive, moduleData]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -268,7 +270,10 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     );
   }, [activeTableData, filterQuery]);
 
-  const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
+  const totalPages = useMemo(
+    () => Math.ceil(filteredRows.length / ITEMS_PER_PAGE),
+    [filteredRows]
+  );
 
   const paginatedRows = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -282,7 +287,8 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     setViewMode('table');
 
     try {
-      const targetRows = overrideRows ?? parseInt(rowCount, 10);
+      const targetRows = overrideRows ?? (parseInt(rowCount, 10) || 15);
+
       const data = await convertCode('mock', schemaInput, {
         mode: 'builder',
         qualityMode,

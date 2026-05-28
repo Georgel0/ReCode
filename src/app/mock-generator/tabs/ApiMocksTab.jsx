@@ -103,8 +103,8 @@ function MethodSummaryPills({ methodCounts }) {
   );
 }
 
-export default function ApiMocksTab({ onDataUpdate }) {
-  const api = useApiMocksTab({ onDataUpdate });
+export default function ApiMocksTab({ onDataUpdate, isActive }) {
+  const api = useApiMocksTab({ onDataUpdate, isActive });
 
   const {
     specInput, setSpecInput,

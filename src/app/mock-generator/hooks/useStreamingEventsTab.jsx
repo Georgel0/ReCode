@@ -79,7 +79,7 @@ export const SAMPLE_TEMPLATES = [
 
 export const ITEMS_PER_PAGE = 15;
 
-export function useStreamingEventsTab({ onDataUpdate }) {
+export function useStreamingEventsTab({ onDataUpdate, isActive }) {
   const { moduleData, qualityMode } = useApp();
 
   const [schemaInput, setSchemaInput] = useState('');
@@ -125,6 +125,8 @@ export function useStreamingEventsTab({ onDataUpdate }) {
   }, []);
 
   useEffect(() => {
+    if (!isActive) return;
+
     if (moduleData && moduleData.type === 'stream') {
       setSchemaInput(moduleData.input || '');
       if (moduleData.rules) setRules(moduleData.rules);
@@ -150,7 +152,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
         }
       }
     }
-  }, [moduleData]);
+  }, [isActive, moduleData]);
 
   useEffect(() => {
     setCurrentPage(1);
