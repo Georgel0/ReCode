@@ -207,18 +207,21 @@ export function ErdDiagram({ tables, relationships = [] }) {
     return () => el.removeEventListener('wheel', onWheel);
   }, [zoomAt]);
 
+  const transformRef = useRef(transform);
+  useEffect(() => { transformRef.current = transform; }, [transform]);
+
   const onPointerDown = useCallback((e) => {
-    // Only primary button (left click / single touch)
     if (e.button !== undefined && e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    const { x, y } = transformRef.current;
     dragRef.current = {
       active: true,
       startX: e.clientX,
       startY: e.clientY,
-      originX: transform.x,
-      originY: transform.y,
+      originX: x,
+      originY: y,
     };
-  }, [transform.x, transform.y]);
+  }, []);
 
   const onPointerMove = useCallback((e) => {
     if (!dragRef.current.active) return;

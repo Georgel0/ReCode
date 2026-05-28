@@ -315,7 +315,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     } finally {
       setIsLoading(false);
     }
-  }, [schemaInput, qualityMode, rules, locale, rowCount, seed, dataQuality, onDataUpdate]);
+  }, [schemaInput, qualityMode, rules, locale, rowCount, seed, dataQuality, includeAnalysis, onDataUpdate]);
 
   const handleRegenerateTable = useCallback(async (tableIdx) => {
     if (!generatedData) return;
@@ -358,7 +358,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     } finally {
       setRegenLoadingIdx(null);
     }
-  }, [generatedData, schemaInput, qualityMode, rules, locale, rowCount, seed, dataQuality]);
+  }, [generatedData, schemaInput, qualityMode, rules, locale, rowCount, seed, dataQuality, includeAnalysis]);
 
   const handleStartEdit = useCallback((rowIdx, colKey, currentVal) => {
     const rawVal = typeof currentVal === 'object' && currentVal !== null
@@ -418,8 +418,10 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const executeExport = useCallback((type) => {
