@@ -632,7 +632,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             </div>
           )}
 
-          {generatedData?.stateMachine && !isLoading && (
+          {generatedData?.stateMachine && !isLoading && viewMode !== 'raw' && (
             <div className="panel explanation-panel" style={{ margin: '0 1rem 1rem' }}>
               <h3 className="explanation-title">
                 <i className="fas fa-project-diagram" /> State Machine
@@ -645,7 +645,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             </div>
           )}
 
-          {generatedData?.explanation && !isLoading && (
+          {generatedData?.explanation && !isLoading && viewMode !== 'raw' && (
             <div className="panel explanation-panel" style={{ margin: '0 1rem 1rem' }}>
               <h3 className="explanation-title">
                 <i className="fas fa-robot" /> Generation Analysis

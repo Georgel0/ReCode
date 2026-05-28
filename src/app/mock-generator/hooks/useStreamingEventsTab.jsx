@@ -226,6 +226,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     if (!schemaInput.trim()) return;
     setIsLoading(true);
     setParsedRulesFeedback([]);
+    setGeneratedData(null); // clear stale data so panels don't flash old content
     setViewMode('events');
 
     try {
@@ -242,6 +243,13 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
         includeAnalysis,
         includeStateMachine,
       });
+
+      if (includeStateMachine && !data.stateMachine) {
+        console.warn('[StreamingEventsTab] includeStateMachine was true but AI response omitted stateMachine field.');
+      }
+      if (includeAnalysis && !data.explanation) {
+        console.warn('[StreamingEventsTab] includeAnalysis was true but AI response omitted explanation field.');
+      }
 
       setGeneratedData(data);
       setParsedRulesFeedback(data.parsedRules || []);
@@ -344,10 +352,11 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
       const stream = generatedData.streams[activeStream];
       if (!stream?.events?.length) return;
 
-      const rows = [keys.join(',')];
       const keys = [...new Set(
         stream.events.flatMap(e => Object.keys(e))
       )];
+
+      const rows = [keys.join(',')];
 
       stream.events.forEach(evt => {
         rows.push(keys.map(k => {

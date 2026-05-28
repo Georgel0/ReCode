@@ -452,18 +452,21 @@ export const PROMPT_CONFIG = {
 
       const formatNote = formatGuide[ctx?.eventFormat ?? 'json'] ?? formatGuide.json;
 
-      const stateMachineNote = ctx?.includeStateMachine
-        ? `STATE MACHINE: After generating events, produce a 'stateMachine' field. Format it as a Mermaid stateDiagram-v2 string listing every state and valid transition observed in the generated sequence (e.g. "idle --> active : session_start"). This must accurately reflect the transitions present in the emitted events — do not invent transitions that don't appear.`
+      const wantStateMachine = ctx?.includeStateMachine === true || ctx?.includeStateMachine === 'true';
+      const wantAnalysis = ctx?.includeAnalysis === true || ctx?.includeAnalysis === 'true';
+
+      const stateMachineNote = wantStateMachine
+        ? `STATE MACHINE: After generating events, you MUST include a 'stateMachine' field in your response. Format it as a Mermaid stateDiagram-v2 string listing every state and valid transition observed in the generated sequence (e.g. "idle --> active : session_start"). This must accurately reflect the transitions present in the emitted events — do not invent transitions that don't appear.`
         : `STATE MACHINE: Do NOT include the 'stateMachine' field. Omit it entirely.`;
 
-      const analysisNote = ctx?.includeAnalysis
-        ? `ANALYSIS: In 'parsedRules', echo back the specific temporal rules and distributions applied. In 'explanation', provide an HTML-formatted summary: streams generated, event count per stream, temporal patterns used, and any schema ambiguities resolved.`
+      const analysisNote = wantAnalysis
+        ? `ANALYSIS: You MUST include both 'parsedRules' and 'explanation' fields. In 'parsedRules', echo back the specific temporal rules and distributions applied as an array of bullet strings. In 'explanation', provide an HTML-formatted summary: streams generated, event count per stream, temporal patterns used, and any schema ambiguities resolved.`
         : `ANALYSIS: In 'parsedRules', echo back a concise bullet list of rules applied. CRITICAL: DO NOT generate the 'explanation' field. Omit it entirely.`;
 
       const schemaOptionalFields = [
-        ctx?.includeStateMachine ? `  "stateMachine": "string (Mermaid stateDiagram-v2) | object",` : null,
+        wantStateMachine ? `  "stateMachine": "string (Mermaid stateDiagram-v2) | object",` : null,
         `  "parsedRules": ["string"],`,
-        ctx?.includeAnalysis ? `  "explanation": "string (HTML)"` : null,
+        wantAnalysis ? `  "explanation": "string (HTML)"` : null,
       ].filter(Boolean).join('\n');
 
       return withSchema(
