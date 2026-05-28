@@ -137,6 +137,11 @@ export async function POST(request) {
       locale: body.locale,
       rules: body.rules,
       seed: body.seed,
+      includeAnalysis: body.includeAnalysis,
+      includeStateMachine: body.includeStateMachine,
+      streamParadigm: body.streamParadigm,
+      eventFormat: body.eventFormat,
+      eventCount: body.eventCount,
     };
     let systemPrompt = config.system(promptContext);
     const userPrompt = config.user(input);
