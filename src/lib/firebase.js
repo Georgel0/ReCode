@@ -76,18 +76,18 @@ const commitBatchInChunks = async (docs) => {
  */
 export const subscribeToHistory = (callback) => {
   let unsubscribeSnapshot = null;
-  
+
   const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
     // Kill the previous Firestore listener if the user ID changed
     if (unsubscribeSnapshot) {
       unsubscribeSnapshot();
       unsubscribeSnapshot = null;
     }
-    
+
     if (user) {
       const historyRef = collection(db, "users", user.uid, "history");
       const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
-      
+
       unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
         const items = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -101,7 +101,7 @@ export const subscribeToHistory = (callback) => {
       callback([]); // Reset UI if logged out
     }
   });
-  
+
   return () => {
     if (unsubscribeSnapshot) unsubscribeSnapshot();
     unsubscribeAuth();
@@ -134,16 +134,16 @@ export const initializeAuth = () => {
 export const cleanupOldHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
-  
+
   try {
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-    
+
     const q = query(historyRef, where("createdAt", "<", Timestamp.fromDate(tenDaysAgo)));
     const snapshot = await getDocs(q);
-    
+
     if (snapshot.empty) return;
-    
+
     await commitBatchInChunks(snapshot.docs);
     console.log(`Cleanup: Deleted ${snapshot.size} items.`);
   } catch (error) {
@@ -155,11 +155,11 @@ export const cleanupOldHistory = async () => {
 export const clearAllHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
-  
+
   try {
     const snapshot = await getDocs(query(historyRef));
     if (snapshot.empty) return;
-    
+
     await commitBatchInChunks(snapshot.docs);
     console.log(`Clear All: Deleted ${snapshot.size} items.`);
   } catch (error) {
@@ -191,7 +191,7 @@ export const deleteHistoryItem = async (docId) => {
 export const saveHistory = async (type, input, output, sourceLang = null, targetLang = null) => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
-  
+
   try {
     const data = {
       type,
@@ -201,7 +201,7 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
       ...(sourceLang && { sourceLang }),
       ...(targetLang && { targetLang })
     };
-    
+
     await addDoc(historyRef, data);
   } catch (e) {
     console.error("Error adding document: ", e);
@@ -212,9 +212,9 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
 export const getHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return [];
-  
+
   const q = query(historyRef, orderBy("createdAt", "desc"), limit(50));
-  
+
   try {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({

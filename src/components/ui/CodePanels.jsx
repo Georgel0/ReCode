@@ -33,43 +33,43 @@ import { useTheme } from '@/context';
 
 export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..."
 }) {
- 
- const { currentTheme } = useTheme();
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
- 
- const getGrammar = (lang) => {
-  if (languages[lang]) return languages[lang];
-  if (lang === 'c' || lang === 'cpp') return languages.clike;
-  return languages.plaintext || languages.js;
- };
- 
- return (
-  <div className="editor-container">
-   <Editor
-    value={value || ''}
-    onValueChange={onValueChange}
-    highlight={(code) => highlight(code, getGrammar(language), language)}
-    padding={15}
-    className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
-    placeholder={placeholder}
-   />
-  </div>
- );
+
+  const { currentTheme } = useTheme();
+  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+
+  const getGrammar = (lang) => {
+    if (languages[lang]) return languages[lang];
+    if (lang === 'c' || lang === 'cpp') return languages.clike;
+    return languages.plaintext || languages.js;
+  };
+
+  return (
+    <div className="editor-container">
+      <Editor
+        value={value || ''}
+        onValueChange={onValueChange}
+        highlight={(code) => highlight(code, getGrammar(language), language)}
+        padding={15}
+        className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
+        placeholder={placeholder}
+      />
+    </div>
+  );
 }
 
 export function CodeOutput({ content, language }) {
- 
- const { currentTheme } = useTheme();
- const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
- 
- return (
-  <SyntaxHighlighter 
-   language={language} 
-   style={isDarkTheme ? vscDarkPlus : vs}
-   customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
-   showLineNumbers={true}
-  >
-   {content}
-  </SyntaxHighlighter>
- );
+
+  const { currentTheme } = useTheme();
+  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+
+  return (
+    <SyntaxHighlighter
+      language={language}
+      style={isDarkTheme ? vscDarkPlus : vs}
+      customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
+      showLineNumbers={true}
+    >
+      {content}
+    </SyntaxHighlighter>
+  );
 };

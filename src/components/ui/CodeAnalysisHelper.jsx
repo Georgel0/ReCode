@@ -11,7 +11,7 @@ export function CodeHighlightAnalyzer() {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
   const buttonRef = useRef(null);
-  
+
   const { setModuleData } = useApp();
   const router = useRouter();
 
@@ -30,7 +30,7 @@ export function CodeHighlightAnalyzer() {
         // Calculate absolute position on the page (including scroll offsets)
         setPosition({
           top: rect.top + window.scrollY - 42,
-          left: rect.left + window.scrollX + rect.width / 2, 
+          left: rect.left + window.scrollX + rect.width / 2,
         });
         setSelectedText(text);
         setVisible(true);
@@ -83,14 +83,14 @@ export function CodeHighlightAnalyzer() {
 export function CodeAnalysisInfoIcon() {
   return (
     <span className="code-analysis-info-wrapper">
-      <i 
-        className="fa-solid fa-circle-info code-analysis-info-icon" 
+      <i
+        className="fa-solid fa-circle-info code-analysis-info-icon"
         data-tooltip-id="code-analysis-tooltip"
       ></i>
-      <Tooltip 
-        id="code-analysis-tooltip" 
-        place="top" 
-        content="💡 Pro Tip: Drag your mouse to highlight any snippet of code on this page to quickly run a structural audit!" 
+      <Tooltip
+        id="code-analysis-tooltip"
+        place="top"
+        content="💡 Pro Tip: Drag your mouse to highlight any snippet of code on this page to quickly run a structural audit!"
         className="custom-analysis-tooltip"
       />
     </span>

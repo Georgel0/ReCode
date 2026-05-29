@@ -6,20 +6,20 @@ const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [moduleData, setModuleData] = useState(null);
-  
+
   const [qualityMode, setQualityMode] = useState("fast");
-  
+
   useEffect(() => {
     const savedMode = localStorage.getItem("recode_quality_mode");
     if (savedMode) {
       setQualityMode(savedMode);
     }
   }, []);
-  
+
   useEffect(() => {
     localStorage.setItem('recode_quality_mode', qualityMode);
   }, [qualityMode]);
-  
+
   const toggleQualityMode = () => {
     setQualityMode(prev => {
       if (prev === 'turbo') return 'fast';
@@ -27,14 +27,14 @@ export function AppProvider({ children }) {
       return 'turbo';
     });
   };
-  
+
   return (
-    <AppContext.Provider value={{ 
-      qualityMode, 
-      setQualityMode, 
-      toggleQualityMode, 
-      moduleData, 
-      setModuleData 
+    <AppContext.Provider value={{
+      qualityMode,
+      setQualityMode,
+      toggleQualityMode,
+      moduleData,
+      setModuleData
     }}>
       {children}
     </AppContext.Provider>
