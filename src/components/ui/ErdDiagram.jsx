@@ -72,7 +72,7 @@ function getMermaidThemeVars(isDark) {
       titleColor: '#e2e8f0',
       edgeLabelBackground: '#1e293b',
       fontFamily: 'Inter, system-ui, sans-serif',
-      fontSize: '13px',
+      fontSize: '20px',
     };
   }
   return {
@@ -90,7 +90,7 @@ function getMermaidThemeVars(isDark) {
     titleColor: '#1e293b',
     edgeLabelBackground: '#ffffff',
     fontFamily: 'Inter, system-ui, sans-serif',
-    fontSize: '13px',
+    fontSize: '20px',
   };
 }
 

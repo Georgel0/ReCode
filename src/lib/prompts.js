@@ -91,13 +91,11 @@ export const PROMPT_CONFIG = {
       const verbosity = ctx?.verbosity || 'production';
       const customStack = ctx?.customStack?.trim();
 
-      // --- Verbosity rule ---
       const verbosityRule =
         verbosity === 'beginner' ? 'Every block of logic MUST have an inline comment explaining what it does and why. Use the simplest constructs available.' :
           verbosity === 'poc' ? 'Write the minimum code that works. No error handling, no edge cases, no boilerplate. Speed over correctness.' :
-        /* production */              'Include error handling, input validation, and edge-case guards on every public function.';
+            'Include error handling, input validation, and edge-case guards on every public function.';
 
-      // --- Documentation rules ---
       const docRules = [
         ctx?.includeReadme ? 'MUST output a README.md file. It must cover: purpose, setup, usage, and environment variables.' : null,
         ctx?.includeDocs ? 'MUST add JSDoc / docstrings to every exported function and class.' : null,
@@ -306,17 +304,12 @@ export const PROMPT_CONFIG = {
         `You are an Expert Database Architect and QA Data Synthesis Specialist.
         Your Task: Transform data schemas into highly realistic, interconnected mock datasets.
 
-        TECHNICAL CONSTRAINTS:
-        - Target Batch Length: ${ctx?.rowCount || 15} rows per entity.
-        - Target Localization: ${ctx?.locale || 'en-US'}
-        - Contextual Rules:   ${ctx?.rules || 'None provided'}
-        - ${seedInstruction}
-        
         RELATIONAL & GENERATION GUIDELINES:
         1. Maintain rigid foreign key references. If Table B references Table A, foreign keys must exactly map back to matching generated rows.
         2. Respect Custom Annotations: If a column has comments like @faker:creditCard or @regex:[A-Z]{3}-\\d{4}, generate data strictly matching that format.
         3. ${dqInstruction}
         4. Apply behavioral distributions, conditional chronology ranges, and values described inside the rules parameters.
+        ${seedInstruction}
         ${analysisInstruction}`,
         `{
           "tables": [ { "tableName": "string", "rows": [ { "column_name": "value" } ] } ],
@@ -324,7 +317,16 @@ export const PROMPT_CONFIG = {
         }`
       )
     },
-    user: (input) => `Database Layout Specification:\n${input}`,
+
+    user: (input, ctx) => {
+      const rulesText = ctx?.rules ? `\n- Custom Rules: ${ctx.rules}` : '';
+      return `Database Layout Specification:\n${input}
+      
+      CRITICAL CONSTRAINTS FOR THIS RUN:
+      - Target Row Count: ${ctx?.rowCount || 15} rows per entity
+      - Localization: ${ctx?.locale || 'en-US'}
+      - Data Quality: ${ctx?.dataQuality ?? 100}%${rulesText}`;
+    },
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.mock,
   },

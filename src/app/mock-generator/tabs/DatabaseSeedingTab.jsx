@@ -309,34 +309,36 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
         <div className="mock-main">
 
           <div className="mock-toolbar">
-            <div className="tabs-container">
-              {generatedData?.tables.map((table, idx) => {
-                const canRegen = hasNoInboundFKs(table.tableName);
-                return (
-                  <div key={idx} className="tab-btn-wrapper">
-                    <button
-                      className={`tab-btn ${activeTab === idx ? 'active' : ''}`}
-                      onClick={() => setActiveTab(idx)}
-                    >
-                      <i className="fas fa-table" /> {table.tableName}
-                      <span className="tab-count-badge">{table.rows?.length ?? 0}</span>
-                    </button>
-                    {canRegen && (
+            {!isLoading && viewMode !== 'erd' && (
+              <div className="tabs-container">
+                {generatedData?.tables.map((table, idx) => {
+                  const canRegen = hasNoInboundFKs(table.tableName);
+                  return (
+                    <div key={idx} className="tab-btn-wrapper">
                       <button
-                        className="regen-table-btn"
-                        title={`Re-roll ${table.tableName} (no inbound FKs)`}
-                        disabled={regenLoadingIdx !== null || isLoading}
-                        onClick={e => { e.stopPropagation(); handleRegenerateTable(idx); }}
+                        className={`tab-btn ${activeTab === idx ? 'active' : ''}`}
+                        onClick={() => setActiveTab(idx)}
                       >
-                        {regenLoadingIdx === idx
-                          ? <i className="fas fa-circle-notch fa-spin" />
-                          : <i className="fas fa-redo-alt" />}
+                        <i className="fas fa-table" /> {table.tableName}
+                        <span className="tab-count-badge">{table.rows?.length ?? 0}</span>
                       </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      {canRegen && (
+                        <button
+                          className="regen-table-btn"
+                          title={`Re-roll ${table.tableName} (no inbound FKs)`}
+                          disabled={regenLoadingIdx !== null || isLoading}
+                          onClick={e => { e.stopPropagation(); handleRegenerateTable(idx); }}
+                        >
+                          {regenLoadingIdx === idx
+                            ? <i className="fas fa-circle-notch fa-spin" />
+                            : <i className="fas fa-redo-alt" />}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="toolbar-right">
               {generatedData && (

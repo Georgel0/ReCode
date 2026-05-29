@@ -51,7 +51,6 @@ const registry = createProviderRegistry({
 });
 
 const groq = createGroq();
-const TURBO_MAX_ROWS = 5;
 const GROQ_MAX_TOKENS_DEFAULT = 8000;
 const GROQ_MAX_TOKENS_MOCK = 24000;
 
@@ -76,12 +75,12 @@ export async function POST(request) {
 
     // Cap row counts safely
     payload.rowCount = (type === 'mock' && qualityMode === 'turbo') 
-      ? Math.min(Number(payload.rowCount) || 15, TURBO_MAX_ROWS) 
+      ? Math.min(Number(payload.rowCount) || 15, 25) 
       : Number(payload.rowCount) || 15;
 
     // Generate Prompts
     let systemPrompt = config.system(payload);
-    const userPrompt = config.user(input);
+    const userPrompt = config.user(input, payload);
 
     if (config.schema && qualityMode === 'turbo') {
       const jsonSchema = zodToJsonSchema(config.schema, { target: "jsonSchema7" });
