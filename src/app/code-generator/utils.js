@@ -72,26 +72,34 @@ export const VERBOSITY_LEVELS = [
   { value: 'poc', label: 'Proof of Concept (Minimal, fast, no boilerplate)' }
 ];
 
+const DEFAULTS = {
+  language:     'Auto-Detect / Any',
+  framework:    'None (Vanilla)',
+  architecture: 'Standard / Minimal',
+};
+
+const normalizeConfig = (config) => ({
+  ...config,
+  language:     config.language     === DEFAULTS.language     ? null : config.language,
+  framework:    config.framework    === DEFAULTS.framework    ? null : config.framework,
+  architecture: config.architecture === DEFAULTS.architecture ? null : config.architecture,
+});
+
 export const generateProjectFiles = async (input, config, options) => {
-  let result = await convertCode('generator', input, { 
-    ...options, 
-    context: config
+  let result = await convertCode('generator', input, {
+    ...options,
+    ...normalizeConfig(config),
   });
 
   // Frontend Failsafe Parsing
   if (result && result.files && result.files.length === 1 && result.files[0].fileName === 'index.txt') {
-    
     const rawContent = result.files[0].content;
-    
     if (rawContent.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(rawContent);
-        
-        if (parsed.files) {
-          result = parsed;
-        }
+        if (parsed.files) result = parsed;
       } catch (e) {
-        console.warn("API failsafe parse failed:", e);
+        console.warn('API failsafe parse failed:', e);
       }
     }
   }
@@ -99,9 +107,7 @@ export const generateProjectFiles = async (input, config, options) => {
   // String Escaping / Formatting
   if (result && result.files) {
     result.files = result.files.map(file => {
-      
       let content = file.content;
-      
       if (content && content.includes('\\n') && !content.includes('\n')) {
         content = content.replace(/\\n/g, '\n');
       }
@@ -114,8 +120,6 @@ export const generateProjectFiles = async (input, config, options) => {
 
 export const getLanguage = (fileName) => {
   if (!fileName) return 'javascript';
-  
   const ext = fileName.split('.').pop().toLowerCase();
-  
   return EXTENSION_MAP[ext] || 'javascript';
 };

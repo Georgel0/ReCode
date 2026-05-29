@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
 import ConfigTab from './ConfigTab';
-import GeneratorTab from './GeneratorTab';
+import OutputPanel from './OutputPanel';
 import { generateProjectFiles } from './utils';
 import './CodeGenerator.css';
 
 export default function CodeGenerator() {
   const { moduleData, qualityMode } = useApp();
 
-  const [activeTab, setActiveTab] = useState('generator');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,8 +18,7 @@ export default function CodeGenerator() {
   const [files, setFiles] = useState([]);
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [lastResult, setLastResult] = useState(null);
-  
-  // Initial State
+
   const [config, setConfig] = useState({
     language: 'Auto-Detect / Any',
     framework: 'None (Vanilla)',
@@ -55,12 +53,11 @@ export default function CodeGenerator() {
         setActiveFileIndex(0);
         setLastResult({
           type: 'generator',
-          input: input,
+          input,
           output: result
         });
-        setActiveTab('generator');
       } else {
-        throw new Error("Invalid response format from AI.");
+        throw new Error('Invalid response format from AI.');
       }
     } catch (err) {
       setError(`Generation failed: ${err.message}`);
@@ -80,41 +77,58 @@ export default function CodeGenerator() {
     <div className="module-container">
       <ModuleHeader
         title="Code Generator"
-        description="Scaffold multi-file solutions. Tweak your stack in the Config tab."
+        description="Scaffold multi-file solutions from a plain-English description."
         resultData={lastResult}
       />
 
-      <div className="tabs-container main-module-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'generator' ? 'active' : ''}`}
-          onClick={() => setActiveTab('generator')}
-        >
-          <i className="fa-solid fa-pen-nib"></i> Editor & Output
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'config' ? 'active' : ''}`}
-          onClick={() => setActiveTab('config')}
-        >
-          <i className="fa-solid fa-sliders"></i> Configuration
-        </button>
-      </div>
+      <div className="generator-layout">
+        <aside className="generator-sidebar">
+          <section className="sidebar-section">
+            <h3 className="sidebar-heading">
+              <i className="fa-solid fa-layer-group"></i>
+              Requirements
+            </h3>
+            <textarea
+              className="sidebar-textarea"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="E.g., Create a React button component and a CSS file for styling..."
+              spellCheck="true"
+            />
+            {error && <div className="error-message sidebar-error">{error}</div>}
+            <div className="sidebar-actions">
+              <button className="secondary-button" onClick={handleClearAll}>
+                Clear
+              </button>
+              <button
+                className="primary-button"
+                onClick={handleGenerate}
+                disabled={loading || !input.trim()}
+              >
+                {loading ? (
+                  <><span className="spinner button-spinner"></span> Building...</>
+                ) : (
+                  <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
+                )}
+              </button>
+            </div>
+          </section>
 
-      <div className="tab-content-wrapper">
-        {activeTab === 'generator' ? (
-          <GeneratorTab
-            input={input}
-            setInput={setInput}
+          <div className="sidebar-divider" />
+
+          <section className="sidebar-section sidebar-config">
+            <ConfigTab config={config} setConfig={setConfig} />
+          </section>
+        </aside>
+
+        <main className="generator-output">
+          <OutputPanel
             files={files}
             activeFileIndex={activeFileIndex}
             setActiveFileIndex={setActiveFileIndex}
             loading={loading}
-            error={error}
-            handleGenerate={handleGenerate}
-            handleClearAll={handleClearAll}
           />
-        ) : (
-          <ConfigTab config={config} setConfig={setConfig} />
-        )}
+        </main>
       </div>
     </div>
   );

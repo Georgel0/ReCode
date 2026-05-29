@@ -84,29 +84,43 @@ export const PROMPT_CONFIG = {
   },
 
   generator: {
-    system: (ctx) => withSchema(
-      `You are an Expert Polyglot Developer and Software Architect.
-        Your Task: Generate functional, multi-file code solutions from the user's requirements.
+    system: (ctx) => {
+      const language = ctx?.language || 'Auto-detect';
+      const framework = ctx?.framework || 'None';
+      const architecture = ctx?.architecture || 'Standard';
+      const verbosity = ctx?.verbosity || 'production';
+      const customStack = ctx?.customStack?.trim();
 
-        TECHNICAL CONSTRAINTS:
-        - Core Language:       ${ctx?.language || 'Auto-detect'}
-        - Framework/Ecosystem: ${ctx?.framework || 'Vanilla'}
-        - Architecture:        ${ctx?.architecture || 'Standard'}
-        - Additional Stack:    ${ctx?.customStack || 'Standard defaults'}
-        - Verbosity:           ${ctx?.verbosity || 'production'}
-            beginner:    Heavily commented, step-by-step logic.
-            production:  Includes error handling, edge cases, and optimisation.
-            poc:         Minimal, fast, no boilerplate.
-        - Documentation: ${ctx?.includeReadme ? 'MUST include a README.md.' : ''}${ctx?.includeDocs ? ' MUST include JSDoc/Docstrings for all primary functions.' : ''}
-        - Testing: ${ctx?.includeTests ? 'MUST include unit test files.' : 'None required.'}
+      // --- Verbosity rule ---
+      const verbosityRule =
+        verbosity === 'beginner' ? 'Every block of logic MUST have an inline comment explaining what it does and why. Use the simplest constructs available.' :
+          verbosity === 'poc' ? 'Write the minimum code that works. No error handling, no edge cases, no boilerplate. Speed over correctness.' :
+        /* production */              'Include error handling, input validation, and edge-case guards on every public function.';
 
-        Guidelines:
-        1. Create all necessary files using the specified stack.
-        2. Ensure file extensions match the chosen language (e.g., .py, .go, .rs).
-        3. Return strictly valid code in 'content' — no markdown backticks.`,
-      `{ "files": [{ "fileName": "string (e.g., main.py)", "content": "string (raw code)" }] }`
-    ),
-    user: (input) => `Requirements:\n${input}`,
+      // --- Documentation rules ---
+      const docRules = [
+        ctx?.includeReadme ? 'MUST output a README.md file. It must cover: purpose, setup, usage, and environment variables.' : null,
+        ctx?.includeDocs ? 'MUST add JSDoc / docstrings to every exported function and class.' : null,
+        ctx?.includeTests ? 'MUST output a test file (e.g. *.test.ts / test_*.py). Cover the main happy path and at least one failure case per function.' : null,
+      ].filter(Boolean);
+
+      return withSchema(
+        `You are a code generator. Output ONLY what the rules below specify.
+        RULES — every rule is mandatory and overrides your defaults:
+        [LANGUAGE]   All files MUST be written in: ${language}
+                    Do NOT output files in any other language, even if the prompt implies it.
+        [FRAMEWORK]  Use this framework/runtime: ${framework}
+                    Do NOT introduce any other framework or routing library.
+        [ARCH]       Follow this architectural pattern: ${architecture}
+        [VERBOSITY]  ${verbosityRule}
+        [STACK]      ${customStack ? `Only use these additional libraries/tools: ${customStack}. Do not add anything else.` : 'Use only the standard library of the chosen language/framework. No extra dependencies.'}
+        [FILES]      Use the correct file extensions for ${language}. No mixing of languages.
+                    Raw code only in every file — no markdown fences, no commentary outside of code.
+        ${docRules.length ? '\n[EXTRAS]\n' + docRules.map(r => `             - ${r}`).join('\n') : ''}`,
+        `{ "files": [{ "fileName": "string", "content": "string (raw code, no backticks)" }] }`
+      );
+    },
+    user: (input) => `Generate code for the following requirements:\n\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.generator,
   },
