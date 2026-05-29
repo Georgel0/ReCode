@@ -1,77 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
+import { ConfirmModal } from '@/components/ui';
 import ConfigTab from './ConfigTab';
 import OutputPanel from './OutputPanel';
-import { generateProjectFiles } from './utils';
+import { useCodeGenerator } from './useCodeGenerator';
 import './CodeGenerator.css';
 
 export default function CodeGenerator() {
-  const { moduleData, qualityMode } = useApp();
+  const { moduleData } = useApp();
 
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const [input, setInput] = useState('');
-  const [files, setFiles] = useState([]);
-  const [activeFileIndex, setActiveFileIndex] = useState(0);
-  const [lastResult, setLastResult] = useState(null);
-
-  const [config, setConfig] = useState({
-    language: 'Auto-Detect / Any',
-    framework: 'None (Vanilla)',
-    architecture: 'Standard / Minimal',
-    verbosity: 'production',
-    includeReadme: true,
-    includeDocs: false,
-    includeTests: false,
-    customStack: ''
-  });
+  const {
+    input, setInput,
+    files,
+    activeFileIndex, setActiveFileIndex,
+    config, setConfig,
+    lastResult,
+    loading,
+    error,
+    pendingDraft,
+    handleGenerate,
+    handleClearAll,
+    handleConfirmDraft,
+    handleCancelDraft,
+  } = useCodeGenerator();
 
   useEffect(() => {
     if (moduleData && moduleData.type === 'generator') {
       setInput(moduleData.input || '');
-      setFiles(moduleData.fullOutput?.files || []);
-      setActiveFileIndex(0);
     }
   }, [moduleData]);
 
-  const handleGenerate = async () => {
-    if (!input.trim()) return;
-    setLoading(true);
-    setError('');
-    setFiles([]);
-    setLastResult(null);
-
-    try {
-      const result = await generateProjectFiles(input, config, { qualityMode });
-
-      if (result && result.files) {
-        setFiles(result.files);
-        setActiveFileIndex(0);
-        setLastResult({
-          type: 'generator',
-          input,
-          output: result
-        });
-      } else {
-        throw new Error('Invalid response format from AI.');
-      }
-    } catch (err) {
-      setError(`Generation failed: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClearAll = () => {
-    setInput('');
-    setFiles([]);
-    setActiveFileIndex(0);
-    setError('');
-  };
+  const draftSummary = pendingDraft
+    ? [
+      pendingDraft.input?.trim()
+        ? `Prompt: "${pendingDraft.input.trim().slice(0, 80)}${pendingDraft.input.trim().length > 80 ? '…' : ''}"`
+        : null,
+      pendingDraft.files?.length > 0
+        ? `${pendingDraft.files.length} generated file${pendingDraft.files.length !== 1 ? 's' : ''}`
+        : null,
+      pendingDraft.config?.language && pendingDraft.config.language !== 'Auto-Detect / Any'
+        ? `Language: ${pendingDraft.config.language}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    : '';
 
   return (
     <div className="module-container">
@@ -79,6 +55,21 @@ export default function CodeGenerator() {
         title="Code Generator"
         description="Scaffold multi-file solutions from a plain-English description."
         resultData={lastResult}
+      />
+
+      <ConfirmModal
+        isOpen={!!pendingDraft}
+        icon="fa-floppy-disk"
+        title="Restore Unsaved Draft?"
+        message={
+          draftSummary
+            ? `You have an unsaved session — ${draftSummary}. Would you like to pick up where you left off?`
+            : 'You have an unsaved session. Would you like to restore it?'
+        }
+        confirmText="Restore Draft"
+        cancelText="Start Fresh"
+        onConfirm={handleConfirmDraft}
+        onCancel={handleCancelDraft}
       />
 
       <div className="generator-layout">

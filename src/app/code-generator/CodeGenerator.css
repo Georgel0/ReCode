@@ -21,6 +21,11 @@
 .sidebar-section {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+}
+
+.sidebar-section > .sidebar-textarea {
+  flex: none;
 }
 
 .sidebar-heading {
@@ -36,8 +41,9 @@
 }
 
 .sidebar-textarea {
-  flex: 1;
-  min-height: 160px;
+  height: 300px;
+  min-height: 200px;
+  max-height: 700px;
   resize: vertical;
 }
 
@@ -143,6 +149,10 @@
   width: 14px;
   height: 14px;
   margin-right: 8px;
+}
+
+.spinner.button-spinner {
+  color: white;
 }
 
 @media (max-width: 900px) {

@@ -101,7 +101,12 @@ const TURBO_MAX_ROWS = 5;
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { type, input, sourceLang, targetLang, mode, qualityMode, explainChanges, schema } = body;
+    const {
+      type, input, sourceLang, targetLang, mode, qualityMode,
+      explainChanges, schema,
+      language, framework, architecture, verbosity,
+      includeReadme, includeDocs, includeTests, customStack,
+    } = body;
 
     if (!input || !PROMPT_CONFIG[type]) {
       return NextResponse.json({ error: 'Invalid input or type' }, { status: 400 });
@@ -142,6 +147,14 @@ export async function POST(request) {
       streamParadigm: body.streamParadigm,
       eventFormat: body.eventFormat,
       eventCount: body.eventCount,
+      language,
+      framework,
+      architecture,
+      verbosity,
+      includeReadme,
+      includeDocs,
+      includeTests,
+      customStack,
     };
     let systemPrompt = config.system(promptContext);
     const userPrompt = config.user(input);
