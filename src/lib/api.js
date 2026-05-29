@@ -2,7 +2,7 @@ import { auth, initializeAuth } from '@/lib/firebase';
 
 /**
  * Communicates with the AI Conversion API.
- * * @param {string} type - The operation type (e.g., 'analysis', 'sql', 'converter').
+ * @param {string} type - The operation type (e.g., 'analysis', 'sql', 'converter').
  * @param {string} input - The primary text or code payload to process.
  * @param {Object} [options={}] - Additional configuration (e.g., targetLang, qualityMode, schemas).
  * @returns {Promise<Object>} The AI-generated response.

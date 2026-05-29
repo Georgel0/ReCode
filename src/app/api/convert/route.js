@@ -6,8 +6,6 @@ import { generateText, generateObject, experimental_createProviderRegistry as cr
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { PROMPT_CONFIG } from '@/lib/prompts.js';
 
-// --- Helper Functions ---
-
 function extractJson(text) {
   if (!text) return null;
   try { return JSON.parse(text); } catch (e) {}
@@ -43,8 +41,6 @@ function initializeFirebase() {
   }
 }
 
-// --- Initialization ---
-
 initializeFirebase();
 
 const registry = createProviderRegistry({
@@ -58,8 +54,6 @@ const groq = createGroq();
 const TURBO_MAX_ROWS = 5;
 const GROQ_MAX_TOKENS_DEFAULT = 8000;
 const GROQ_MAX_TOKENS_MOCK = 24000;
-
-// --- Main Handler ---
 
 export async function POST(request) {
   try {
