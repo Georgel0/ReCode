@@ -1,7 +1,7 @@
 'use client';
 
 import { LANGUAGES } from '@/lib';
-import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
+import { CopyButton, CodeEditor, CodeOutput, ConfirmModal, CodeAnalysisInfoIcon } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { ConverterTabs } from './ConverterTabs';
 import { useCodeConverter } from './useCodeConverter';
@@ -38,6 +38,7 @@ export default function CodeConverter() {
 
         <div className="control-bar-group">
           <span className="control-bar-label">
+            <CodeAnalysisInfoIcon />
             <i className="fa-solid fa-file-code"></i> Source
           </span>
           <select

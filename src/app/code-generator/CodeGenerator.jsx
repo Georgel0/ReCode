@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import { ConfirmModal } from '@/components/ui';
+import { ConfirmModal, CodeAnalysisInfoIcon } from '@/components/ui';
 import ConfigTab from './ConfigTab';
 import OutputPanel from './OutputPanel';
 import { useCodeGenerator } from './useCodeGenerator';
@@ -76,6 +76,7 @@ export default function CodeGenerator() {
         <aside className="generator-sidebar">
           <section className="sidebar-section">
             <h3 className="sidebar-heading">
+              <CodeAnalysisInfoIcon />
               <i className="fa-solid fa-layer-group"></i>
               Requirements
             </h3>

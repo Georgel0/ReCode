@@ -25,18 +25,31 @@ export function CodeHighlightAnalyzer() {
 
       if (text && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
+        
+        // Find the actual DOM element containing the text selection
+        let container = range.commonAncestorContainer;
+        if (container.nodeType === Node.TEXT_NODE) {
+          container = container.parentElement;
+        }
 
-        // Calculate absolute position on the page (including scroll offsets)
-        setPosition({
-          top: rect.top + window.scrollY - 42,
-          left: rect.left + window.scrollX + rect.width / 2,
-        });
-        setSelectedText(text);
-        setVisible(true);
-      } else {
-        setVisible(false);
+        // Detect if the container is a code block, inline code, or has a code class
+        const isCode = container.closest('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]');
+
+        if (isCode) {
+          const rect = range.getBoundingClientRect();
+
+          // Calculate absolute position on the page (including scroll offsets)
+          setPosition({
+            top: rect.top + window.scrollY - 42,
+            left: rect.left + window.scrollX + rect.width / 2,
+          });
+          setSelectedText(text);
+          setVisible(true);
+          return; 
+        }
       }
+      
+      setVisible(false);
     };
 
     const handleMouseDown = (e) => {
@@ -89,8 +102,9 @@ export function CodeAnalysisInfoIcon() {
       ></i>
       <Tooltip
         id="code-analysis-tooltip"
-        place="top"
-        content="💡 Pro Tip: Drag your mouse to highlight any snippet of code on this page to quickly run a structural audit!"
+        place="right"
+        content={<p>💡 Tip: Drag your mouse to highlight any snippet <br />
+          of code on this page to quickly run a structural audit!</p>}
         className="custom-analysis-tooltip"
       />
     </span>
