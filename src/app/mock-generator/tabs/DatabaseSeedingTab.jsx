@@ -1,10 +1,16 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal, ErdDiagram } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
-import { useDatabaseSeedingTab, inferColumnBadges, RULE_TEMPLATES, SAMPLE_SCHEMAS, } from '../hooks/useDatabaseSeedingTab';
+import {
+  useDatabaseSeedingTab,
+  inferColumnBadges,
+  RULE_TEMPLATES,
+  SAMPLE_SCHEMAS,
+  FAKER_ANNOTATIONS,
+} from '../hooks/useDatabaseSeedingTab';
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';
@@ -14,12 +20,25 @@ function ColTypeBadge({ label }) {
   else if (label === 'PK') cls += ' col-type-badge--pk';
   else if (label === 'BOOL') cls += ' col-type-badge--bool';
   else if (label === 'INT' || label === 'FLOAT') cls += ' col-type-badge--num';
-
   return <span className={cls}>{label}</span>;
 }
 
-function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, onCommit, onCancel, onCopy }) {
+function SortIndicator({ col, sortConfig }) {
+  if (sortConfig?.col !== col) return <i className="fas fa-sort sort-icon sort-icon--idle" />;
+  return sortConfig.dir === 'asc'
+    ? <i className="fas fa-sort-up   sort-icon sort-icon--active" />
+    : <i className="fas fa-sort-down sort-icon sort-icon--active" />;
+}
+
+// Inline cell editor with a right-click context menu for copy + regen.
+function EditableCell({
+  value, rowIdx, colKey,
+  isEditing, editingValue,
+  isRegenerating,
+  onStartEdit, onChange, onCommit, onCancel, onCopy, onRegen,
+}) {
   const inputRef = useRef(null);
+  const [menuPos, setMenuPos] = useState(null); // { x, y } when menu open
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -27,6 +46,14 @@ function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, o
       inputRef.current.select();
     }
   }, [isEditing]);
+
+  // Close context menu on outside click
+  useEffect(() => {
+    if (!menuPos) return;
+    const close = () => setMenuPos(null);
+    window.addEventListener('click', close, { once: true });
+    return () => window.removeEventListener('click', close);
+  }, [menuPos]);
 
   const displayVal = typeof value === 'object' && value !== null
     ? JSON.stringify(value)
@@ -50,18 +77,126 @@ function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, o
     );
   }
 
+  if (isRegenerating) {
+    return (
+      <td className="editable-cell regen-cell">
+        <i className="fas fa-circle-notch fa-spin regen-cell-spinner" />
+      </td>
+    );
+  }
+
   return (
     <td
       className="editable-cell"
-      title="Double-click to edit · Triple-click to copy"
+      title="Double-click to edit · Right-click for options"
       onDoubleClick={() => onStartEdit(displayVal)}
       onClick={e => { if (e.detail === 3) onCopy(value); }}
+      onContextMenu={e => {
+        e.preventDefault();
+        setMenuPos({ x: e.clientX, y: e.clientY });
+      }}
     >
       <div className="cell-content-wrapper">
         <span className="cell-value">{displayVal}</span>
         <i className="fas fa-pencil-alt cell-edit-icon" />
       </div>
+
+      {menuPos && (
+        <ul
+          className="cell-context-menu"
+          style={{ top: menuPos.y, left: menuPos.x }}
+          onClick={e => e.stopPropagation()}
+        >
+          <li onClick={() => { onStartEdit(displayVal); setMenuPos(null); }}>
+            <i className="fas fa-pencil-alt" /> Edit value
+          </li>
+          <li onClick={() => { onCopy(value); setMenuPos(null); }}>
+            <i className="fas fa-copy" /> Copy value
+          </li>
+          <li className="context-menu-divider" />
+          <li onClick={() => { onRegen(rowIdx, colKey); setMenuPos(null); }}>
+            <i className="fas fa-sync-alt" /> Regenerate value
+          </li>
+        </ul>
+      )}
     </td>
+  );
+}
+
+function FakerAnnotationTooltip() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    window.addEventListener('mousedown', close);
+    return () => window.removeEventListener('mousedown', close);
+  }, [open]);
+
+  return (
+    <div className="faker-hint-wrap" ref={ref}>
+      <button
+        className="faker-hint-btn"
+        title="View available @faker: annotations"
+        onClick={() => setOpen(o => !o)}
+        type="button"
+      >
+        <i className="fas fa-at" /> Annotations
+      </button>
+      {open && (
+        <div className="faker-hint-popover">
+          <div className="faker-hint-header">
+            <strong>Available Annotations</strong>
+            <br />
+            <span className="faker-hint-sub">Add inline to column comments</span>
+          </div>
+          <ul className="faker-hint-list">
+            {FAKER_ANNOTATIONS.map(a => (
+              <li key={a.annotation} className="faker-hint-item">
+                <code className="faker-hint-code">{a.annotation}</code>
+                <span className="faker-hint-desc">{a.description}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ColFilterBar({ colKeys, colFilter, setColFilter }) {
+  return (
+    <div className="col-filter-bar">
+      <select
+        className="theme-select-dropdown col-filter-select"
+        value={colFilter?.col ?? ''}
+        onChange={e => setColFilter(prev =>
+          e.target.value ? { col: e.target.value, value: prev?.value ?? '' } : null
+        )}
+      >
+        <option value="">Filter column…</option>
+        {colKeys.map(k => <option key={k} value={k}>{k}</option>)}
+      </select>
+      {colFilter?.col && (
+        <>
+          <input
+            className="text-input col-filter-value"
+            placeholder={`Value in ${colFilter.col}…`}
+            value={colFilter.value ?? ''}
+            onChange={e => setColFilter(prev => ({ ...prev, value: e.target.value }))}
+            autoFocus
+          />
+          <button
+            className="col-filter-clear"
+            onClick={() => setColFilter(null)}
+            title="Clear column filter"
+          >
+            <i className="fas fa-times" />
+          </button>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -69,35 +204,38 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
   const db = useDatabaseSeedingTab({ onDataUpdate, isActive });
 
   const {
-    schemaInput, setSchemaInput, rules, setRules, locale, setLocale, rowCount, setRowCount,
-    seed, setSeed, dataQuality, setDataQuality, detectedLanguage, includeAnalysis, setIncludeAnalysis,
+    schemaInput, setSchemaInput, rules, setRules, locale, setLocale,
+    rowCount, setRowCount, seed, setSeed, dataQuality, setDataQuality,
+    detectedLanguage, includeAnalysis, setIncludeAnalysis,
 
-    isLoading, generatedData, activeTab,
-    setActiveTab, parsedRulesFeedback, regenLoadingIdx,
+    isLoading, generatedData, activeTab, setActiveTab,
+    parsedRulesFeedback, regenLoadingIdx, regenCellTarget,
 
-    viewMode, setViewMode, filterQuery, setFilterQuery,
+    viewMode, setViewMode,
+    filterQuery, setFilterQuery,
+    colFilter, setColFilter,
+    sortConfig, handleSort,
 
-    editingCell, editingValue, setEditingValue, handleStartEdit, handleCommitEdit,
-    handleCancelEdit, handleCopyCell,
+    editingCell, editingValue, setEditingValue,
+    handleStartEdit, handleCommitEdit, handleCancelEdit, handleCopyCell,
+    handleAddRow, handleDeleteRow,
+    handleRegenerateCell,
 
     currentPage, setCurrentPage, totalPages, paginatedRows, filteredRows,
 
-    allTableNames, fkRelationships,
+    allTableNames, activeColKeys, fkRelationships,
 
-    handleGenerate, handleRegenerateTable, triggerExportModal,
+    handleGenerate, handleRegenerateTable, triggerExportModal, handleCopyShareLink,
 
     savedSchemas, schemaOptionsVisible, setSchemaOptionsVisible,
     isSaveModalOpen, setIsSaveModalOpen, newSchemaName, setNewSchemaName,
     saveSchemaError, setSaveSchemaError, handleSaveSchema, executeSaveSchema, handleDeleteSchema,
 
     modalConfig, setModalConfig,
-
-    activeTableData, hasNoInboundFKs,
-
-    handleLoadSample,
+    activeTableData, hasNoInboundFKs, handleLoadSample,
   } = db;
 
-  const colKeys = activeTableData?.rows?.[0] ? Object.keys(activeTableData.rows[0]) : [];
+  const colKeys = activeColKeys;
   const sampleRow = activeTableData?.rows?.[0] ?? {};
 
   const getQualityLabel = (val) => {
@@ -105,6 +243,9 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
     if (val >= 80) return 'Minor Edge Cases';
     return 'Heavy Edge Cases';
   };
+
+  const isRegenCell = (rowIdx, colKey) =>
+    regenCellTarget?.rowIdx === rowIdx && regenCellTarget?.colKey === colKey;
 
   return (
     <>
@@ -118,15 +259,18 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 <div className="mock-section-title">
                   <i className="fas fa-sitemap" /> Architecture ({detectedLanguage})
                 </div>
-                <button
-                  className="icon-text-btn"
-                  onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}
-                  disabled={savedSchemas.length === 0}
-                  title={savedSchemas.length === 0 ? 'Save a schema first' : 'Toggle Saved Schemas'}
-                >
-                  <i className={`fas ${schemaOptionsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
-                  {savedSchemas.length > 0 && <span className="badge-count">{savedSchemas.length}</span>}
-                </button>
+                <div className="db-mock-section-header-actions">
+                  <FakerAnnotationTooltip />
+                  <button
+                    className="icon-text-btn"
+                    onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}
+                    disabled={savedSchemas.length === 0}
+                    title={savedSchemas.length === 0 ? 'Save a schema first' : 'Toggle Saved Schemas'}
+                  >
+                    <i className={`fas ${schemaOptionsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
+                    {savedSchemas.length > 0 && <span className="badge-count">{savedSchemas.length}</span>}
+                  </button>
+                </div>
               </div>
 
               <div className="mock-form-group">
@@ -151,7 +295,11 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     <div key={i} className="schema-library-item">
                       <div
                         className="schema-library-item-name"
-                        onClick={() => { setSchemaInput(s.schema); setSchemaOptionsVisible(false); }}
+                        onClick={() => {
+                          setSchemaInput(s.schema);
+                          if (s.rules) setRules(s.rules);
+                          setSchemaOptionsVisible(false);
+                        }}
                       >
                         <i className="fas fa-file-code schema-library-item-icon" />
                         {s.name}
@@ -191,7 +339,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
-                  <i className="fas fa-balance-scale" /> Rules & Distributions
+                  <i className="fas fa-balance-scale" /> Rules &amp; Distributions
                 </div>
               </div>
               <div className="mock-form-group">
@@ -280,14 +428,15 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   />
                 </div>
               </div>
+
               <label className="custom-check" style={{ marginTop: '0.5rem' }}>
                 <input
                   type="checkbox"
                   checked={includeAnalysis}
-                  onChange={(e) => setIncludeAnalysis(e.target.checked)}
+                  onChange={e => setIncludeAnalysis(e.target.checked)}
                 />
                 <div className="box"><i className="fas fa-check" /></div>
-                <span className="label-text">Generate Data Analysis & Explanations</span>
+                <span className="label-text">Generate Data Analysis &amp; Explanations</span>
               </label>
             </div>
 
@@ -360,16 +509,23 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
 
+                  <button
+                    className="secondary-button icon-only tool-btn share-btn"
+                    title="Copy shareable link"
+                    onClick={handleCopyShareLink}
+                  >
+                    <i className="fas fa-share-alt" />
+                  </button>
+
                   <div className="mock-export-group">
                     <button
                       className="secondary-button icon-only tool-btn"
-                      title="Copy as JSON"
+                      title="Copy active table as JSON"
                       onClick={() =>
-                        navigator.clipboard.writeText(
-                          JSON.stringify(activeTableData, null, 2)
-                        ).catch(() => console.warn('Clipboard write failed'))
+                        navigator.clipboard
+                          .writeText(JSON.stringify(activeTableData, null, 2))
+                          .catch(() => console.warn('Clipboard write failed'))
                       }
-                      disabled={!generatedData}
                     >
                       <i className="fas fa-clipboard" />
                     </button>
@@ -377,13 +533,13 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                       className="theme-select-dropdown action-select"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
-                      disabled={!generatedData}
                     >
                       <option value="">Export As…</option>
                       <option value="csv">CSV (Active Table)</option>
                       <option value="json">JSON (All Tables)</option>
                       <option value="sql">SQL Seeds</option>
                       <option value="prisma">Prisma Seed (.ts)</option>
+                      <option value="types">TypeScript Types (.ts)</option>
                     </select>
                   </div>
                 </>
@@ -399,7 +555,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               icon="fas fa-database"
               title="Awaiting Architecture"
               description="Input your schema definitions in the sidebar to generate a highly interconnected relational database."
-              hint={<>Use <code>@faker:creditCard</code> for specific formatting.</>}
+              hint={<>Use <code>@faker:creditCard</code> for specific column formatting. Click <strong>Annotations</strong> in the sidebar for the full list.</>}
               loadingTitle="Synthesizing Reality"
               loadingDescription="Analyzing schema relationships and generating localized datasets..."
             />
@@ -420,7 +576,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     <input
                       type="text"
                       className="table-filter-input"
-                      placeholder={`Search ${activeTableData.tableName}…`}
+                      placeholder={`Search all columns in ${activeTableData.tableName}…`}
                       value={filterQuery}
                       onChange={e => setFilterQuery(e.target.value)}
                     />
@@ -428,34 +584,57 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                       <button
                         className="table-filter-clear"
                         onClick={() => setFilterQuery('')}
-                        title="Clear filter"
+                        title="Clear search"
                       >
                         <i className="fas fa-times-circle" />
                       </button>
                     )}
                   </div>
-                  {filterQuery && (
+
+                  {(filterQuery || colFilter) && (
                     <span className="table-filter-count">
                       {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
                     </span>
                   )}
+
                   <div className="table-controls-right">
-                    <span className="table-meta-tag"><i className="fas fa-info-circle" /> Triple-click cell to copy</span>
+                    <button
+                      className="secondary-button btn-small add-row-btn"
+                      onClick={handleAddRow}
+                      title="Add a blank row"
+                    >
+                      <i className="fas fa-plus" /> Add Row
+                    </button>
                   </div>
                 </div>
+
+                <ColFilterBar
+                  colKeys={colKeys}
+                  colFilter={colFilter}
+                  setColFilter={setColFilter}
+                />
 
                 <div className="table-scroll-container">
                   <table className="mock-data-table">
                     <thead>
                       <tr>
+                        <th className="row-actions-th" />
                         {colKeys.map(key => {
                           const badges = inferColumnBadges(key, sampleRow[key], allTableNames);
                           return (
-                            <th key={key}>
+                            <th
+                              key={key}
+                              className="sortable-th"
+                              onClick={() => handleSort(key)}
+                              title={`Sort by ${key}`}
+                            >
                               <div className="th-content">
                                 <span className="th-col-name">{key}</span>
-                                <div className="th-badges">
-                                  {badges.map(b => <ColTypeBadge key={b} label={b} />)}
+                                <div className="th-right">
+                                  <div className="th-badges">
+                                    {badges.map((b, i) => <ColTypeBadge key={`${b}-${i}`} label={b} />)}
+                                  </div>
+                                  <SortIndicator col={key} sortConfig={sortConfig} />
                                 </div>
                               </div>
                             </th>
@@ -466,15 +645,25 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     <tbody>
                       {paginatedRows.length === 0 ? (
                         <tr>
-                          <td colSpan={colKeys.length} className="table-no-results">
+                          <td colSpan={colKeys.length + 1} className="table-no-results">
                             <i className="fas fa-search-minus empty-search-icon" />
-                            <p>No rows match &ldquo;{filterQuery}&rdquo;</p>
+                            <p>No rows match the current filters</p>
                           </td>
                         </tr>
                       ) : (
                         paginatedRows.map((row, rowIdx) => (
-                          <tr key={rowIdx}>
-                            {colKeys.map((colKey, colIdx) => {
+                          <tr key={rowIdx} className="data-row">
+                            {/* Row delete button */}
+                            <td className="row-actions-cell">
+                              <button
+                                className="row-delete-btn"
+                                title="Delete this row"
+                                onClick={() => handleDeleteRow(rowIdx)}
+                              >
+                                <i className="fas fa-times" />
+                              </button>
+                            </td>
+                            {colKeys.map(colKey => {
                               const isEditing =
                                 editingCell?.rowIdx === rowIdx &&
                                 editingCell?.colKey === colKey;
@@ -482,13 +671,17 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                                 <EditableCell
                                   key={colKey}
                                   value={row[colKey]}
+                                  rowIdx={rowIdx}
+                                  colKey={colKey}
                                   isEditing={isEditing}
                                   editingValue={editingValue}
+                                  isRegenerating={isRegenCell(rowIdx, colKey)}
                                   onStartEdit={val => handleStartEdit(rowIdx, colKey, val)}
                                   onChange={setEditingValue}
                                   onCommit={handleCommitEdit}
                                   onCancel={handleCancelEdit}
                                   onCopy={handleCopyCell}
+                                  onRegen={handleRegenerateCell}
                                 />
                               );
                             })}
@@ -508,7 +701,9 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     >
                       <i className="fas fa-chevron-left" /> Prev
                     </button>
-                    <span className="page-indicator">Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong></span>
+                    <span className="page-indicator">
+                      Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+                    </span>
                     <button
                       className="page-btn"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}

@@ -153,7 +153,8 @@
 .mock-section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-direction: column;
   margin-bottom: 0.25rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
@@ -508,7 +509,7 @@
 
 .th-content {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.4rem;
 }
 
@@ -523,6 +524,22 @@
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
+}
+
+.th-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.row-delete-btn {
+  border: none;
+  background: none;
+  color: var(--accent);
+}
+
+.row-delete-btn:hover {
+  color: red;
 }
 
 .editable-cell {

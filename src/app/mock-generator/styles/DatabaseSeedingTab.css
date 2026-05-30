@@ -8,6 +8,15 @@
   min-height: 54px;
 }
 
+.db-mock-section-header-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  position: relative;
+}
+
 .regen-table-btn {
   background: transparent;
   border: 1px solid transparent;
@@ -20,6 +29,39 @@
 
 .regen-table-btn:hover:not(:disabled) {
   color: var(--accent);
+}
+
+.faker-hint-btn {
+  border: none;
+  background: none;
+  color: var(--accent);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+.faker-hint-popover {
+  position: absolute;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  padding: 10px;
+  z-index: 9999;
+}
+
+.faker-hint-item {
+  margin-bottom: 10px;
+}
+
+.faker-hint-code {
+  padding: 5px;
+  margin-right: 5px;
+  background-color: var(--border);
+  border-radius: 20px;
+}
+
+.faker-hint-list {
+  padding-left: 30px;
 }
 
 @media (max-width: 768px) {
