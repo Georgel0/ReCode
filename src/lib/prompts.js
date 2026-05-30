@@ -224,7 +224,7 @@ export const PROMPT_CONFIG = {
   },
 
   sql: {
-    system: (ctx) => {
+    system: (ctx = {}) => {
       const taskMap = {
         builder: `Generate an optimised ${ctx.targetLang} query based on the user requirement.`,
         converter: `Convert the provided ${ctx.sourceLang} query into perfect ${ctx.targetLang}.`,

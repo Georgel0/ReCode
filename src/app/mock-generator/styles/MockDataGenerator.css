@@ -154,7 +154,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  flex-direction: column;
+  flex-direction: row;
   margin-bottom: 0.25rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;

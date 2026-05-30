@@ -255,9 +255,9 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
           <div className="mock-sidebar-content">
 
             <div className="mock-section">
-              <div className="mock-section-header">
+              <div className="db-mock-section-header">
                 <div className="mock-section-title">
-                  <i className="fas fa-sitemap" /> Architecture ({detectedLanguage})
+                  <><i className="fas fa-sitemap" /> Architecture ({detectedLanguage})</>
                 </div>
                 <div className="db-mock-section-header-actions">
                   <FakerAnnotationTooltip />

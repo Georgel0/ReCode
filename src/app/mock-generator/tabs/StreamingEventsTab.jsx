@@ -1,95 +1,17 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
+import { CorrelatedView, ReplayView, 
+  inferEventBadges, RuleValidationPanel, DistributionChart, 
+  EditableCell, EventColBadge } from '../components/StreamingEventsComponents';
 import {
   useStreamingEventsTab,
-  STREAM_RULE_TEMPLATES,
-  EVENT_FORMATS,
-  STREAM_PARADIGMS,
-  ITEMS_PER_PAGE,
-  SAMPLE_TEMPLATES,
+  STREAM_RULE_TEMPLATES, EVENT_FORMATS, 
+  STREAM_PARADIGMS, ITEMS_PER_PAGE, SAMPLE_TEMPLATES,
 } from '../hooks/useStreamingEventsTab';
-
-function inferEventBadges(colName, sampleValue) {
-  const badges = [];
-  const lower = colName.toLowerCase();
-  const strVal = sampleValue !== null && sampleValue !== undefined ? String(sampleValue) : '';
-
-  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (uuidRe.test(strVal)) badges.push('UUID');
-
-  const tsKeys = ['timestamp', 'ts', 'time', 'created_at', 'occurred_at', 'event_time', 'datetime'];
-  if (tsKeys.some(k => lower.includes(k))) badges.push('TIMESTAMP');
-  else if (!badges.includes('UUID') && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) badges.push('TIMESTAMP');
-
-  if (lower === 'event_type' || lower === 'type' || lower === 'name' || lower === 'event_name') badges.push('EVENT');
-  if (lower.includes('session') || lower.includes('trace') || lower.includes('correlation')) badges.push('CORR');
-  if (strVal === 'true' || strVal === 'false') badges.push('BOOL');
-  if (!badges.length && /^-?\d+$/.test(strVal) && strVal.length < 12) badges.push('INT');
-  if (!badges.length && /^-?\d+\.\d+$/.test(strVal)) badges.push('FLOAT');
-
-  return badges;
-}
-
-function EventColBadge({ label }) {
-  let cls = 'col-type-badge';
-  if (label === 'UUID') cls += ' col-type-badge--uuid';
-  if (label === 'TIMESTAMP') cls += ' col-type-badge--ts';
-  if (label === 'EVENT') cls += ' col-type-badge--pk';
-  if (label === 'CORR') cls += ' col-type-badge--fk';
-  if (label === 'BOOL') cls += ' col-type-badge--bool';
-  if (label === 'INT' || label === 'FLOAT') cls += ' col-type-badge--num';
-  return <span className={cls}>{label}</span>;
-}
-
-function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, onCommit, onCancel, onCopy }) {
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
-
-  const displayVal = typeof value === 'object' && value !== null
-    ? JSON.stringify(value)
-    : String(value ?? '');
-
-  if (isEditing) {
-    return (
-      <td className="editable-cell editing-cell">
-        <input
-          ref={inputRef}
-          className="cell-edit-input"
-          value={editingValue}
-          onChange={e => onChange(e.target.value)}
-          onBlur={onCommit}
-          onKeyDown={e => {
-            if (e.key === 'Enter') onCommit();
-            if (e.key === 'Escape') onCancel();
-          }}
-        />
-      </td>
-    );
-  }
-
-  return (
-    <td
-      className="editable-cell"
-      title="Double-click to edit · Triple-click to copy"
-      onDoubleClick={() => onStartEdit(displayVal)}
-      onClick={e => { if (e.detail === 3) onCopy(value); }}
-    >
-      <div className="cell-content-wrapper">
-        <span className="cell-value">{displayVal}</span>
-        <i className="fas fa-pencil-alt cell-edit-icon" />
-      </div>
-    </td>
-  );
-}
 
 export default function StreamingEventsTab({ onDataUpdate, isActive }) {
   const st = useStreamingEventsTab({ onDataUpdate, isActive });
@@ -106,8 +28,9 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
     parsedRulesFeedback, allStreamNames, activeStreamData,
 
     viewMode, setViewMode, filterQuery, setFilterQuery,
+    fieldFilters, setFieldFilters,
     currentPage, setCurrentPage, totalPages, paginatedEvents, filteredEvents,
-    colKeys, rawJsonContent, rawFullContent,
+    colKeys, colUniqueValues, rawJsonContent, rawFullContent,
 
     editingCell, editingValue, setEditingValue,
     handleStartEdit, handleCommitEdit, handleCancelEdit, handleCopyCell,
@@ -120,9 +43,18 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
     handleSaveTemplate, executeSaveTemplate, handleDeleteTemplate,
 
     modalConfig, setModalConfig, handleLoadSample,
+
+    replayIndex, replayPlaying, replaySpeed, setReplaySpeed,
+    handleReplayPlay, handleReplayPause, handleReplayReset, handleReplayStep,
+
+    distColumn, setDistColumn, distData,
+    ruleValidation,
+    correlatedView,
+    generateCodeSnippet
   } = st;
 
   const sampleEvent = activeStreamData?.events?.[0] ?? {};
+  const hasMultipleStreams = (generatedData?.streams?.length ?? 0) > 1;
 
   const getQualityLabel = (val) => {
     if (val === 100) return 'Perfect';
@@ -132,13 +64,24 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
   const selectedParadigmIcon = STREAM_PARADIGMS.find(p => p.value === streamParadigm)?.icon ?? 'fa-stream';
 
+  // Copy-as-code handler
+  const handleCopyAsCode = (format) => {
+    if (!activeStreamData?.events) return;
+    const snippet = generateCodeSnippet(activeStreamData.events, activeStreamData.streamName, format);
+    navigator.clipboard.writeText(snippet).catch(() => {});
+  };
+
+  const activeFieldFilterCount = Object.values(fieldFilters).filter(v => v !== '').length;
+
   return (
     <>
       <div className="mock-factory-container">
 
+        {/* ── SIDEBAR ── */}
         <div className="mock-sidebar">
           <div className="mock-sidebar-content">
 
+            {/* Schema */}
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
@@ -235,9 +178,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   onChange={e => setStreamParadigm(e.target.value)}
                 >
                   {STREAM_PARADIGMS.map(p => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
+                    <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
               </div>
@@ -246,7 +187,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
-                  <i className="fas fa-balance-scale" /> Rules & Distributions
+                  <i className="fas fa-balance-scale" /> Rules &amp; Distributions
                 </div>
               </div>
               <div className="mock-form-group">
@@ -280,6 +221,10 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   </div>
                 )}
               </div>
+
+              {ruleValidation.length > 0 && (
+                <RuleValidationPanel results={ruleValidation} />
+              )}
             </div>
 
             <div className="mock-section">
@@ -301,6 +246,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
+            {/* Parameters */}
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
@@ -315,9 +261,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <input
                   type="range"
                   className="styled-slider"
-                  min={5}
-                  max={200}
-                  step={5}
+                  min={5} max={200} step={5}
                   value={parseInt(eventCount, 10) || 25}
                   onChange={e => setEventCount(e.target.value)}
                 />
@@ -348,9 +292,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <input
                   type="range"
                   className="styled-slider"
-                  min={60}
-                  max={100}
-                  step={10}
+                  min={60} max={100} step={10}
                   value={dataQuality}
                   onChange={e => setDataQuality(Number(e.target.value))}
                 />
@@ -382,6 +324,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             </div>
 
           </div>
+
           <div className="mock-sidebar-footer">
             <button
               className={`primary-button fabricate-action-btn ${isLoading ? 'loading' : ''}`}
@@ -422,6 +365,9 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     title="Table view"
                   >
                     <i className="fas fa-table" /> Table
+                    {activeFieldFilterCount > 0 && (
+                      <span className="tab-count-badge" style={{ marginLeft: '0.3rem' }}>{activeFieldFilterCount}</span>
+                    )}
                   </button>
                   <button
                     className={`view-toggle-btn ${viewMode === 'timeline' ? 'active' : ''}`}
@@ -429,6 +375,29 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     title="Timeline view"
                   >
                     <i className="fas fa-align-left" /> Timeline
+                  </button>
+                  <button
+                    className={`view-toggle-btn ${viewMode === 'replay' ? 'active' : ''}`}
+                    onClick={() => setViewMode('replay')}
+                    title="Replay mode"
+                  >
+                    <i className="fas fa-play-circle" /> Replay
+                  </button>
+                  {hasMultipleStreams && (
+                    <button
+                      className={`view-toggle-btn ${viewMode === 'correlated' ? 'active' : ''}`}
+                      onClick={() => setViewMode('correlated')}
+                      title="Multi-stream correlation view"
+                    >
+                      <i className="fas fa-random" /> Correlated
+                    </button>
+                  )}
+                  <button
+                    className={`view-toggle-btn ${viewMode === 'distribution' ? 'active' : ''}`}
+                    onClick={() => setViewMode('distribution')}
+                    title="Column distributions"
+                  >
+                    <i className="fas fa-chart-bar" /> Dist
                   </button>
                   <button
                     className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
@@ -441,15 +410,28 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
                 <select
                   className="theme-select-dropdown action-select"
-                  value=""
-                  onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                   disabled={!generatedData}
+                  value=""
+                  onChange={e => {
+                    if (e.target.value) {
+                      triggerExportModal(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
                 >
-                  <option value="">Export As…</option>
-                  <option value="ndjson">NDJSON (All Streams)</option>
-                  <option value="json">JSON (All Streams)</option>
-                  <option value="csv">CSV (Active Stream)</option>
-                  <option value="kafka">Kafka NDJSON</option>
+                  <option value="">Export / Copy…</option>
+                  <optgroup label="File export">
+                    <option value="ndjson">NDJSON (All Streams)</option>
+                    <option value="json">JSON (All Streams)</option>
+                    <option value="csv">CSV (Active Stream)</option>
+                    <option value="kafka">Kafka NDJSON</option>
+                  </optgroup>
+                  <optgroup label="Copy as code">
+                    <option value="python_kafka">Python — Kafka producer</option>
+                    <option value="python_requests">Python — requests</option>
+                    <option value="js_fetch">JavaScript — fetch</option>
+                    <option value="curl">cURL commands</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
@@ -467,118 +449,154 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
           />
 
           <div className="stream-view-scroll-area">
+
             {activeStreamData && !isLoading && viewMode === 'events' && (
               <div className="mock-table-wrapper">
+
                 <div className="table-filter-bar">
-                <div className="table-filter-input-wrap">
-                  <i className="fas fa-search table-filter-icon" />
-                  <input
-                    type="text"
-                    className="table-filter-input"
-                    placeholder={`Search ${activeStreamData.streamName}…`}
-                    value={filterQuery}
-                    onChange={e => setFilterQuery(e.target.value)}
-                  />
-                  {filterQuery && (
-                    <button
-                      className="table-filter-clear"
-                      onClick={() => setFilterQuery('')}
-                      title="Clear filter"
+                  <div className="table-filter-input-wrap">
+                    <i className="fas fa-search table-filter-icon" />
+                    <input
+                      type="text"
+                      className="table-filter-input"
+                      placeholder={`Search ${activeStreamData.streamName}…`}
+                      value={filterQuery}
+                      onChange={e => setFilterQuery(e.target.value)}
+                    />
+                    {filterQuery && (
+                      <button
+                        className="table-filter-clear"
+                        onClick={() => setFilterQuery('')}
+                        title="Clear filter"
+                      >
+                        <i className="fas fa-times-circle" />
+                      </button>
+                    )}
+                  </div>
+
+                  {Object.entries(colUniqueValues).slice(0, 3).map(([col, vals]) => (
+                    <select
+                      key={col}
+                      className="theme-select-dropdown action-select field-filter-select"
+                      value={fieldFilters[col] || ''}
+                      onChange={e => setFieldFilters(prev => ({ ...prev, [col]: e.target.value }))}
+                      title={`Filter by ${col}`}
                     >
-                      <i className="fas fa-times-circle" />
+                      <option value="">{col}: all</option>
+                      {vals.map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  ))}
+
+                  {activeFieldFilterCount > 0 && (
+                    <button
+                      className="icon-text-btn"
+                      onClick={() => setFieldFilters({})}
+                      title="Clear all field filters"
+                    >
+                      <i className="fas fa-filter-circle-xmark" /> Clear filters
                     </button>
                   )}
-                </div>
-                {filterQuery && (
-                  <span className="table-filter-count">
-                    {filteredEvents.length} match{filteredEvents.length !== 1 ? 'es' : ''}
-                  </span>
-                )}
-                <div className="table-controls-right">
-                  <span className="table-meta-tag">
-                    <i className="fas fa-info-circle" /> Triple-click cell to copy
-                  </span>
-                </div>
-              </div>
 
-              <div className="table-scroll-container">
-                <table className="mock-data-table">
-                  <thead>
-                    <tr>
-                      {colKeys.map(key => {
-                        const badges = inferEventBadges(key, sampleEvent[key]);
-                        return (
-                          <th key={key}>
-                            <div className="th-content">
-                              <span className="th-col-name">{key}</span>
-                              <div className="th-badges">
-                                {badges.map(b => <EventColBadge key={b} label={b} />)}
-                              </div>
-                            </div>
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedEvents.length === 0 ? (
+                  {filterQuery && (
+                    <span className="table-filter-count">
+                      {filteredEvents.length} match{filteredEvents.length !== 1 ? 'es' : ''}
+                    </span>
+                  )}
+                  <div className="table-controls-right">
+                    <span className="table-meta-tag">
+                      <i className="fas fa-info-circle" /> Triple-click cell to copy
+                    </span>
+                  </div>
+                </div>
+
+                <div className="table-scroll-container">
+                  <table className="mock-data-table">
+                    <thead>
                       <tr>
-                        <td colSpan={colKeys.length} className="table-no-results">
-                          <i className="fas fa-search-minus empty-search-icon" />
-                          <p>No events match &ldquo;{filterQuery}&rdquo;</p>
-                        </td>
+                        {colKeys.map(key => {
+                          const badges = inferEventBadges(key, sampleEvent[key]);
+                          return (
+                            <th key={key}>
+                              <div className="th-content">
+                                <span className="th-col-name">{key}</span>
+                                <div className="th-badges">
+                                  {badges.map(b => <EventColBadge key={b} label={b} />)}
+                                </div>
+                                <button
+                                  className="col-dist-btn"
+                                  title={`View distribution for ${key}`}
+                                  onClick={() => {
+                                    setDistColumn(prev => prev === key ? null : key);
+                                    setViewMode('distribution');
+                                  }}
+                                >
+                                  <i className="fas fa-chart-bar" />
+                                </button>
+                              </div>
+                            </th>
+                          );
+                        })}
                       </tr>
-                    ) : (
-                      paginatedEvents.map((evt, rowIdx) => (
-                        <tr key={rowIdx}>
-                          {colKeys.map((colKey, colIdx) => {
-                            const isEditing =
-                              editingCell?.rowIdx === rowIdx &&
-                              editingCell?.colKey === colKey;
-                            return (
-                              <EditableCell
-                                key={colIdx}
-                                value={evt[colKey]}
-                                isEditing={isEditing}
-                                editingValue={editingValue}
-                                onStartEdit={val => handleStartEdit(rowIdx, colKey, val)}
-                                onChange={setEditingValue}
-                                onCommit={handleCommitEdit}
-                                onCancel={handleCancelEdit}
-                                onCopy={handleCopyCell}
-                              />
-                            );
-                          })}
+                    </thead>
+                    <tbody>
+                      {paginatedEvents.length === 0 ? (
+                        <tr>
+                          <td colSpan={colKeys.length} className="table-no-results">
+                            <i className="fas fa-search-minus empty-search-icon" />
+                            <p>No events match &ldquo;{filterQuery}&rdquo;</p>
+                          </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {totalPages > 1 && (
-                <div className="pagination-controls">
-                  <button
-                    className="page-btn"
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    <i className="fas fa-chevron-left" /> Prev
-                  </button>
-                  <span className="page-indicator">
-                    Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
-                  </span>
-                  <button
-                    className="page-btn"
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next <i className="fas fa-chevron-right" />
-                  </button>
+                      ) : (
+                        paginatedEvents.map((evt, rowIdx) => (
+                          <tr key={rowIdx}>
+                            {colKeys.map((colKey, colIdx) => {
+                              const isEditing =
+                                editingCell?.rowIdx === rowIdx &&
+                                editingCell?.colKey === colKey;
+                              return (
+                                <EditableCell
+                                  key={colIdx}
+                                  value={evt[colKey]}
+                                  isEditing={isEditing}
+                                  editingValue={editingValue}
+                                  onStartEdit={val => handleStartEdit(rowIdx, colKey, val)}
+                                  onChange={setEditingValue}
+                                  onCommit={handleCommitEdit}
+                                  onCancel={handleCancelEdit}
+                                  onCopy={handleCopyCell}
+                                />
+                              );
+                            })}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </div>
-          )}
+
+                {totalPages > 1 && (
+                  <div className="pagination-controls">
+                    <button
+                      className="page-btn"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <i className="fas fa-chevron-left" /> Prev
+                    </button>
+                    <span className="page-indicator">
+                      Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+                    </span>
+                    <button
+                      className="page-btn"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next <i className="fas fa-chevron-right" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {activeStreamData && !isLoading && viewMode === 'timeline' && (
               <div className="stream-timeline-wrapper">
@@ -588,7 +606,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
                     const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
                     return (
-                      <div key={i} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
+                      <div key={`${evt.timestamp ?? ''}-${i}`} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
                         <div className="timeline-dot" />
                         <div className="timeline-body">
                           <div className="timeline-header-row">
@@ -616,18 +634,91 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             )}
 
+            {activeStreamData && !isLoading && viewMode === 'replay' && (
+              <ReplayView
+                events={activeStreamData.events}
+                replayIndex={replayIndex}
+                replayPlaying={replayPlaying}
+                replaySpeed={replaySpeed}
+                setReplaySpeed={setReplaySpeed}
+                onPlay={handleReplayPlay}
+                onPause={handleReplayPause}
+                onReset={handleReplayReset}
+                onStep={handleReplayStep}
+              />
+            )}
+
+            {generatedData && !isLoading && viewMode === 'correlated' && correlatedView && (
+              <CorrelatedView correlatedView={correlatedView} streams={generatedData.streams} />
+            )}
+
+            {generatedData && !isLoading && viewMode === 'correlated' && !correlatedView && (
+              <div className="mock-empty-state" style={{ padding: '3rem', flex: 1 }}>
+                <i className="fas fa-random" style={{ fontSize: '2rem', color: 'var(--text-secondary)', marginBottom: '1rem' }} />
+                <p style={{ color: 'var(--text-secondary)' }}>Generate multiple streams to see the correlation view.</p>
+              </div>
+            )}
+
+            {activeStreamData && !isLoading && viewMode === 'distribution' && (
+              <div className="dist-view-wrapper">
+                <div className="dist-col-picker">
+                  <span className="dist-picker-label"><i className="fas fa-chart-bar" /> Choose a column to analyse:</span>
+                  <div className="dist-col-chips">
+                    {colKeys.map(k => (
+                      <button
+                        key={k}
+                        className={`dist-col-chip ${distColumn === k ? 'active' : ''}`}
+                        onClick={() => setDistColumn(k)}
+                      >
+                        {k}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {distColumn && distData ? (
+                  <DistributionChart
+                    distData={distData}
+                    colKey={distColumn}
+                    onClose={() => setDistColumn(null)}
+                  />
+                ) : (
+                  <div className="dist-empty">
+                    <i className="fas fa-hand-pointer" />
+                    <p>Select a column above to see its distribution</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeStreamData && !isLoading && viewMode === 'raw' && (
               <div className="stream-raw-wrapper">
                 <div className="stream-raw-toolbar">
                   <span className="table-meta-tag">
                     <i className="fas fa-file-alt" /> Newline-delimited JSON ({activeStreamData.events.length} events)
                   </span>
-                  <button
-                    className="secondary-button btn-small"
-                    onClick={() => navigator.clipboard.writeText(rawJsonContent)}
-                  >
-                    <i className="fas fa-copy" /> Copy Events
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      className="secondary-button btn-small"
+                      onClick={() => navigator.clipboard.writeText(rawJsonContent)}
+                    >
+                      <i className="fas fa-copy" /> Copy NDJSON
+                    </button>
+                    <button
+                      className="secondary-button btn-small"
+                      onClick={() => handleCopyAsCode('python_kafka')}
+                      title="Copy as Python Kafka producer"
+                    >
+                      <i className="fab fa-python" /> Python
+                    </button>
+                    <button
+                      className="secondary-button btn-small"
+                      onClick={() => handleCopyAsCode('js_fetch')}
+                      title="Copy as JS fetch"
+                    >
+                      <i className="fab fa-js-square" /> JS
+                    </button>
+                  </div>
                 </div>
                 <pre className="stream-raw-pre">{rawJsonContent}</pre>
               </div>
@@ -656,8 +747,9 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   </h3>
                   <div
                     className="explanation-body"
-                    dangerouslySetInnerHTML={{ __html: generatedData.explanation }}
-                  />
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(generatedData.explanation)
+                    }} />
                 </div>
               )}
             </div>

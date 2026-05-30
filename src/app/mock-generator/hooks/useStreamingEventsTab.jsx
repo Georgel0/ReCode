@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
 import { convertCode } from '@/lib/api';
+import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from '../components/useStreamingEventsComponents';
 
 export const STREAM_RULE_TEMPLATES = [
   { label: "Burst Pattern", value: "Events should arrive in bursts: 10–20 events within 5 seconds, followed by a 30–60s quiet period." },
@@ -97,9 +98,20 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
   const [activeStream, setActiveStreamRaw] = useState(0);
   const [parsedRulesFeedback, setParsedRulesFeedback] = useState([]);
 
-  const [viewMode, setViewMode] = useState('events'); // 'events' | 'raw' | 'timeline'
+  const [viewMode, setViewMode] = useState('events'); // 'events' | 'raw' | 'timeline' | 'replay' | 'correlated' | 'distribution'
   const [filterQuery, setFilterQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [fieldFilters, setFieldFilters] = useState({}); // { colKey: value }
+
+  const [replayIndex, setReplayIndex] = useState(0);
+  const [replayPlaying, setReplayPlaying] = useState(false);
+  const [replaySpeed, setReplaySpeed] = useState(500); // ms per event
+  const replayTimerRef = useRef(null);
+
+  const [distColumn, setDistColumn] = useState(null);
+
+  const [ruleValidation, setRuleValidation] = useState([]);
 
   const [editingCell, setEditingCell] = useState(null);
   const [editingValue, setEditingValue] = useState('');
@@ -134,7 +146,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
       if (moduleData.streamParadigm) setStreamParadigm(moduleData.streamParadigm);
       if (moduleData.eventCount) setEventCount(String(moduleData.eventCount));
       if (moduleData.seed) setSeed(moduleData.seed);
-      if (moduleData.dataQuality) setDataQuality(moduleData.dataQuality);
+      if (moduleData.dataQuality != null) setDataQuality(moduleData.dataQuality);
       if (moduleData.includeAnalysis !== undefined) setIncludeAnalysis(moduleData.includeAnalysis);
       if (moduleData.includeStateMachine !== undefined) setIncludeStateMachine(moduleData.includeStateMachine);
 
@@ -147,6 +159,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
           setActiveStreamRaw(0);
           setCurrentPage(1);
           setFilterQuery('');
+          setFieldFilters({});
         } catch (e) {
           console.error('Failed to rehydrate stream data:', e);
         }
@@ -157,15 +170,44 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
   useEffect(() => {
     setCurrentPage(1);
     setFilterQuery('');
+    setFieldFilters({});
     setEditingCell(null);
+    setDistColumn(null);
+    setReplayIndex(0);
+    setReplayPlaying(false);
   }, [activeStream]);
 
   useEffect(() => {
     setCurrentPage(1);
     setEditingCell(null);
-  }, [filterQuery]);
+  }, [filterQuery, fieldFilters]);
 
   useEffect(() => { setEditingCell(null); }, [currentPage]);
+
+  // Replay engine
+  useEffect(() => {
+    if (!replayPlaying) {
+      clearInterval(replayTimerRef.current);
+      return;
+    }
+    const events = activeStreamData?.events ?? [];
+    if (replayIndex >= events.length - 1) {
+      setReplayPlaying(false);
+      return;
+    }
+    clearInterval(replayTimerRef.current);
+
+    replayTimerRef.current = setInterval(() => {
+      setReplayIndex(prev => {
+        if (prev >= events.length - 1) {
+          setReplayPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, replaySpeed);
+    return () => clearInterval(replayTimerRef.current);
+  }, [replayPlaying, replaySpeed, activeStream]);
 
   const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
@@ -174,9 +216,32 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     [generatedData]
   );
 
+  // Correlated view
+  const correlatedView = useMemo(() => {
+    if (!generatedData?.streams || generatedData.streams.length < 2) return null;
+    return buildCorrelatedView(generatedData.streams);
+  }, [generatedData]);
+
+  // Rule validation — runs automatically when data or rules change
+  useEffect(() => {
+    if (!generatedData?.streams || !rules?.trim()) {
+      setRuleValidation([]);
+      return;
+    }
+    const results = runRuleValidation(generatedData.streams, rules);
+    setRuleValidation(results);
+  }, [generatedData, rules]);
+
+  // Distribution computation
+  const distData = useMemo(() => {
+    if (!distColumn || !activeStreamData?.events) return null;
+    return computeColumnDistribution(activeStreamData.events, distColumn);
+  }, [distColumn, activeStreamData]);
+
   const handleLoadSample = useCallback((sample) => {
     if (!sample) return;
     setSchemaInput(sample.schema);
+
     if (sample.rules) {
       setRules(sample.rules);
     } else {
@@ -186,17 +251,34 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     if (sample.eventFormat) setEventFormat(sample.eventFormat);
   }, []);
 
+  // Filter events with both text search and field filters
   const filteredEvents = useMemo(() => {
     if (!activeStreamData?.events) return [];
-    if (!filterQuery.trim()) return activeStreamData.events;
+    let evts = activeStreamData.events;
 
-    const q = filterQuery.toLowerCase();
+    // Field filters
+    const activeFieldFilters = Object.entries(fieldFilters).filter(([, v]) => v !== '' && v !== null && v !== undefined);
+    if (activeFieldFilters.length > 0) {
+      evts = evts.filter(evt =>
+        activeFieldFilters.every(([k, v]) => {
+          const val = evt[k];
+          if (val === null || val === undefined) return false;
+          return String(val).toLowerCase().includes(String(v).toLowerCase());
+        })
+      );
+    }
 
-    return activeStreamData.events.filter(evt => {
-      const str = typeof evt === 'object' ? JSON.stringify(evt) : String(evt);
-      return str.toLowerCase().includes(q);
-    });
-  }, [activeStreamData, filterQuery]);
+    // Text search
+    if (filterQuery.trim()) {
+      const q = filterQuery.toLowerCase();
+      evts = evts.filter(evt => {
+        const str = typeof evt === 'object' ? JSON.stringify(evt) : String(evt);
+        return str.toLowerCase().includes(q);
+      });
+    }
+
+    return evts;
+  }, [activeStreamData, filterQuery, fieldFilters]);
 
   const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
 
@@ -213,9 +295,25 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
       if (typeof evt === 'object' && evt !== null)
         Object.keys(evt).forEach(k => allKeys.add(k));
     });
-
     return Array.from(allKeys);
   }, [activeStreamData]);
+
+  // Unique values per column for field filter dropdowns
+  const colUniqueValues = useMemo(() => {
+    if (!activeStreamData?.events?.length) return {};
+    const result = {};
+
+    colKeys.forEach(k => {
+      const vals = new Set(activeStreamData.events.map(e => {
+        const v = e[k];
+        return (v === null || v === undefined) ? '' : String(v);
+      }));
+      if (vals.size <= 20 && vals.size > 1) {
+        result[k] = Array.from(vals).filter(Boolean).sort();
+      }
+    });
+    return result;
+  }, [activeStreamData, colKeys]);
 
   const rawJsonContent = useMemo(() => {
     if (!activeStreamData?.events) return '';
@@ -233,6 +331,10 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     setParsedRulesFeedback([]);
     setGeneratedData(null);
     setViewMode('events');
+    setFieldFilters({});
+    setDistColumn(null);
+    setReplayIndex(0);
+    setReplayPlaying(false);
 
     try {
       const count = parseInt(eventCount, 10) || 25;
@@ -284,7 +386,6 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     const rawVal = typeof currentVal === 'object' && currentVal !== null
       ? JSON.stringify(currentVal)
       : String(currentVal ?? '');
-
     setEditingCell({ rowIdx, colKey });
     setEditingValue(rawVal);
   }, []);
@@ -293,18 +394,15 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     if (!editingCell || !generatedData) return;
 
     const { rowIdx, colKey } = editingCell;
-    const absoluteIdx = (currentPage - 1) * ITEMS_PER_PAGE + rowIdx;
-    const targetEvent = filteredEvents[absoluteIdx];
+    const targetEvent = paginatedEvents[rowIdx];
     if (!targetEvent) return;
 
     setGeneratedData(prev => {
       const updatedStreams = prev.streams.map((stream, idx) => {
         if (idx !== activeStream) return stream;
-
         const updatedEvents = stream.events.map((evt) => {
           if (evt !== targetEvent) return evt;
           let newVal = editingValue;
-
           if (newVal.startsWith('{') || newVal.startsWith('[')) {
             try { newVal = JSON.parse(newVal); } catch (_) { }
           } else if (!isNaN(newVal) && newVal.trim() !== '') {
@@ -323,7 +421,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
 
     setEditingCell(null);
     setEditingValue('');
-  }, [editingCell, editingValue, currentPage, activeStream, generatedData, filteredEvents]);
+  }, [editingCell, editingValue, currentPage, activeStream, generatedData, filteredEvents, paginatedEvents]);
 
   const handleCancelEdit = useCallback(() => {
     setEditingCell(null);
@@ -342,7 +440,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     a.href = url;
     a.download = filename;
     a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const executeExport = useCallback((type) => {
@@ -357,15 +455,12 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
       const stream = generatedData.streams[activeStream];
       if (!stream?.events?.length) return;
 
-      const keys = [...new Set(
-        stream.events.flatMap(e => Object.keys(e))
-      )];
-
+      const keys = [...new Set(stream.events.flatMap(e => Object.keys(e)))];
       const rows = [keys.join(',')];
 
       stream.events.forEach(evt => {
         rows.push(keys.map(k => {
-          let v = evt[k] === null ? '' : (typeof evt[k] === 'object' ? JSON.stringify(evt[k]) : String(evt[k]));
+          let v = (evt[k] == null) ? '' : (typeof evt[k] === 'object' ? JSON.stringify(evt[k]) : String(evt[k]));
           return (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
         }).join(','));
       });
@@ -375,17 +470,26 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
         s.events.map(e => JSON.stringify({ topic: s.streamName, key: e.session_id || e.user_id || e.id || null, value: e }))
       );
       downloadFile(messages.join('\n'), 'kafka-messages.ndjson', 'application/x-ndjson');
+    } else if (type === 'python_kafka' || type === 'js_fetch' || type === 'python_requests' || type === 'curl') {
+      const stream = generatedData.streams[activeStream];
+      const snippet = generateCodeSnippet(stream.events, stream.streamName, type);
+      const ext = type.startsWith('python') ? 'py' : type === 'js_fetch' ? 'js' : 'sh';
+
+      downloadFile(snippet, `${stream.streamName}_publisher.${ext}`, 'text/plain');
     }
 
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   }, [generatedData, activeStream]);
 
   const triggerExportModal = useCallback((type) => {
-    const labels = { ndjson: 'NDJSON', json: 'JSON', csv: 'CSV', kafka: 'Kafka NDJSON' };
+    const labels = {
+      ndjson: 'NDJSON', json: 'JSON', csv: 'CSV', kafka: 'Kafka NDJSON',
+      python_kafka: 'Python (Kafka)', js_fetch: 'JavaScript (fetch)', python_requests: 'Python (requests)', curl: 'cURL',
+    };
     setModalConfig({
       isOpen: true,
       title: `Export as ${labels[type] || type.toUpperCase()}`,
-      message: `Export your generated event stream as a production-ready .${type === 'kafka' ? 'ndjson' : type} file.`,
+      message: `Export your generated event stream as a production-ready file.`,
       confirmText: 'Export',
       cancelText: 'Cancel',
       icon: 'fa-file-export',
@@ -405,14 +509,13 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
       return;
     }
     const trimmed = newTemplateName.trim();
-
     if (savedTemplates.some(s => s.name.toLowerCase() === trimmed.toLowerCase())) {
       setSaveTemplateError('A template with this name already exists.');
       return;
     }
     const updated = [...savedTemplates, { name: trimmed, schema: schemaInput, rules, eventFormat, streamParadigm }];
-
     setSavedTemplates(updated);
+
     localStorage.setItem('streamTemplates', JSON.stringify(updated));
     setIsSaveModalOpen(false);
   }, [newTemplateName, savedTemplates, schemaInput, rules, eventFormat, streamParadigm]);
@@ -429,8 +532,27 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     setActiveStreamRaw(idx);
     setCurrentPage(1);
     setFilterQuery('');
+    setFieldFilters({});
     setEditingCell(null);
+    setDistColumn(null);
+    setReplayIndex(0);
+    setReplayPlaying(false);
   }, []);
+
+  // Replay controls
+  const handleReplayPlay = useCallback(() => {
+    if (replayIndex >= (activeStreamData?.events?.length ?? 0) - 1) {
+      setReplayIndex(0);
+    }
+    setReplayPlaying(true);
+  }, [replayIndex, activeStreamData]);
+
+  const handleReplayPause = useCallback(() => setReplayPlaying(false), []);
+  const handleReplayReset = useCallback(() => { setReplayPlaying(false); setReplayIndex(0); }, []);
+  const handleReplayStep = useCallback(() => {
+    const max = (activeStreamData?.events?.length ?? 1) - 1;
+    setReplayIndex(prev => Math.min(prev + 1, max));
+  }, [activeStreamData]);
 
   return {
     // Inputs
@@ -456,11 +578,13 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     // View
     viewMode, setViewMode,
     filterQuery, setFilterQuery,
+    fieldFilters, setFieldFilters,
     currentPage, setCurrentPage,
     totalPages,
     paginatedEvents,
     filteredEvents,
     colKeys,
+    colUniqueValues,
     rawJsonContent,
     rawFullContent,
 
@@ -485,5 +609,23 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
 
     // Sample
     handleLoadSample,
+
+    // Replay
+    replayIndex, setReplayIndex,
+    replayPlaying,
+    replaySpeed, setReplaySpeed,
+    handleReplayPlay, handleReplayPause, handleReplayReset, handleReplayStep,
+
+    // Distribution
+    distColumn, setDistColumn,
+    distData,
+
+    // Rule validation
+    ruleValidation,
+
+    // Correlated view
+    correlatedView,
+
+    generateCodeSnippet
   };
 }
