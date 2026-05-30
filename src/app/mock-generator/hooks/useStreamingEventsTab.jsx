@@ -184,6 +184,8 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
 
   useEffect(() => { setEditingCell(null); }, [currentPage]);
 
+  const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
+
   // Replay engine
   useEffect(() => {
     if (!replayPlaying) {
@@ -208,8 +210,6 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     }, replaySpeed);
     return () => clearInterval(replayTimerRef.current);
   }, [replayPlaying, replaySpeed, activeStream, activeStreamData]);
-
-  const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
   const allStreamNames = useMemo(
     () => generatedData?.streams?.map(s => s.streamName) ?? [],

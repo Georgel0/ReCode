@@ -187,7 +187,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
-                  <i className="fas fa-balance-scale" /> Rules &amp; Distributions
+                  <><i className="fas fa-balance-scale" /> Rules &amp; Distributions</>
                 </div>
               </div>
               <div className="mock-form-group">
