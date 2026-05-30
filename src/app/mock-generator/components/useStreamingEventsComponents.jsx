@@ -6,11 +6,6 @@ export function runRuleValidation(streams, rules) {
   const results = [];
   const rulesText = rules.toLowerCase();
 
-  // Collect all events across streams for cross-stream validation
-  const allEvents = streams.flatMap(s =>
-    s.events.map(e => ({ ...e, __stream: s.streamName }))
-  );
-
   // 1. Monotonic timestamps
   if (rulesText.includes('monoton') || rulesText.includes('increasing')) {
     streams.forEach(stream => {
@@ -189,8 +184,8 @@ export function computeColumnDistribution(events, colKey) {
 
   if (isNumeric) {
     const nums = values.map(Number);
-    const min = Math.min(...nums);
-    const max = Math.max(...nums);
+    const min = nums.reduce((a, b) => (b < a ? b : a), nums[0]);
+    const max = nums.reduce((a, b) => (b > a ? b : a), nums[0]);
     const range = max - min;
     const BINS = 8;
     const binSize = range === 0 ? 1 : range / BINS;
@@ -275,13 +270,13 @@ for event in events:
   if (format === 'curl') {
     const first = events[0];
     return `# Publish each event via curl
-      # Example using the first event:
-      curl -X POST https://your-endpoint/events \\
-        -H "Content-Type: application/json" \\
-        -d '${JSON.stringify(first)}'
+# Example using the first event:
+curl -X POST https://your-endpoint/events \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify(first)}'
 
-      # To publish all ${events.length} events, run:
-      ${events.map(e => `curl -X POST https://your-endpoint/events -H "Content-Type: application/json" -d '${JSON.stringify(e)}'`).join('\n')}`;
+# To publish all ${events.length} events, run:
+${events.map(e => `curl -X POST https://your-endpoint/events -H "Content-Type: application/json" -d '${JSON.stringify(e)}'`).join('\n')}`;
   }
 
   // ndjson default

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 
 const STREAM_COLORS = [
   { bg: 'rgba(56,189,248,0.10)', border: 'rgba(56,189,248,0.45)', text: '#38bdf8' },
@@ -20,9 +20,18 @@ export function CorrelatedView({ correlatedView, streams }) {
     return map;
   }, [streamNames]);
 
-  // Group runs by corrKey
-  let prevCorrVal = null;
-  let groupCount = 0;
+  const groupBoundarySet = useMemo(() => {
+    const set = new Set();
+    let lastCorrVal = null;
+    combined.forEach((evt, i) => {
+      const corrVal = corrKey ? evt[corrKey] : null;
+      if (corrKey && corrVal !== lastCorrVal) {
+        set.add(i);
+        lastCorrVal = corrVal;
+      }
+    });
+    return set;
+  }, [combined, corrKey]);
 
   return (
     <div className="correlated-wrapper">
@@ -52,10 +61,8 @@ export function CorrelatedView({ correlatedView, streams }) {
             const evtTs = tsKey ? evt[tsKey] : null;
             const isErr = String(evtType).toLowerCase().includes('error') || String(evtType).toLowerCase().includes('fail');
 
-            // Detect corrKey boundary for visual grouping
+            const isNewGroup = groupBoundarySet.has(i);
             const corrVal = corrKey ? evt[corrKey] : null;
-            const isNewGroup = corrKey && corrVal !== prevCorrVal;
-            if (isNewGroup) { prevCorrVal = corrVal; groupCount++; }
 
             return (
               <React.Fragment key={i}>
@@ -138,6 +145,7 @@ export function EventColBadge({ label }) {
 
 export function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, onCommit, onCancel, onCopy }) {
   const inputRef = useRef(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -158,10 +166,17 @@ export function EditableCell({ value, isEditing, editingValue, onStartEdit, onCh
           className="cell-edit-input"
           value={editingValue}
           onChange={e => onChange(e.target.value)}
-          onBlur={onCommit}
+          onBlur={() => {
+            // Only commit on blur if Escape was NOT the trigger
+            if (!cancelledRef.current) onCommit();
+            cancelledRef.current = false;
+          }}
           onKeyDown={e => {
             if (e.key === 'Enter') onCommit();
-            if (e.key === 'Escape') onCancel();
+            if (e.key === 'Escape') {
+              cancelledRef.current = true; // suppress the upcoming onBlur commit
+              onCancel();
+            }
           }}
         />
       </td>

@@ -207,7 +207,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
       });
     }, replaySpeed);
     return () => clearInterval(replayTimerRef.current);
-  }, [replayPlaying, replaySpeed, activeStream]);
+  }, [replayPlaying, replaySpeed, activeStream, activeStreamData]);
 
   const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
