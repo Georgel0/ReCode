@@ -247,6 +247,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     } else {
       setRules('');
     }
+    
     if (sample.streamParadigm) setStreamParadigm(sample.streamParadigm);
     if (sample.eventFormat) setEventFormat(sample.eventFormat);
   }, []);
@@ -258,11 +259,13 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
 
     // Field filters
     const activeFieldFilters = Object.entries(fieldFilters).filter(([, v]) => v !== '' && v !== null && v !== undefined);
+
     if (activeFieldFilters.length > 0) {
       evts = evts.filter(evt =>
         activeFieldFilters.every(([k, v]) => {
           const val = evt[k];
           if (val === null || val === undefined) return false;
+
           return String(val).toLowerCase().includes(String(v).toLowerCase());
         })
       );
@@ -309,7 +312,9 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
         return (v === null || v === undefined) ? '' : String(v);
       }));
       if (vals.size <= 20 && vals.size > 1) {
-        result[k] = Array.from(vals).filter(Boolean).sort();
+        // Use `v !== ''` so that a genuine empty-string value
+        // is not silently dropped from the filter dropdown options.
+        result[k] = Array.from(vals).filter(v => v !== '').sort();
       }
     });
     return result;
@@ -464,6 +469,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
           return (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
         }).join(','));
       });
+
       downloadFile(rows.join('\n'), `${stream.streamName}.csv`, 'text/csv');
     } else if (type === 'kafka') {
       const messages = generatedData.streams.flatMap(s =>
@@ -530,13 +536,6 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
 
   const setActiveStream = useCallback((idx) => {
     setActiveStreamRaw(idx);
-    setCurrentPage(1);
-    setFilterQuery('');
-    setFieldFilters({});
-    setEditingCell(null);
-    setDistColumn(null);
-    setReplayIndex(0);
-    setReplayPlaying(false);
   }, []);
 
   // Replay controls

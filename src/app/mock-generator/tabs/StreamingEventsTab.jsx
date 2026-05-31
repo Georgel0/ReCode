@@ -77,11 +77,9 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
     <>
       <div className="mock-factory-container">
 
-        {/* ── SIDEBAR ── */}
         <div className="mock-sidebar">
           <div className="mock-sidebar-content">
 
-            {/* Schema */}
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
@@ -246,7 +244,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            {/* Parameters */}
             <div className="mock-section">
               <div className="mock-section-header">
                 <div className="mock-section-title">
@@ -497,7 +494,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     </button>
                   )}
 
-                  {filterQuery && (
+                  {(filterQuery || activeFieldFilterCount > 0) && (
                     <span className="table-filter-count">
                       {filteredEvents.length} match{filteredEvents.length !== 1 ? 'es' : ''}
                     </span>

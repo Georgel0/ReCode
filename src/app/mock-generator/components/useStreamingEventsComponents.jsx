@@ -10,10 +10,14 @@ export function runRuleValidation(streams, rules) {
   if (rulesText.includes('monoton') || rulesText.includes('increasing')) {
     streams.forEach(stream => {
       const tsKeys = ['timestamp', 'ts', 'event_time', 'created_at', 'occurred_at'];
-      let tsKey = null;
-      if (stream.events.length > 0) {
-        tsKey = tsKeys.find(k => stream.events[0][k] !== undefined) || null;
+
+      // Guard: empty stream has no events to validate
+      if (stream.events.length === 0) {
+        results.push({ rule: 'Monotonic timestamps', status: 'warn', message: `Stream "${stream.streamName}" has no events to validate`, stream: stream.streamName });
+        return;
       }
+
+      const tsKey = tsKeys.find(k => stream.events[0][k] !== undefined) || null;
       if (!tsKey) {
         results.push({ rule: 'Monotonic timestamps', status: 'warn', message: `No timestamp field found in "${stream.streamName}"`, stream: stream.streamName });
         return;
@@ -48,7 +52,11 @@ export function runRuleValidation(streams, rules) {
 
       const errCount = stream.events.filter(e => {
         const typeVal = String(e.event_type || e.type || e.name || '').toLowerCase();
-        const statusVal = Number(e.status_code || e.status || 0);
+        // Use != null (covers null and undefined) so a status_code of 0 is NOT treated as absent
+        const statusVal = Number(
+          e.status_code != null ? e.status_code :
+          e.status      != null ? e.status      : 0
+        );
         return typeVal.includes('error') || typeVal.includes('fail') || statusVal >= 400;
       }).length;
 
@@ -86,6 +94,13 @@ export function runRuleValidation(streams, rules) {
       });
 
       const sessionArr = Object.values(sessions);
+
+      // Guard: no sessions means no events (or all session IDs were undefined)
+      if (sessionArr.length === 0) {
+        results.push({ rule: 'Session correlation', status: 'warn', message: `No session events found in "${stream.streamName}"`, stream: stream.streamName });
+        return;
+      }
+
       const contiguousCount = sessionArr.filter(idxArr => {
         for (let i = 1; i < idxArr.length; i++) if (idxArr[i] !== idxArr[i - 1] + 1) return false;
         return true;
@@ -142,8 +157,9 @@ export function runRuleValidation(streams, rules) {
       const violations = stream.events.filter(e => {
         const d = new Date(e[tsKey]);
         if (isNaN(d)) return false;
-        const day = d.getUTCDay(); // 0=Sun, 6=Sat
-        const hour = d.getUTCHours();
+        // Use local-time accessors — the rule template says "local time on weekdays"
+        const day = d.getDay();   // 0=Sun, 6=Sat (local)
+        const hour = d.getHours(); // local hour
         return day === 0 || day === 6 || hour < 9 || hour >= 18;
       });
 
@@ -188,19 +204,28 @@ export function computeColumnDistribution(events, colKey) {
     const max = nums.reduce((a, b) => (b > a ? b : a), nums[0]);
     const range = max - min;
     const BINS = 8;
-    const binSize = range === 0 ? 1 : range / BINS;
+
+    // When all values are identical, a histogram of 8 same-labelled empty bars is meaningless.
+    // Return a single categorical entry so the chart renders one clean bar.
+    if (range === 0) {
+      return {
+        type: 'categorical',
+        counts: [{ label: String(min), count: nums.length }],
+        total: nums.length,
+      };
+    }
+
+    const binSize = range / BINS;
 
     const bins = Array.from({ length: BINS }, (_, i) => ({
-      label: range === 0
-        ? String(min)
-        : `${(min + i * binSize).toFixed(1)}`,
+      label: `${(min + i * binSize).toFixed(1)}`,
       count: 0,
       rangeStart: min + i * binSize,
       rangeEnd: min + (i + 1) * binSize,
     }));
 
     nums.forEach(n => {
-      const idx = range === 0 ? 0 : Math.min(Math.floor((n - min) / binSize), BINS - 1);
+      const idx = Math.min(Math.floor((n - min) / binSize), BINS - 1);
       bins[idx].count++;
     });
     return { type: 'numeric', bins, min, max, mean: nums.reduce((a, b) => a + b, 0) / nums.length, total: values.length };
@@ -269,14 +294,17 @@ for event in events:
 
   if (format === 'curl') {
     const first = events[0];
+    // Escape single quotes so the JSON payload can safely sit inside a single-quoted shell string.
+    // Strategy: end the single-quote, emit a literal ', then reopen the single-quote.
+    const escapeForShell = (json) => json.replace(/'/g, "'\\''");
     return `# Publish each event via curl
 # Example using the first event:
 curl -X POST https://your-endpoint/events \\
   -H "Content-Type: application/json" \\
-  -d '${JSON.stringify(first)}'
+  -d '${escapeForShell(JSON.stringify(first))}'
 
 # To publish all ${events.length} events, run:
-${events.map(e => `curl -X POST https://your-endpoint/events -H "Content-Type: application/json" -d '${JSON.stringify(e)}'`).join('\n')}`;
+${events.map(e => `curl -X POST https://your-endpoint/events -H "Content-Type: application/json" -d '${escapeForShell(JSON.stringify(e))}'`).join('\n')}`;
   }
 
   // ndjson default
