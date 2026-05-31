@@ -609,7 +609,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </h3>
                 <div
                   className="explanation-body"
-                  dangerouslySetInnerHTML={{ __html: generatedData.explanation }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedData.explanation) }}
                 />
               </div>
             )}

@@ -163,7 +163,7 @@ export const OUTPUT_SCHEMAS = {
       path: z.string().describe('URL path, e.g. "/api/users/:id"'),
       description: z.string().describe('One-sentence description of what this endpoint does'),
       statusCode: z.number().describe('Primary HTTP response status code, e.g. 200 or 201'),
-      delayMs: z.number().optional().describe('Simulated response delay in milliseconds (0 if none)'),
+      delayMs: z.number().default(0).describe('Simulated response delay in milliseconds (0 if none)'),
       code: z.string().describe('Full, production-ready handler code for the chosen framework'),
       fixtureData: z.any().describe('The realistic JSON object the handler returns'),
     })),
