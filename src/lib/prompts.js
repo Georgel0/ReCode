@@ -369,9 +369,21 @@ export const PROMPT_CONFIG = {
         }).`
         : 'PAGINATION: No pagination required.';
 
-      const errorNote = ctx?.errorRate > 0
-        ? `ERROR INJECTION: Approximately ${ctx.errorRate}% of endpoints should include a realistic error scenario handler. Add a commented variant showing how to return a 4xx/5xx response (e.g. 404 not found, 422 validation error, 500 internal).`
+      const envPrefixNote = ctx?.envPrefix && ctx.envPrefix !== 'none'
+        ? `ENV VARS: Use ${ctx.envPrefix} for all configurable values. Specifically:
+           - Base URL: ${ctx.envPrefix}.API_BASE_URL (fallback: '/api')
+           - Auth token names: ${ctx.envPrefix}.AUTH_HEADER_NAME where applicable
+           - Any other environment-specific strings (API versions, tenant IDs) should also use ${ctx.envPrefix}.VARIABLE_NAME`
         : '';
+
+      const errorNote = ctx?.errorRate > 0
+        ? `ERROR VARIANTS: Every handler MUST include an 'errorVariants' array with at least one realistic error scenario. Each variant must have:
+           - statusCode: appropriate HTTP error code (404 for not found, 422 for validation, 401 for unauthorized, 500 for server errors)
+           - code: a complete handler code string returning the error response
+           - fixtureData: a realistic error response body (e.g. { "error": "...", "message": "...", "code": "..." })
+           Choose error types appropriate to the HTTP method: GET/DELETE → 404, POST/PUT/PATCH → 422 validation errors.
+           Approximately ${ctx.errorRate}% of endpoints should also have a 500 server error variant.`
+        : `ERROR VARIANTS: For each handler, include at least one 'errorVariants' entry with the most likely failure case (e.g. 404 for GET/:id, 422 for POST/PUT/PATCH). This array is always required.`;
 
       const typeNote = ctx?.includeTypes
         ? `TYPES: Prepend TypeScript interface/type definitions for request params and response shapes above each handler.`
@@ -402,8 +414,9 @@ export const PROMPT_CONFIG = {
       - Generate exactly ${ctx?.endpointCount ?? 5} endpoints covering meaningful CRUD/query operations.
       - ${authNote}
       - ${paginationNote}
-      ${errorNote ? `- ${errorNote}` : ''}
-      ${typeNote ? `- ${typeNote}` : ''}
+      - ${errorNote}
+      - ${typeNote ? `- ${typeNote}` : ''}
+      - ${envPrefixNote ? `- ${envPrefixNote}` : ''}
       - Fixture data must be realistic: proper names, emails, UUIDs, ISO dates, monetary amounts — not "foo" or "string1".
       - Every 'code' field must be immediately copy-pasteable with no placeholders.
  
@@ -424,7 +437,14 @@ export const PROMPT_CONFIG = {
             "statusCode": 200,
             "delayMs": 0,
             "code": "string (full framework-specific handler code)",
-            "fixtureData": {}
+            "fixtureData": {},
+            "errorVariants": [
+              {
+                "statusCode": 404,
+                "code": "string (handler code returning this error)",
+                "fixtureData": { "error": "string", "message": "string" }
+              }
+            ]
           }
         ],
         "parsedSpec": ["string"]${ctx?.includeAnalysis ? `,\n        "explanation": "string (HTML)"` : ''}

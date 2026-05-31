@@ -1,107 +1,14 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import {
-  useApiMocksTab,
-  FRAMEWORK_OPTIONS,
-  PAGINATION_OPTIONS,
-  AUTH_OPTIONS,
-  SPEC_TEMPLATES,
-  FORMAT_LABELS,
-  FORMAT_ICONS,
-  getMethodMeta,
+  useApiMocksTab, getMethodMeta,
+  FRAMEWORK_OPTIONS, PAGINATION_OPTIONS, AUTH_OPTIONS, ENV_PREFIX_OPTIONS, SPEC_TEMPLATES, FORMAT_LABELS, FORMAT_ICONS,
 } from '../hooks/useApiMocksTab';
-
-function MethodBadge({ method }) {
-  const { cls, label } = getMethodMeta(method);
-  return <span className={`method-badge ${cls}`}>{label}</span>;
-}
-
-function StatusBadge({ code }) {
-  const n = Number(code);
-  let cls = 'status-badge';
-  if (n >= 200 && n < 300) cls += ' status-badge--ok';
-  else if (n >= 400 && n < 500) cls += ' status-badge--client';
-  else if (n >= 500) cls += ' status-badge--server';
-  return <span className={cls}>{code}</span>;
-}
-
-/**
- * Read-only syntax-highlighted code block.
- * Uses a `<pre>` with prism-dark styling so it's consistent with the app's
- * existing code display pattern from Modules.css / index.css.
- */
-function CodeDisplay({ code, language = 'typescript' }) {
-  const preRef = useRef(null);
-
-  // Apply prism highlighting if available in the page context
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.Prism && preRef.current) {
-      window.Prism.highlightElement(preRef.current);
-    }
-  }, [code]);
-
-  return (
-    <div className="api-code-display">
-      <pre
-        ref={preRef}
-        className={`language-${language} prism-dark`}
-      >
-        <code className={`language-${language}`}>{code}</code>
-      </pre>
-    </div>
-  );
-}
-
-// Fixture JSON preview panel — pretty-prints the fixture response object.
-function FixtureDisplay({ handler }) {
-  if (!handler?.fixtureData) {
-    return (
-      <div className="fixture-empty">
-        <i className="fas fa-inbox" />
-        <p>No fixture data available for this handler.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="api-code-display">
-      <div className="fixture-meta-row">
-        <MethodBadge method={handler.method} />
-        <span className="fixture-path">{handler.path}</span>
-        <StatusBadge code={handler.statusCode ?? 200} />
-        {handler.delayMs > 0 && (
-          <span className="fixture-delay-tag">
-            <i className="fas fa-clock" /> {handler.delayMs}ms
-          </span>
-        )}
-      </div>
-      <pre className="prism-dark fixture-json">
-        <code className="language-json">
-          {JSON.stringify(handler.fixtureData, null, 2)}
-        </code>
-      </pre>
-    </div>
-  );
-}
-
-// Summary pill strip shown when data is available.
-function MethodSummaryPills({ methodCounts }) {
-  return (
-    <div className="method-summary-pills">
-      {Object.entries(methodCounts).map(([method, count]) => {
-        const { cls } = getMethodMeta(method);
-        return (
-          <span key={method} className={`method-pill ${cls}`}>
-            {method} <strong>{count}</strong>
-          </span>
-        );
-      })}
-    </div>
-  );
-}
+import { MethodBadge, StatusBadge, CodeDisplay, FixtureDisplay, MethodSummaryPills, 
+  HistoryDropdown, ErrorVariantPanel, FixtureShapeWarning } from '../components/ApiMocksTabComponents';
 
 export default function ApiMocksTab({ onDataUpdate, isActive }) {
   const api = useApiMocksTab({ onDataUpdate, isActive });
@@ -116,6 +23,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
     authStyle, setAuthStyle,
     includeTypes, setIncludeTypes,
     includeAnalysis, setIncludeAnalysis,
+    envPrefix, setEnvPrefix,
     isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 
@@ -129,6 +37,27 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
     parsedSpecFeedback,
     methodCounts,
     copyFlash,
+
+    editingHandlerIdx, editingField, editDraft, setEditDraft,
+    handlerDirty,
+    startEdit, cancelEdit, commitEdit,
+
+    regeneratingIdx,
+    isAddEndpointOpen, setIsAddEndpointOpen,
+    addEndpointInput, setAddEndpointInput,
+    handleRegenerateHandler,
+    handleAddEndpoint,
+
+    isDragOver,
+    handleDrop, handleDragOver, handleDragLeave,
+    handleFileUpload,
+
+    generationHistory,
+    historyOpen, setHistoryOpen,
+    handleRestoreHistory,
+
+    activeErrorVariant,
+    setErrorVariantForHandler,
 
     savedSpecs, specsVisible, setSpecsVisible,
     isSaveModalOpen, setIsSaveModalOpen,
@@ -147,6 +76,16 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
   } = api;
 
   const selectedFramework = FRAMEWORK_OPTIONS.find(f => f.value === framework);
+  const fileInputRef = useRef(null);
+
+  // Derive the handler + variant to actually display
+  const globalHandlerIdx = generatedData?.handlers?.indexOf(activeHandler);
+  const variantIdx = activeErrorVariant[globalHandlerIdx];
+  const displayHandler = variantIdx != null
+    ? { ...activeHandler, ...(activeHandler?.errorVariants?.[variantIdx] ?? {}) }
+    : activeHandler;
+
+  const isEditing = editingHandlerIdx === globalHandlerIdx;
 
   return (
     <>
@@ -218,6 +157,25 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     <option key={t.label} value={t.value}>{t.label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div
+                className={`spec-dropzone ${isDragOver ? 'dragover' : ''}`}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={() => fileInputRef.current?.click()}
+                title="Drop an OpenAPI / Swagger YAML or JSON file here"
+              >
+                <i className="fas fa-file-arrow-up" />
+                <span>Drop openapi.yaml / swagger.json or <strong>click to browse</strong></span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".yaml,.yml,.json"
+                  style={{ display: 'none' }}
+                  onChange={e => handleFileUpload(e.target.files?.[0])}
+                />
               </div>
 
               <div className="editor-wrapper-box">
@@ -307,6 +265,22 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   ))}
                 </select>
               </div>
+
+              <div className="mock-form-group">
+                <label className="input-label">
+                  Env Var Prefix
+                  <span className="optional-tag">base URLs &amp; auth tokens</span>
+                </label>
+                <select
+                  className="theme-select-dropdown"
+                  value={envPrefix}
+                  onChange={e => setEnvPrefix(e.target.value)}
+                >
+                  {ENV_PREFIX_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="mock-section">
@@ -360,17 +334,16 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 <span className="label-text">Include TypeScript Type Definitions</span>
               </label>
 
-              <label className="custom-check check-margin-top">
+              <label className="custom-check">
                 <input
                   type="checkbox"
                   checked={includeAnalysis}
                   onChange={e => setIncludeAnalysis(e.target.checked)}
                 />
                 <div className="box"><i className="fas fa-check" /></div>
-                <span className="label-text">Generate Explanation & Coverage Analysis</span>
+                <span className="label-text">Generate Explanation &amp; Coverage Analysis</span>
               </label>
 
-              {/* Parsed spec feedback */}
               {parsedSpecFeedback.length > 0 && (
                 <div className="rules-feedback">
                   <strong>Resolved Endpoints:</strong>
@@ -406,6 +379,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 <div className="api-tabs-container">
                   {filteredHandlers.map((handler, idx) => {
                     const { cls } = getMethodMeta(handler.method);
+                    const globalIdx = generatedData?.handlers?.indexOf(handler);
                     return (
                       <button
                         key={idx}
@@ -417,11 +391,24 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                           {handler.method?.toUpperCase()}
                         </span>
                         <span className="handler-tab-path">{handler.path}</span>
+                        {handlerDirty[globalIdx] && (
+                          <span className="handler-dirty-dot" title="Edited locally" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
               </div>
+
+              {generatedData && (
+                <button
+                  className="tab-btn add-endpoint-tab-btn"
+                  onClick={() => setIsAddEndpointOpen(true)}
+                  title="Add a new endpoint"
+                >
+                  <i className="fas fa-plus" style={{marginRight: 0}} />
+                </button>
+              )}
 
               <div className="tabs-dropdown-wrapper">
                 {generatedData && (
@@ -440,7 +427,6 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                       className="dropdown-backdrop"
                       onClick={() => setIsDropdownOpen(false)}
                     />
-
                     <div className="tabs-dropdown-menu">
                       {filteredHandlers.map((handler, idx) => {
                         const { cls } = getMethodMeta(handler.method);
@@ -506,6 +492,24 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
 
+                  <div className="tabs-dropdown-wrapper">
+                    <button
+                      className={`tab-dropdown-toggle ${historyOpen ? 'active' : ''}`}
+                      onClick={() => setHistoryOpen(!historyOpen)}
+                      title="Generation history"
+                      disabled={generationHistory.length === 0}
+                    >
+                      <i className="fas fa-history" />
+                    </button>
+                    {historyOpen && (
+                      <HistoryDropdown
+                        history={generationHistory}
+                        onRestore={handleRestoreHistory}
+                        onClose={() => setHistoryOpen(false)}
+                      />
+                    )}
+                  </div>
+
                   <div className="mock-export-group">
                     <button
                       className="secondary-button icon-only tool-btn"
@@ -536,6 +540,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                       <option value="fixtures-json">JSON Fixtures</option>
                       <option value="active-ts">Active Handler (.ts)</option>
                       <option value="postman">Postman Collection (.json)</option>
+                      <option value="zip">Project Structure (.zip)</option>
+                      <option value="vscode-snippets">VS Code Snippets</option>
                     </select>
                   </div>
                 </>
@@ -560,6 +566,46 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               loadingDescription={`Building ${selectedFramework?.label ?? 'mock'} handlers with realistic fixture data…`}
             />
 
+            {isAddEndpointOpen && (
+              <div className="modal-overlay" onClick={() => setIsAddEndpointOpen(false)}>
+                <div className="modal-content save-modal" onClick={e => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h2><i className="fas fa-plus-circle" /> Add Endpoint</h2>
+                  </div>
+                  <p className="modal-desc">
+                    Describe a new route — it will be generated and appended to the existing handler set.
+                  </p>
+                  <div className="mock-form-group">
+                    <label className="input-label">Endpoint Description</label>
+                    <input
+                      type="text"
+                      className="text-input full-width"
+                      placeholder="e.g. POST /api/products — create a new product"
+                      value={addEndpointInput}
+                      onChange={e => setAddEndpointInput(e.target.value)}
+                      autoFocus
+                      onKeyDown={e => e.key === 'Enter' && handleAddEndpoint()}
+                    />
+                  </div>
+                  <div className="modal-footer split-footer">
+                    <button
+                      className="secondary-button modal-btn"
+                      onClick={() => setIsAddEndpointOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="primary-button modal-btn"
+                      onClick={handleAddEndpoint}
+                      disabled={isLoading || !addEndpointInput.trim()}
+                    >
+                      {isLoading ? <><div className="spinner-small" /> Generating…</> : 'Add Endpoint'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeHandler && !isLoading && (
               <div className="handler-detail-container">
                 <div className="handler-header-card">
@@ -572,12 +618,49 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                         <i className="fas fa-hourglass-half" /> {activeHandler.delayMs}ms
                       </span>
                     )}
+                    <FixtureShapeWarning handler={activeHandler} />
+                    {handlerDirty[globalHandlerIdx] && (
+                      <span className="handler-dirty-tag">
+                        <i className="fas fa-pencil" /> Edited
+                      </span>
+                    )}
                   </div>
                   <div className="handler-header-right">
                     {generatedData && <MethodSummaryPills methodCounts={methodCounts} />}
                     <span className="handler-name-tag">
                       <i className="fas fa-tag" /> {activeHandler.name}
                     </span>
+
+                    {!isEditing && (
+                      <button
+                        className="secondary-button btn-small"
+                        onClick={() => startEdit(globalHandlerIdx, viewMode === 'fixture' ? 'fixtureData' : 'code')}
+                        title={viewMode === 'fixture' ? 'Edit fixture data' : 'Edit handler code'}
+                      >
+                        <i className="fas fa-pencil" /> Edit
+                      </button>
+                    )}
+                    {isEditing && (
+                      <>
+                        <button className="primary-button btn-small" onClick={commitEdit}>
+                          <i className="fas fa-check" /> Save
+                        </button>
+                        <button className="secondary-button btn-small" onClick={cancelEdit}>
+                          <i className="fas fa-xmark" /> Cancel
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      className="secondary-button btn-small"
+                      onClick={() => handleRegenerateHandler(globalHandlerIdx)}
+                      disabled={regeneratingIdx === globalHandlerIdx}
+                      title="Regenerate just this handler"
+                    >
+                      {regeneratingIdx === globalHandlerIdx
+                        ? <><div className="spinner-small" /> Regenerating…</>
+                        : <><i className="fas fa-rotate" /> Regenerate</>}
+                    </button>
                   </div>
                 </div>
 
@@ -585,16 +668,41 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <p className="handler-description">{activeHandler.description}</p>
                 )}
 
+                <ErrorVariantPanel
+                  handler={activeHandler}
+                  activeVariant={activeErrorVariant[globalHandlerIdx]}
+                  onSelectVariant={(idx) => setErrorVariantForHandler(globalHandlerIdx, idx)}
+                />
+
                 <div className="handler-code-pane">
-                  {viewMode === 'code'
+                  {isEditing ? (
+                    <div className="api-code-display handler-edit-pane">
+                      <div className="handler-edit-header">
+                        <span className="handler-edit-title">
+                          <i className="fas fa-pencil" />
+                          Editing {editingField === 'fixtureData' ? 'Fixture Data' : 'Handler Code'}
+                        </span>
+                        <span className="handler-edit-hint">
+                          {editingField === 'fixtureData' ? 'Must be valid JSON' : 'TypeScript / JS'}
+                        </span>
+                      </div>
+                      <textarea
+                        className="handler-edit-textarea"
+                        value={editDraft}
+                        onChange={e => setEditDraft(e.target.value)}
+                        spellCheck={false}
+                        autoFocus
+                      />
+                    </div>
+                  ) : viewMode === 'code'
                     ? <CodeDisplay
-                      code={activeHandler.code}
+                      code={displayHandler?.code ?? activeHandler.code}
                       language="typescript"
-                      key={activeHandler.name}
+                      key={`${activeHandler.name}-${variantIdx ?? 'success'}`}
                     />
                     : <FixtureDisplay
-                      handler={activeHandler}
-                      key={activeHandler.name}
+                      handler={displayHandler ?? activeHandler}
+                      key={`${activeHandler.name}-${variantIdx ?? 'success'}`}
                     />
                   }
                 </div>

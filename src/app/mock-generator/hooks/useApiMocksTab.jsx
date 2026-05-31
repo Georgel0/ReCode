@@ -25,6 +25,12 @@ export const AUTH_OPTIONS = [
   { value: 'session', label: 'Session Cookie' },
 ];
 
+export const ENV_PREFIX_OPTIONS = [
+  { value: 'none', label: 'None (hardcoded)' },
+  { value: 'process.env', label: 'process.env' },
+  { value: 'import.meta.env', label: 'import.meta.env' },
+];
+
 export const SPEC_TEMPLATES = [
   {
     label: 'Users REST CRUD',
@@ -193,6 +199,8 @@ export function getMethodMeta(method = '') {
   return map[m] ?? { cls: 'method-badge--get', label: m };
 }
 
+const MAX_HISTORY = 5;
+
 export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
   const { moduleData, qualityMode } = useApp();
 
@@ -205,6 +213,7 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
   const [authStyle, setAuthStyle] = useState('none');
   const [includeTypes, setIncludeTypes] = useState(true);
   const [includeAnalysis, setIncludeAnalysis] = useState(false);
+  const [envPrefix, setEnvPrefix] = useState('none');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -222,6 +231,22 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
   const [newSpecName, setNewSpecName] = useState('');
   const [saveSpecError, setSaveSpecError] = useState('');
 
+  const [editingHandlerIdx, setEditingHandlerIdx] = useState(null);
+  const [editingField, setEditingField] = useState(null); // 'code' | 'fixtureData'
+  const [editDraft, setEditDraft] = useState('');
+  const [handlerDirty, setHandlerDirty] = useState({}); // { [idx]: true }
+
+  const [regeneratingIdx, setRegeneratingIdx] = useState(null);
+  const [isAddEndpointOpen, setIsAddEndpointOpen] = useState(false);
+  const [addEndpointInput, setAddEndpointInput] = useState('');
+
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const [generationHistory, setGenerationHistory] = useState([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const [activeErrorVariant, setActiveErrorVariant] = useState({});
+
   const [modalConfig, setModalConfig] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => { },
   });
@@ -233,6 +258,13 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
     } catch (e) {
       console.warn('Failed to load saved API specs:', e);
       localStorage.removeItem('mockApiSpecs');
+    }
+    try {
+      const hist = localStorage.getItem('mockApiHistory');
+      if (hist) setGenerationHistory(JSON.parse(hist));
+    } catch (e) {
+      console.warn('Failed to load generation history:', e);
+      localStorage.removeItem('mockApiHistory');
     }
   }, []);
 
@@ -249,6 +281,7 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
       if (moduleData.authStyle) setAuthStyle(moduleData.authStyle);
       if (moduleData.includeTypes != null) setIncludeTypes(moduleData.includeTypes);
       if (moduleData.includeAnalysis != null) setIncludeAnalysis(moduleData.includeAnalysis);
+      if (moduleData.envPrefix) setEnvPrefix(moduleData.envPrefix);
 
       const rawOutput = moduleData.output || moduleData.fullOutput;
       if (rawOutput) {
@@ -259,7 +292,7 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
           setActiveHandlerIdx(0);
           setFilterQuery('');
         } catch (e) {
-          console.error('Failed to rehydrate API mock data:', e);
+          console.warn('Failed to parse stored output:', e);
         }
       }
     }
@@ -269,10 +302,8 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
 
   const filteredHandlers = useMemo(() => {
     if (!generatedData?.handlers) return [];
-    if (!filterQuery.trim()) return generatedData.handlers;
-
-    const q = filterQuery.toLowerCase();
-
+    const q = filterQuery.toLowerCase().trim();
+    if (!q) return generatedData.handlers;
     return generatedData.handlers.filter(h =>
       h.name?.toLowerCase().includes(q) ||
       h.path?.toLowerCase().includes(q) ||
@@ -293,12 +324,28 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
     }, {});
   }, [generatedData]);
 
+  // Push a snapshot into generation history (localStorage + state)
+  const pushHistory = useCallback((data) => {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      label: `${data.handlers?.length ?? 0} handlers – ${new Date().toLocaleTimeString()}`,
+      data,
+    };
+    setGenerationHistory(prev => {
+      const next = [entry, ...prev].slice(0, MAX_HISTORY);
+      try { localStorage.setItem('mockApiHistory', JSON.stringify(next)); } catch (_) { }
+      return next;
+    });
+  }, []);
+
   const handleGenerate = useCallback(async () => {
     if (!specInput.trim()) return;
 
     setIsLoading(true);
     setParsedSpecFeedback([]);
     setGeneratedData(null);
+    setHandlerDirty({});
+    setActiveErrorVariant({});
 
     try {
       const data = await convertCode('api-mocks', specInput, {
@@ -310,6 +357,7 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
         authStyle,
         includeTypes,
         includeAnalysis,
+        envPrefix,
         qualityMode,
         detectedFormat,
       });
@@ -319,6 +367,7 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
       setActiveHandlerIdx(0);
       setFilterQuery('');
       setViewMode('code');
+      pushHistory(data);
 
       if (onDataUpdate) {
         onDataUpdate({
@@ -326,7 +375,7 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
           input: specInput,
           output: JSON.stringify(data),
           framework, endpointCount, delayMs, errorRate,
-          paginationStyle, authStyle, includeTypes, includeAnalysis,
+          paginationStyle, authStyle, includeTypes, includeAnalysis, envPrefix,
         });
       }
     } catch (error) {
@@ -337,9 +386,114 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
     }
   }, [
     specInput, framework, endpointCount, delayMs, errorRate,
-    paginationStyle, authStyle, includeTypes, includeAnalysis,
-    qualityMode, detectedFormat, onDataUpdate,
+    paginationStyle, authStyle, includeTypes, includeAnalysis, envPrefix,
+    qualityMode, detectedFormat, onDataUpdate, pushHistory,
   ]);
+
+  // Regenerate a single handler
+  const handleRegenerateHandler = useCallback(async (idx) => {
+    if (!generatedData?.handlers?.[idx]) return;
+    const handler = generatedData.handlers[idx];
+    setRegeneratingIdx(idx);
+
+    try {
+      // Narrow prompt: target just this one endpoint
+      const singleSpec = `${handler.method} ${handler.path}\n${handler.description || ''}`;
+      const data = await convertCode('api-mocks', singleSpec, {
+        framework,
+        endpointCount: 1,
+        delayMs,
+        errorRate,
+        paginationStyle,
+        authStyle,
+        includeTypes,
+        includeAnalysis: false,
+        envPrefix,
+        qualityMode,
+        detectedFormat: 'rest',
+      });
+
+      const newHandler = data.handlers?.[0];
+      if (!newHandler) throw new Error('No handler returned');
+
+      setGeneratedData(prev => {
+        const handlers = [...prev.handlers];
+        handlers[idx] = newHandler;
+        const next = { ...prev, handlers };
+        pushHistory(next);
+        return next;
+      });
+      // Clear dirty state for this handler since it's freshly regenerated
+      setHandlerDirty(prev => { const n = { ...prev }; delete n[idx]; return n; });
+      setActiveErrorVariant(prev => { const n = { ...prev }; delete n[idx]; return n; });
+    } catch (error) {
+      console.error(error);
+      alert(error.message || 'Error regenerating handler.');
+    } finally {
+      setRegeneratingIdx(null);
+    }
+  }, [generatedData, framework, delayMs, errorRate, paginationStyle, authStyle, includeTypes, envPrefix, qualityMode, pushHistory]);
+
+  // Add endpoint via mini-input
+  const handleAddEndpoint = useCallback(async () => {
+    if (!addEndpointInput.trim() || !generatedData) return;
+    setIsLoading(true);
+    try {
+      const data = await convertCode('api-mocks', addEndpointInput.trim(), {
+        framework,
+        endpointCount: 1,
+        delayMs,
+        errorRate: 0,
+        paginationStyle,
+        authStyle,
+        includeTypes,
+        includeAnalysis: false,
+        envPrefix,
+        qualityMode,
+        detectedFormat: 'rest',
+      });
+
+      const newHandler = data.handlers?.[0];
+      if (!newHandler) throw new Error('No handler returned');
+
+      setGeneratedData(prev => {
+        const handlers = [...prev.handlers, newHandler];
+        const next = { ...prev, handlers };
+        pushHistory(next);
+        setTimeout(() => setActiveHandlerIdx(handlers.length - 1), 0);
+        return next;
+      });
+
+      setAddEndpointInput('');
+      setIsAddEndpointOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert(error.message || 'Error adding endpoint.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [addEndpointInput, generatedData, framework, delayMs, paginationStyle, authStyle, includeTypes, envPrefix, qualityMode, pushHistory]);
+
+  // File upload handler
+  const handleFileUpload = useCallback((file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      if (typeof text === 'string') setSpecInput(text);
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileUpload(file);
+  }, [handleFileUpload]);
+
+  const handleDragOver = useCallback((e) => { e.preventDefault(); setIsDragOver(true); }, []);
+  const handleDragLeave = useCallback(() => setIsDragOver(false), []);
 
   const flashCopy = useCallback((key) => {
     setCopyFlash(key);
@@ -365,6 +519,69 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
       .then(() => flashCopy('all'))
       .catch(() => { });
   }, [generatedData, flashCopy]);
+
+  // Inline editing: start editing a handler field
+  const startEdit = useCallback((idx, field) => {
+    if (!generatedData?.handlers?.[idx]) return;
+
+    const handler = generatedData.handlers[idx];
+    const value = field === 'fixtureData'
+      ? JSON.stringify(handler.fixtureData, null, 2)
+      : handler.code;
+    setEditingHandlerIdx(idx);
+    setEditingField(field);
+    setEditDraft(value);
+  }, [generatedData]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingHandlerIdx(null);
+    setEditingField(null);
+    setEditDraft('');
+  }, []);
+
+  // Restore from history
+  const handleRestoreHistory = useCallback((entry) => {
+    setGeneratedData(entry.data);
+    setParsedSpecFeedback(entry.data.parsedSpec || []);
+    setActiveHandlerIdx(0);
+    setFilterQuery('');
+    setHandlerDirty({});
+    setActiveErrorVariant({});
+    cancelEdit();
+    setHistoryOpen(false);
+  }, [cancelEdit]);
+
+  const commitEdit = useCallback(() => {
+    if (editingHandlerIdx == null || !editingField) return;
+
+    let parsedFixture;
+    if (editingField === 'fixtureData') {
+      try {
+        parsedFixture = JSON.parse(editDraft);
+      } catch (_) {
+        alert('Invalid JSON in fixture data. Please fix before saving.');
+        return;
+      }
+    }
+
+    setGeneratedData(prev => {
+      const handlers = [...prev.handlers];
+      const handler = { ...handlers[editingHandlerIdx] };
+      if (editingField === 'fixtureData') handler.fixtureData = parsedFixture;
+      else handler.code = editDraft;
+      handlers[editingHandlerIdx] = handler;
+      return { ...prev, handlers };
+    });
+    setHandlerDirty(prev => ({ ...prev, [editingHandlerIdx]: true }));
+    setEditingHandlerIdx(null);
+    setEditingField(null);
+    setEditDraft('');
+  }, [editingHandlerIdx, editingField, editDraft]);
+
+  // Error variant switcher
+  const setErrorVariantForHandler = useCallback((handlerIdx, variantIdx) => {
+    setActiveErrorVariant(prev => ({ ...prev, [handlerIdx]: variantIdx }));
+  }, []);
 
   const downloadFile = (content, filename, type) => {
     const blob = new Blob([content], { type });
@@ -392,9 +609,9 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
       const allCode = viewMode === 'fixture'
         ? generatedData.handlers.map(h =>
           JSON.stringify(h.fixtureData, null, 2)).join('\n\n')
-        : generatedData.handlers.map(h => h.code).join('\n\n// ─────\n\n'); 
+        : generatedData.handlers.map(h => h.code).join('\n\n// ─────\n\n');
       const fileFooter = framework === 'msw' ? '\n];\n' : '';
-      
+
       downloadFile(fileHeader + allCode + fileFooter, `mock-handlers.${ext}`, 'text/typescript');
     }
 
@@ -435,8 +652,116 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
       downloadFile(JSON.stringify(collection, null, 2), 'mock-collection.postman_collection.json', 'application/json');
     }
 
+    // Project structure zip export
+    else if (exportType === 'zip') {
+      exportAsZip();
+      return;
+    }
+
+    // Code snippets export
+    else if (exportType === 'vscode-snippets') {
+      exportAsVSCodeSnippets();
+      return;
+    }
+
     setModalConfig(prev => ({ ...prev, isOpen: false }));
-  }, [generatedData, activeHandler, framework]);
+  }, [generatedData, activeHandler, framework, viewMode]);
+
+  // Zip export: group handlers by path prefix into directory structure
+  const exportAsZip = useCallback(async () => {
+    if (!generatedData?.handlers) return;
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const srcMocks = zip.folder('src/mocks/handlers');
+
+      // Group by first path segment
+      const groups = {};
+      generatedData.handlers.forEach(h => {
+        const segments = h.path.replace(/^\//, '').split('/').filter(Boolean);
+        const group = segments[0] || 'root';
+        if (!groups[group]) groups[group] = [];
+        groups[group].push(h);
+      });
+
+      const barrelImports = [];
+
+      Object.entries(groups).forEach(([group, handlers]) => {
+        const filename = `${group}.ts`;
+        const content = [
+          `// ${group} handlers – generated by Mock Data Factory`,
+          framework === 'msw' ? `import { http, HttpResponse } from 'msw';` : '',
+          '',
+          ...handlers.map(h => h.code),
+          '',
+          `export const ${group}Handlers = [`,
+          ...handlers.map(h => `  ${h.name},`),
+          `];`,
+        ].filter(l => l !== undefined).join('\n');
+        srcMocks.file(filename, content);
+        barrelImports.push({ group, filename });
+      });
+
+      // Barrel file
+      const barrel = [
+        `// Auto-generated barrel – re-exports all handler arrays`,
+        ...barrelImports.map(({ group, filename }) =>
+          `export { ${group}Handlers } from './${filename.replace('.ts', '')}';`
+        ),
+        '',
+        `// Combined handlers array for setupWorker / setupServer`,
+        `import { ${barrelImports.map(b => `${b.group}Handlers`).join(', ')} } from '.';`,
+        `export const handlers = [${barrelImports.map(b => `...${b.group}Handlers`).join(', ')}];`,
+      ].join('\n');
+      srcMocks.file('index.ts', barrel);
+
+      // Browser entry (MSW only)
+      if (framework === 'msw') {
+        zip.folder('src/mocks').file('browser.ts',
+          `import { setupWorker } from 'msw/browser';\nimport { handlers } from './handlers';\nexport const worker = setupWorker(...handlers);\n`
+        );
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mock-handlers.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (e) {
+      console.error('Zip export failed:', e);
+      alert('Zip export requires the jszip package. Run: npm install jszip');
+    }
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
+  }, [generatedData, framework]);
+
+  // VS Code snippets export
+  const exportAsVSCodeSnippets = useCallback(() => {
+    if (!generatedData?.handlers) return;
+    const snippets = {};
+
+    generatedData.handlers.forEach(h => {
+      const key = h.name;
+      // camelCase → trigger prefix
+      const prefix = h.name;
+      snippets[key] = {
+        scope: 'typescript,javascript',
+        prefix,
+        body: h.code.split('\n'),
+        description: h.description,
+      };
+    });
+
+    downloadFile(
+      JSON.stringify(snippets, null, 2),
+      'api-mocks.code-snippets',
+      'application/json'
+    );
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
+  }, [generatedData]);
 
   const triggerExportModal = useCallback((type) => {
     const labels = {
@@ -444,6 +769,8 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
       'fixtures-json': 'JSON Fixtures',
       'active-ts': `Active Handler (.ts)`,
       'postman': 'Postman Collection (.json)',
+      'zip': 'Project Structure (.zip)',
+      'vscode-snippets': 'VS Code Snippets (.code-snippets)',
     };
 
     setModalConfig({
@@ -465,11 +792,15 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
 
   const executeSaveSpec = useCallback(() => {
     if (!newSpecName?.trim()) { setSaveSpecError('Name cannot be empty.'); return; }
+
     const trimmed = newSpecName.trim();
+
     if (savedSpecs.some(s => s.name.toLowerCase() === trimmed.toLowerCase())) {
       setSaveSpecError('A spec with this name already exists.'); return;
     }
+
     const newSaved = [...savedSpecs, { name: trimmed, spec: specInput, framework }];
+
     try {
       localStorage.setItem('mockApiSpecs', JSON.stringify(newSaved));
       setSavedSpecs(newSaved);
@@ -498,12 +829,13 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
     authStyle, setAuthStyle,
     includeTypes, setIncludeTypes,
     includeAnalysis, setIncludeAnalysis,
+    envPrefix, setEnvPrefix,
     isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 
     // Output
     isLoading,
-    generatedData,
+    generatedData, setGeneratedData,
     activeHandlerIdx,
     setActiveHandlerIdx,
     viewMode, setViewMode,
@@ -513,6 +845,32 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
     parsedSpecFeedback,
     methodCounts,
     copyFlash,
+
+    // Inline editing
+    editingHandlerIdx, editingField, editDraft, setEditDraft,
+    handlerDirty,
+    startEdit, cancelEdit, commitEdit,
+
+    // Single-handler regen & add endpoint
+    regeneratingIdx,
+    isAddEndpointOpen, setIsAddEndpointOpen,
+    addEndpointInput, setAddEndpointInput,
+    handleRegenerateHandler,
+    handleAddEndpoint,
+
+    // File upload
+    isDragOver,
+    handleDrop, handleDragOver, handleDragLeave,
+    handleFileUpload,
+
+    // Generation history
+    generationHistory,
+    historyOpen, setHistoryOpen,
+    handleRestoreHistory,
+
+    // Error variant
+    activeErrorVariant,
+    setErrorVariantForHandler,
 
     // Library
     savedSpecs, specsVisible, setSpecsVisible,

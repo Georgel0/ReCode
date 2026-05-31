@@ -166,6 +166,11 @@ export const OUTPUT_SCHEMAS = {
       delayMs: z.number().default(0).describe('Simulated response delay in milliseconds (0 if none)'),
       code: z.string().describe('Full, production-ready handler code for the chosen framework'),
       fixtureData: z.any().describe('The realistic JSON object the handler returns'),
+      errorVariants: z.array(z.object({
+        statusCode: z.number().describe('HTTP error status code, e.g. 404, 422, 500'),
+        code: z.string().describe('Full handler code returning this error response'),
+        fixtureData: z.any().describe('Realistic error response body, e.g. { error, message, code }'),
+      })).optional().describe('One or more error scenario variants for this handler (404, 422, 500, etc.)'),
     })),
     parsedSpec: z.array(z.string()).optional()
       .describe('Bullet points listing each resolved endpoint and its mapped response shape'),
