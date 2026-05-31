@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import {
   useApiMocksTab, getMethodMeta,
   FRAMEWORK_OPTIONS, PAGINATION_OPTIONS, AUTH_OPTIONS, ENV_PREFIX_OPTIONS, SPEC_TEMPLATES, FORMAT_LABELS, FORMAT_ICONS,
 } from '../hooks/useApiMocksTab';
-import { MethodBadge, StatusBadge, CodeDisplay, FixtureDisplay, MethodSummaryPills, 
-  HistoryDropdown, ErrorVariantPanel, FixtureShapeWarning } from '../components/ApiMocksTabComponents';
+import {
+  MethodBadge, StatusBadge, CodeDisplay, FixtureDisplay, MethodSummaryPills,
+  HistoryDropdown, ErrorVariantPanel, FixtureShapeWarning
+} from '../components/ApiMocksTabComponents';
 
 export default function ApiMocksTab({ onDataUpdate, isActive }) {
   const api = useApiMocksTab({ onDataUpdate, isActive });
@@ -79,7 +82,11 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
   const fileInputRef = useRef(null);
 
   // Derive the handler + variant to actually display
-  const globalHandlerIdx = generatedData?.handlers?.indexOf(activeHandler);
+  const globalHandlerIdx = activeHandler
+    ? generatedData?.handlers?.findIndex(
+      h => h.name === activeHandler.name && h.path === activeHandler.path
+    ) ?? -1
+    : -1;
   const variantIdx = activeErrorVariant[globalHandlerIdx];
   const displayHandler = variantIdx != null
     ? { ...activeHandler, ...(activeHandler?.errorVariants?.[variantIdx] ?? {}) }
@@ -382,7 +389,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     const globalIdx = generatedData?.handlers?.indexOf(handler);
                     return (
                       <button
-                        key={idx}
+                        key={handler.name ?? `${handler.method}-${handler.path}`}
                         className={`tab-btn handler-tab ${activeHandlerIdx === idx ? 'active' : ''}`}
                         onClick={() => setActiveHandlerIdx(idx)}
                         title={handler.description}
@@ -406,7 +413,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   onClick={() => setIsAddEndpointOpen(true)}
                   title="Add a new endpoint"
                 >
-                  <i className="fas fa-plus" style={{marginRight: 0}} />
+                  <i className="fas fa-plus" style={{ marginRight: 0 }} />
                 </button>
               )}
 

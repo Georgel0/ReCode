@@ -25,7 +25,7 @@ export function CodeDisplay({ code, language = 'typescript' }) {
     if (typeof window !== 'undefined' && window.Prism && preRef.current) {
       window.Prism.highlightElement(preRef.current);
     }
-  }, [code]);
+  }, [code, language]);
 
   return (
     <div className="api-code-display">
@@ -160,7 +160,9 @@ export function FixtureShapeWarning({ handler }) {
   const fixtureIsObject = fixture && typeof fixture === 'object' && !fixtureIsArray;
 
   // Warn if code implies array but fixture is single object
-  if (codeImpliesList && fixtureIsObject && !fixture.data && !fixture.items) {
+  const ENVELOPE_KEYS = ['data', 'items', 'results', 'records', 'payload', 'list', 'rows', 'users', 'posts', 'entries'];
+  const hasEnvelope = ENVELOPE_KEYS.some(k => Array.isArray(fixture[k]));
+  if (codeImpliesList && fixtureIsObject && !hasEnvelope) {
     return (
       <span className="fixture-shape-warning" title="Fixture shape may not match handler types: code implies a list but fixture is a single object">
         <i className="fas fa-triangle-exclamation" /> Shape Mismatch
