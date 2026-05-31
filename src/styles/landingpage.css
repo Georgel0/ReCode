@@ -116,24 +116,6 @@ body {
   background: #fff;
 }
 
-.lp-secondary-cta {
-  color: var(--lp-text-muted);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: color 0.2s;
-  z-index: 1;
-}
-
-.lp-secondary-cta:hover {
-  color: var(--lp-text-main);
-}
-
-.lp-secondary-cta i {
-  font-size: 0.8rem;
-}
-
 .lp-section {
   padding: 100px 0;
   z-index: 1;
@@ -824,8 +806,7 @@ body {
     flex-direction: column;
   }
 
-  .lp-cta,
-  .lp-secondary-cta {
+  .lp-cta {
     width: 100%;
     justify-content: center;
   }

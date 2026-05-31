@@ -52,9 +52,6 @@ export default function LandingPage() {
               className="lp-cta">
               Get Started <i className="fa-solid fa-arrow-right"></i>
             </Link>
-            <a href="#platform-video" className="lp-secondary-cta">
-              <i className="fa-solid fa-play"></i> Watch Demo
-            </a>
           </div>
         </div>
       </section>
