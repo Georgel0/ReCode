@@ -328,14 +328,14 @@ export default function JsonFormatter() {
             </div>
           )}
 
-          <label className="sort-keys-toggle">
+          <label className="custom-check" title="Sort JSON keys alphabetically when formatting">
             <input
               type="checkbox"
               checked={sortKeys}
               onChange={(e) => setSortKeys(e.target.checked)}
-              aria-label="Sort JSON keys alphabetically when formatting"
             />
-            <span>Sort keys alphabetically</span>
+            <div className="box"><i className="fa-solid fa-check"></i></div>
+            <span className="label-text">Sort keys alphabetically</span>
           </label>
 
           <div className="action-row space-between">

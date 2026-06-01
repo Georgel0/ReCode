@@ -221,9 +221,6 @@ export default function LandingPage() {
 
             <div className="footer-links">
               <div className="social-row">
-                <a href="https://github.com/Georgel0" target="_blank" rel="noreferrer" title="GitHub">
-                  <i className="fab fa-github"></i>
-                </a>
                 <a href="https://www.linkedin.com/in/georgel-garabajiu-297a052a8" target="_blank" rel="noreferrer" title="LinkedIn">
                   <i className="fab fa-linkedin"></i>
                 </a>
@@ -231,10 +228,6 @@ export default function LandingPage() {
                   <i className="fas fa-envelope"></i>
                 </a>
               </div>
-
-              <a href="https://github.com/Georgel0/ReCode" target="_blank" rel="noreferrer" className="source-link">
-                <i className="fas fa-code-branch"></i> View Source Code
-              </a>
             </div>
           </div>
         </div>

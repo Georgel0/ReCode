@@ -4,12 +4,14 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
-import { CorrelatedView, ReplayView, 
-  inferEventBadges, RuleValidationPanel, DistributionChart, 
-  EditableCell, EventColBadge } from '../components/StreamingEventsComponents';
+import {
+  CorrelatedView, ReplayView,
+  inferEventBadges, RuleValidationPanel, DistributionChart,
+  EditableCell, EventColBadge
+} from '../components/StreamingEventsComponents';
 import {
   useStreamingEventsTab,
-  STREAM_RULE_TEMPLATES, EVENT_FORMATS, 
+  STREAM_RULE_TEMPLATES, EVENT_FORMATS,
   STREAM_PARADIGMS, ITEMS_PER_PAGE, SAMPLE_TEMPLATES,
 } from '../hooks/useStreamingEventsTab';
 
@@ -68,7 +70,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
   const handleCopyAsCode = (format) => {
     if (!activeStreamData?.events) return;
     const snippet = generateCodeSnippet(activeStreamData.events, activeStreamData.streamName, format);
-    navigator.clipboard.writeText(snippet).catch(() => {});
+    navigator.clipboard.writeText(snippet).catch(() => { });
   };
 
   const activeFieldFilterCount = Object.values(fieldFilters).filter(v => v !== '').length;
@@ -297,27 +299,31 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
 
               <div className="mock-form-group">
-                <label className="toggle-row">
+                <label className="custom-check" title="Generate State Machine">
                   <input
                     type="checkbox"
                     checked={includeStateMachine}
                     onChange={e => setIncludeStateMachine(e.target.checked)}
                   />
-                  <span className="toggle-label">
+                  <div className="box"><i className="fa-solid fa-check"></i></div>
+                  <span className="label-text">
                     <i className="fas fa-project-diagram" /> Generate State Machine
                   </span>
                 </label>
-                <label className="toggle-row" style={{ marginTop: '0.5rem' }}>
+                <br />
+                <label className="custom-check" title="Include Generation Analysis">
                   <input
                     type="checkbox"
                     checked={includeAnalysis}
                     onChange={e => setIncludeAnalysis(e.target.checked)}
                   />
-                  <span className="toggle-label">
+                  <div className="box"><i className="fa-solid fa-check"></i></div>
+                  <span className="label-text">
                     <i className="fas fa-robot" /> Include Generation Analysis
                   </span>
                 </label>
               </div>
+
             </div>
 
           </div>

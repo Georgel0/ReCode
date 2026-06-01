@@ -429,17 +429,17 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <label className="custom-check" style={{ marginTop: '0.5rem' }}>
+              <label className="custom-check" title="Generate Data Analysis">
                 <input
                   type="checkbox"
                   checked={includeAnalysis}
                   onChange={e => setIncludeAnalysis(e.target.checked)}
                 />
-                <div className="box"><i className="fas fa-check" /></div>
+                <div className="box"><i className="fa-solid fa-check"></i></div>
                 <span className="label-text">Generate Data Analysis &amp; Explanations</span>
               </label>
-            </div>
 
+            </div>
           </div>
 
           <div className="mock-sidebar-footer">

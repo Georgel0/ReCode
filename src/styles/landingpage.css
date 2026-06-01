@@ -219,7 +219,7 @@ body {
 
 .lp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 24px;
 }
 
@@ -342,21 +342,6 @@ body {
 .social-row a:hover {
   color: var(--lp-blue);
   transform: translateY(-3px);
-}
-
-.source-link {
-  color: var(--lp-blue);
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-
-.source-link:hover {
-  opacity: 0.8;
 }
 
 .info-trigger-lp {
