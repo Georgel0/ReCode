@@ -1,299 +1,157 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRef, useEffect } from 'react';
 import { convertCode } from '@/lib';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
-import JSON5 from 'json5';
 import JsonView from 'react18-json-view';
 import 'react18-json-view/src/style.css';
+import { useJsonFormatter } from './useJsonFormatter';
 
 import './JsonFormatter.css';
 
-const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024; // 3 MB
-const TREE_DEBOUNCE_MS = 150;
-
-/**
- * Sorts all object keys recursively in alphabetical order.
- * @param {unknown} value
- * @returns {unknown}
- */
-const sortKeysDeep = (value) => {
-  if (Array.isArray(value)) return value.map(sortKeysDeep);
-  if (value !== null && typeof value === 'object') {
-    return Object.keys(value)
-      .sort()
-      .reduce((acc, key) => {
-        acc[key] = sortKeysDeep(value[key]);
-        return acc;
-      }, {});
-  }
-  return value;
-};
-
-/**
- * Extracts only the JSON content from a markdown code block.
- * Handles cases where the AI wraps the response in ```json ... ``` and also
- * emits conversational text before or after the block.
- * @param {string} raw
- * @returns {string}
- */
-const extractJsonFromMarkdown = (raw) => {
-  // Try to grab the content between ```json (or ```) fences first.
-  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) return fenceMatch[1].trim();
-  // Fallback: strip any stray fence markers and trim.
-  return raw.replace(/```json|```/g, '').trim();
-};
-
-/**
- * Triggers a browser download of a text file.
- * @param {string} content
- * @param {string} filename
- */
-const downloadFile = (content, filename) => {
-  const blob = new Blob([content], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-};
-
 export default function JsonFormatter() {
-  const [input, setInput] = useState('');
-  const [outputCode, setOutputCode] = useState('');
-  const [explanation, setExplanation] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [lastResult, setLastResult] = useState(false);
-  const [viewMode, setViewMode] = useState('code');
-  const [isDragging, setIsDragging] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const [sortKeys, setSortKeys] = useState(false);
-
-  const treeDebounceRef = useRef(null);
-
-  const fileInputRef = useRef(null);
   const { moduleData, qualityMode } = useApp();
+  const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkTheme(mediaQuery.matches);
-    const handleChange = (e) => setIsDarkTheme(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  // Initialize the massive state/handler hook
+  const {
+    input, setInput,
+    outputCode, setOutputCode,
+    explanation,
+    loading,
+    errorMsg, setErrorMsg,
+    lastResult,
+    viewMode, setViewMode,
+    isDragging,
+    isDarkTheme,
+    sortKeys, setSortKeys,
+    indentSize, setIndentSize,
+    autoFormat, setAutoFormat,
+    jsonSchemaText, setJsonSchemaText,
+    schemaErrors,
+    jsonPathQuery, setJsonPathQuery,
+    jsonPathResult,
+    diffInput, setDiffInput,
+    diffResult,
+    zodOutput, setZodOutput,
+    zodLoading,
+    urlInput, setUrlInput,
+    urlLoading,
+    history,
+    showHistory, setShowHistory,
+    conversionResult, setConversionResult,
+    convertLoading,
+    outputCounts,
 
-  useEffect(() => {
-    if (moduleData && moduleData.type === 'json') {
-      setInput(moduleData.input || '');
-      const { code, info } = parseJsonResponse(moduleData.fullOutput);
-      setOutputCode(code);
-      setExplanation(info);
-    }
-  }, [moduleData]);
-
-  useEffect(() => {
-    // Wipe output only if the user is actively re-typing fresh input.
-    // We do NOT wipe when input is programmatically set from moduleData (handled above).
-    setErrorMsg(null);
-  }, [input]);
-
-
-  const parseJsonResponse = (rawOutput) => {
-    if (typeof rawOutput === 'object' && rawOutput !== null) {
-      return {
-        code: rawOutput.formattedJson || '',
-        info: rawOutput.explanation || 'JSON formatted successfully.',
-      };
-    }
-    try {
-      const clean = extractJsonFromMarkdown(rawOutput || '');
-      const parsed = JSON.parse(clean);
-      return {
-        code: parsed.formattedJson || rawOutput,
-        info: parsed.explanation || 'JSON formatted and repaired.',
-      };
-    } catch {
-      return { code: rawOutput || '', info: 'AI formatted the JSON.' };
-    }
-  };
-
-  const handleLocalFormat = () => {
-    const sourceCode = input.trim();
-    if (!sourceCode) return;
-
-    setErrorMsg(null);
-    try {
-      let parsed = JSON.parse(sourceCode);
-      if (sortKeys) parsed = sortKeysDeep(parsed);
-      setOutputCode(JSON.stringify(parsed, null, 2));
-      setExplanation('Valid JSON – formatted locally.');
-    } catch {
-      try {
-        let looseParsed = JSON5.parse(sourceCode);
-        if (sortKeys) looseParsed = sortKeysDeep(looseParsed);
-        setOutputCode(JSON.stringify(looseParsed, null, 2));
-        setExplanation('Loose JSON fixed locally via JSON5.');
-      } catch (looseError) {
-        const msg = looseError.message || '';
-        const match = msg.match(/line \d+ column \d+/) || msg.match(/position \d+/);
-        const loc = match ? ` at ${match[0]}` : '';
-        setErrorMsg(`Syntax Error${loc}: Click 'AI Fix & Format' to auto-repair.`);
-      }
-    }
-  };
-
-  const handleMinify = () => {
-    const sourceCode = outputCode.trim() || input.trim();
-    if (!sourceCode) return;
-
-    setErrorMsg(null);
-    // Fast path: native JSON.parse
-    try {
-      setOutputCode(JSON.stringify(JSON.parse(sourceCode)));
-      setExplanation('JSON minified to a single line.');
-      return;
-    } catch {
-      // Fall through to JSON5
-    }
-    // Slow path: JSON5 for lenient input
-    try {
-      setOutputCode(JSON.stringify(JSON5.parse(sourceCode)));
-      setExplanation('JSON5 parsed and minified.');
-    } catch {
-      setErrorMsg('Invalid JSON: Minification requires valid syntax.');
-    }
-  };
-
-  const handleAiFix = async () => {
-    if (!input.trim()) return;
-    setLoading(true);
-    setOutputCode('');
-    setExplanation('');
-    setErrorMsg(null);
-
-    try {
-      const result = await convertCode('json', input, { qualityMode });
-      const { code, info } = parseJsonResponse(result);
-      if (code) {
-        setOutputCode(code);
-        setExplanation(info);
-        setLastResult({ type: 'json', input, output: result });
-      }
-    } catch (error) {
-      alert(`Fix failed: ${error.message}`);
-    }
-    setLoading(false);
-  };
-
-  const handleDownload = () => {
-    if (!outputCode.trim()) return;
-    downloadFile(outputCode, 'output.json');
-  };
-
-  const readFile = (file) => {
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      setErrorMsg(
-        `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_FILE_SIZE_BYTES / 1024 / 1024} MB.`
-      );
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setInput(event.target.result);
-      setOutputCode('');
-      setErrorMsg(null);
-    };
-    reader.readAsText(file);
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    readFile(file);
-    e.target.value = '';
-  };
-
-  const onDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
-  const onDragLeave = () => setIsDragging(false);
-  const onDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) readFile(file);
-  };
-
-  const loadSample = () => {
-    setInput(
-      '{\n  "status": "broken",\n  "error": "missing quotes and commas"\n  unquoted_key: 123\n  "list": [1, 2, 3,]\n}'
-    );
-    setOutputCode('');
-    setErrorMsg(null);
-  };
-
-  const getJsonForTree = useCallback(() => {
-    try {
-      return outputCode ? JSON.parse(outputCode) : {};
-    } catch {
-      return { error: 'Parse error. Switch to Code view to fix.' };
-    }
-  }, [outputCode]);
-
-  /**
-   * Debounced tree edit handler to avoid heavy JSON.stringify on every keystroke
-   * in large deeply-nested objects.
-   */
-  const handleTreeEdit = (params) => {
-    if (treeDebounceRef.current) clearTimeout(treeDebounceRef.current);
-    treeDebounceRef.current = setTimeout(() => {
-      try {
-        setOutputCode(JSON.stringify(params.src, null, 2));
-      } catch {
-        console.error('Failed to sync tree edit.');
-      }
-    }, TREE_DEBOUNCE_MS);
-  };
+    handleLocalFormat,
+    handleMinify,
+    handleAiFix,
+    handlePaste,
+    handleDownload,
+    handleFileUpload,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+    loadSample,
+    handleUrlImport,
+    handleConvert,
+    handleGenerateZod,
+    handleZodToExample,
+    getJsonForTree,
+    handleTreeEdit,
+    handleRestoreHistory,
+    handleDeleteHistory,
+  } = useJsonFormatter({ convertCode, qualityMode, moduleData });
 
   return (
     <div className="module-container">
       <ModuleHeader
         title="JSON Formatter & Validator"
-        description="Format instantly, or use AI to automatically repair broken JSON structures."
+        description="Format instantly, validate against schemas, run JSONPath, or use AI to repair structures."
         resultData={lastResult}
       />
 
       <div className="converter-grid json-flex-layout">
-
+        
+        {/* ── LEFT PANEL: INPUT ── */}
         <div className="panel flex-panel">
           <div className="panel-header-row">
             <h3>Input JSON</h3>
             <div className="header-actions">
               <input
                 type="file"
-                accept=".json,.txt,.js"
+                accept=".json,.txt,.js,.yaml,.yml,.toml"
                 ref={fileInputRef}
                 onChange={handleFileUpload}
                 style={{ display: 'none' }}
-                aria-label="Upload JSON file"
+                aria-label="Upload file"
               />
+              <button
+                className="icon-btn-sm"
+                onClick={() => setShowHistory(!showHistory)}
+                title="View History"
+              >
+                <i className="fa-solid fa-clock-rotate-left"></i> History
+              </button>
               <button
                 className="file-upload-btn"
                 onClick={() => fileInputRef.current?.click()}
-                aria-label="Upload a JSON file from your device"
+                title="Upload JSON, YAML, or TOML"
               >
-                <i className="fa-solid fa-upload" aria-hidden="true"></i> Upload
+                <i className="fa-solid fa-upload"></i> Upload
               </button>
-              <button className="mode-btn" onClick={loadSample}>Load Sample</button>
+              <button className="mode-btn" onClick={loadSample}>Sample</button>
             </div>
           </div>
 
+          <div className="url-import-bar">
+            <input
+              className="url-import-input"
+              placeholder="Paste a URL or cURL command..."
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleUrlImport()}
+            />
+            <button
+              className="secondary-button url-fetch-btn"
+              onClick={handleUrlImport}
+              disabled={urlLoading || !urlInput.trim()}
+            >
+              {urlLoading ? <i className="fa-solid fa-spinner fa-spin" /> : <i className="fa-solid fa-cloud-arrow-down" />}
+              Fetch
+            </button>
+          </div>
+
+          {showHistory && (
+            <div className="history-panel">
+              <div className="history-panel-header">
+                <span><i className="fa-solid fa-clock-rotate-left"></i> Recent Sessions</span>
+                <button className="history-clear-btn" onClick={() => { setInput(''); handleDeleteHistory(history[0]?.id); }}>
+                  Clear All
+                </button>
+              </div>
+              <div className="history-list">
+                {history.length ? history.map((entry) => (
+                  <div key={entry.id} className="history-item">
+                    <div className="history-item-preview" onClick={() => handleRestoreHistory(entry)}>
+                      {entry.input}
+                    </div>
+                    <div className="history-item-meta">
+                      <span className="history-item-time">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                      <button className="history-restore-btn" onClick={() => handleRestoreHistory(entry)}>Restore</button>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="history-empty">No history recorded yet.</div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div
-            className={`input-wrapper ${isDragging ? 'drag-active' : ''}`}
+            className={`input-wrapper ${isDragging ? 'drag-active' : ''} mt-2`}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
@@ -301,190 +159,299 @@ export default function JsonFormatter() {
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Paste JSON here, or drag & drop a file…"
+              onPaste={handlePaste}
+              placeholder="Paste JSON, YAML, TOML here, or drag & drop a file…"
               spellCheck="false"
               className={`json-textarea ${errorMsg ? 'has-error' : ''}`}
-              aria-label="JSON input"
-              aria-describedby={errorMsg ? 'json-error-msg' : undefined}
             />
             {input && (
-              <button
-                className="clear-input-btn"
-                onClick={() => { setInput(''); setOutputCode(''); }}
-                title="Clear input"
-                aria-label="Clear JSON input"
-              >
-                <i className="fa-solid fa-times" aria-hidden="true"></i>
+              <button className="clear-input-btn" onClick={() => { setInput(''); setOutputCode(''); }}>
+                <i className="fa-solid fa-times"></i>
               </button>
             )}
-            {isDragging && (
-              <div className="drag-overlay" aria-hidden="true">Drop file to load</div>
-            )}
+            {isDragging && <div className="drag-overlay">Drop file to load & parse</div>}
           </div>
 
           {errorMsg && (
-            <div className="error-message" id="json-error-msg" role="alert">
-              <i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {errorMsg}
+            <div className="error-message mt-2">
+              <i className="fa-solid fa-circle-exclamation"></i> {errorMsg}
             </div>
           )}
 
-          <label className="custom-check" title="Sort JSON keys alphabetically when formatting">
-            <input
-              type="checkbox"
-              checked={sortKeys}
-              onChange={(e) => setSortKeys(e.target.checked)}
-            />
-            <div className="box"><i className="fa-solid fa-check"></i></div>
-            <span className="label-text">Sort keys alphabetically</span>
-          </label>
+          <div className="action-row space-between mt-3">
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <label className="custom-check" title="Sort JSON keys alphabetically">
+                <input type="checkbox" checked={sortKeys} onChange={(e) => setSortKeys(e.target.checked)} />
+                <div className="box"><i className="fa-solid fa-check"></i></div>
+                <span className="label-text">Sort keys</span>
+              </label>
+              
+              <label className="auto-format-toggle" title="Automatically format JSON upon pasting">
+                <input type="checkbox" checked={autoFormat} onChange={(e) => setAutoFormat(e.target.checked)} />
+                Auto-format on paste
+              </label>
+            </div>
 
-          <div className="action-row space-between">
-            <button
-              className="secondary-button"
-              onClick={handleLocalFormat}
-              disabled={!input.trim()}
-              aria-label="Format JSON locally without AI"
-            >
-              <i className="fa-solid fa-bolt" aria-hidden="true"></i> Format Locally
-            </button>
-            <button
-              className="primary-button ai-glow"
-              onClick={handleAiFix}
-              disabled={loading || !input.trim()}
-              aria-label={loading ? 'AI is repairing JSON…' : 'Use AI to fix and format JSON syntax errors'}
-            >
-              <i
-                className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}
-                aria-hidden="true"
-              ></i>
-              {loading ? 'Repairing…' : 'AI Fix Syntax'}
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                className="secondary-button"
+                onClick={() => handleLocalFormat(input)}
+                disabled={!input.trim()}
+              >
+                <i className="fa-solid fa-bolt"></i> Format
+              </button>
+              <button
+                className="primary-button ai-glow"
+                onClick={handleAiFix}
+                disabled={loading || !input.trim()}
+              >
+                <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}></i>
+                {loading ? 'Repairing…' : 'AI Fix Syntax'}
+              </button>
+            </div>
           </div>
         </div>
 
+
+        {/* ── RIGHT PANEL: OUTPUT & TOOLS ── */}
         <div className="panel flex-panel">
-          <div className="panel-header-row">
-            <h3>Formatted Output</h3>
-            <div className="controls-wrapper">
-              <div className="view-mode-toggles">
-                <button
-                  className={`view-toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
-                  onClick={() => setViewMode('code')}
-                  aria-pressed={viewMode === 'code'}
-                  aria-label="Switch to code view"
-                >
-                  <i className="fa-solid fa-code" aria-hidden="true"></i> Code
-                </button>
-                <button
-                  className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-                  onClick={() => setViewMode('tree')}
-                  disabled={!outputCode || !!errorMsg}
-                  aria-pressed={viewMode === 'tree'}
-                  aria-label="Switch to interactive tree view"
-                >
-                  <i className="fa-solid fa-folder-tree" aria-hidden="true"></i> Tree
-                </button>
-              </div>
-              <div className="output-actions">
-                <button
-                  title="Minify JSON"
-                  aria-label="Minify JSON to a single line"
-                  className="action-btn"
-                  onClick={handleMinify}
-                  disabled={!outputCode && !input}
-                >
-                  <i className="fa-solid fa-compress" aria-hidden="true"></i>
-                </button>
-                <button
-                  title="Prettify JSON"
-                  aria-label="Prettify and indent JSON"
-                  className="action-btn"
-                  onClick={handleLocalFormat}
-                  disabled={!outputCode && !input}
-                >
-                  <i className="fa-solid fa-align-left" aria-hidden="true"></i>
-                </button>
-                <button
-                  title="Download JSON"
-                  aria-label="Download formatted JSON as a file"
-                  className="action-btn download-btn"
-                  onClick={handleDownload}
-                  disabled={!outputCode}
-                >
-                  <i className="fa-solid fa-download" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
+          
+          <div className="output-tabs">
+            <button className={`output-tab-btn ${viewMode === 'code' ? 'active' : ''}`} onClick={() => setViewMode('code')}>
+              <i className="fa-solid fa-code"></i> Code
+            </button>
+            <button className={`output-tab-btn ${viewMode === 'tree' ? 'active' : ''}`} onClick={() => setViewMode('tree')} disabled={!outputCode || !!errorMsg}>
+              <i className="fa-solid fa-folder-tree"></i> Tree
+            </button>
+            <button className={`output-tab-btn ${viewMode === 'diff' ? 'active' : ''}`} onClick={() => setViewMode('diff')}>
+              <i className="fa-solid fa-not-equal"></i> Diff
+            </button>
+            <button className={`output-tab-btn zod-tab ${viewMode === 'zod' ? 'active' : ''}`} onClick={() => { setViewMode('zod'); if (!zodOutput) handleGenerateZod(); }} disabled={!outputCode}>
+              <i className="fa-solid fa-cubes"></i> Zod Schema
+            </button>
           </div>
 
           <div className="results-container flex-results">
-            {outputCode ? (
+            {viewMode === 'code' && (
               <>
-                <div className="output-wrapper json-output-box">
-                  {viewMode === 'code' ? (
-                    <>
-                      <textarea
-                        value={outputCode}
-                        onChange={(e) => setOutputCode(e.target.value)}
-                        className="output-textarea json-textarea"
-                        spellCheck="false"
-                        aria-label="Formatted JSON output"
-                      />
-                      <div className="output-copy-row">
-                        <CopyButton codeToCopy={outputCode} />
-                        <button
-                          className="secondary-button"
-                          onClick={handleDownload}
-                          aria-label="Download formatted JSON file"
-                          title="Download JSON"
-                        >
-                          <i className="fa-solid fa-download" aria-hidden="true"></i> Download
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="tree-view-container" role="region" aria-label="Interactive JSON tree">
-                      <JsonView
-                        src={getJsonForTree()}
-                        theme={isDarkTheme ? 'ocean' : 'rjv-default'}
-                        iconStyle="triangle"
-                        displayDataTypes={false}
-                        enableClipboard={true}
-                        editable={true}
-                        onChange={handleTreeEdit}
-                        onAdd={handleTreeEdit}
-                        onDelete={handleTreeEdit}
-                      />
-                    </div>
+                <div className="output-header">
+                  <div className="indent-toggle">
+                    <span className="indent-toggle-label">Indent:</span>
+                    {['2', '4', 'tab'].map(v => (
+                      <button key={v} className={`indent-btn ${indentSize === v ? 'active' : ''}`} onClick={() => setIndentSize(v)}>{v}</button>
+                    ))}
+                  </div>
+                  <div className="conversion-bar" style={{ padding: 0, marginLeft: '0.5rem' }}>
+                    <button className="convert-btn yaml-btn" onClick={() => handleConvert('yaml')} disabled={!outputCode || convertLoading}>YAML</button>
+                    <button className="convert-btn toml-btn" onClick={() => handleConvert('toml')} disabled={!outputCode || convertLoading}>TOML</button>
+                    <button className="convert-btn csv-btn" onClick={() => handleConvert('csv')} disabled={!outputCode || convertLoading}>CSV</button>
+                  </div>
+                  <div className="output-stats">
+                    <span className="stat-badge chars">{outputCounts.chars} chars</span>
+                    <span className="stat-badge tokens">~{outputCounts.tokens} tokens</span>
+                  </div>
+                </div>
+
+                <div className="jsonpath-bar">
+                  <input
+                    className="jsonpath-input"
+                    placeholder="JSONPath query (e.g., $.users[*].id)"
+                    value={jsonPathQuery}
+                    onChange={(e) => setJsonPathQuery(e.target.value)}
+                    disabled={!outputCode}
+                  />
+                  {jsonPathResult?.values?.length > 0 && (
+                    <span className="jsonpath-result-count">{jsonPathResult.values.length} matches</span>
                   )}
                 </div>
 
-                {explanation && (
-                  <div className="ai-summary json-explanation" role="status" aria-live="polite">
-                    <strong>
-                      <i className="fa-solid fa-clipboard-check" aria-hidden="true"></i> Output Log:
-                    </strong>
-                    <div className="explanation-content">{explanation}</div>
+                {jsonPathQuery && jsonPathResult?.values?.length > 0 && (
+                  <div className="jsonpath-results-panel">
+                    <div className="jsonpath-results-header">
+                      <span>Query Results</span>
+                    </div>
+                    <div className="jsonpath-results-body">
+                      {jsonPathResult.values.map((val, idx) => (
+                        <div key={idx} className="jsonpath-result-item">
+                          <span style={{ color: '#a78bfa', marginRight: '8px' }}>{jsonPathResult.paths[idx]}</span>
+                          {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                {conversionResult ? (
+                  <div className="converted-output-panel">
+                    <div className="action-row space-between" style={{ paddingBottom: '0.5rem' }}>
+                      <span className={`converted-format-badge ${conversionResult.format}`}>
+                        {conversionResult.format} Output
+                      </span>
+                      <button className="icon-btn-sm" onClick={() => setConversionResult(null)}>
+                        <i className="fa-solid fa-arrow-left"></i> Back to JSON
+                      </button>
+                    </div>
+                    <textarea value={conversionResult.content} readOnly className="output-textarea json-textarea" />
+                    <div className="output-copy-row">
+                      <CopyButton codeToCopy={conversionResult.content} />
+                      <button className="secondary-button" onClick={() => downloadFile(conversionResult.content, `output.${conversionResult.format}`)}>
+                        <i className="fa-solid fa-download"></i> Download {conversionResult.format.toUpperCase()}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="output-wrapper json-output-box" style={{ marginTop: '0.5rem' }}>
+                    <textarea
+                      value={outputCode}
+                      onChange={(e) => setOutputCode(e.target.value)}
+                      className="output-textarea json-textarea"
+                      spellCheck="false"
+                      placeholder="Formatted JSON will appear here..."
+                    />
+                    <div className="output-copy-row">
+                      <CopyButton codeToCopy={outputCode} />
+                      <button className="icon-btn-sm" onClick={handleMinify} title="Minify JSON" disabled={!outputCode}>
+                        <i className="fa-solid fa-compress"></i>
+                      </button>
+                      <button className="secondary-button" onClick={handleDownload} disabled={!outputCode}>
+                        <i className="fa-solid fa-download"></i> Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="schema-validation-panel">
+                  <div className="schema-validation-header" onClick={() => !jsonSchemaText && setJsonSchemaText('{\n  "type": "object",\n  "properties": {}\n}')}>
+                    <div className="header-left">
+                      <div className={`schema-status-dot ${schemaErrors.length ? 'invalid' : jsonSchemaText && outputCode ? 'valid' : 'idle'}`} />
+                      JSON Schema Validation
+                    </div>
+                    <i className={`fa-solid fa-chevron-${jsonSchemaText ? 'down' : 'right'}`} style={{ color: 'var(--text-secondary)' }}></i>
+                  </div>
+                  {jsonSchemaText !== '' && (
+                    <div className="schema-validation-body">
+                      <textarea
+                        className="schema-textarea"
+                        placeholder="Paste JSON Schema here to validate your output..."
+                        value={jsonSchemaText}
+                        onChange={(e) => setJsonSchemaText(e.target.value)}
+                      />
+                      {schemaErrors.length > 0 ? (
+                        <div className="schema-errors-list">
+                          {schemaErrors.map((err, i) => (
+                            <div key={i} className="schema-error-item">
+                              <span className="schema-error-path">{err.path}</span>
+                              <span className="schema-error-msg">{err.message}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : jsonSchemaText && outputCode && (
+                        <div className="schema-valid-msg">
+                          <i className="fa-solid fa-circle-check"></i> Passes validation
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </>
-            ) : (
+            )}
+
+            {viewMode === 'tree' && (
+              <div className="tree-view-container">
+                <JsonView
+                  src={getJsonForTree()}
+                  theme={isDarkTheme ? 'ocean' : 'rjv-default'}
+                  iconStyle="triangle"
+                  displayDataTypes={false}
+                  enableClipboard={true}
+                  editable={true}
+                  onChange={handleTreeEdit}
+                  onAdd={handleTreeEdit}
+                  onDelete={handleTreeEdit}
+                />
+              </div>
+            )}
+
+            {viewMode === 'diff' && (
+              <div className="diff-container">
+                <div className="diff-input-col">
+                  <div className="diff-label left">Original Output (A)</div>
+                  <textarea value={outputCode} readOnly className="json-textarea" style={{ minHeight: '150px' }} />
+                </div>
+                <div className="diff-input-col">
+                  <div className="diff-label right">Compare Against (B)</div>
+                  <textarea 
+                    value={diffInput} 
+                    onChange={(e) => setDiffInput(e.target.value)} 
+                    className="json-textarea" 
+                    style={{ minHeight: '150px' }}
+                    placeholder="Paste JSON here to find differences..." 
+                  />
+                </div>
+              </div>
+            )}
+            
+            {viewMode === 'diff' && diffInput && (
+              <div className="diff-result-panel mt-3">
+                {diffResult?.length > 0 ? diffResult.map((diff, i) => (
+                  <div key={i} className={`diff-line ${diff.type}`}>
+                    <div className="diff-gutter">
+                      {diff.type === 'added' ? '+' : diff.type === 'removed' ? '-' : '~'}
+                    </div>
+                    <div className="diff-content">
+                      <strong>{diff.path}</strong>:{' '}
+                      {diff.type === 'added' ? JSON.stringify(diff.b) : 
+                       diff.type === 'removed' ? JSON.stringify(diff.a) : 
+                       `${JSON.stringify(diff.a)} → ${JSON.stringify(diff.b)}`}
+                    </div>
+                  </div>
+                )) : (
+                  <div className="diff-empty-msg">No structural differences found.</div>
+                )}
+              </div>
+            )}
+
+            {viewMode === 'zod' && (
+              <div className="zod-output-panel">
+                <div className="zod-meta-bar">
+                  <span className="zod-meta-badge">Zod Definition</span>
+                  <button className="zod-generate-json-btn" onClick={handleGenerateZod} disabled={!outputCode || zodLoading}>
+                    {zodLoading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-rotate"></i>} Regenerate
+                  </button>
+                  <button className="zod-generate-json-btn" onClick={handleZodToExample} disabled={!zodOutput} style={{ marginLeft: 'auto' }}>
+                    <i className="fa-solid fa-vial"></i> Gen Example JSON
+                  </button>
+                </div>
+                <textarea value={zodOutput} readOnly className="output-textarea json-textarea" placeholder="Zod schema will be inferred here..." />
+                <div className="output-copy-row">
+                  <CopyButton codeToCopy={zodOutput} />
+                  <button className="secondary-button" onClick={() => downloadFile(zodOutput, 'schema.ts')}>
+                    <i className="fa-brands fa-js"></i> Save .ts
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {explanation && (
+              <div className="ai-summary json-explanation mt-3">
+                <strong><i className="fa-solid fa-clipboard-check"></i> Action Log:</strong>
+                <div className="explanation-content">{explanation}</div>
+              </div>
+            )}
+            
+            {!outputCode && viewMode === 'code' && !conversionResult && (
               <EmptyState
                 isLoading={loading}
                 condition={!outputCode}
                 icon="fas fa-list-alt"
                 title="Awaiting JSON Payload"
-                description="Beautifully indented JSON files and interactive collapsible syntax tree nodes will map out here."
-                hint={
-                  <>
-                    You can paste raw <code>JSON5</code> objects—the parser will automatically
-                    append missing quotes and remove illegal comments.
-                  </>
-                }
+                description="Indented JSON, tree nodes, schema validations, and TypeScript interface generation will map out here."
+                hint={<>You can paste raw <code>JSON5</code> objects—the parser will append quotes and strip comments automatically.</>}
                 loadingTitle="Structuring Hierarchies"
-                loadingDescription="Analyzing tokens, repairing missing properties, and preparing interactive object trees…"
+                loadingDescription="Analyzing tokens, repairing properties, and preparing data nodes…"
               />
             )}
+
           </div>
         </div>
       </div>
