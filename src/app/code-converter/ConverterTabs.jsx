@@ -42,7 +42,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
           className={`tab-btn ${activeTabId === f.id ? 'active' : ''}`}
           onClick={() => setActiveTabId(f.id)}
           onDoubleClick={(e) => !readOnly && handleDoubleClick(e, f)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
+          onKeyDown={(e) => handleKeyDown(e, f.id)}
           title={!readOnly ? "Double click to rename" : ""}
         >
           <i className="fa-solid fa-file-code"></i>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { convertCode, LANGUAGES } from '@/lib';
 import { useApp } from '@/context';
-import { get, set } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 import debounce from 'lodash/debounce';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -14,15 +14,15 @@ export function useCodeConverter() {
   const [activeTabId, setActiveTabId] = useState(files[0].id);
   const activeFile = files.find(f => f.id === activeTabId);
   const activeOutputFile = outputFiles.find(f => f.sourceId === activeTabId);
-  
+
   const [targetLang, setTargetLang] = useState('python');
   const [targetFramework, setTargetFramework] = useState('none');
   const [isPartialMode, setIsPartialMode] = useState(false);
-  
+
   const [loading, setLoading] = useState(false);
   const [lintStatus, setLintStatus] = useState('idle');
-  const [pendingDraft, setPendingDraft] = useState(null); 
-  
+  const [pendingDraft, setPendingDraft] = useState(null);
+
   const fileInputRef = useRef(null);
   const sourceScrollRef = useRef(null);
   const targetScrollRef = useRef(null);
@@ -54,14 +54,18 @@ export function useCodeConverter() {
 
   useEffect(() => {
     saveDraft({ files, outputFiles });
-    return () => saveDraft.cancel();
   }, [files, outputFiles, saveDraft]);
+
+  useEffect(() => {
+    return () => saveDraft.cancel();
+  }, [saveDraft]);
+
 
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
 
-    const MAX_FILE_SIZE = 1048576; 
+    const MAX_FILE_SIZE = 1048576;
     const validFiles = [];
 
     for (const file of uploadedFiles) {
@@ -89,7 +93,7 @@ export function useCodeConverter() {
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-  
+
   const updateFile = (id, content) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
   };
@@ -97,7 +101,7 @@ export function useCodeConverter() {
   const renameFile = (id, newName) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, name: newName } : f));
   };
-  
+
   const handleAddFile = () => {
     const newId = crypto.randomUUID();
     setFiles([...files, { id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
@@ -114,6 +118,9 @@ export function useCodeConverter() {
 
   const removeFile = (idToRemove) => {
     const newFiles = files.filter(f => f.id !== idToRemove);
+    // Always clean up the corresponding output file
+    setOutputFiles(prev => prev.filter(f => f.sourceId !== idToRemove));
+
     if (newFiles.length === 0) {
       handleClearAll();
     } else {
@@ -121,21 +128,28 @@ export function useCodeConverter() {
       if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
     }
   };
-  
+
   const handleScrollSync = (e, targetRef) => {
     if (!syncScroll || !targetRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     const ratio = scrollTop / (scrollHeight - clientHeight);
     targetRef.current.scrollTop = ratio * (targetRef.current.scrollHeight - targetRef.current.clientHeight);
   };
-  
+
   const handleConvert = async () => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     setLintStatus('idle');
-    
+
     try {
-      const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
+      const inputPayload = JSON.stringify(
+        files.map(f => ({
+          sourceId: f.id,
+          name: f.name,
+          content: f.content
+        }))
+      );
+
       const result = await convertCode('converter', inputPayload, {
         sourceLang: activeFile.language,
         targetLang,
@@ -145,7 +159,13 @@ export function useCodeConverter() {
       });
 
       if (result && Array.isArray(result.files)) {
-        setOutputFiles(result.files);
+        const mapped = result.files.map((rf, i) => ({
+          ...rf,
+          // If the LLM returned a wrong/numeric sourceId, fall back to
+          // the original file order so tabs still resolve correctly.
+          sourceId: files[i]?.id ?? rf.sourceId,
+        }));
+        setOutputFiles(mapped);
       } else {
         throw new Error("Invalid array structure returned.");
       }
@@ -156,43 +176,38 @@ export function useCodeConverter() {
     }
   };
 
+  // Use a regex-based bracket check for ALL languages (same as the else branch)
+  // and remove the new Function() call entirely.
   const runLinter = async () => {
     setLintStatus('linting');
     setTimeout(() => {
-      if (!activeOutputFile) {
-        setLintStatus('error');
-        return;
-      }
+      if (!activeOutputFile) { setLintStatus('error'); return; }
       const code = activeOutputFile.content;
       try {
-        if (targetLang === 'javascript' || targetLang === 'typescript') {
-          new Function(code); 
-        } else if (targetLang === 'json') {
+        if (targetLang === 'json') {
           JSON.parse(code);
         } else {
+          // Safe bracket-balance check — no code execution
           const stack = [];
           const pairs = { '(': ')', '{': '}', '[': ']' };
-          for (let char of code) {
+          for (const char of code) {
             if (pairs[char]) stack.push(char);
             else if (Object.values(pairs).includes(char)) {
-              if (stack.length === 0 || pairs[stack.pop()] !== char) {
+              if (!stack.length || pairs[stack.pop()] !== char)
                 throw new Error(`Mismatched bracket: ${char}`);
-              }
             }
           }
-          if (stack.length > 0) throw new Error(`Unclosed bracket: ${stack.pop()}`);
+          if (stack.length) throw new Error(`Unclosed: ${stack.pop()}`);
         }
         setLintStatus('success');
-      } catch (err) {
-        setLintStatus('error');
-      }
+      } catch { setLintStatus('error'); }
     }, 500);
   };
 
   const formatActiveCode = (isOutput = false) => {
     const targetFile = isOutput ? activeOutputFile : activeFile;
     if (!targetFile || !targetFile.content) return;
-    
+
     let formatted = targetFile.content;
     try {
       if (targetFile.language === 'json' || targetFile.name?.endsWith('.json')) {
@@ -200,24 +215,29 @@ export function useCodeConverter() {
       } else {
         let indentLevel = 0;
         formatted = formatted.split('\n').map(line => {
-          let trimmed = line.trim();
-          if (trimmed.startsWith('}')) indentLevel = Math.max(0, indentLevel - 1);
-          let out = '  '.repeat(indentLevel) + trimmed;
-          if (trimmed.endsWith('{')) indentLevel++;
+          const trimmed = line.trim();
+          // Dedent BEFORE emitting closing brackets
+          if (trimmed.startsWith('}') || trimmed.startsWith(']'))
+            indentLevel = Math.max(0, indentLevel - 1);
+          const out = '  '.repeat(indentLevel) + trimmed;
+          // Indent AFTER emitting opening brackets
+          if (trimmed.endsWith('{') || trimmed.endsWith('['))
+            indentLevel++;
           return out;
         }).join('\n');
       }
-    } catch (err) {
+    } catch {
+      alert('Could not format: the content is not valid JSON.');
       return;
     }
-    
+
     if (!isOutput) {
       updateFile(targetFile.id || activeTabId, formatted);
     } else {
       setOutputFiles(prev => prev.map(f => f.sourceId === targetFile.sourceId ? { ...f, content: formatted } : f));
     }
   };
-  
+
   const downloadZip = async () => {
     const zip = new JSZip();
     outputFiles.forEach(file => zip.file(file.fileName || 'file.txt', file.content));
@@ -230,7 +250,7 @@ export function useCodeConverter() {
     const blob = new Blob([activeOutputFile.content], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, activeOutputFile.fileName || `converted_${activeFile?.name || 'file.txt'}`);
   };
-  
+
   const handleConfirmDraft = () => {
     setFiles(pendingDraft.files);
     setActiveTabId(pendingDraft.files[0]?.id);
@@ -239,7 +259,7 @@ export function useCodeConverter() {
   };
 
   const handleCancelDraft = async () => {
-    await set('converter-draft-data', null);
+    await del('converter-draft-data');
     setPendingDraft(null);
   };
 

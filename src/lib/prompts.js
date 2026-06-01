@@ -78,7 +78,9 @@ export const PROMPT_CONFIG = {
         4. Do NOT wrap code in markdown code blocks.`,
       `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string" }] }`
     ),
-    user: (input) => `Code to translate:\n${input}`,
+    user: (input) =>
+      `Translate the following files. Each file object has a "sourceId" field — ` +
+      `you MUST copy it verbatim into the corresponding output object.\n\nFiles:\n${input}`, 
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.refactor,
   },

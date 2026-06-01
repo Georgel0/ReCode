@@ -192,10 +192,12 @@ function deriveTypeScriptTypes(tables) {
     if (typeof val === 'boolean') return 'boolean';
     if (typeof val === 'number') return Number.isInteger(val) ? 'number' : 'number';
     if (typeof val === 'object') return 'Record<string, unknown>';
+
     const s = String(val);
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRe.test(s)) return 'string'; // UUID
     if (/^\d{4}-\d{2}-\d{2}/.test(s)) return 'string'; // ISO date
+    
     return 'string';
   };
 
