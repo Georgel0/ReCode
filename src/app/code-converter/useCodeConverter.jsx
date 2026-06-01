@@ -6,6 +6,8 @@ import debounce from 'lodash/debounce';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
+const MAX_HISTORY_PER_FILE = 3;
+
 export function useCodeConverter() {
   const { qualityMode } = useApp();
 
@@ -18,10 +20,21 @@ export function useCodeConverter() {
   const [targetLang, setTargetLang] = useState('python');
   const [targetFramework, setTargetFramework] = useState('none');
   const [isPartialMode, setIsPartialMode] = useState(false);
+  const [selectedRange, setSelectedRange] = useState(null); // { start, end } line indices
 
   const [loading, setLoading] = useState(false);
   const [lintStatus, setLintStatus] = useState('idle');
   const [pendingDraft, setPendingDraft] = useState(null);
+
+  const [diffMode, setDiffMode] = useState(false);
+
+  const [conversionNotes, setConversionNotes] = useState({}); // keyed by sourceId
+  const [notesOpen, setNotesOpen] = useState(false);
+
+  const [feedbackText, setFeedbackText] = useState('');
+
+  const [conversionHistory, setConversionHistory] = useState({});
+  const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
 
   const fileInputRef = useRef(null);
   const sourceScrollRef = useRef(null);
@@ -60,6 +73,24 @@ export function useCodeConverter() {
     return () => saveDraft.cancel();
   }, [saveDraft]);
 
+  // Load history from IDB on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const saved = await get('converter-history');
+        if (saved) setConversionHistory(saved);
+      } catch (e) { console.error("History load failed", e); }
+    };
+    loadHistory();
+  }, []);
+
+  const saveHistoryToIdb = useCallback(
+    debounce(async (history) => {
+      try { await set('converter-history', history); }
+      catch (e) { console.error("History save failed", e); }
+    }, 800),
+    []
+  );
 
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
@@ -114,11 +145,12 @@ export function useCodeConverter() {
     setOutputFiles([]);
     setActiveTabId(newId);
     setLintStatus('idle');
+    setConversionNotes({});
+    setSelectedRange(null);
   };
 
   const removeFile = (idToRemove) => {
     const newFiles = files.filter(f => f.id !== idToRemove);
-    // Always clean up the corresponding output file
     setOutputFiles(prev => prev.filter(f => f.sourceId !== idToRemove));
 
     if (newFiles.length === 0) {
@@ -136,36 +168,113 @@ export function useCodeConverter() {
     targetRef.current.scrollTop = ratio * (targetRef.current.scrollHeight - targetRef.current.clientHeight);
   };
 
-  const handleConvert = async () => {
+  // Build the import graph for multi-file dependency awareness
+  const buildImportGraph = (filesArray) => {
+    const nameMap = {};
+    filesArray.forEach(f => { nameMap[f.name] = f.id; });
+
+    return filesArray.map(f => {
+      const importMatches = [];
+      const lines = f.content.split('\n');
+      lines.forEach(line => {
+        // match: import ... from './foo' or require('./foo')
+        const m = line.match(/(?:import|require)\s*(?:\(?\s*['"]([^'"]+)['"]\s*\)?|[^'"]*from\s*['"]([^'"]+)['"])/);
+        const importPath = m?.[1] || m?.[2];
+        if (importPath) {
+          const baseName = importPath.split('/').pop();
+          // Try to find a matching file
+          const matchedFile = filesArray.find(other =>
+            other.id !== f.id && (
+              other.name === baseName ||
+              other.name.startsWith(baseName + '.') ||
+              other.name === baseName + '.js' ||
+              other.name === baseName + '.ts' ||
+              other.name === baseName + '.jsx' ||
+              other.name === baseName + '.tsx'
+            )
+          );
+          if (matchedFile) importMatches.push({ path: importPath, resolvedId: matchedFile.id, resolvedName: matchedFile.name });
+        }
+      });
+      return { ...f, imports: importMatches };
+    });
+  };
+
+  const handleConvert = async (feedbackOverride = null) => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     setLintStatus('idle');
 
     try {
+      const filesWithGraph = buildImportGraph(files);
+
+      // Build input: include dependency graph info in the payload
       const inputPayload = JSON.stringify(
-        files.map(f => ({
-          sourceId: f.id,
-          name: f.name,
-          content: f.content
-        }))
+        filesWithGraph.map(f => {
+          const base = {
+            sourceId: f.id,
+            name: f.name,
+            content: isPartialMode && selectedRange
+              ? f.id === activeTabId
+                ? f.content.split('\n').slice(selectedRange.start, selectedRange.end + 1).join('\n')
+                : f.content
+              : f.content,
+          };
+          if (f.imports.length > 0) {
+            base.dependsOn = f.imports.map(i => ({ importPath: i.path, resolvedFile: i.resolvedName }));
+          }
+          return base;
+        })
       );
 
-      const result = await convertCode('converter', inputPayload, {
+      const contextPayload = feedbackOverride
+        ? `${inputPayload}\n\n--- CORRECTION INSTRUCTION ---\n${feedbackOverride}`
+        : inputPayload;
+
+      const result = await convertCode('converter', contextPayload, {
         sourceLang: activeFile.language,
         targetLang,
         framework: targetFramework,
         isPartial: isPartialMode,
-        qualityMode
+        qualityMode,
+        includeNotes: true,
       });
 
       if (result && Array.isArray(result.files)) {
         const mapped = result.files.map((rf, i) => ({
           ...rf,
-          // If the LLM returned a wrong/numeric sourceId, fall back to
-          // the original file order so tabs still resolve correctly.
           sourceId: files[i]?.id ?? rf.sourceId,
         }));
         setOutputFiles(mapped);
+
+        // Extract notes if returned (notes field per file or top-level)
+        const newNotes = {};
+        mapped.forEach((rf, i) => {
+          if (rf.notes) newNotes[rf.sourceId] = rf.notes;
+        });
+        if (result.notes) newNotes['__global__'] = result.notes;
+        if (Object.keys(newNotes).length > 0) setConversionNotes(newNotes);
+
+        // Save to history
+        const timestamp = new Date().toISOString();
+        setConversionHistory(prev => {
+          const updated = { ...prev };
+          mapped.forEach(rf => {
+            const entry = {
+              outputFile: rf,
+              targetLang,
+              targetFramework,
+              timestamp,
+              notes: newNotes[rf.sourceId] || null,
+            };
+            const existing = updated[rf.sourceId] || [];
+            updated[rf.sourceId] = [entry, ...existing].slice(0, MAX_HISTORY_PER_FILE);
+          });
+          saveHistoryToIdb(updated);
+          return updated;
+        });
+
+        setFeedbackText('');
       } else {
         throw new Error("Invalid array structure returned.");
       }
@@ -176,8 +285,22 @@ export function useCodeConverter() {
     }
   };
 
-  // Use a regex-based bracket check for ALL languages (same as the else branch)
-  // and remove the new Function() call entirely.
+  const handleReconvert = () => {
+    if (!feedbackText.trim()) return;
+    handleConvert(feedbackText.trim());
+  };
+
+  const restoreHistoryEntry = (sourceId, entryIndex) => {
+    const entry = conversionHistory[sourceId]?.[entryIndex];
+    if (!entry) return;
+    setOutputFiles(prev => {
+      const withoutThis = prev.filter(f => f.sourceId !== sourceId);
+      return [...withoutThis, entry.outputFile];
+    });
+    if (entry.notes) setConversionNotes(prev => ({ ...prev, [sourceId]: entry.notes }));
+    setHistoryPanelOpen(false);
+  };
+
   const runLinter = async () => {
     setLintStatus('linting');
     setTimeout(() => {
@@ -187,7 +310,6 @@ export function useCodeConverter() {
         if (targetLang === 'json') {
           JSON.parse(code);
         } else {
-          // Safe bracket-balance check — no code execution
           const stack = [];
           const pairs = { '(': ')', '{': '}', '[': ']' };
           for (const char of code) {
@@ -216,11 +338,9 @@ export function useCodeConverter() {
         let indentLevel = 0;
         formatted = formatted.split('\n').map(line => {
           const trimmed = line.trim();
-          // Dedent BEFORE emitting closing brackets
           if (trimmed.startsWith('}') || trimmed.startsWith(']'))
             indentLevel = Math.max(0, indentLevel - 1);
           const out = '  '.repeat(indentLevel) + trimmed;
-          // Indent AFTER emitting opening brackets
           if (trimmed.endsWith('{') || trimmed.endsWith('['))
             indentLevel++;
           return out;
@@ -266,7 +386,12 @@ export function useCodeConverter() {
   return {
     files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
+    selectedRange, setSelectedRange,
     loading, lintStatus, pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
+    diffMode, setDiffMode,
+    conversionNotes, notesOpen, setNotesOpen,
+    feedbackText, setFeedbackText, handleReconvert,
+    conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
     handleScrollSync, handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
     handleConfirmDraft, handleCancelDraft
