@@ -90,7 +90,7 @@ export const PROMPT_CONFIG = {
       `you MUST copy it verbatim into the corresponding output object. ` +
       `If a file has a "dependsOn" field, use it to align cross-file imports in your output.\n\nFiles:\n${input}`,
     responseType: 'object',
-    schema: OUTPUT_SCHEMAS.refactor,
+    schema: OUTPUT_SCHEMAS.converter,
   },
 
   generator: {

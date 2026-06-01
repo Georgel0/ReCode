@@ -69,8 +69,17 @@ export function useCodeConverter() {
     saveDraft({ files, outputFiles });
   }, [files, outputFiles, saveDraft]);
 
+  const saveHistoryToIdb = useCallback(
+    debounce(async (history) => {
+      try { await set('converter-history', history); }
+      catch (e) { console.error("History save failed", e); }
+    }, 800),
+    []
+  );
+
   useEffect(() => {
     return () => saveDraft.cancel();
+    saveHistoryToIdb.cancel();
   }, [saveDraft]);
 
   // Load history from IDB on mount
@@ -83,14 +92,6 @@ export function useCodeConverter() {
     };
     loadHistory();
   }, []);
-
-  const saveHistoryToIdb = useCallback(
-    debounce(async (history) => {
-      try { await set('converter-history', history); }
-      catch (e) { console.error("History save failed", e); }
-    }, 800),
-    []
-  );
 
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
@@ -204,6 +205,8 @@ export function useCodeConverter() {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     setLintStatus('idle');
+    setOutputFiles([]);
+    setConversionNotes({});
 
     try {
       const filesWithGraph = buildImportGraph(files);
@@ -243,7 +246,7 @@ export function useCodeConverter() {
       if (result && Array.isArray(result.files)) {
         const mapped = result.files.map((rf, i) => ({
           ...rf,
-          sourceId: files[i]?.id ?? rf.sourceId,
+          sourceId: rf.sourceId ?? files.find(f => f.name === rf.fileName)?.id
         }));
         setOutputFiles(mapped);
 
@@ -368,7 +371,9 @@ export function useCodeConverter() {
   const downloadSingleFile = () => {
     if (!activeOutputFile) return;
     const blob = new Blob([activeOutputFile.content], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, activeOutputFile.fileName || `converted_${activeFile?.name || 'file.txt'}`);
+    const ext = LANGUAGES.find(l => l.value === targetLang)?.ext ?? '.txt';
+    const fallback = `converted_${activeFile?.name?.replace(/\.[^.]+$/, '') ?? 'file'}${ext}`;
+    saveAs(blob, activeOutputFile.fileName || fallback);
   };
 
   const handleConfirmDraft = () => {

@@ -66,7 +66,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
             )}
           </span>
 
-          {!readOnly && files.length > 0 && (
+          {!readOnly && files.length > 1 && (
             <span
               className="close-tab"
               aria-label={`Close ${f.name}`}

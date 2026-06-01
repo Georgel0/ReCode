@@ -33,6 +33,15 @@ export const OUTPUT_SCHEMAS = {
     })),
   }),
 
+  converter: z.object({
+  files: z.array(z.object({
+    sourceId: z.union([z.string(), z.number()]),
+    fileName: z.string(),
+    content: z.string(),
+    notes: z.string().optional(),
+  })),
+}),
+
   // Code generator (multi-file)
   generator: z.object({
     files: z.array(z.object({

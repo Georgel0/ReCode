@@ -14,6 +14,7 @@ export function buildDiffRows(sourceText, targetText) {
     // diffLines keeps the trailing '\n' inside value; split and drop the last
     // empty string that results from a trailing newline.
     const lines = change.value.split('\n');
+    if (lines.length === 0) continue;
     if (lines[lines.length - 1] === '') lines.pop();
 
     if (change.added) {
@@ -203,21 +204,24 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
   const [selecting, setSelecting] = useState(false);
   const [selectStart, setSelectStart] = useState(null);
 
+  const selectingRef = useRef(false);
+
   const handleLineMouseDown = (idx) => {
-    setSelecting(true);
+    selectingRef.current = true;
     setSelectStart(idx);
     onRangeChange({ start: idx, end: idx });
   };
 
   const handleLineMouseEnter = (idx) => {
+    if (!selectingRef.current) return;
     if (!selecting) return;
     const start = Math.min(selectStart, idx);
     const end = Math.max(selectStart, idx);
     onRangeChange({ start, end });
   };
 
-  const handleMouseUp = () => setSelecting(false);
-
+  const handleMouseUp = () => { selectingRef.current = false; };
+  
   useEffect(() => {
     window.addEventListener('mouseup', handleMouseUp);
     return () => window.removeEventListener('mouseup', handleMouseUp);
