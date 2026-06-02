@@ -1,3 +1,13 @@
+.sidebar-toggle {
+  padding: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sidebar {
   width: 260px;
   height: 100vh;
@@ -66,7 +76,14 @@ html[data-theme='quartz'] .sidebar {
   letter-spacing: 0.5px;
 }
 
-.nav-menu h3,
+.nav-menu h3 {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: .5rem 0.75rem;
+}
+
 .history-section h3 {
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -174,21 +191,20 @@ html[data-theme='quartz'] .history-section {
   color: var(--text-secondary);
 }
 
-.refresh-btn {
+.clear-all-btn {
   background: transparent !important;
   color: var(--text-secondary);
   font-size: 0.9rem;
   padding: 0.3rem 0.5rem;
 }
 
-.refresh-btn:hover {
+.clear-all-btn:hover {
   background: transparent !important;
-  color: var(--text-primary);
-  transform: rotate(360deg);
+  color: var(--danger);
 }
 
-html[data-theme='midnight-gold'] .refresh-btn:hover,
-html[data-theme='quartz'] .refresh-btn:hover {
+html[data-theme='midnight-gold'] .clear-all-btn:hover,
+html[data-theme='quartz'] .clear-all-btn:hover {
   background: transparent !important;
   color: var(--text-primary);
 }
@@ -251,9 +267,7 @@ html[data-theme='quartz'] .history-card:hover {
 }
 
 .delete-item-btn:hover {
-  background-color: rgba(255, 77, 77, 0.1);
   color: var(--danger);
-  transform: scale(1.1);
 }
 
 .history-type {
@@ -329,15 +343,15 @@ html[data-theme='quartz'] .theme-selector-section {
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   background-color: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--border);
-  
+
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  
+
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23c9d1d9'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 10.92l3.71-3.69a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
@@ -541,7 +555,7 @@ html[data-theme='quartz'] .second-model-trigger-btn {
     transform: translateY(20px);
     opacity: 0;
   }
-  
+
   100% {
     transform: translateY(0);
     opacity: 1;
@@ -562,19 +576,19 @@ html[data-theme='quartz'] .second-model-trigger-btn {
     flex-direction: column;
     z-index: 1000;
   }
-  
+
   .sidebar.open {
     transform: translateX(0);
   }
-  
+
   .sidebar-header {
     padding: 0;
   }
-  
+
   .mobile-only {
     display: flex !important;
   }
-  
+
   .desktop-only {
     display: none !important;
   }
@@ -817,7 +831,7 @@ html[data-theme='quartz'] .history-modal-container {
     width: 95%;
     height: 90%;
   }
-  
+
   .history-grid {
     grid-template-columns: 1fr;
   }

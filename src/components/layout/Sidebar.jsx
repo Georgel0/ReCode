@@ -248,11 +248,10 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
                   </div>
                   {historyItems.length > 0 && (
                     <button
-                      className="refresh-btn"
+                      className="clear-all-btn"
                       onClick={handleClearAllClick}
                       disabled={isDeleting}
                       title="Clear All History"
-                      style={{ color: 'var(--danger)' }}
                     >
                       <i className="fas fa-trash"></i>
                     </button>
