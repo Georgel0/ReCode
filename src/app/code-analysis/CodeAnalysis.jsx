@@ -143,6 +143,10 @@ export default function CodeAnalysis() {
             <button className="secondary-button clear-btn" onClick={handleClear} title="Clear Input">
               <i className="fa-solid fa-trash"></i> Clear
             </button>
+            <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading || !input.trim()}>
+              {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
+              {loading ? " Analyzing..." : " Run Audit"}
+            </button>
           </div>
 
           <div className="editor-wrapper">
@@ -158,12 +162,6 @@ export default function CodeAnalysis() {
             </div>
           </div>
 
-          <div className="action-row">
-            <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading || !input.trim()}>
-              {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
-              {loading ? " Analyzing..." : " Run Audit"}
-            </button>
-          </div>
         </div>
 
         <div className="panel flex-column">

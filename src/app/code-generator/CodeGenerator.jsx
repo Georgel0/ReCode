@@ -88,7 +88,7 @@ export default function CodeGenerator() {
               spellCheck="true"
             />
             {error && <div className="error-message sidebar-error">{error}</div>}
-            <div className="sidebar-actions">
+            <div className="gen-sidebar-actions">
               <button className="secondary-button" onClick={handleClearAll}>
                 Clear
               </button>
