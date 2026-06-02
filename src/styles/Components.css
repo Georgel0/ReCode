@@ -536,6 +536,7 @@ select option {
   align-items: center;
   border-bottom: 1px solid var(--border);
   padding: 2em;
+  margin-bottom: 1em;
 }
 
 .header-content h1 {

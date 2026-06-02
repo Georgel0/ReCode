@@ -1,6 +1,8 @@
 .flex-col-container {
   display: flex;
   flex-direction: column;
+  margin-left: .5em;
+  margin-bottom: 4em;
 }
 
 .paradigm-selector {
@@ -124,6 +126,8 @@
 }
 
 .mock-preview-area {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   padding: 1rem;
   min-width: 0;
@@ -145,9 +149,6 @@
   flex-direction: column;
   gap: 0.85rem;
   background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
 }
 
 .mock-section-header {
