@@ -400,12 +400,12 @@ html[data-theme='midnight-gold'] .nav-item:hover {
 }
 
 .sidebar-scroll-area::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 
 .sidebar-scroll-area::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .model-trigger-section {

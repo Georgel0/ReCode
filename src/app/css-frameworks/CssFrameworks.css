@@ -3,7 +3,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   height: calc(100vh - 140px);
-  min-height: 600px;
+  min-height: 70vh;
+  height: 74vh;
+  max-height: 3000px;
 }
 
 .framework-toolbar-container {
