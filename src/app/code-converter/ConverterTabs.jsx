@@ -34,14 +34,14 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
   };
 
   return (
-    <div className="tabs-container" aria-label="Open files">
-      {files.map((f, index) => (
+    <div className="c-tabs" aria-label="Open files">
+      {files.map((f) => (
         <button
           key={f.id}
           role="tab"
           aria-selected={activeTabId === f.id}
           tabIndex={0}
-          className={`tab-btn ${activeTabId === f.id ? 'active' : ''}`}
+          className={`c-tab${activeTabId === f.id ? ' c-tab--active' : ''}`}
           onClick={() => setActiveTabId(f.id)}
           onDoubleClick={(e) => !readOnly && handleDoubleClick(e, f)}
           onKeyDown={(e) => handleKeyDown(e, f.id)}
@@ -49,11 +49,11 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
         >
           <i className="fa-solid fa-file-code"></i>
 
-          <span className="tab-name">
+          <span className="c-tab__name">
             {editingId === f.id ? (
               <input
                 ref={inputRef}
-                className="tab-input"
+                className="c-tab-input"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 onBlur={() => handleRenameSubmit(f.id)}
@@ -68,7 +68,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
 
           {!readOnly && files.length > 1 && (
             <span
-              className="close-tab"
+              className="c-tab__close"
               aria-label={`Close ${f.name}`}
               onClick={(e) => { e.stopPropagation(); removeFile(f.id); }}
               title="Remove file"
