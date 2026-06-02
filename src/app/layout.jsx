@@ -8,7 +8,6 @@ import { CodeHighlightAnalyzer } from '@/components/ui';
 import '@/styles/index.css';
 import '@/styles/Components.css';
 import '@/styles/Sidebar.css';
-import '@/styles/Modules.css';
 import '@/styles/ErdDiagram.css';
 import '@/styles/CodeAnalysisHelper.css';
 

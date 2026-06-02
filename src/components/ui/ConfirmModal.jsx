@@ -20,7 +20,7 @@ export function ConfirmModal({
         style={{ maxWidth: '500px', margin: '15vh auto' }}
       >
         <div className="modal-header">
-          <h2><i className={`fa-solid ${icon}`}></i> {title}</h2>
+          <h2><i className={`fas ${icon}`}></i> {title}</h2>
         </div>
 
         <p className="modal-desc">{message}</p>

@@ -293,14 +293,7 @@ html[data-theme='quartz'] .history-card:hover {
   max-width: 180px;
 }
 
-.close-btn {
-  background: none;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0.2rem;
-  display: none;
-}
+
 
 .theme-selector-section {
   padding: 1rem;
@@ -576,10 +569,6 @@ html[data-theme='quartz'] .second-model-trigger-btn {
   
   .sidebar-header {
     padding: 0;
-  }
-  
-  .close-btn {
-    display: block;
   }
   
   .mobile-only {

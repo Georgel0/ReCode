@@ -23,7 +23,7 @@ export function EmptyState({
           {hint && (
             <div className="empty-hints">
               <span className="hint-chip">
-                <i className="fas fa-lightbulb text-accent" /> Hint: {hint}
+                <i className="fas fa-lightbulb" /> Hint: {hint}
               </span>
             </div>
           )}
