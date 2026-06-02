@@ -1,28 +1,7 @@
 'use client';
 
-/**
- * @fileoverview useJsonFormatter — custom hook for all JSON Formatter state
- * and logic, extracted from JsonFormatter.jsx.
- *
- * New features added:
- *  - Indent size control (2 / 4 / tab), persisted to localStorage
- *  - Auto-format on paste (with opt-out toggle), persisted
- *  - JSON Schema validation (inline error markers)
- *  - JSONPath query against the tree view
- *  - Diff mode (two-blob structural diff)
- *  - Conversion shortcuts: YAML, TOML, CSV
- *  - URL / cURL import (via a public CORS proxy)
- *  - History panel (last 10 sessions in localStorage)
- *  - Character / token count helpers
- *  - Escape key clears error state
- *  - Accept .yaml / .toml in file upload (auto-convert to JSON)
- *  - Zod schema inference from JSON + Zod → example JSON
- */
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import JSON5 from 'json5';
-
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 export const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024; // 3 MB
 const TREE_DEBOUNCE_MS = 150;
@@ -30,10 +9,7 @@ const HISTORY_KEY = 'jf_history_v1';
 const INDENT_KEY = 'jf_indent_v1';
 const AUTO_FMT_KEY = 'jf_autofmt_v1';
 const MAX_HISTORY = 10;
-// Rough approximation: 1 token ≈ 4 characters (GPT tokenisation baseline)
 const CHARS_PER_TOKEN = 4;
-
-// ─── Pure helpers (no React) ──────────────────────────────────────────────────
 
 /**
  * Sort all object keys recursively in alphabetical order.
@@ -111,8 +87,6 @@ export const parseJsonResponse = (rawOutput) => {
     return { code: rawOutput || '', info: 'AI formatted the JSON.' };
   }
 };
-
-// ─── YAML / TOML helpers ──────────────────────────────────────────────────────
 
 /**
  * Minimal synchronous JSON → YAML converter (no external library needed).
@@ -235,8 +209,6 @@ export const jsonToCsv = (data) => {
   return csvRows.join('\n');
 };
 
-// ─── Zod schema inference ─────────────────────────────────────────────────────
-
 /**
  * Walk a parsed JSON value and emit a Zod schema string.
  * @param {unknown} value
@@ -304,8 +276,6 @@ export const buildZodModule = (parsed) => {
   const schema = inferZodSchema(parsed, 0);
   return `import { z } from 'zod';\n\nexport const schema = ${schema};\n\nexport type Schema = z.infer<typeof schema>;\n`;
 };
-
-// ─── Zod example generation ───────────────────────────────────────────────────
 
 /**
  * Generate a sample JSON object from a Zod schema string.
@@ -430,8 +400,6 @@ export const zodToExample = (zodCode) => {
   return parseSchema(schemaPart);
 };
 
-// ─── JSONPath evaluator ───────────────────────────────────────────────────────
-
 /**
  * Very basic JSONPath evaluator supporting $, .key, [n], [*], ..key, [?(@.key)].
  * Returns an array of matched values and an array of dotted paths.
@@ -506,8 +474,6 @@ export const evaluateJsonPath = (root, path) => {
   traverse(root, strippedPath, '$');
   return { values, paths };
 };
-
-// ─── JSON Schema validator ────────────────────────────────────────────────────
 
 /**
  * Validate a parsed JSON value against a JSON Schema object.
@@ -602,8 +568,6 @@ export const validateAgainstJsonSchema = (data, schema, path = '$') => {
   return errors;
 };
 
-// ─── Structural diff ──────────────────────────────────────────────────────────
-
 /**
  * Compute a simple structural diff between two parsed JSON values.
  * Returns a list of human-readable change descriptions.
@@ -648,8 +612,6 @@ export const diffJson = (a, b, path = '$') => {
   if (a !== b) changes.push({ type: 'changed', path, a, b });
   return changes;
 };
-
-// ─── YAML / TOML → JSON converter ────────────────────────────────────────────
 
 /**
  * Minimal YAML → JS object parser.
@@ -803,8 +765,6 @@ export const tomlToJson = (toml) => {
   return root;
 };
 
-// ─── URL / cURL import ────────────────────────────────────────────────────────
-
 /**
  * Fetch JSON from a URL via a public CORS-anywhere proxy.
  * Falls back to direct fetch first (works if the server sends CORS headers).
@@ -834,8 +794,6 @@ export const fetchJsonFromUrl = async (rawInput) => {
     return await tryFetch(proxy);
   }
 };
-
-// ─── History helpers ──────────────────────────────────────────────────────────
 
 /**
  * Load history entries from localStorage.
@@ -881,8 +839,6 @@ export const deleteHistoryEntry = (id) => {
   } catch { /* ignore */ }
 };
 
-// ─── Count helpers ────────────────────────────────────────────────────────────
-
 /**
  * @param {string} text
  * @returns {{ chars: number, tokens: number }}
@@ -891,8 +847,6 @@ export const getCounts = (text) => ({
   chars: text.length,
   tokens: Math.ceil(text.length / CHARS_PER_TOKEN),
 });
-
-// ─── localStorage settings helpers ───────────────────────────────────────────
 
 export const loadIndentSetting = () => {
   try { return localStorage.getItem(INDENT_KEY) || '2'; } catch { return '2'; }
@@ -910,8 +864,6 @@ export const saveAutoFormatSetting = (v) => {
   try { localStorage.setItem(AUTO_FMT_KEY, String(v)); } catch { /* ignore */ }
 };
 
-// ─── The Hook ─────────────────────────────────────────────────────────────────
-
 /**
  * useJsonFormatter — all state + handlers for the JSON Formatter feature.
  *
@@ -919,7 +871,6 @@ export const saveAutoFormatSetting = (v) => {
  * @returns {object}
  */
 export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
-  // ── Core formatter state ───────────────────────────────────────────────────
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');
   const [explanation, setExplanation] = useState('');
@@ -931,7 +882,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [sortKeys, setSortKeys] = useState(false);
 
-  // ── New feature state ──────────────────────────────────────────────────────
   const [indentSize, setIndentSizeState] = useState(() => loadIndentSetting());
   const [autoFormat, setAutoFormatState] = useState(() => loadAutoFormatSetting());
   const [jsonSchemaText, setJsonSchemaText] = useState('');
@@ -951,7 +901,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
 
   const treeDebounceRef = useRef(null);
 
-  // ── System theme detection ─────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -961,7 +910,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // ── moduleData hydration ───────────────────────────────────────────────────
   useEffect(() => {
     if (moduleData && moduleData.type === 'json') {
       setInput(moduleData.input || '');
@@ -971,13 +919,11 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     }
   }, [moduleData]);
 
-  // ── Reset error on input change ────────────────────────────────────────────
   useEffect(() => {
     setErrorMsg(null);
     setLastResult(null);
   }, [input]);
 
-  // ── Escape key → clear error ───────────────────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') setErrorMsg(null);
@@ -986,12 +932,10 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // ── Cleanup tree debounce ──────────────────────────────────────────────────
   useEffect(() => {
     return () => { if (treeDebounceRef.current) clearTimeout(treeDebounceRef.current); };
   }, []);
 
-  // ── Indent size persisted ──────────────────────────────────────────────────
   const setIndentSize = useCallback((v) => {
     setIndentSizeState(v);
     saveIndentSetting(v);
@@ -1004,13 +948,11 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     });
   }, []);
 
-  // ── Auto-format toggle persisted ───────────────────────────────────────────
   const setAutoFormat = useCallback((v) => {
     setAutoFormatState(v);
     saveAutoFormatSetting(v);
   }, []);
 
-  // ── JSON Schema validation ─────────────────────────────────────────────────
   const runSchemaValidation = useCallback((jsonStr, schemaStr) => {
     if (!schemaStr.trim() || !jsonStr.trim()) { setSchemaErrors([]); return; }
     try {
@@ -1027,7 +969,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     runSchemaValidation(outputCode, jsonSchemaText);
   }, [outputCode, jsonSchemaText, runSchemaValidation]);
 
-  // ── JSONPath query ─────────────────────────────────────────────────────────
   const runJsonPath = useCallback((query, jsonStr) => {
     if (!query || !jsonStr.trim()) { setJsonPathResult(null); return; }
     try {
@@ -1043,7 +984,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     runJsonPath(jsonPathQuery, outputCode);
   }, [jsonPathQuery, outputCode, runJsonPath]);
 
-  // ── Diff mode ─────────────────────────────────────────────────────────────
   const runDiff = useCallback((aStr, bStr) => {
     if (!aStr.trim() || !bStr.trim()) { setDiffResult(null); return; }
     try {
@@ -1059,7 +999,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     if (viewMode === 'diff') runDiff(outputCode, diffInput);
   }, [viewMode, outputCode, diffInput, runDiff]);
 
-  // ── Core format/fix handlers ───────────────────────────────────────────────
 
   const handleLocalFormat = useCallback((src) => {
     const sourceCode = (src ?? input).trim();
@@ -1134,7 +1073,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     }
   }, [input, qualityMode, convertCode]);
 
-  // ── Paste handler with auto-format ────────────────────────────────────────
   const handlePaste = useCallback((e) => {
     if (!autoFormat) return;
     const pasted = e.clipboardData?.getData('text') ?? '';
@@ -1143,7 +1081,6 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     setTimeout(() => handleLocalFormat(pasted), 0);
   }, [autoFormat, handleLocalFormat]);
 
-  // ── File upload (JSON, JSON5, YAML, TOML) ─────────────────────────────────
   const readFile = useCallback((file) => {
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setErrorMsg(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max is ${MAX_FILE_SIZE_BYTES / 1024 / 1024} MB.`);
