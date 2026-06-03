@@ -41,6 +41,8 @@ export function useCodeConverter() {
   const targetScrollRef = useRef(null);
   const [syncScroll, setSyncScroll] = useState(true);
 
+  const isSyncingRef = useRef(false);
+
   const saveDraft = useCallback(
     debounce(async (draftData) => {
       if (draftData.files.some(f => f.content.trim())) {
@@ -162,11 +164,40 @@ export function useCodeConverter() {
     }
   };
 
-  const handleScrollSync = (e, targetRef) => {
-    if (!syncScroll || !targetRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    const ratio = scrollTop / (scrollHeight - clientHeight);
-    targetRef.current.scrollTop = ratio * (targetRef.current.scrollHeight - targetRef.current.clientHeight);
+const handleScrollSync = (e, targetRef) => {
+    if (!syncScroll || !targetRef.current || isSyncingRef.current) return;
+
+    // Engages the lock to ignore programmatic "echo" scroll events
+    isSyncingRef.current = true;
+
+    // Using currentTarget isolates the container holding the scroll listener
+    const source = e.currentTarget;
+    const target = targetRef.current;
+
+    // 1. Sync Vertical Positions
+    const maxScrollTopSource = source.scrollHeight - source.clientHeight;
+    const maxScrollTopTarget = target.scrollHeight - target.clientHeight;
+    
+    if (maxScrollTopSource > 0) {
+      const verticalRatio = source.scrollTop / maxScrollTopSource;
+      target.scrollTop = Math.round(verticalRatio * maxScrollTopTarget);
+    }
+
+    // 2. Sync Horizontal Positions
+    const maxScrollLeftSource = source.scrollWidth - source.clientWidth;
+    const maxScrollLeftTarget = target.scrollWidth - target.clientWidth;
+    
+    if (maxScrollLeftSource > 0) {
+      const horizontalRatio = source.scrollLeft / maxScrollLeftSource;
+      target.scrollLeft = Math.round(horizontalRatio * maxScrollLeftTarget);
+    }
+
+    // Release the lock safely after programmatic adjustments finish executing
+    window.requestAnimationFrame(() => {
+      setTimeout(() => {
+        isSyncingRef.current = false;
+      }, 15);
+    });
   };
 
   // Build the import graph for multi-file dependency awareness

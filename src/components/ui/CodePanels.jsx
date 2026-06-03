@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -43,12 +44,21 @@ export function CodeEditor({ value, onValueChange, language = 'javascript', plac
     return languages.plaintext || languages.js;
   };
 
+  const highlightWithLineNumbers = (code) => {
+    const highlighted = highlight(code, getGrammar(language), language);
+
+    return highlighted
+      .split('\n')
+      .map((line) => `<span class="editor-line">${line}</span>`)
+      .join('\n');
+  };
+
   return (
     <div className="editor-container">
       <Editor
         value={value || ''}
         onValueChange={onValueChange}
-        highlight={(code) => highlight(code, getGrammar(language), language)}
+        highlight={highlightWithLineNumbers}
         padding={15}
         className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
         placeholder={placeholder}
@@ -66,7 +76,7 @@ export function CodeOutput({ content, language }) {
     <SyntaxHighlighter
       language={language}
       style={isDarkTheme ? vscDarkPlus : vs}
-      customStyle={{ margin: 0, padding: '20px', borderRadius: '8px' }}
+      customStyle={{ margin: 0, padding: '20px' }}
       showLineNumbers={true}
     >
       {content}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Tooltip } from 'react-tooltip'
+import { Tooltip } from 'react-tooltip';
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import { useTheme } from '@/context';
@@ -12,38 +12,40 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
 
   const handleKeyDown = (e, index) => {
     if (e.key === 'ArrowRight') {
-      const next = files[(index + 1) % files.length];
-      setActiveTabId(next.id);
+      setActiveTabId(files[(index + 1) % files.length].id);
     } else if (e.key === 'ArrowLeft') {
-      const prev = files[(index - 1 + files.length) % files.length];
-      setActiveTabId(prev.id);
+      setActiveTabId(files[(index - 1 + files.length) % files.length].id);
     } else if (e.key === 'Enter') {
       setActiveTabId(files[index].id);
     }
   };
 
   return (
-    <div className="tabs-container" aria-label="Open files">
+    <div className="r-tabs-bar" role="tablist" aria-label="Open files">
       {files.map((file, index) => (
         <button
           key={file.id}
           role="tab"
           aria-selected={activeTabId === file.id}
           tabIndex={0}
-          className={`tab-btn ${activeTabId === file.id ? 'active' : ''}`}
+          className={`r-tab ${activeTabId === file.id ? 'r-active' : ''}`}
           onClick={() => setActiveTabId(file.id)}
           onKeyDown={(e) => handleKeyDown(e, index)}
         >
-          <i className="fa-solid fa-file-code"></i>
-          <span className="tab-name">
+          <i className="fa-solid fa-file-code" aria-hidden="true" />
+          <span className="r-tab-name">
             {file.name || 'untitled'}
-            {file.size > 0 && <small className="file-size-badge"> ({formatBytes(file.size)})</small>}
+            {file.size > 0 && (
+              <small className="r-file-size">({formatBytes(file.size)})</small>
+            )}
           </span>
           <span
-            className="close-tab"
+            className="r-tab-close"
+            role="button"
             aria-label={`Close ${file.name}`}
-            onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}>
-            <i className="fa-solid fa-xmark"></i>
+            onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
+          >
+            <i className="fa-solid fa-xmark" aria-hidden="true" />
           </span>
         </button>
       ))}
@@ -52,53 +54,71 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
 };
 
 export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode }) => (
-  <div className="refactor-options">
-    <div className="refactor-options-header">
-      <i className="fa-solid fa-bullseye"></i> Refactor Goal
+  <div className="r-refactor-options">
+    <div className="r-refactor-options-header">
+      <i className="fa-solid fa-bullseye" aria-hidden="true" />
+      Refactor Goal
     </div>
-    <div className="mode-selector-group" role="radiogroup">
-      {REFACTOR_MODES.map(mode => (
+
+    <div className="r-mode-group" role="radiogroup" aria-label="Refactor goal">
+      {REFACTOR_MODES.map((mode) => (
         <button
           key={mode.id}
           role="radio"
           aria-checked={refactorMode === mode.id}
-          className={`refactor-mode-btn ${refactorMode === mode.id ? 'selected' : ''}`}
+          className={`r-mode-btn ${refactorMode === mode.id ? 'r-selected' : ''}`}
           onClick={() => setRefactorMode(mode.id)}
           title={mode.desc}
         >
-          <div className="refactor-mode-title">
+          <span className="r-mode-title">
             {mode.label}
             {suggestedMode === mode.id && (
-              <span className="suggested-badge">
-                <i className="fa-solid fa-star"></i> Suggested
+              <span className="r-suggested-badge">
+                <i className="fa-solid fa-star" aria-hidden="true" />
+                Suggested
               </span>
             )}
-          </div>
-          <div className="info-circle-btn" data-tooltip-id="refactor-tooltip" data-tooltip-content={mode.desc}>
-            <i className="fas fa-info-circle"></i>
+          </span>
+          <div
+            type="button"
+            className="r-info-btn"
+            data-tooltip-id="r-refactor-tooltip"
+            data-tooltip-content={mode.desc}
+            aria-label={`Info: ${mode.desc}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <i className="fas fa-info-circle" aria-hidden="true" />
           </div>
         </button>
       ))}
-      <Tooltip id="refactor-tooltip" />
     </div>
+
+    <Tooltip id="r-refactor-tooltip" />
   </div>
 );
 
-export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode, setViewMode, downloadSingleFile, loadingStage }) => {
-
+export const OutputPanel = React.memo(({
+  activeSourceFile,
+  outputFiles,
+  viewMode,
+  setViewMode,
+  downloadSingleFile,
+  loadingStage,
+}) => {
   const [isMobile, setIsMobile] = useState(false);
-
   const { currentTheme } = useTheme();
   const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
-  const activeOutput = outputFiles.find(out => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name);
+  const activeOutput = outputFiles.find(
+    (out) => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name,
+  );
 
   if (!activeOutput) {
     return (
@@ -108,36 +128,44 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
         icon="fas fa-wand-magic-sparkles"
         title="Awaiting Refactoring Target"
         description="Add your source files and select a transformation model to automatically update project code health."
-        hint={<>Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or <code>Type Safety</code> variants in the controller layout."</>}
+        hint={
+          <>
+            Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or{' '}
+            <code>Type Safety</code> variants in the controller layout.
+          </>
+        }
         loadingTitle="Refactoring Project Architecture"
-        loadingDescription="Decoupling complex logical layers, resolving cyclical file dependencies, and rewriting code blocks..."
+        loadingDescription="Decoupling complex logical layers, resolving cyclical file dependencies, and rewriting code blocks…"
       />
     );
   }
 
   return (
-    <div className="output-panel-content flex-grow">
-      <div className="view-toggle">
+    <div className="r-output-panel">
+      <div className="r-view-toggle" role="group" aria-label="Output view mode">
         <button
+          className={`r-view-btn ${viewMode === 'final' ? 'r-active' : ''}`}
           onClick={() => setViewMode('final')}
-          className={`view-toggle-btn ${viewMode === 'final' ? 'active' : ''}`}
         >
-          <i className="fa-solid fa-file-lines"></i> Final Output
+          <i className="fa-solid fa-file-lines" aria-hidden="true" />
+          Final Output
         </button>
         <button
+          className={`r-view-btn ${viewMode === 'split' ? 'r-active' : ''}`}
           onClick={() => setViewMode('split')}
-          className={`view-toggle-btn ${viewMode === 'split' ? 'active' : ''}`}
         >
-          <i className="fa-solid fa-table-columns"></i> Split View (Diff)
+          <i className="fa-solid fa-table-columns" aria-hidden="true" />
+          Split View (Diff)
         </button>
       </div>
 
-      <div className="diff-container">
+      <div className="r-diff-container">
         {viewMode === 'final' ? (
           <>
             <CodeOutput
               language={activeSourceFile.language || 'javascript'}
-              content={activeOutput.content} />
+              content={activeOutput.content}
+            />
             <CopyButton codeToCopy={activeOutput.content} />
           </>
         ) : (
@@ -161,17 +189,20 @@ export const OutputPanel = React.memo(({ activeSourceFile, outputFiles, viewMode
               },
               contentText: {
                 fontSize: '13px',
-                lineHeight: '20px'
-              }
+                lineHeight: '20px',
+              },
             }}
           />
         )}
       </div>
 
-      <div className="action-row">
-        <button className="primary-button" onClick={() => downloadSingleFile(activeOutput)}>
-          <i className="fa-solid fa-download"></i> Download File
-        </button>
+      <div className="r-output-action">
+        <div className="action-row">
+          <button className="primary-button" onClick={() => downloadSingleFile(activeOutput)}>
+            <i className="fa-solid fa-download" aria-hidden="true" />
+            Download File
+          </button>
+        </div>
       </div>
     </div>
   );

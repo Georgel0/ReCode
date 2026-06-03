@@ -467,3 +467,33 @@ html[data-theme='mint'] select {
 .code-editor.prism-light textarea {
   color: #333333 !important;
 }
+
+.code-editor textarea,
+.code-editor pre {
+  padding-left: 40px !important;
+  line-height: .6 !important;
+}
+
+.code-editor pre {
+  counter-reset: line;
+}
+
+.code-editor .editor-line {
+  display: block;
+  position: relative;
+}
+
+.code-editor .editor-line::before {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: -45px;
+  width: 30px;
+  text-align: right;
+  color: #858585;
+  font-size: 12px;
+  opacity: 0.6;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}

@@ -278,7 +278,7 @@
   overflow-y: auto;
   border: none;
   position: relative;
-  min-height: 300px;
+  min-height: 0;
 }
 
 .c-scroll>.editor-container {
@@ -304,19 +304,7 @@
   flex: 1;
   overflow-y: auto;
   position: relative;
-  min-height: 300px;
-}
-
-.c-output-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 1rem;
-  border-top: 1px solid var(--border);
-  background: var(--bg-secondary);
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  min-height: 0;
 }
 
 .c-diff-panel {
@@ -391,11 +379,60 @@
 .c-output__inner {
   display: flex;
   position: relative;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .c-output__inner::-webkit-scrollbar {
   display: none;
+}
+
+.c-module-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 2rem;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.2);
+}
+
+.c-module-footer::before {
+  display: none;
+}
+
+.c-module-footer__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-module-footer__bottom-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 1.5rem;
+}
+
+.c-history,
+.c-module-footer .c-reconvert {
+  width: 50%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 
@@ -435,6 +472,17 @@
 }
 
 @media (max-width: 960px) {
+  .c-module-footer__bottom-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .c-history,
+  .c-module-footer .c-reconvert {
+    width: 100%;
+  }
+
   .c-control-bar {
     flex-direction: column;
     align-items: stretch;
@@ -487,12 +535,10 @@
   }
 
   .c-panel__actions button {
-    flex: 1;
     justify-content: center;
   }
 
-  .c-output-footer {
-    flex-direction: column;
-    align-items: flex-start;
+  .c-btn-icon {
+    padding: 0.3rem 0.55rem;
   }
 }

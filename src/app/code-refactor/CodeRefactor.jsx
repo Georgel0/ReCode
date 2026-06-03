@@ -16,7 +16,9 @@ import './codeRefactor.css';
 export default function CodeRefactor() {
   const { moduleData, qualityMode } = useApp();
 
-  const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
+  const [files, setFiles] = useState([
+    { id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 },
+  ]);
   const [activeTabId, setActiveTabId] = useState(files[0].id);
   const [outputFiles, setOutputFiles] = useState([]);
   const [lastResult, setLastResult] = useState(false);
@@ -32,24 +34,29 @@ export default function CodeRefactor() {
   const fileInputRef = useRef(null);
   const isRestoring = useRef(false);
 
-  const activeFile = files.find(f => f.id === activeTabId);
+  const activeFile = files.find((f) => f.id === activeTabId);
 
   useEffect(() => {
-    if (moduleData && moduleData.type === "refactor") {
+    if (moduleData && moduleData.type === 'refactor') {
       isRestoring.current = true;
       try {
-        const savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
-        const savedOutput = typeof moduleData.fullOutput === 'string' ? JSON.parse(moduleData.fullOutput) : moduleData.fullOutput;
+        const savedInputs =
+          typeof moduleData.input === 'string'
+            ? JSON.parse(moduleData.input)
+            : moduleData.input;
+        const savedOutput =
+          typeof moduleData.fullOutput === 'string'
+            ? JSON.parse(moduleData.fullOutput)
+            : moduleData.fullOutput;
 
         if (savedInputs && savedInputs.length > 0) {
           setFiles(savedInputs);
           setActiveTabId(savedInputs[0].id);
         }
-
         if (savedOutput) setOutputFiles(savedOutput);
         if (moduleData.refactorMode) setRefactorMode(moduleData.refactorMode);
       } catch (e) {
-        console.error("Failed to restore history", e);
+        console.error('Failed to restore history', e);
       }
       setTimeout(() => { isRestoring.current = false; }, 100);
     }
@@ -58,39 +65,39 @@ export default function CodeRefactor() {
   useEffect(() => {
     if (outputFiles.length > 0 && !isRestoring.current) {
       setLastResult({
-        type: "refactor",
+        type: 'refactor',
         input: JSON.stringify(files),
         output: outputFiles,
         refactorMode,
-        qualityMode
+        qualityMode,
       });
     }
   }, [outputFiles, files, refactorMode, qualityMode]);
 
   const saveDraft = useCallback(
     debounce(async (draftData) => {
-      if (draftData.files.some(f => f.content.trim())) {
+      if (draftData.files.some((f) => f.content.trim())) {
         try {
           await set('refactor-draft-data', draftData);
           setStorageWarning(false);
         } catch (e) {
-          console.error("IndexedDB Error:", e);
+          console.error('IndexedDB Error:', e);
           setStorageWarning(true);
         }
       }
     }, 1500),
-    []
+    [],
   );
 
   useEffect(() => {
     const loadDraft = async () => {
       try {
         const saved = await get('refactor-draft-data');
-        if (saved && saved.files && saved.files.length > 0 && saved.files.some(f => f.content.trim())) {
+        if (saved && saved.files && saved.files.length > 0 && saved.files.some((f) => f.content.trim())) {
           setPendingDraft(saved);
         }
       } catch (err) {
-        console.error("Failed to load IndexedDB draft", err);
+        console.error('Failed to load IndexedDB draft', err);
       }
     };
     loadDraft();
@@ -102,13 +109,15 @@ export default function CodeRefactor() {
   }, [files, outputFiles, saveDraft]);
 
   useEffect(() => {
-    if (activeFile && activeFile?.content.trim().length > 0) {
+    if (activeFile && activeFile.content.trim().length > 0) {
       setSuggestedMode(suggestRefactorMode(activeFile.content));
-    } else setSuggestedMode(null);
+    } else {
+      setSuggestedMode(null);
+    }
   }, [activeTabId, files, activeFile?.content]);
 
   const handleRefactor = async () => {
-    if (files.every(f => !f.content.trim())) return;
+    if (files.every((f) => !f.content.trim())) return;
     setLoadingStage('analyzing');
     setErrorMsg('');
 
@@ -117,16 +126,18 @@ export default function CodeRefactor() {
       optTimeout = setTimeout(() => setLoadingStage('optimizing'), 1500);
       valTimeout = setTimeout(() => setLoadingStage('validating'), 3000);
 
-      const inputPayload = JSON.stringify(files.map(f => ({ sourceId: f.id, name: f.name, content: f.content })));
+      const inputPayload = JSON.stringify(
+        files.map((f) => ({ sourceId: f.id, name: f.name, content: f.content })),
+      );
       const result = await convertCode('refactor', inputPayload, { mode: refactorMode, qualityMode });
 
       if (result && Array.isArray(result.files)) {
         setOutputFiles(result.files);
       } else {
-        setErrorMsg(result?.error || "Invalid format returned from the API.");
+        setErrorMsg(result?.error || 'Invalid format returned from the API.');
       }
-    } catch (error) {
-      setErrorMsg("Failed to refactor code. Please check your connection.");
+    } catch {
+      setErrorMsg('Failed to refactor code. Please check your connection.');
     } finally {
       clearTimeout(optTimeout);
       clearTimeout(valTimeout);
@@ -135,34 +146,30 @@ export default function CodeRefactor() {
   };
 
   const handleLanguageChange = (id, newLangValue) => {
-    const selectedLang = LANGUAGES.find(l => l.value === newLangValue);
+    const selectedLang = LANGUAGES.find((l) => l.value === newLangValue);
     if (!selectedLang) return;
-
-    setFiles(prev => prev.map(f => {
-      if (f.id === id) {
-        const nameWithoutExt = f.name.includes('.') ?
-          f.name.substring(0, f.name.lastIndexOf('.')) : f.name;
-
-        return {
-          ...f,
-          language: selectedLang.value,
-          name: `${nameWithoutExt}${selectedLang.ext}`
-        }
-      };
-      return f;
-    }));
+    setFiles((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
+        const base = f.name.includes('.') ? f.name.substring(0, f.name.lastIndexOf('.')) : f.name;
+        return { ...f, language: selectedLang.value, name: `${base}${selectedLang.ext}` };
+      }),
+    );
   };
 
-  const handleKeyDown = useCallback((e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      handleRefactor();
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      saveDraft({ files, outputFiles });
-    }
-  }, [files, outputFiles, handleRefactor, saveDraft]);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleRefactor();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveDraft({ files, outputFiles });
+      }
+    },
+    [files, outputFiles, handleRefactor, saveDraft],
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -172,98 +179,100 @@ export default function CodeRefactor() {
   const handleFileUpload = async (e) => {
     setErrorMsg('');
     const uploadedFiles = Array.from(e.target.files);
-    if (uploadedFiles.length === 0) return;
+    if (!uploadedFiles.length) return;
 
     const validFiles = [];
     for (const file of uploadedFiles) {
       const { valid, error } = validateFile(file);
-      if (!valid) {
-        setErrorMsg(error);
-        continue;
-      }
+      if (!valid) { setErrorMsg(error); continue; }
       validFiles.push(file);
     }
 
-    const newFilesPromises = validFiles.map(file => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = (event) => {
-        const name = sanitizeFilename(file.name);
-        const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
-        const matchedLang = LANGUAGES.find(l => l.ext === ext) || LANGUAGES.find(l => l.value === 'plaintext');
-
-        resolve({
-          id: crypto.randomUUID(),
-          name: name,
-          language: matchedLang.value,
-          content: event.target.result,
-          size: file.size
-        });
-      };
-      reader.onerror = reject;
-      reader.readAsText(file);
-    }));
+    const promises = validFiles.map(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const name = sanitizeFilename(file.name);
+            const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+            const matchedLang =
+              LANGUAGES.find((l) => l.ext === ext) || LANGUAGES.find((l) => l.value === 'plaintext');
+            resolve({
+              id: crypto.randomUUID(),
+              name,
+              language: matchedLang.value,
+              content: ev.target.result,
+              size: file.size,
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsText(file);
+        }),
+    );
 
     try {
-      const newFiles = await Promise.all(newFilesPromises);
+      const newFiles = await Promise.all(promises);
       if (newFiles.length > 0) {
-        setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
+        setFiles((prev) =>
+          prev.length === 1 && !prev[0].content.trim() ? newFiles : [...prev, ...newFiles],
+        );
         setActiveTabId(newFiles[0].id);
       }
-    } catch (err) {
-      setErrorMsg("Failed to read one or more files.");
+    } catch {
+      setErrorMsg('Failed to read one or more files.');
     } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const updateFile = (id, content) => {
-    setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
-  };
+  const updateFile = (id, content) =>
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, content } : f)));
 
   const removeFile = (idToRemove) => {
-    const newFiles = files.filter(f => f.id !== idToRemove);
-    if (newFiles.length === 0) {
+    const remaining = files.filter((f) => f.id !== idToRemove);
+    if (remaining.length === 0) {
       const newId = crypto.randomUUID();
       setFiles([{ id: newId, name: 'untitled.txt', language: 'plaintext', content: '', size: 0 }]);
       setActiveTabId(newId);
     } else {
-      setFiles(newFiles);
-      if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
+      setFiles(remaining);
+      if (activeTabId === idToRemove) setActiveTabId(remaining[0].id);
     }
+  };
+
+  const handleAddFile = () => {
+    const ext = activeFile?.language
+      ? LANGUAGES.find((l) => l.value === activeFile.language)?.ext ?? '.js'
+      : '.js';
+    const lang = activeFile?.language || 'javascript';
+    const newFile = { id: crypto.randomUUID(), name: `new-file${ext}`, language: lang, content: '', size: 0 };
+    setFiles((prev) => [...prev, newFile]);
+    setActiveTabId(newFile.id);
   };
 
   const downloadSingleFile = (file) => {
     const blob = new Blob([file.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = file.fileName || file.name || 'refactored-file.txt';
-    link.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.fileName || file.name || 'refactored-file.txt';
+    a.click();
     URL.revokeObjectURL(url);
   };
 
   const downloadZip = async () => {
     const zip = new JSZip();
-    outputFiles.forEach(file => zip.file(sanitizeFilename(file.fileName || file.name || 'file.txt'), file.content));
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, "refactored_project.zip");
-  };
-
-  const handleAddFile = () => {
-    const currentExt = activeFile?.language ? LANGUAGES.find(l => l.value === activeFile.language)?.ext : '.js';
-    const currentLang = activeFile?.language || 'javascript';
-    const newFile = { id: crypto.randomUUID(), name: `new-file${currentExt}`, language: currentLang, content: '', size: 0 };
-    setFiles([...files, newFile]);
-    setActiveTabId(newFile.id);
+    outputFiles.forEach((f) =>
+      zip.file(sanitizeFilename(f.fileName || f.name || 'file.txt'), f.content),
+    );
+    const blob = await zip.generateAsync({ type: 'blob' });
+    saveAs(blob, 'refactored_project.zip');
   };
 
   const handleConfirmDraft = () => {
     setFiles(pendingDraft.files);
     setActiveTabId(pendingDraft.files[0]?.id);
-    if (pendingDraft.outputFiles && pendingDraft.outputFiles.length > 0) {
-      setOutputFiles(pendingDraft.outputFiles);
-    }
+    if (pendingDraft.outputFiles?.length > 0) setOutputFiles(pendingDraft.outputFiles);
     setPendingDraft(null);
   };
 
@@ -272,8 +281,11 @@ export default function CodeRefactor() {
     setPendingDraft(null);
   };
 
+  const isLoading = loadingStage !== 'idle';
+  const hasContent = files.some((f) => f.content.trim());
+
   return (
-    <div className="module-container">
+    <div className="r-module-container">
       <ModuleHeader
         title="AI Code Refactor"
         description="Optimize, clean, or document your project files with context-aware AI."
@@ -281,43 +293,55 @@ export default function CodeRefactor() {
       />
 
       {errorMsg && (
-        <div className="status-banner error">
-          <i className="fa-solid fa-triangle-exclamation"></i>
+        <div className="r-banner r-error" role="alert">
+          <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
           {errorMsg}
         </div>
       )}
-
       {storageWarning && (
-        <div className="status-banner warning">
-          <i className="fa-solid fa-hard-drive"></i>
+        <div className="r-banner r-warning" role="alert">
+          <i className="fa-solid fa-hard-drive" aria-hidden="true" />
           Storage is full. Drafts will not be saved.
         </div>
       )}
 
-      <div className="converter-grid">
-        <div className="panel">
-          <div className="panel-header-row">
+      <div className="r-converter-grid">
+
+        <div className="r-panel">
+
+          <div className="r-panel-header">
             <h3>Source Files</h3>
-            <div className="header-actions">
+            <div className="r-header-actions">
               <button className="secondary-button" onClick={() => fileInputRef.current.click()}>
-                <i className="fa-solid fa-upload"></i> Upload
+                <i className="fa-solid fa-upload" aria-hidden="true" /> Upload
               </button>
-              <button className="secondary-button" onClick={handleAddFile} >
-                <i className="fa-solid fa-plus"></i> Add File
+              <button className="secondary-button" onClick={handleAddFile}>
+                <i className="fa-solid fa-plus" aria-hidden="true" /> Add File
               </button>
             </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple hidden />
-            <div className="lang-selector">
-              <h4>Language</h4>
-              <select
-                value={activeFile?.language || 'javascript'}
-                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
-              >
-                {LANGUAGES.map(lang => (
-                  <option key={lang.value} value={lang.value}>{lang.label}</option>
-                ))}
-              </select>
-            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              multiple
+              hidden
+              aria-hidden="true"
+            />
+          </div>
+
+          <div className="r-lang-row">
+            <label htmlFor="r-lang-select">Language</label>
+            <select
+              id="r-lang-select"
+              value={activeFile?.language || 'javascript'}
+              onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
+            >
+              {LANGUAGES.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <RefactorControls
@@ -333,36 +357,49 @@ export default function CodeRefactor() {
             removeFile={removeFile}
           />
 
-          <CodeEditor
-            value={activeFile?.content || ''}
-            onValueChange={(code) => updateFile(activeTabId, code)}
-            language={activeFile?.language || 'javascript'}
-          />
+          <div className="r-editor-wrap">
+            <CodeEditor
+              value={activeFile?.content || ''}
+              onValueChange={(code) => updateFile(activeTabId, code)}
+              language={activeFile?.language || 'javascript'}
+            />
+          </div>
 
-          <div className="action-row">
+          <div className="r-refactor-action">
             <button
-              className="primary-button full-width"
+              className="primary-button r-full-width"
               onClick={handleRefactor}
-              disabled={loadingStage !== 'idle' || files.every(f => !f.content.trim())}
+              disabled={isLoading || !hasContent}
             >
-              <i className={loadingStage !== 'idle' ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-wand-magic-sparkles"}></i>
-              {loadingStage !== 'idle' ? `Processing...` : 'Refactor Project'}
+              <i
+                className={
+                  isLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-wand-magic-sparkles'
+                }
+                aria-hidden="true"
+              />
+              {isLoading ? 'Processing…' : 'Refactor Project'}
             </button>
           </div>
         </div>
 
-        <div className="panel">
-          <div className="panel-header-row">
-            <h3><i className="fa-solid fa-square-check"></i> Refactored Result</h3>
+        <div className="r-panel">
+
+          <div className="r-panel-header">
+            <h3>
+              <i className="fa-solid fa-square-check" aria-hidden="true" />
+              Refactored Result
+            </h3>
             {outputFiles.length > 0 && (
-              <button className="secondary-button" onClick={downloadZip}>
-                <i className="fa-solid fa-file-zipper"></i> Download ZIP
-              </button>
+              <div className="r-header-actions">
+                <button className="secondary-button" onClick={downloadZip}>
+                  <i className="fa-solid fa-file-zipper" aria-hidden="true" /> Download ZIP
+                </button>
+              </div>
             )}
           </div>
 
           <OutputPanel
-            activeSourceFile={files.find(f => f.id === activeTabId)}
+            activeSourceFile={files.find((f) => f.id === activeTabId)}
             outputFiles={outputFiles}
             viewMode={viewMode}
             setViewMode={setViewMode}

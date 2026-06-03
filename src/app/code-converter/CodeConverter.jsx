@@ -122,11 +122,19 @@ export default function CodeConverter() {
               <i className="fa-solid fa-code-branch"></i>
             </button>
           )}
+          {hasOutput && (
+            <button
+              className={`secondary-button c-btn-icon${syncScroll ? ' c-btn-active' : ''}`}
+              onClick={() => setSyncScroll(s => !s)}
+              title="Toggle Sync Scroll"
+            >
+              <i className={`fa-solid ${syncScroll ? 'fa-link' : 'fa-link-slash'}`}></i>
+            </button>
+          )}
         </div>
       </div>
 
       <div className="c-grid">
-
         <div className="c-panel">
           <div className="c-panel__header">
             <h3 className="c-panel__title"><i className="fa-solid fa-file-code"></i> Source Files</h3>
@@ -212,7 +220,7 @@ export default function CodeConverter() {
                   files={outputFiles.map(f => ({ id: f.sourceId, name: f.fileName }))}
                   activeTabId={activeTabId}
                   setActiveTabId={setActiveTabId}
-                  removeFile={() => {}}
+                  removeFile={() => { }}
                   readOnly={true}
                 />
 
@@ -230,80 +238,12 @@ export default function CodeConverter() {
                   <CopyButton codeToCopy={activeOutputFile?.content || ''} />
                 </div>
 
-                <div className="c-output-footer">
-                  <div className="c-lint">
-                    <button
-                      className="secondary-button"
-                      onClick={runLinter}
-                      disabled={lintStatus === 'linting'}
-                    >
-                      <i className={`fa-solid ${lintStatus === 'linting' ? 'fa-spinner fa-spin' : 'fa-stethoscope'}`}></i>
-                      {' '}Check Syntax
-                    </button>
-                    {lintStatus === 'success' && (
-                      <span className="c-lint__badge c-lint__badge--ok">
-                        <i className="fa-solid fa-check-circle"></i> Clean
-                      </span>
-                    )}
-                    {lintStatus === 'error' && (
-                      <span className="c-lint__badge c-lint__badge--error">
-                        <i className="fa-solid fa-triangle-exclamation"></i> Warnings
-                      </span>
-                    )}
-                  </div>
-
-                  <label className="custom-check c-sync-check">
-                    <input
-                      type="checkbox"
-                      checked={syncScroll}
-                      onChange={(e) => setSyncScroll(e.target.checked)}
-                    />
-                    <div className="box"><i className="fa-solid fa-check"></i></div>
-                    <span className="label-text">Sync Scroll</span>
-                  </label>
-                </div>
-
                 <ConversionNotesPanel
                   notes={conversionNotes}
                   activeTabId={activeTabId}
                   open={notesOpen}
                   onToggle={() => setNotesOpen(o => !o)}
                 />
-
-                <HistoryPanel
-                  history={conversionHistory}
-                  activeTabId={activeTabId}
-                  open={historyPanelOpen}
-                  onToggle={() => setHistoryPanelOpen(o => !o)}
-                  onRestore={restoreHistoryEntry}
-                />
-
-                <div className="c-reconvert">
-                  <div className="c-reconvert__header">
-                    <i className="fa-solid fa-rotate"></i>
-                    <span>Refine Conversion</span>
-                  </div>
-                  <div className="c-reconvert__row">
-                    <input
-                      className="c-reconvert__input"
-                      type="text"
-                      placeholder='e.g. "Use aiofiles instead of sync IO" or "rename snake_case to camelCase"'
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleReconvert()}
-                    />
-                    <button
-                      className="primary-button c-reconvert__btn"
-                      onClick={handleReconvert}
-                      disabled={loading || !feedbackText.trim()}
-                    >
-                      {loading
-                        ? <i className="fa-solid fa-spinner fa-spin"></i>
-                        : <><i className="fa-solid fa-rotate"></i> Retry</>
-                      }
-                    </button>
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="c-output-empty">
@@ -322,6 +262,70 @@ export default function CodeConverter() {
           </div>
         </div>
       </div>
+
+      {hasOutput && (
+        <div className="c-module-footer">
+          <div className="c-module-footer__top-row">
+            <div className="c-lint">
+              <button
+                className="secondary-button"
+                onClick={runLinter}
+                disabled={lintStatus === 'linting'}
+              >
+                <i className={`fa-solid ${lintStatus === 'linting' ? 'fa-spinner fa-spin' : 'fa-stethoscope'}`}></i>
+                {' '}Check Syntax
+              </button>
+              {lintStatus === 'success' && (
+                <span className="c-lint__badge c-lint__badge--ok">
+                  <i className="fa-solid fa-check-circle"></i> Clean
+                </span>
+              )}
+              {lintStatus === 'error' && (
+                <span className="c-lint__badge c-lint__badge--error">
+                  <i className="fa-solid fa-triangle-exclamation"></i> Warnings
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="c-module-footer__bottom-row">
+            <HistoryPanel
+              history={conversionHistory}
+              activeTabId={activeTabId}
+              open={historyPanelOpen}
+              onToggle={() => setHistoryPanelOpen(o => !o)}
+              onRestore={restoreHistoryEntry}
+            />
+            <div className="c-reconvert">
+              <div className="c-reconvert__header">
+                <i className="fa-solid fa-rotate"></i>
+                <span>Refine Conversion</span>
+              </div>
+              <div className="c-reconvert__row">
+                <input
+                  className="c-reconvert__input"
+                  type="text"
+                  placeholder='e.g. "Use aiofiles instead of sync IO" or "rename snake_case to camelCase"'
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleReconvert()}
+                />
+                <button
+                  className="primary-button c-reconvert__btn"
+                  onClick={handleReconvert}
+                  disabled={loading || !feedbackText.trim()}
+                >
+                  {loading
+                    ? <i className="fa-solid fa-spinner fa-spin"></i>
+                    : <><i className="fa-solid fa-rotate"></i> Retry</>
+                  }
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {diffMode && hasOutput && (
         <div className="c-diff-panel">
