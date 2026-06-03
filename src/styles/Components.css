@@ -562,6 +562,7 @@ select option {
   margin-left: 1rem;
   border-radius: 4px;
   flex-shrink: 0;
+  gap: 0;
 }
 
 .copy-btn:hover {

@@ -227,7 +227,7 @@ export default function CodeConverter() {
                       content={activeOutputFile?.content || '// File not found'}
                     />
                   </div>
-                  <CopyButton codeToCopy={activeOutputFile?.content || ''} className="c-copy-btn" />
+                  <CopyButton codeToCopy={activeOutputFile?.content || ''} />
                 </div>
 
                 <div className="c-output-footer">
