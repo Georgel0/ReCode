@@ -17,38 +17,66 @@ export function CodeHighlightAnalyzer() {
 
   useEffect(() => {
     const handleMouseUp = (e) => {
-      // If clicking inside the analyzer button itself, let the click handler handle it
       if (buttonRef.current && buttonRef.current.contains(e.target)) return;
 
-      const selection = window.getSelection();
-      const text = selection.toString().trim();
+      let text = '';
+      let isCodeBlock = false;
+      let rect = null;
 
-      if (text && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        
-        // Find the actual DOM element containing the text selection
-        let container = range.commonAncestorContainer;
-        if (container.nodeType === Node.TEXT_NODE) {
-          container = container.parentElement;
-        }
+      // Try finding the textarea directly from the event target or its parent
+      const target = e.target;
+      const textarea = target.tagName === 'TEXTAREA' ? target : target.closest('.editor-container, .code-editor')?.querySelector('textarea');
 
-        // Detect if the container is a code block, inline code, or has a code class
-        const isCode = container.closest('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]');
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
 
-        if (isCode) {
-          const rect = range.getBoundingClientRect();
+        if (start !== end) {
+          text = textarea.value.substring(start, end).trim();
+          isCodeBlock = true;
 
-          // Calculate absolute position on the page (including scroll offsets)
-          setPosition({
-            top: rect.top + window.scrollY - 42,
-            left: rect.left + window.scrollX + rect.width / 2,
-          });
-          setSelectedText(text);
-          setVisible(true);
-          return; 
+          // Use exact mouse coordinates relative to the viewport
+          rect = {
+            top: e.clientY,
+            left: e.clientX,
+            width: 0
+          };
         }
       }
-      
+
+      // Fallback to standard DOM selection (for SyntaxHighlighter)
+      if (!text) {
+        const selection = window.getSelection();
+        text = selection.toString().trim();
+
+        if (text && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          let container = range.commonAncestorContainer;
+          if (container.nodeType === Node.TEXT_NODE) container = container.parentElement;
+
+          if (container.closest('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]')) {
+            isCodeBlock = true;
+            const bounding = range.getBoundingClientRect();
+            rect = {
+              top: bounding.top,
+              left: bounding.left,
+              width: bounding.width
+            };
+          }
+        }
+      }
+
+      if (isCodeBlock && text && rect) {
+        // Switch to viewport-based coordinates to bypass parent layout traps
+        setPosition({
+          top: rect.top - 45,
+          left: rect.left + (rect.width / 2),
+        });
+        setSelectedText(text);
+        setVisible(true);
+        return;
+      }
+
       setVisible(false);
     };
 
