@@ -164,41 +164,40 @@ export function useCodeConverter() {
     }
   };
 
-const handleScrollSync = (e, targetRef) => {
-    if (!syncScroll || !targetRef.current || isSyncingRef.current) return;
+  useEffect(() => {
+    const src = sourceScrollRef.current;
+    const tgt = targetScrollRef.current;
+    if (!src || !tgt) return;
 
-    // Engages the lock to ignore programmatic "echo" scroll events
-    isSyncingRef.current = true;
+    const syncFrom = (source, target) => (e) => {
+      if (!syncScroll || isSyncingRef.current) return;
+      isSyncingRef.current = true;
 
-    // Using currentTarget isolates the container holding the scroll listener
-    const source = e.currentTarget;
-    const target = targetRef.current;
+      const maxSrcTop = source.scrollHeight - source.clientHeight;
+      const maxTgtTop = target.scrollHeight - target.clientHeight;
 
-    // 1. Sync Vertical Positions
-    const maxScrollTopSource = source.scrollHeight - source.clientHeight;
-    const maxScrollTopTarget = target.scrollHeight - target.clientHeight;
-    
-    if (maxScrollTopSource > 0) {
-      const verticalRatio = source.scrollTop / maxScrollTopSource;
-      target.scrollTop = Math.round(verticalRatio * maxScrollTopTarget);
-    }
+      if (maxSrcTop > 0)
+        target.scrollTop = Math.round((source.scrollTop / maxSrcTop) * maxTgtTop);
 
-    // 2. Sync Horizontal Positions
-    const maxScrollLeftSource = source.scrollWidth - source.clientWidth;
-    const maxScrollLeftTarget = target.scrollWidth - target.clientWidth;
-    
-    if (maxScrollLeftSource > 0) {
-      const horizontalRatio = source.scrollLeft / maxScrollLeftSource;
-      target.scrollLeft = Math.round(horizontalRatio * maxScrollLeftTarget);
-    }
+      const maxSrcLeft = source.scrollWidth - source.clientWidth;
+      const maxTgtLeft = target.scrollWidth - target.clientWidth;
 
-    // Release the lock safely after programmatic adjustments finish executing
-    window.requestAnimationFrame(() => {
-      setTimeout(() => {
-        isSyncingRef.current = false;
-      }, 15);
-    });
-  };
+      if (maxSrcLeft > 0)
+        target.scrollLeft = Math.round((source.scrollLeft / maxSrcLeft) * maxTgtLeft);
+      requestAnimationFrame(() => setTimeout(() => { isSyncingRef.current = false; }, 15));
+    };
+
+    const srcHandler = syncFrom(src, tgt);
+    const tgtHandler = syncFrom(tgt, src);
+
+    src.addEventListener('scroll', srcHandler, { passive: true });
+    tgt.addEventListener('scroll', tgtHandler, { passive: true });
+
+    return () => {
+      src.removeEventListener('scroll', srcHandler);
+      tgt.removeEventListener('scroll', tgtHandler);
+    };
+  }, [syncScroll]);
 
   // Build the import graph for multi-file dependency awareness
   const buildImportGraph = (filesArray) => {
@@ -429,7 +428,7 @@ const handleScrollSync = (e, targetRef) => {
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    handleScrollSync, handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
+    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
     handleConfirmDraft, handleCancelDraft
   };
 }

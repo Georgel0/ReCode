@@ -32,7 +32,7 @@ export default function CodeConverter() {
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    handleScrollSync, handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
+    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
     handleConfirmDraft, handleCancelDraft
   } = useCodeConverter();
 
@@ -181,12 +181,9 @@ export default function CodeConverter() {
                 />
               </div>
             ) : (
-              <div
-                className="c-scroll"
-                ref={sourceScrollRef}
-                onScroll={(e) => handleScrollSync(e, targetScrollRef)}
-              >
+              <div className="c-scroll">
                 <CodeEditor
+                  ref={sourceScrollRef}
                   value={activeFile?.content || ''}
                   onValueChange={(code) => updateFile(activeTabId, code)}
                   language={activeFile?.language || 'javascript'}
@@ -225,12 +222,9 @@ export default function CodeConverter() {
                 />
 
                 <div className="c-output__inner">
-                  <div
-                    className="c-output__scroll"
-                    ref={targetScrollRef}
-                    onScroll={(e) => handleScrollSync(e, sourceScrollRef)}
-                  >
+                  <div className="c-output__scroll">
                     <CodeOutput
+                      scrollRef={targetScrollRef}
                       language={targetLang}
                       content={activeOutputFile?.content || '// File not found'}
                     />

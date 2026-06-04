@@ -468,10 +468,16 @@ html[data-theme='mint'] select {
   color: #333333 !important;
 }
 
+.code-editor {
+  --gutter-width: 52px;
+  --gutter-number-width: 36px;
+  --editor-line-height: 1.6;
+}
+
 .code-editor textarea,
 .code-editor pre {
-  padding-left: 40px !important;
-  line-height: .6 !important;
+  padding-left: var(--gutter-width) !important;
+  line-height: var(--editor-line-height) !important;
 }
 
 .code-editor pre {
@@ -479,20 +485,22 @@ html[data-theme='mint'] select {
 }
 
 .code-editor .editor-line {
-  display: block;
-  position: relative;
+  display: contents;
 }
 
 .code-editor .editor-line::before {
   counter-increment: line;
   content: counter(line);
-  position: absolute;
-  left: -45px;
-  width: 30px;
+  display: inline-block;
+  width: var(--gutter-number-width);
+  margin-left: calc(-1 * var(--gutter-width));
+  margin-right: calc(var(--gutter-width) - var(--gutter-number-width));
   text-align: right;
   color: #858585;
-  font-size: 12px;
-  opacity: 0.6;
+  font-size: 13px;
+  line-height: inherit;
+  vertical-align: top;
+  opacity: 0.55;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;

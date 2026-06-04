@@ -1,9 +1,6 @@
 'use client';
 
-import React from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
+import { forwardRef, useRef, useImperativeHandle, useEffect } from 'react';
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-clike';
@@ -32,54 +29,79 @@ import 'prismjs/components/prism-sql';
 
 import { useTheme } from '@/context';
 
-export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..."
-}) {
+const DARK_THEMES = ['recode-dark', 'midnight-gold', 'deep-sea'];
 
-  const { currentTheme } = useTheme();
-  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+function getGrammar(lang) {
+  if (languages[lang]) return languages[lang];
+  if (lang === 'c' || lang === 'cpp') return languages.clike;
+  return languages.plaintext || languages.js;
+}
 
-  const getGrammar = (lang) => {
-    if (languages[lang]) return languages[lang];
-    if (lang === 'c' || lang === 'cpp') return languages.clike;
-    return languages.plaintext || languages.js;
-  };
-
-  const highlightWithLineNumbers = (code) => {
+function makeHighlighter(language) {
+  return (code) => {
     const highlighted = highlight(code, getGrammar(language), language);
 
+    // Split on newlines produced by Prism.  An empty line must still emit a
+    // span so the CSS counter increments for every source line — including
+    // blank ones — keeping gutter numbers in sync with the textarea cursor.
+    // A zero-width space is used for empty lines because a truly empty <span>
+    // collapses to zero height in some browsers, visually swallowing the line.
     return highlighted
       .split('\n')
-      .map((line) => `<span class="editor-line">${line}</span>`)
+      .map((line) => `<span class="editor-line">${line || '\u200B'}</span>`)
       .join('\n');
   };
+}
+
+export const CodeEditor = forwardRef(function CodeEditor(
+  { value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..." },
+  ref
+) {
+  const { currentTheme } = useTheme();
+  const isDarkTheme = DARK_THEMES.includes(currentTheme);
+  const containerRef = useRef(null);
+
+  useImperativeHandle(ref, () => {
+    return containerRef.current?.querySelector('textarea');
+  }, []);
 
   return (
-    <div className="editor-container">
+    <div className="editor-container" ref={containerRef}>
       <Editor
         value={value || ''}
         onValueChange={onValueChange}
-        highlight={highlightWithLineNumbers}
+        highlight={makeHighlighter(language)}
         padding={15}
         className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
         placeholder={placeholder}
       />
     </div>
   );
-}
+});
 
-export function CodeOutput({ content, language }) {
+export function CodeOutput({ content, language = 'javascript', scrollRef }) {
+  const containerRef = useRef(null);
 
   const { currentTheme } = useTheme();
-  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
+  const isDarkTheme = DARK_THEMES.includes(currentTheme);
+
+    useEffect(() => {
+    if (scrollRef) {
+      scrollRef.current = containerRef.current?.querySelector('textarea');
+    }
+  }, [scrollRef]);
 
   return (
-    <SyntaxHighlighter
-      language={language}
-      style={isDarkTheme ? vscDarkPlus : vs}
-      customStyle={{ margin: 0, padding: '20px' }}
-      showLineNumbers={true}
-    >
-      {content}
-    </SyntaxHighlighter>
+    <div className="editor-container" ref={containerRef}>
+      <Editor
+        value={content || ''}
+        onValueChange={() => { }}
+        highlight={makeHighlighter(language)}
+        padding={15}
+        className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
+        style={{ caretColor: 'transparent' }}
+        readOnly
+      />
+    </div>
   );
 };
