@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useRef, useImperativeHandle, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-clike';
@@ -53,20 +53,12 @@ function makeHighlighter(language) {
   };
 }
 
-export const CodeEditor = forwardRef(function CodeEditor(
-  { value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..." },
-  ref
-) {
+export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..." }) {
   const { currentTheme } = useTheme();
   const isDarkTheme = DARK_THEMES.includes(currentTheme);
-  const containerRef = useRef(null);
-
-  useImperativeHandle(ref, () => {
-    return containerRef.current?.querySelector('textarea');
-  }, []);
 
   return (
-    <div className="editor-container" ref={containerRef}>
+    <div className="editor-container">
       <Editor
         value={value || ''}
         onValueChange={onValueChange}
@@ -77,22 +69,14 @@ export const CodeEditor = forwardRef(function CodeEditor(
       />
     </div>
   );
-});
+}
 
-export function CodeOutput({ content, language = 'javascript', scrollRef }) {
-  const containerRef = useRef(null);
-
+export function CodeOutput({ content, language = 'javascript' }) {
   const { currentTheme } = useTheme();
   const isDarkTheme = DARK_THEMES.includes(currentTheme);
 
-    useEffect(() => {
-    if (scrollRef) {
-      scrollRef.current = containerRef.current?.querySelector('textarea');
-    }
-  }, [scrollRef]);
-
   return (
-    <div className="editor-container" ref={containerRef}>
+    <div className="editor-container">
       <Editor
         value={content || ''}
         onValueChange={() => { }}

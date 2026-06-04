@@ -1,9 +1,9 @@
 .floating-analyze-btn {
   position: absolute;
   transform: translateX(-50%);
-  background-color: var(--accent);
-  color: var(--text-primary);
-  border: none;
+  background-color: var(--bg-primary);
+  color: var(--accent);
+  border: 1px solid var(--accent);
   border-radius: 20px;
   padding: 6px 14px;
   font-size: 12px;
@@ -20,7 +20,8 @@
 }
 
 .floating-analyze-btn:hover {
-  background-color: var(--accent-hover);
+  color: var(--accent-hover);
+  border: 1px solid var(--accent-hover);
 }
 
 .floating-analyze-btn:active {

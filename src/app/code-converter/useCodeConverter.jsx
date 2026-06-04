@@ -80,9 +80,11 @@ export function useCodeConverter() {
   );
 
   useEffect(() => {
-    return () => saveDraft.cancel();
-    saveHistoryToIdb.cancel();
-  }, [saveDraft]);
+    return () => {
+      saveDraft.cancel();
+      saveHistoryToIdb.cancel();
+    };
+  }, []);
 
   // Load history from IDB on mount
   useEffect(() => {
@@ -165,39 +167,45 @@ export function useCodeConverter() {
   };
 
   useEffect(() => {
-    const src = sourceScrollRef.current;
-    const tgt = targetScrollRef.current;
-    if (!src || !tgt) return;
+    // react-simple-code-editor renders textarea + pre as absolutely positioned siblings.
+    // The actual scrollable element is the textarea (source) and the pre (output, read-only).
+    // The wrapper divs (.c-scroll / .c-output__scroll) do NOT scroll themselves.
 
-    const syncFrom = (source, target) => (e) => {
+    const srcTextarea = sourceScrollRef.current?.querySelector('textarea');
+    const tgtPre = targetScrollRef.current?.querySelector('pre');
+
+    if (!srcTextarea || !tgtPre) return;
+
+    const syncFromSrc = () => {
       if (!syncScroll || isSyncingRef.current) return;
       isSyncingRef.current = true;
-
-      const maxSrcTop = source.scrollHeight - source.clientHeight;
-      const maxTgtTop = target.scrollHeight - target.clientHeight;
-
-      if (maxSrcTop > 0)
-        target.scrollTop = Math.round((source.scrollTop / maxSrcTop) * maxTgtTop);
-
-      const maxSrcLeft = source.scrollWidth - source.clientWidth;
-      const maxTgtLeft = target.scrollWidth - target.clientWidth;
-
-      if (maxSrcLeft > 0)
-        target.scrollLeft = Math.round((source.scrollLeft / maxSrcLeft) * maxTgtLeft);
-      requestAnimationFrame(() => setTimeout(() => { isSyncingRef.current = false; }, 15));
+      const maxSrc = srcTextarea.scrollHeight - srcTextarea.clientHeight;
+      const maxTgt = tgtPre.scrollHeight - tgtPre.clientHeight;
+      if (maxSrc > 0 && maxTgt > 0) {
+        tgtPre.scrollTop = Math.round((srcTextarea.scrollTop / maxSrc) * maxTgt);
+      }
+      requestAnimationFrame(() => { isSyncingRef.current = false; });
     };
 
-    const srcHandler = syncFrom(src, tgt);
-    const tgtHandler = syncFrom(tgt, src);
+    const syncFromTgt = () => {
+      if (!syncScroll || isSyncingRef.current) return;
+      isSyncingRef.current = true;
+      const maxSrc = srcTextarea.scrollHeight - srcTextarea.clientHeight;
+      const maxTgt = tgtPre.scrollHeight - tgtPre.clientHeight;
+      if (maxSrc > 0 && maxTgt > 0) {
+        srcTextarea.scrollTop = Math.round((tgtPre.scrollTop / maxTgt) * maxSrc);
+      }
+      requestAnimationFrame(() => { isSyncingRef.current = false; });
+    };
 
-    src.addEventListener('scroll', srcHandler, { passive: true });
-    tgt.addEventListener('scroll', tgtHandler, { passive: true });
+    srcTextarea.addEventListener('scroll', syncFromSrc, { passive: true });
+    tgtPre.addEventListener('scroll', syncFromTgt, { passive: true });
 
     return () => {
-      src.removeEventListener('scroll', srcHandler);
-      tgt.removeEventListener('scroll', tgtHandler);
+      srcTextarea.removeEventListener('scroll', syncFromSrc);
+      tgtPre.removeEventListener('scroll', syncFromTgt);
     };
-  }, [syncScroll]);
+  }, [outputFiles, syncScroll, activeTabId]);
 
   // Build the import graph for multi-file dependency awareness
   const buildImportGraph = (filesArray) => {

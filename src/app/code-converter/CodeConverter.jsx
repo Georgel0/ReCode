@@ -181,9 +181,8 @@ export default function CodeConverter() {
                 />
               </div>
             ) : (
-              <div className="c-scroll">
+              <div className="c-scroll" ref={sourceScrollRef}>
                 <CodeEditor
-                  ref={sourceScrollRef}
                   value={activeFile?.content || ''}
                   onValueChange={(code) => updateFile(activeTabId, code)}
                   language={activeFile?.language || 'javascript'}
@@ -199,10 +198,10 @@ export default function CodeConverter() {
             <div className="c-panel__actions">
               {hasOutput && (
                 <>
-                  <button className="secondary-button" onClick={downloadSingleFile}>
+                  <button className="secondary-button" onClick={downloadSingleFile} title="Download File">
                     <i className="fa-solid fa-file-arrow-down"></i> File
                   </button>
-                  <button className="secondary-button" onClick={downloadZip}>
+                  <button className="secondary-button" onClick={downloadZip} title="Download ZIP">
                     <i className="fa-solid fa-file-zipper"></i> ZIP
                   </button>
                 </>
@@ -222,9 +221,8 @@ export default function CodeConverter() {
                 />
 
                 <div className="c-output__inner">
-                  <div className="c-output__scroll">
+                  <div className="c-output__scroll" ref={targetScrollRef}>
                     <CodeOutput
-                      scrollRef={targetScrollRef}
                       language={targetLang}
                       content={activeOutputFile?.content || '// File not found'}
                     />
