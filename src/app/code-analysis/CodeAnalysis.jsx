@@ -23,7 +23,7 @@ export default function CodeAnalysis() {
   const [selectedLang, setSelectedLang] = useState('javascript');
   const [isAutoDetected, setIsAutoDetected] = useState(true);
 
-  // Derived stats for the new Editor Stats feature
+  // Derived stats for the Editor
   const lineCount = input ? input.split('\n').length : 0;
   const charCount = input.length;
 
@@ -119,7 +119,15 @@ export default function CodeAnalysis() {
     setIsAutoDetected(true);
   };
 
-  const TABS = ['complexity', 'security', 'bugs', 'improvements', 'bestPractices', 'testing', 'architecture'];
+  const TABS = [
+    { id: 'complexity', icon: 'fa-chart-line', label: 'Complexity' },
+    { id: 'security', icon: 'fa-shield-halved', label: 'Security' },
+    { id: 'bugs', icon: 'fa-bug', label: 'Bugs' },
+    { id: 'improvements', icon: 'fa-wand-magic-sparkles', label: 'Improvements' },
+    { id: 'bestPractices', icon: 'fa-award', label: 'Practices' },
+    { id: 'testing', icon: 'fa-vial', label: 'Testing' },
+    { id: 'architecture', icon: 'fa-sitemap', label: 'Architecture' }
+  ];
 
   return (
     <div className="module-container">
@@ -129,114 +137,134 @@ export default function CodeAnalysis() {
         resultData={lastResult}
       />
 
-      <div className="converter-grid">
-        <div className="panel a-flex-column">
-          <h3><i className="fa-solid fa-code"></i> Source Code</h3>
-          <div className="header-actions">
-            <select
-              value={selectedLang}
-              onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
-              className="lang-selector flex-grow"
-            >
-              {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
-            </select>
-            <button className="secondary-button clear-btn" onClick={handleClear} title="Clear Input">
-              <i className="fa-solid fa-trash"></i> Clear
-            </button>
-            <button className="primary-button" onClick={() => handleAnalyze()} disabled={loading || !input.trim()}>
-              {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-magnifying-glass-chart"></i>}
-              {loading ? " Analyzing..." : " Run Audit"}
-            </button>
+      <div className="a-analysis-layout">
+        
+        <div className="a-code-panel">
+          <div className="a-panel-header">
+            <div className="a-header-title">
+              <i className="fa-solid fa-code"></i> Source Code
+            </div>
+            <div className="a-header-actions">
+              <select
+                value={selectedLang}
+                onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
+                className="a-lang-selector"
+              >
+                {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
+              </select>
+              <button className="secondary-button clear-btn a-btn-sm" onClick={handleClear} title="Clear Input">
+                <i className="fa-solid fa-trash"></i>
+              </button>
+              <button className="primary-button a-btn-sm" onClick={() => handleAnalyze()} disabled={loading || !input.trim()}>
+                {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-play"></i>}
+                {loading ? "Analyzing" : "Audit"}
+              </button>
+            </div>
           </div>
 
           <div className="a-editor-wrapper">
-            <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
-            <div className="a-editor-stats">
+            <div className="a-editor-scroll-area">
+              <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
+            </div>
+            <div className="a-editor-footer">
               <span className="a-stat-item">
-                <i className={`fa-solid ${isAutoDetected ? 'fa-wand-magic-sparkles' : 'fa-code'}`}></i>
-                {isAutoDetected ? 'Auto-detected' : 'Manual'}
+                <i className={`fa-solid ${isAutoDetected ? 'fa-wand-magic-sparkles a-text-accent' : 'fa-code'}`}></i>
+                {isAutoDetected ? 'Auto-detected' : 'Manual Selection'}
               </span>
               <span className="a-stat-item">
-                {lineCount} lines <span className="a-stat-divider">|</span> {charCount} chars
+                Ln {lineCount} <span className="a-stat-divider">|</span> Ch {charCount}
               </span>
             </div>
           </div>
-
         </div>
 
-        <div className="panel a-flex-column">
-          <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
-
-          {analysisData ? (
-            <div className="a-analysis-dashboard">
-              <div className="a-analysis-header-card">
-                <div className="flex-grow">
-                  <p className="summary-text">{analysisData.summary}</p>
-                </div>
-                <div className="a-score-container">
-                  <div className="a-score-label">
-                    <span>Quality Score</span>
-                    <strong>{analysisData.score}/100</strong>
-                  </div>
-                  <div className="a-score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
-                    <span className="a-score-value">{analysisData.score}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="a-tabs-container a-refactor">
-                <div className="a-tabs-scroll-area">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab}
-                      className={`tab-btn a-nowrap-text ${activeTab === tab ? 'active' : ''}`}
-                      onClick={() => setActiveTab(tab)}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="a-analysis-tab-content-wrapper flex-grow">
-                <div className="a-hover-copy-container">
-                  <CopyButton
-                    codeToCopy={getTabContentToCopy}
-                    className="primary-button copy-btn"
-                    iconOnly={true}
-                    label=""
-                  />
-                </div>
-
-                <div className="a-analysis-tab-content">
-                  {activeTab === 'complexity' && <ComplexityTab complexity={analysisData.complexity} />}
-                  {activeTab === 'security' && <IssuesTab type="security" items={analysisData.security} />}
-                  {activeTab === 'bugs' && <IssuesTab type="bugs" items={analysisData.bugs} />}
-                  {activeTab === 'improvements' && <IssuesTab type="improvements" items={analysisData.improvements} />}
-                  {activeTab === 'bestPractices' && <IssuesTab type="bestPractices" items={analysisData.bestPractices} />}
-                  {activeTab === 'testing' && <TestingTab testing={analysisData.testing} />}
-                  {activeTab === 'architecture' && <ArchitectureTab architecture={analysisData.architecture} />}
-                </div>
-              </div>
-
-              <div className="action-row">
-                <button className="primary-button secondary-action-btn" onClick={handleRefactorRouting}>
+        <div className="a-report-panel">
+          <div className="a-panel-header">
+            <div className="a-header-title">
+              <i className="fa-solid fa-chart-pie"></i> Audit Report
+            </div>
+            {analysisData && (
+              <div className="a-header-actions">
+                <button className="primary-button a-btn-sm a-action-btn" onClick={handleRefactorRouting}>
                   <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
                 </button>
               </div>
-            </div>
-          ) : (
-            <EmptyState
-              isLoading={loading}
-              condition={!analysisData}
-              icon="fas fa-search"
-              title="Awaiting Code Structure"
-              description="Paste your source code and click 'Run Audit' to reveal deep architectural, complexity, and security insights."
-              hint={<>Click <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings.</>}
-              loadingTitle="Auditing Codebase"
-              loadingDescription="Checking cognitive complexity metrics, security vulnerabilities, and design patterns..."
-            />
-          )}
+            )}
+          </div>
+
+          <div className="a-report-scroll-area">
+            {analysisData ? (
+              <div className="a-analysis-dashboard">
+                
+                <div className="a-analysis-header-card">
+                  <div className="a-summary-section">
+                    <h3 className="a-summary-title">Executive Summary</h3>
+                    <p className="a-summary-text">{analysisData.summary}</p>
+                  </div>
+                  <div className="a-score-section">
+                    <div className="a-score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
+                      <svg className="a-score-svg" viewBox="0 0 36 36">
+                        <path className="a-score-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path className="a-score-fill" strokeDasharray={`${analysisData.score}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      </svg>
+                      <div className="a-score-value">
+                        <span className="a-score-number">{analysisData.score}</span>
+                        <span className="a-score-label">/100</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="a-tabs-container">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`a-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                      onClick={() => setActiveTab(tab.id)}
+                      title={tab.label}
+                    >
+                      <i className={`fa-solid ${tab.icon}`}></i>
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="a-analysis-tab-content-wrapper">
+                  <div className="a-hover-copy-container">
+                    <CopyButton
+                      codeToCopy={getTabContentToCopy}
+                      className="primary-button a-btn-icon-only copy-btn"
+                      iconOnly={true}
+                      label=""
+                    />
+                  </div>
+
+                  <div className="a-analysis-tab-content">
+                    {activeTab === 'complexity' && <ComplexityTab complexity={analysisData.complexity} />}
+                    {activeTab === 'security' && <IssuesTab type="security" items={analysisData.security} />}
+                    {activeTab === 'bugs' && <IssuesTab type="bugs" items={analysisData.bugs} />}
+                    {activeTab === 'improvements' && <IssuesTab type="improvements" items={analysisData.improvements} />}
+                    {activeTab === 'bestPractices' && <IssuesTab type="bestPractices" items={analysisData.bestPractices} />}
+                    {activeTab === 'testing' && <TestingTab testing={analysisData.testing} />}
+                    {activeTab === 'architecture' && <ArchitectureTab architecture={analysisData.architecture} />}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="a-empty-wrapper">
+                <EmptyState
+                  isLoading={loading}
+                  condition={!analysisData}
+                  icon="fas fa-microscope"
+                  title="Awaiting Code Structure"
+                  description="Paste your source code and click 'Audit' to reveal deep architectural, complexity, and security insights."
+                  hint={<>Use <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings.</>}
+                  loadingTitle="Auditing Codebase"
+                  loadingDescription="Checking cognitive complexity metrics, security vulnerabilities, and design patterns..."
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

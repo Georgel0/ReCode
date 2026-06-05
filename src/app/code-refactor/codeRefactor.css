@@ -1,9 +1,7 @@
 .r-module-container {
   display: flex;
   flex-direction: column;
-  height: 80vh;
-  padding: 0 2rem 2rem;
-  overflow: hidden;
+  padding: 2rem;
   gap: 1rem;
 }
 
@@ -36,18 +34,17 @@
 }
 
 .r-converter-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 1.25rem;
-  flex: 1;
   min-height: 0;
-  overflow: hidden;
+  height: 77vh;
 }
 
 .r-panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  width: 100%;
   overflow: hidden;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
