@@ -7,16 +7,16 @@ export function ArchitectureTab({ architecture }) {
   }
 
   return (
-    <div className="architecture-container">
+    <div className="a-architecture-container">
       {architecture?.smells && architecture?.smells.length > 0 && (
-        <div className="tab-section">
-          <h4 className="tab-section-title">
+        <div className="a-tab-section">
+          <h4 className="a-tab-section-title">
             <i className="fa-solid fa-wind"></i> Code Smells
           </h4>
-          <ul className="simple-list">
+          <ul className="a-simple-list">
             {architecture.smells.map((smell, i) => (
               <li key={i}>
-                <i className="fa-solid fa-circle-exclamation text-warning"></i> 
+                <i className="fa-solid fa-circle-exclamation a-text-warning"></i> 
                 <span>{smell}</span>
               </li>
             ))}
@@ -25,14 +25,14 @@ export function ArchitectureTab({ architecture }) {
       )}
 
       {architecture?.dependencies && architecture?.dependencies.length > 0 && (
-        <div className="tab-section">
-          <h4 className="tab-section-title">
+        <div className="a-tab-section">
+          <h4 className="a-tab-section-title">
             <i className="fa-solid fa-boxes-stacked"></i> Ecosystem & Dependencies
           </h4>
-          <ul className="simple-list">
+          <ul className="a-simple-list">
             {architecture.dependencies.map((dep, i) => (
               <li key={i}>
-                <i className="fa-solid fa-link-slash text-danger"></i> 
+                <i className="fa-solid fa-link-slash a-text-danger"></i> 
                 <span>{dep}</span>
               </li>
             ))}

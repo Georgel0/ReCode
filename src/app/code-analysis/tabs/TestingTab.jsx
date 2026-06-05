@@ -7,13 +7,13 @@ export function TestingTab({ testing }) {
   }
 
   return (
-    <div className="testing-container">
+    <div className="a-testing-container">
       {testing?.edgeCases && testing?.edgeCases.length > 0 && (
-        <div className="tab-section">
-          <h4 className="tab-section-title">
+        <div className="a-tab-section">
+          <h4 className="a-tab-section-title">
             <i className="fa-solid fa-triangle-exclamation"></i> Unhandled Edge Cases
           </h4>
-          <ul className="simple-list">
+          <ul className="a-simple-list">
             {testing.edgeCases.map((caseItem, i) => (
               <li key={i}><i className="fa-solid fa-chevron-right"></i> <span>{caseItem}</span></li>
             ))}
@@ -22,11 +22,11 @@ export function TestingTab({ testing }) {
       )}
 
       {testing?.unitTests && testing?.unitTests.length > 0 && (
-        <div className="tab-section">
-          <h4 className="tab-section-title">
+        <div className="a-tab-section">
+          <h4 className="a-tab-section-title">
             <i className="fa-solid fa-vial-circle-check"></i> Recommended Unit Tests
           </h4>
-          <ul className="simple-list">
+          <ul className="a-simple-list">
             {testing.unitTests.map((test, i) => (
               <li key={i}><i className="fa-solid fa-check"></i> <span>{test}</span></li>
             ))}

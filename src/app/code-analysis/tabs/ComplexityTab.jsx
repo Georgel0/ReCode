@@ -40,40 +40,40 @@ export function ComplexityTab({ complexity }) {
  }, [complexity]);
  
  const getMetricClass = (value, type) => {
-  if (value === undefined || value === null) return 'score-neutral';
+  if (value === undefined || value === null) return 'a-score-neutral';
   if (type === 'low-is-better') {
-   if (value <= 10) return 'score-good';
-   if (value <= 20) return 'score-warn';
-   return 'score-bad';
+   if (value <= 10) return 'a-score-good';
+   if (value <= 20) return 'a-score-warn';
+   return 'a-score-bad';
   } else {
-   if (value >= 80) return 'score-good';
-   if (value >= 60) return 'score-warn';
-   return 'score-bad';
+   if (value >= 80) return 'a-score-good';
+   if (value >= 60) return 'a-score-warn';
+   return 'a-score-bad';
   }
  };
  
  return (
-  <div className="complexity-breakdown">
+  <div className="a-complexity-breakdown">
    <div>
-    <div className="complexity-grid">
-     <div className="complexity-card">
-      <div className="complexity-icon"><i className="fa-solid fa-clock"></i></div>
-      <div className="complexity-info"><h4>Time</h4><p>{complexity.time}</p></div>
+    <div className="a-complexity-grid">
+     <div className="a-complexity-card">
+      <div className="a-complexity-icon"><i className="fa-solid fa-clock"></i></div>
+      <div className="a-complexity-info"><h4>Time</h4><p>{complexity.time}</p></div>
      </div>
-     <div className="complexity-card">
-      <div className="complexity-icon"><i className="fa-solid fa-memory"></i></div>
-      <div className="complexity-info"><h4>Space</h4><p>{complexity.space}</p></div>
+     <div className="a-complexity-card">
+      <div className="a-complexity-icon"><i className="fa-solid fa-memory"></i></div>
+      <div className="a-complexity-info"><h4>Space</h4><p>{complexity.space}</p></div>
      </div>
     </div>
         
-    <ul className="complexity-explanation-list">
+    <ul className="a-complexity-explanation-list">
      {(complexity?.explanation || []).map((item, i) => <li key={i}>{item}</li>)}
     </ul>
 
     {complexity?.bottleneck && (
-     <div className="insight-box">
+     <div className="a-insight-box">
       <i className="fa-solid fa-traffic-cone"></i>
-       <div className="insight-content">
+       <div className="a-insight-content">
         <h4>Primary Bottleneck</h4>
         <p>{complexity.bottleneck}</p>
        </div>
@@ -81,9 +81,9 @@ export function ComplexityTab({ complexity }) {
      )}
 
      {complexity?.tradeoffs && (
-      <div className="insight-box">
+      <div className="a-insight-box">
        <i className="fa-solid fa-scale-balanced"></i>
-        <div className="insight-content">
+        <div className="a-insight-content">
          <h4>Space-Time Tradeoffs</h4>
          <p>{complexity.tradeoffs}</p>
         </div>
@@ -91,7 +91,7 @@ export function ComplexityTab({ complexity }) {
       )}
      </div>
       
-     <div className="complexity-chart-container">
+     <div className="a-complexity-chart-container">
       <ResponsiveContainer width="100%" height="100%">
        
        <LineChart data={chartData} margin={{ top: 30, right: 30, left: 0, bottom: 20 }}>
@@ -138,27 +138,27 @@ export function ComplexityTab({ complexity }) {
       </div>
       
       {complexity?.metrics && (
-       <div className="metrics-container">
-        <div className="metric-card">
-         <div className="metric-header">
-          <span className="metric-title">Cyclomatic</span>
-          <span className={`metric-score ${getMetricClass(complexity.metrics.cyclomatic, 'low-is-better')}`}>{complexity.metrics.cyclomatic}</span>
+       <div className="a-metrics-container">
+        <div className="a-metric-card">
+         <div className="a-metric-header">
+          <span className="a-metric-title">Cyclomatic</span>
+          <span className={`a-metric-score ${getMetricClass(complexity.metrics.cyclomatic, 'low-is-better')}`}>{complexity.metrics.cyclomatic}</span>
          </div>
-         <p className="metric-desc">Counts independent paths. Lower is easier to test.</p>
+         <p className="a-metric-desc">Counts independent paths. Lower is easier to test.</p>
         </div>
-        <div className="metric-card">
-         <div className="metric-header">
-          <span className="metric-title">Cognitive</span>
-          <span className={`metric-score ${getMetricClass(complexity.metrics.cognitive, 'low-is-better')}`}>{complexity.metrics.cognitive}</span>
+        <div className="a-metric-card">
+         <div className="a-metric-header">
+          <span className="a-metric-title">Cognitive</span>
+          <span className={`a-metric-score ${getMetricClass(complexity.metrics.cognitive, 'low-is-better')}`}>{complexity.metrics.cognitive}</span>
          </div>
-      <p className="metric-desc">How difficult the control flow is for humans.</p>
+      <p className="a-metric-desc">How difficult the control flow is for humans.</p>
      </div>
-     <div className="metric-card">
-      <div className="metric-header">
-       <span className="metric-title">Maintainability</span>
-       <span className={`metric-score ${getMetricClass(complexity.metrics.maintainability, 'high-is-better')}`}>{complexity.metrics.maintainability}</span>
+     <div className="a-metric-card">
+      <div className="a-metric-header">
+       <span className="a-metric-title">Maintainability</span>
+       <span className={`a-metric-score ${getMetricClass(complexity.metrics.maintainability, 'high-is-better')}`}>{complexity.metrics.maintainability}</span>
       </div>
-      <p className="metric-desc">Overall index (0-100). Higher is easier to modify.</p>
+      <p className="a-metric-desc">Overall index (0-100). Higher is easier to modify.</p>
      </div>
     </div>
    )}

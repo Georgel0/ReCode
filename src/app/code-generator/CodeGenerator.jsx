@@ -72,48 +72,50 @@ export default function CodeGenerator() {
         onCancel={handleCancelDraft}
       />
 
-      <div className="generator-layout">
-        <aside className="generator-sidebar">
-          <section className="sidebar-section">
-            <h3 className="sidebar-heading">
-              <CodeAnalysisInfoIcon />
-              <i className="fa-solid fa-layer-group"></i>
-              Requirements
-            </h3>
-            <textarea
-              className="sidebar-textarea"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="E.g., Create a React button component and a CSS file for styling..."
-              spellCheck="true"
-            />
-            {error && <div className="error-message sidebar-error">{error}</div>}
-            <div className="gen-sidebar-actions">
-              <button className="secondary-button" onClick={handleClearAll}>
-                Clear
-              </button>
-              <button
-                className="primary-button"
-                onClick={handleGenerate}
-                disabled={loading || !input.trim()}
-              >
-                {loading ? (
-                  <><span className="spinner button-spinner"></span> Building...</>
-                ) : (
-                  <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
-                )}
-              </button>
-            </div>
-          </section>
+      <div className="g-layout">
+        <aside className="g-sidebar">
+          <div className="g-sidebar-inner">
+            <section className="g-section">
+              <h3 className="g-heading">
+                <CodeAnalysisInfoIcon />
+                <i className="fa-solid fa-layer-group"></i>
+                Requirements
+              </h3>
+              <textarea
+                className="g-prompt-textarea"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="E.g., Create a React button component and a CSS file for styling..."
+                spellCheck="true"
+              />
+              {error && <div className="g-error">{error}</div>}
+              <div className="g-actions">
+                <button className="secondary-button" onClick={handleClearAll}>
+                  Clear
+                </button>
+                <button
+                  className="primary-button"
+                  onClick={handleGenerate}
+                  disabled={loading || !input.trim()}
+                >
+                  {loading ? (
+                    <><span className="spinner g-btn-spinner"></span> Building...</>
+                  ) : (
+                    <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
+                  )}
+                </button>
+              </div>
+            </section>
 
-          <div className="sidebar-divider" />
+            <div className="g-divider" />
 
-          <section className="sidebar-section sidebar-config">
-            <ConfigTab config={config} setConfig={setConfig} />
-          </section>
+            <section className="g-section">
+              <ConfigTab config={config} setConfig={setConfig} />
+            </section>
+          </div>
         </aside>
 
-        <main className="generator-output">
+        <main className="g-output">
           <OutputPanel
             files={files}
             activeFileIndex={activeFileIndex}

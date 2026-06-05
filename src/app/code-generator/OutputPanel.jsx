@@ -28,15 +28,15 @@ export default function OutputPanel({
   };
 
   return (
-    <div className="output-panel">
+    <div className="g-panel">
       {files.length > 0 ? (
         <>
-          <div className="file-tabs-bar">
-            <div className="tabs-container file-tabs">
+          <div className="g-tab-bar">
+            <div className="g-tabs">
               {files.map((file, idx) => (
                 <button
                   key={idx}
-                  className={`tab-btn ${activeFileIndex === idx ? 'active' : ''}`}
+                  className={`g-tab ${activeFileIndex === idx ? 'active' : ''}`}
                   onClick={() => setActiveFileIndex(idx)}
                 >
                   {file.fileName}
@@ -45,8 +45,8 @@ export default function OutputPanel({
             </div>
           </div>
 
-          <div className="output-code-area">
-            <div className="editor-toolbar">
+          <div className="g-code-area">
+            <div className="g-code-toolbar">
               <CodeOutput
                 content={activeFile?.content || ''}
                 language={activeFile ? getLanguage(activeFile.fileName) : ''}
@@ -55,8 +55,8 @@ export default function OutputPanel({
             </div>
           </div>
 
-          <div className="output-footer action-row">
-            <div className="spacer" />
+          <div className="g-panel-footer action-row">
+            <div className="g-spacer" />
             <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
               <i className="fa-solid fa-download"></i> File
             </button>

@@ -9,35 +9,35 @@ export default function ConfigTab({ config, setConfig }) {
 
   return (
     <>
-      <h3 className="sidebar-heading">
+      <h3 className="g-heading">
         <i className="fa-solid fa-sliders"></i>
         Configuration
       </h3>
 
-      <div className="config-fields">
-        <div className="control-field">
-          <span className="label-text">Language</span>
+      <div className="g-config-fields">
+        <div className="g-control">
+          <span className="g-label">Language</span>
           <select value={config.language} onChange={(e) => handleChange('language', e.target.value)}>
             {LANGUAGES.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         </div>
 
-        <div className="control-field">
-          <span className="label-text">Framework</span>
+        <div className="g-control">
+          <span className="g-label">Framework</span>
           <select value={config.framework} onChange={(e) => handleChange('framework', e.target.value)}>
             {FRAMEWORKS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         </div>
 
-        <div className="control-field">
-          <span className="label-text">Architecture</span>
+        <div className="g-control">
+          <span className="g-label">Architecture</span>
           <select value={config.architecture} onChange={(e) => handleChange('architecture', e.target.value)}>
             {ARCHITECTURE_PATTERNS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         </div>
 
-        <div className="control-field">
-          <span className="label-text">Verbosity</span>
+        <div className="g-control">
+          <span className="g-label">Verbosity</span>
           <select value={config.verbosity} onChange={(e) => handleChange('verbosity', e.target.value)}>
             {VERBOSITY_LEVELS.map(level => (
               <option key={level.value} value={level.value}>{level.label}</option>
@@ -45,7 +45,7 @@ export default function ConfigTab({ config, setConfig }) {
           </select>
         </div>
 
-        <div className="config-checks">
+        <div className="g-checks">
           <label className="custom-check">
             <input type="checkbox" checked={config.includeReadme} onChange={(e) => handleChange('includeReadme', e.target.checked)} />
             <div className="box"><i className="fa-solid fa-check"></i></div>
@@ -65,11 +65,11 @@ export default function ConfigTab({ config, setConfig }) {
           </label>
         </div>
 
-        <div className="control-field">
-          <span className="label-text">Custom Stack & Dependencies</span>
-          <p className="config-description">Libraries, databases, or extra tooling.</p>
+        <div className="g-control">
+          <span className="g-label">Custom Stack & Dependencies</span>
+          <p className="g-config-hint">Libraries, databases, or extra tooling.</p>
           <textarea
-            className="output-textarea config-textarea"
+            className="g-stack-textarea"
             value={config.customStack}
             onChange={(e) => handleChange('customStack', e.target.value)}
             placeholder="e.g., PostgreSQL, Redis, Docker, TailwindCSS..."
@@ -77,7 +77,7 @@ export default function ConfigTab({ config, setConfig }) {
         </div>
       </div>
 
-      <p className="ps-message">Explicit instructions in your prompt take priority over these settings.</p>
+      <p className="g-ps">Explicit instructions in your prompt take priority over these settings.</p>
     </>
   );
 }

@@ -167,43 +167,35 @@ export function useCodeConverter() {
   };
 
   useEffect(() => {
-    // react-simple-code-editor renders textarea + pre as absolutely positioned siblings.
-    // The actual scrollable element is the textarea (source) and the pre (output, read-only).
-    // The wrapper divs (.c-scroll / .c-output__scroll) do NOT scroll themselves.
+    const src = sourceScrollRef.current?.querySelector('.editor-container');
+    const tgt = targetScrollRef.current?.querySelector('.editor-container');
+    if (!src || !tgt) return;
 
-    const srcTextarea = sourceScrollRef.current?.querySelector('textarea');
-    const tgtPre = targetScrollRef.current?.querySelector('pre');
-
-    if (!srcTextarea || !tgtPre) return;
-
-    const syncFromSrc = () => {
+    const syncFrom = (source, target) => () => {
       if (!syncScroll || isSyncingRef.current) return;
       isSyncingRef.current = true;
-      const maxSrc = srcTextarea.scrollHeight - srcTextarea.clientHeight;
-      const maxTgt = tgtPre.scrollHeight - tgtPre.clientHeight;
-      if (maxSrc > 0 && maxTgt > 0) {
-        tgtPre.scrollTop = Math.round((srcTextarea.scrollTop / maxSrc) * maxTgt);
+
+      const maxSrcTop = source.scrollHeight - source.clientHeight;
+      const maxTgtTop = target.scrollHeight - target.clientHeight;
+
+      if (maxSrcTop > 0 && maxTgtTop > 0) {
+        target.scrollTop = Math.round((source.scrollTop / maxSrcTop) * maxTgtTop);
+      } else if (maxTgtTop > 0) {
+        target.scrollTop = 0;
       }
+
       requestAnimationFrame(() => { isSyncingRef.current = false; });
     };
 
-    const syncFromTgt = () => {
-      if (!syncScroll || isSyncingRef.current) return;
-      isSyncingRef.current = true;
-      const maxSrc = srcTextarea.scrollHeight - srcTextarea.clientHeight;
-      const maxTgt = tgtPre.scrollHeight - tgtPre.clientHeight;
-      if (maxSrc > 0 && maxTgt > 0) {
-        srcTextarea.scrollTop = Math.round((tgtPre.scrollTop / maxTgt) * maxSrc);
-      }
-      requestAnimationFrame(() => { isSyncingRef.current = false; });
-    };
+    const srcHandler = syncFrom(src, tgt);
+    const tgtHandler = syncFrom(tgt, src);
 
-    srcTextarea.addEventListener('scroll', syncFromSrc, { passive: true });
-    tgtPre.addEventListener('scroll', syncFromTgt, { passive: true });
+    src.addEventListener('scroll', srcHandler, { passive: true });
+    tgt.addEventListener('scroll', tgtHandler, { passive: true });
 
     return () => {
-      srcTextarea.removeEventListener('scroll', syncFromSrc);
-      tgtPre.removeEventListener('scroll', syncFromTgt);
+      src.removeEventListener('scroll', srcHandler);
+      tgt.removeEventListener('scroll', tgtHandler);
     };
   }, [outputFiles, syncScroll, activeTabId]);
 

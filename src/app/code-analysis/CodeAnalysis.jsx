@@ -130,7 +130,7 @@ export default function CodeAnalysis() {
       />
 
       <div className="converter-grid">
-        <div className="panel flex-column">
+        <div className="panel a-flex-column">
           <h3><i className="fa-solid fa-code"></i> Source Code</h3>
           <div className="header-actions">
             <select
@@ -149,47 +149,47 @@ export default function CodeAnalysis() {
             </button>
           </div>
 
-          <div className="editor-wrapper">
+          <div className="a-editor-wrapper">
             <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
-            <div className="editor-stats">
-              <span className="stat-item">
+            <div className="a-editor-stats">
+              <span className="a-stat-item">
                 <i className={`fa-solid ${isAutoDetected ? 'fa-wand-magic-sparkles' : 'fa-code'}`}></i>
                 {isAutoDetected ? 'Auto-detected' : 'Manual'}
               </span>
-              <span className="stat-item">
-                {lineCount} lines <span className="stat-divider">|</span> {charCount} chars
+              <span className="a-stat-item">
+                {lineCount} lines <span className="a-stat-divider">|</span> {charCount} chars
               </span>
             </div>
           </div>
 
         </div>
 
-        <div className="panel flex-column">
+        <div className="panel a-flex-column">
           <h3><i className="fa-solid fa-chart-pie"></i> Audit Report</h3>
 
           {analysisData ? (
-            <div className="analysis-dashboard">
-              <div className="analysis-header-card">
+            <div className="a-analysis-dashboard">
+              <div className="a-analysis-header-card">
                 <div className="flex-grow">
                   <p className="summary-text">{analysisData.summary}</p>
                 </div>
-                <div className="score-container">
-                  <div className="score-label">
+                <div className="a-score-container">
+                  <div className="a-score-label">
                     <span>Quality Score</span>
                     <strong>{analysisData.score}/100</strong>
                   </div>
-                  <div className="score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
-                    <span className="score-value">{analysisData.score}</span>
+                  <div className="a-score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
+                    <span className="a-score-value">{analysisData.score}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="tabs-container refactor">
-                <div className="tabs-scroll-area">
+              <div className="a-tabs-container a-refactor">
+                <div className="a-tabs-scroll-area">
                   {TABS.map((tab) => (
                     <button
                       key={tab}
-                      className={`tab-btn nowrap-text ${activeTab === tab ? 'active' : ''}`}
+                      className={`tab-btn a-nowrap-text ${activeTab === tab ? 'active' : ''}`}
                       onClick={() => setActiveTab(tab)}
                     >
                       {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
@@ -198,8 +198,8 @@ export default function CodeAnalysis() {
                 </div>
               </div>
 
-              <div className="analysis-tab-content-wrapper flex-grow">
-                <div className="hover-copy-container">
+              <div className="a-analysis-tab-content-wrapper flex-grow">
+                <div className="a-hover-copy-container">
                   <CopyButton
                     codeToCopy={getTabContentToCopy}
                     className="primary-button copy-btn"
@@ -208,7 +208,7 @@ export default function CodeAnalysis() {
                   />
                 </div>
 
-                <div className="analysis-tab-content">
+                <div className="a-analysis-tab-content">
                   {activeTab === 'complexity' && <ComplexityTab complexity={analysisData.complexity} />}
                   {activeTab === 'security' && <IssuesTab type="security" items={analysisData.security} />}
                   {activeTab === 'bugs' && <IssuesTab type="bugs" items={analysisData.bugs} />}
