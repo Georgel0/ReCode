@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { TARGET_FRAMEWORKS, MODES, useConverter } from './components';
 import { PreviewPane } from './PreviewPane';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 
-import './CssFrameworks.css'
+import './CssFrameworks.css';
 
 export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   const { moduleData, qualityMode } = useApp();
@@ -38,7 +38,6 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       let savedInputs = typeof moduleData.input === 'string' ? JSON.parse(moduleData.input) : moduleData.input;
 
       if (savedInputs && savedInputs._meta) {
-
         if (savedInputs._meta.activeInputTab) setActiveInputTab(savedInputs._meta.activeInputTab);
         if (savedInputs._meta.activeOutputTab) setActiveOutputTab(savedInputs._meta.activeOutputTab);
 
@@ -89,7 +88,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
         qualityMode
       });
     }
-  }, [data, activeMode, targetLang, inputs, activeInputTab, activeOutputTab]);
+  }, [data, activeMode, targetLang, inputs, activeInputTab, activeOutputTab, qualityMode]);
 
   useEffect(() => {
     setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
@@ -139,14 +138,14 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
         resultData={lastResult}
       />
 
-      <div className="framework-toolbar-container">
-        <div className="toolbar-group">
-          <span className="toolbar-label">Mode</span>
-          <div className="mode-selector">
+      <div className="f-framework-toolbar-container">
+        <div className="f-toolbar-group">
+          <span className="f-toolbar-label">Mode</span>
+          <div className="f-mode-selector">
             {MODES.map(mode => (
               <button
                 key={mode.id}
-                className={`mode-btn ${activeMode === mode.id ? 'selected' : ''}`}
+                className={`f-mode-btn ${activeMode === mode.id ? 'selected' : ''}`}
                 onClick={() => {
                   setActiveMode(mode.id);
                   reset();
@@ -158,12 +157,12 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
           </div>
         </div>
 
-        <div className="toolbar-group select-full-width-mobile">
-          <span className="toolbar-label">Target</span>
+        <div className="f-toolbar-group f-select-full-width-mobile">
+          <span className="f-toolbar-label">Target</span>
           <select
             value={targetLang}
             onChange={(e) => setTargetLang(e.target.value)}
-            className="lang-select"
+            className="f-lang-select"
             style={{ minWidth: '160px' }} >
             {TARGET_FRAMEWORKS.map(lang => (
               <option key={lang.value} value={lang.value}>{lang.label}</option>
@@ -172,13 +171,13 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
         </div>
       </div>
 
-      <div className="framework-converter-grid">
-        <div className="converter-panel">
-          <div className="panel-header">
-            <div className="panel-title">
+      <div className="f-framework-converter-grid">
+        <div className="f-converter-panel">
+          <div className="f-panel-header">
+            <div className="f-panel-title">
               <i className="fa-solid fa-code"></i> Source Code
             </div>
-            <div className="panel-actions">
+            <div className="f-panel-actions">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -187,44 +186,44 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                 onChange={handleFileUpload}
               />
               <button
-                className="file-upload-btn"
+                className="f-file-upload-btn"
                 onClick={() => fileInputRef.current?.click()}
                 title="Upload file" >
                 <i className="fa-solid fa-upload"></i>
-                <span className="btn-label">Upload</span>
+                <span className="f-btn-label">Upload</span>
               </button>
               <button
-                className="secondary-button clear-btn-small"
+                className="secondary-button f-clear-btn-small"
                 onClick={() => setInputs({ css: '', html: '', context: '' })}  >
                 Clear
               </button>
             </div>
           </div>
 
-          <div className="tabs-nav">
+          <div className="f-tabs-nav">
             {activeMode === 'html' && (
               <button
-                className={`tab-item ${activeInputTab === 'html' ? 'active' : ''}`}
+                className={`f-tab-item ${activeInputTab === 'html' ? 'active' : ''}`}
                 onClick={() => setActiveInputTab('html')} >
                 <i className="fa-brands fa-html5"></i> HTML
               </button>
             )}
             <button
-              className={`tab-item ${activeInputTab === 'css' ? 'active' : ''}`}
+              className={`f-tab-item ${activeInputTab === 'css' ? 'active' : ''}`}
               onClick={() => setActiveInputTab('css')} >
               <i className="fab fa-css3-alt"></i> CSS
             </button>
             <button
-              className={`tab-item ${activeInputTab === 'context' ? 'active' : ''}`}
+              className={`f-tab-item ${activeInputTab === 'context' ? 'active' : ''}`}
               onClick={() => setActiveInputTab('context')} >
               <i className="fa-solid fa-wand-magic-sparkles"></i> Context
             </button>
           </div>
 
-          <div className="panel-content">
-            <div className="editor-wrapper">
+          <div className="f-panel-content">
+            <div className="f-editor-wrapper">
               <textarea
-                className="code-textarea"
+                className="f-code-textarea"
                 value={inputs[activeInputTab]}
                 onChange={(e) => handleInputChange(activeInputTab, e.target.value)}
                 placeholder={
@@ -235,9 +234,9 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
             </div>
           </div>
 
-          <div className="panel-footer">
+          <div className="f-panel-footer">
             <button
-              className="primary-button full-width"
+              className="primary-button"
               onClick={handleConvert}
               disabled={status === 'loading' || (!inputs.css && !inputs.html)}
               style={{ width: '100%' }} >
@@ -256,25 +255,25 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
           </div>
         </div>
 
-        <div className="converter-panel">
-          <div className="panel-header">
-            <div className="panel-title">
+        <div className="f-converter-panel">
+          <div className="f-panel-header">
+            <div className="f-panel-title">
               <i className="fa-solid fa-bolt"></i> Output
             </div>
-            <div className="view-toggles">
+            <div className="f-view-toggles">
               <button
-                className={`view-btn ${activeOutputTab === 'code' ? 'active' : ''}`}
+                className={`f-view-btn ${activeOutputTab === 'code' ? 'active' : ''}`}
                 onClick={() => setActiveOutputTab('code')}>
                 Code
               </button>
               <button
-                className={`view-btn ${activeOutputTab === 'preview' ? 'active' : ''}`}
+                className={`f-view-btn ${activeOutputTab === 'preview' ? 'active' : ''}`}
                 onClick={() => setActiveOutputTab('preview')}
                 disabled={activeMode === 'css' && !inputs.html} >
                 Preview
               </button>
               <button
-                className={`view-btn ${activeOutputTab === 'extra' ? 'active' : ''}`}
+                className={`f-view-btn ${activeOutputTab === 'extra' ? 'active' : ''}`}
                 onClick={() => setActiveOutputTab('extra')}
                 disabled={!data?.extra} >
                 Extra
@@ -282,7 +281,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
             </div>
           </div>
 
-          <div className="panel-content">
+          <div className="f-panel-content">
             {!data ? (
               <EmptyState
                 isLoading={status === 'loading'}
@@ -297,7 +296,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
             ) : (
               <>
                 {activeOutputTab === 'preview' ? (
-                  <div className="preview-pane-wrapper" style={{ height: '100%' }}>
+                  <div className="f-preview-pane-wrapper" style={{ height: '100%' }}>
                     <PreviewPane
                       inputHtml={inputs.html}
                       inputCss={inputs.css}
@@ -307,14 +306,14 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                     />
                   </div>
                 ) : activeOutputTab === "extra" ? (
-                  <div className="results-scroll-area">
-                    <div className="result-card" style={{ padding: '5px' }}>
+                  <div className="f-results-scroll-area">
+                    <div className="f-result-card" style={{ padding: '5px' }}>
                       <h4>Implementation Notes & Leftovers</h4>
                       {data.extra || "No extra implementation details provided."}
                     </div>
                   </div>
                 ) : (
-                  <div className="results-scroll-area">
+                  <div className="f-results-scroll-area">
                     {data.conversions && Array.isArray(data.conversions) ? (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
@@ -322,20 +321,20 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                         </div>
 
                         {data.conversions.map((item, idx) => (
-                          <div key={idx} className="result-card">
-                            <div className="result-header">
+                          <div key={idx} className="f-result-card">
+                            <div className="f-result-header">
                               <span>{item.selector}</span>
-                              <CopyButton className="copy-icon-btn" codeToCopy={item.tailwindClasses} iconOnly={true} />
+                              <CopyButton className="f-copy-icon-btn" codeToCopy={item.tailwindClasses} iconOnly={true} />
                             </div>
 
-                            <pre className="result-code-block">{item.tailwindClasses}</pre>
+                            <pre className="f-result-code-block">{item.tailwindClasses}</pre>
                           </div>
                         ))}
                       </>
                     ) : (
-                      <div className="result-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <div className="f-result-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                         <textarea
-                          className="code-textarea"
+                          className="f-code-textarea"
                           value={data.convertedHtml || data.convertedCode || ''}
                           readOnly
                           style={{ background: 'var(--bg-tertiary)' }}
@@ -349,8 +348,12 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
           </div>
 
           {activeOutputTab === 'code' && data && !Array.isArray(data.conversions) && (
-            <div className="panel-footer">
-              <CopyButton codeToCopy={data.convertedHtml || data.convertedCode} className="secondary-button full-width" label="Copy Result" />
+            <div className="f-panel-footer">
+              <CopyButton 
+                codeToCopy={data.convertedHtml || data.convertedCode} 
+                className="secondary-button"
+                label="Copy" 
+              />
             </div>
           )}
         </div>

@@ -23,60 +23,58 @@ export function PreviewPane({ inputHtml, inputCss, outputHtml, targetLang, loadi
   
   return (
     <div className="panel" style={{ marginTop: '2rem' }}>
-      <div className="preview-header-row">
+      <div className="f-preview-header-row">
         <h3><i className="fa-solid fa-eye"></i> Visual Verification</h3>
         <p className="text-secondary" style={{ fontSize: '0.9rem' }}>
           Compare original vs. generated.
         </p>
       </div>
       
-      <div className="preview-split-container">
-        {/* Original Pane */}
-        <div className={`preview-pane ${fullScreenView === 'original' ? 'is-fullscreen' : ''}`}>
-          <div className="preview-toolbar">
-            <span className="preview-label">Original</span>
+      <div className="f-preview-split-container">
+        <div className={`f-preview-pane ${fullScreenView === 'original' ? 'f-is-fullscreen' : ''}`}>
+          <div className="f-preview-toolbar">
+            <span className="f-preview-label">Original</span>
             <button 
-              className="expand-btn"
+              className="f-expand-btn"
               onClick={() => toggleFullScreen('original')}
               title={fullScreenView === 'original' ? "Exit Full Screen" : "Full Screen"}
             >
               <i className={`fa-solid ${fullScreenView === 'original' ? 'fa-compress' : 'fa-expand'}`}></i>
             </button>
           </div>
-          <div className="iframe-wrapper">
+          <div className="f-iframe-wrapper">
             {inputHtml ? (
               <iframe 
-                className="preview-iframe"
+                className="f-preview-iframe"
                 title="Original Preview"
                 sandbox="allow-scripts"
                 srcDoc={generatePreviewDoc(inputHtml, inputCss, 'none')}
               />
-            ) : <div className="empty-state-preview">No Input</div>}
+            ) : <div className="f-empty-state-preview">No Input</div>}
           </div>
         </div>
 
-        {/* Result Pane */}
-        <div className={`preview-pane ${fullScreenView === 'result' ? 'is-fullscreen' : ''}`}>
-          <div className="preview-toolbar">
-            <span className="preview-label" style={{ color: 'var(--accent)' }}>{targetLabel} Result</span>
+        <div className={`f-preview-pane ${fullScreenView === 'result' ? 'f-is-fullscreen' : ''}`}>
+          <div className="f-preview-toolbar">
+            <span className="f-preview-label" style={{ color: 'var(--accent)' }}>{targetLabel} Result</span>
             <button 
-              className="expand-btn"
+              className="f-expand-btn"
               onClick={() => toggleFullScreen('result')}
               title={fullScreenView === 'result' ? "Exit Full Screen" : "Full Screen"}
             >
               <i className={`fa-solid ${fullScreenView === 'result' ? 'fa-compress' : 'fa-expand'}`}></i>
             </button>
           </div>
-          <div className="iframe-wrapper">
+          <div className="f-iframe-wrapper">
             {outputHtml ? (
               <iframe 
-                className="preview-iframe"
+                className="f-preview-iframe"
                 title="Converted Preview"
                 sandbox="allow-scripts allow-same-origin"
                 srcDoc={generatePreviewDoc(outputHtml, '', targetLang)}
               />
             ) : (
-              <div className="empty-state-preview">
+              <div className="f-empty-state-preview">
                 {loading ? 'Rendering...' : 'Waiting for conversion...'}
               </div>
             )}
@@ -84,7 +82,7 @@ export function PreviewPane({ inputHtml, inputCss, outputHtml, targetLang, loadi
         </div>
       </div>
       
-      {fullScreenView && <div className="fullscreen-backdrop" onClick={() => setFullScreenView(null)}></div>}
+      {fullScreenView && <div className="f-fullscreen-backdrop" onClick={() => setFullScreenView(null)}></div>}
     </div>
   );
 }

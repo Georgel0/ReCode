@@ -22,7 +22,7 @@ export function CopyButton({
     <button
       className={className}
       onClick={handleCopy}
-      title="Copy To Clipboard!"
+      title="Copy To Clipboard"
     >
       <i className={copyFeedback === 'Copied!' ? "fa-solid fa-check" : "fa-regular fa-copy"}></i>
       {!iconOnly && ` ${copyFeedback}`}
