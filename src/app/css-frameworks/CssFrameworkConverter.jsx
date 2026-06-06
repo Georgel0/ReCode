@@ -90,9 +90,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
     }
   }, [data, activeMode, targetLang, inputs, activeInputTab, activeOutputTab, qualityMode]);
 
-  useEffect(() => {
-    setActiveInputTab(activeMode === 'html' ? 'html' : 'css');
-  }, [activeMode]);
+
 
   const handleInputChange = (field, value) => {
     setInputs(prev => ({ ...prev, [field]: value }));

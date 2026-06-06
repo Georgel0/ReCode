@@ -8,7 +8,8 @@ import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 import { ComplexityTab, IssuesTab, TestingTab, ArchitectureTab } from './tabs';
 
-import './CodeAnalysis.css';
+import './styles/CodeAnalysis.css';
+import './styles/Codeanalysis-components.css'
 
 export default function CodeAnalysis() {
   const [input, setInput] = useState('');
@@ -130,7 +131,7 @@ export default function CodeAnalysis() {
   ];
 
   return (
-    <div className="module-container">
+    <div className="a-module-container">
       <ModuleHeader
         title="Code Auditor"
         description="Deep scan for vulnerabilities, complexity (Big O), architecture smells, and code quality."
@@ -255,7 +256,7 @@ export default function CodeAnalysis() {
                 <EmptyState
                   isLoading={loading}
                   condition={!analysisData}
-                  icon="fas fa-microscope"
+                  icon="fas fa-search"
                   title="Awaiting Code Structure"
                   description="Paste your source code and click 'Audit' to reveal deep architectural, complexity, and security insights."
                   hint={<>Use <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings.</>}
