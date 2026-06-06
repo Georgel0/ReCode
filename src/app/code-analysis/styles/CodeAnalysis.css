@@ -1,8 +1,6 @@
-.module-container {
+.a-module-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
 }
 
 .a-analysis-layout {
@@ -12,14 +10,13 @@
   align-items: stretch;
   gap: 1.25rem;
   flex: 1;
-  min-height: 0;
   padding: 0 1.5rem 1.5rem;
-  overflow: hidden;
-  height: 82vh;
+  min-height: 82vh;
 }
 
 .a-code-panel,
 .a-report-panel {
+  height: 82vh;
   display: flex;
   flex-direction: column;
   min-height: 0;

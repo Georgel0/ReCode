@@ -1,6 +1,6 @@
-.module-container {
+.rg-module-container {
   margin: 0;
-  padding: 1.5rem;
+  padding-left: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -12,6 +12,7 @@
   display: grid;
   grid-template-columns: minmax(400px, 1fr) minmax(500px, 1.5fr);
   gap: 1.75rem;
+  min-height: 75vh;
   align-items: start;
 }
 

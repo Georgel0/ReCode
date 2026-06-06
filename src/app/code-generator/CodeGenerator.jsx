@@ -50,7 +50,7 @@ export default function CodeGenerator() {
     : '';
 
   return (
-    <div className="module-container">
+    <div className="g-module-container">
       <ModuleHeader
         title="Code Generator"
         description="Scaffold multi-file solutions from a plain-English description."
