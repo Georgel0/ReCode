@@ -59,6 +59,9 @@ export function useCodeConverter() {
         const saved = await get('converter-draft-data');
         if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
           setPendingDraft(saved);
+          // Restore target settings immediately so the UI reflects them even before confirming
+          if (saved.targetLang) setTargetLang(saved.targetLang);
+          if (saved.targetFramework) setTargetFramework(saved.targetFramework);
         }
       } catch (err) {
         console.error("Draft load failed", err);
@@ -68,8 +71,8 @@ export function useCodeConverter() {
   }, []);
 
   useEffect(() => {
-    saveDraft({ files, outputFiles });
-  }, [files, outputFiles, saveDraft]);
+    saveDraft({ files, outputFiles, targetLang, targetFramework });
+  }, [files, outputFiles, targetLang, targetFramework, saveDraft]);
 
   const saveHistoryToIdb = useCallback(
     debounce(async (history) => {
@@ -410,6 +413,8 @@ export function useCodeConverter() {
     setFiles(pendingDraft.files);
     setActiveTabId(pendingDraft.files[0]?.id);
     if (pendingDraft.outputFiles?.length > 0) setOutputFiles(pendingDraft.outputFiles);
+    if (pendingDraft.targetLang) setTargetLang(pendingDraft.targetLang);
+    if (pendingDraft.targetFramework) setTargetFramework(pendingDraft.targetFramework);
     setPendingDraft(null);
   };
 

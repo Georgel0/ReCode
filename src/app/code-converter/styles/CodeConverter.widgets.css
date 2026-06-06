@@ -24,9 +24,12 @@
 }
 
 .c-reconvert {
-  border-top: 1px solid var(--border);
   background: var(--bg-primary);
   flex-shrink: 0;
+}
+
+.c-module-footer .c-reconvert {
+  border-top: none;
 }
 
 
@@ -35,7 +38,6 @@
   gap: 0.6rem;
   padding: 1rem;
   align-items: center;
-  flex: 1; 
 }
 
 .c-reconvert__input {
@@ -46,6 +48,7 @@
   border-radius: 6px;
   padding: 0.55rem 0.85rem;
   font-size: 0.82rem;
+  color: var(--text-primary);
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
@@ -68,7 +71,7 @@
   font-weight: 600;
   height: 3em;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
@@ -183,6 +186,7 @@
 .c-history__entries {
   border-top: none;
   max-height: 220px;
+  overflow: auto;
 }
 
 .c-history__entry {
@@ -351,7 +355,7 @@
 .c-diff {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.55rem;
   flex: 1;
   min-height: 0;
   padding: 0.75rem;
@@ -368,7 +372,7 @@
 .c-diff__stats {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
 
@@ -377,30 +381,29 @@
   align-items: center;
   gap: 4px;
   font-size: 0.76rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
   white-space: nowrap;
+  font-family: 'Fira Code', Consolas, monospace;
+  letter-spacing: 0.02em;
 }
 
 .c-diff__stat--add {
-  background: rgba(63, 185, 80, 0.1);
+  background: rgba(35, 134, 54, 0.25);
   color: #3fb950;
-  border: 1px solid rgba(63, 185, 80, 0.28);
+  border: 1px solid rgba(63, 185, 80, 0.3);
 }
-
 .c-diff__stat--remove {
-  background: rgba(248, 81, 73, 0.1);
+  background: rgba(162, 30, 30, 0.25);
   color: #f85149;
-  border: 1px solid rgba(248, 81, 73, 0.28);
+  border: 1px solid rgba(248, 81, 73, 0.3);
 }
-
 .c-diff__stat--unchanged {
   background: var(--bg-primary);
   color: var(--text-secondary);
   border: 1px solid var(--border);
 }
-
 .c-diff__stat--delta {
   background: rgba(56, 189, 248, 0.08);
   color: var(--accent);
@@ -411,13 +414,13 @@
 .c-diff__columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--border);
+  gap: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   max-height: 52vh;
   min-height: 180px;
+  background: var(--bg-primary);
 }
 
 .c-diff__col {
@@ -426,87 +429,140 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  border-right: 1px solid var(--border);
+}
+.c-diff__col:last-child {
+  border-right: none;
 }
 
 .c-diff__col-header {
   flex-shrink: 0;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
-  padding: 0.4rem 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  padding: 0.35rem 0.6rem 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 500;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: var(--font-family);
 }
 
-.c-diff__col-header i {
-  color: var(--accent);
+.c-diff__col-dot {
+  font-size: 0.5rem;
+  flex-shrink: 0;
+}
+.c-diff__col-dot--remove { color: #f85149; }
+.c-diff__col-dot--add    { color: #3fb950; }
+
+.c-diff__col-filename {
+  color: var(--text-primary);
+  opacity: 0.85;
 }
 
 .c-diff__lines {
   flex: 1;
   overflow: auto;
   min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-tertiary) transparent;
 }
+.c-diff__lines::-webkit-scrollbar { width: 8px; height: 8px; }
+.c-diff__lines::-webkit-scrollbar-track { background: transparent; }
+.c-diff__lines::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
+.c-diff__lines::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 .c-diff__line {
   display: flex;
   align-items: stretch;
-  min-height: 1.5em;
-  font-family: 'Fira Code', Consolas, monospace;
-  font-size: 0.8rem;
-  line-height: 1.55;
+  min-height: 19px;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 19px;
+  white-space: pre;
 }
 
 .c-diff__line--phantom {
   background: var(--bg-secondary);
-  opacity: 0.3;
-  pointer-events: none;
+  min-height: 19px;
 }
-
-.c-diff__line--add {
-  background: rgba(63, 185, 80, 0.09);
+.c-diff__line--phantom .c-diff__gutter-strip {
+  background: transparent;
+}
+.c-diff__line--phantom .c-diff__linenum {
+  opacity: 0;
 }
 
 .c-diff__line--remove {
-  background: rgba(248, 81, 73, 0.09);
+  background: rgba(255, 0, 0, 0.08);
+}
+.c-diff__line--remove .c-diff__gutter-strip {
+  background: #8b0000;
+}
+.c-diff__line--remove .c-diff__linenum {
+  color: #e06c75;
 }
 
-.c-diff__gutter {
-  min-width: 1.5rem;
-  text-align: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
+.c-diff__line--add {
+  background: rgba(0, 255, 60, 0.06);
+}
+.c-diff__line--add .c-diff__gutter-strip {
+  background: #14501d;
+}
+.c-diff__line--add .c-diff__linenum {
+  color: #4ec94e;
+}
+
+.c-diff__gutter-strip {
+  width: 3px;
   flex-shrink: 0;
+  align-self: stretch;
+  background: transparent;
+  display: block;
+}
+
+.c-diff__linenum {
+  min-width: 3.25rem;
+  padding: 0 0.6rem 0 0.4rem;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-secondary);
+  opacity: 0.6;
   user-select: none;
-  padding: 0 2px;
-}
-
-.c-diff__line--add .c-diff__gutter {
-  color: #3fb950;
-}
-
-.c-diff__line--remove .c-diff__gutter {
-  color: #f85149;
+  flex-shrink: 0;
+  line-height: 19px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-secondary);
+  font-family: 'Fira Code', Consolas, monospace;
 }
 
 .c-diff__text {
   flex: 1;
   margin: 0;
-  padding: 0 0.5rem 0 0;
+  padding: 0 0.75rem;
   white-space: pre;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-primary);
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
   background: transparent;
+  overflow: hidden;
+}
+
+.c-diff__inline--remove {
+  background: rgba(255, 0, 0, 0.32);
+  border-radius: 2px;
+  padding: 0;
+  color: inherit;
+}
+.c-diff__inline--add {
+  background: rgba(0, 255, 60, 0.26);
+  border-radius: 2px;
+  padding: 0;
+  color: inherit;
 }
 
 @media (max-width: 960px) {
@@ -514,10 +570,7 @@
     grid-template-columns: 1fr;
     max-height: 65vh;
   }
-
-  .c-diff__stat--delta {
-    margin-left: 0;
-  }
+  .c-diff__stat--delta { margin-left: 0; }
 }
 
 @media (max-width: 768px) {

@@ -28,7 +28,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
     setEditingId(null);
   };
 
-  const handleKeyDown = (e, id) => {
+  const handleInputKeyDown = (e, id) => {
     if (e.key === 'Enter') handleRenameSubmit(id);
     if (e.key === 'Escape') setEditingId(null);
   };
@@ -42,9 +42,8 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
           aria-selected={activeTabId === f.id}
           tabIndex={0}
           className={`c-tab${activeTabId === f.id ? ' c-tab--active' : ''}`}
-          onClick={() => setActiveTabId(f.id)}
+          onClick={() => { if (editingId !== f.id) setActiveTabId(f.id); }}
           onDoubleClick={(e) => !readOnly && handleDoubleClick(e, f)}
-          onKeyDown={(e) => handleKeyDown(e, f.id)}
           title={!readOnly ? "Double click to rename" : ""}
         >
           <i className="fa-solid fa-file-code"></i>
@@ -57,7 +56,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 onBlur={() => handleRenameSubmit(f.id)}
-                onKeyDown={(e) => handleKeyDown(e, f.id)}
+                onKeyDown={(e) => handleInputKeyDown(e, f.id)}
                 onClick={(e) => e.stopPropagation()}
                 autoFocus
               />

@@ -330,6 +330,7 @@ export default function CodeConverter() {
           <DiffView
             sourceContent={activeFile?.content || ''}
             targetContent={activeOutputFile?.content || ''}
+            sourceLang={activeFile?.language || 'plaintext'}
             targetLang={targetLang}
           />
         </div>
