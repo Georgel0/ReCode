@@ -27,13 +27,13 @@ export function SqlBuilderOutput({
     input.trim() === outputCode.trim();
 
   return (
-    <div className="panel flex-col">
-      <div className="panel-header-row">
+    <div className="s-panel-output">
+      <div className="s-panel-header-row">
         <h3>Generated SQL {outputCode && `(${targetDialect})`}</h3>
         {outputCode && (
-          <div className="header-actions">
+          <div className="s-header-actions">
             <button
-              className="secondary-button btn-small"
+              className="secondary-button s-btn-small"
               onClick={runSandbox}
               disabled={isSandboxRunning}
               title="Open Test Runner"
@@ -41,23 +41,23 @@ export function SqlBuilderOutput({
               <i className={`fa-solid ${isSandboxRunning ? 'fa-spinner fa-spin' : 'fa-flask'}`}></i> Test
             </button>
             <button
-              className="secondary-button btn-small"
+              className="secondary-button s-btn-small"
               onClick={handleFormatCode}
               title="Format SQL"
             >
               <i className="fa-solid fa-align-left"></i> Format
             </button>
-            <CopyButton codeToCopy={outputCode} className="secondary-button btn-small" />
+            <CopyButton codeToCopy={outputCode} className="secondary-button s-btn-small" />
           </div>
         )}
       </div>
 
-      <div className="results-container flex-grow">
+      <div className="s-results-container s-flex-grow">
         {outputCode ? (
-          <div className="output-scrollable">
+          <div className="s-output-scrollable">
 
             {warnings?.length > 0 && (
-              <div className="alert-box amber">
+              <div className="s-alert-box s-amber">
                 <strong>
                   <i className="fa-solid fa-triangle-exclamation"></i> Warnings
                 </strong>
@@ -68,13 +68,13 @@ export function SqlBuilderOutput({
             )}
 
             {isSameDiff ? (
-              <div className="success-state placeholder-container-inner diff-success-state">
+              <div className="s-success-state placeholder-container-inner s-diff-success-state">
                 <i className="fa-solid fa-circle-check"></i>
                 <p><strong>Query is already optimized!</strong></p>
-                <p className="success-desc">No structural or indexing improvements were necessary.</p>
+                <p className="s-success-desc">No structural or indexing improvements were necessary.</p>
               </div>
             ) : activeMode === 'optimizer' ? (
-              <div className="diff-viewer-wrapper optimizer-diff">
+              <div className="s-diff-viewer-wrapper s-optimizer-diff">
                 <ReactDiffViewer
                   oldValue={input}
                   newValue={outputCode}
@@ -97,17 +97,17 @@ export function SqlBuilderOutput({
                 />
               </div>
             ) : (
-              <div className="code-output-wrapper">
+              <div className="s-code-output-wrapper">
                 <CodeOutput content={outputCode} language="sql" />
               </div>
             )}
 
             {recommendedIndexes?.length > 0 && (
-              <div className="ai-summary recommended-indexes">
+              <div className="s-ai-summary s-recommended-indexes">
                 <strong>
                   <i className="fa-solid fa-bolt"></i> Recommended Indexes
                 </strong>
-                <p className="small-text">
+                <p className="s-small-text">
                   These indexes may significantly improve query performance.
                 </p>
                 {recommendedIndexes.map((idx, i) => (
@@ -117,7 +117,7 @@ export function SqlBuilderOutput({
             )}
 
             {explanation && (
-              <div className="ai-summary explain-plan">
+              <div className="s-ai-summary s-explain-plan">
                 <strong><i className="fa-solid fa-lightbulb"></i> Explain Plan</strong>
                 <div dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(explanation.replace(/\n/g, '<br/>'))

@@ -1,93 +1,103 @@
-/* Schema editor, workspace controls, file upload */
-
-.schema-wrapper {
+.s-schema-wrapper {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--bg-tertiary);
-  margin-bottom: 0.5rem;
+  background: var(--bg-primary);
+  flex-shrink: 0;
+  transition: border-color 0.15s;
 }
 
-.schema-toggle-btn {
-  flex-grow: 1;
-  width: 100%;
+.s-schema-wrapper:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.s-schema-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+}
+
+.s-schema-toggle-btn {
+  flex: 1;
   text-align: left;
   background: transparent;
   border: none;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.9rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.845rem;
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: background 0.2s, color 0.2s;
+  gap: 8px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 
-.schema-toggle-btn:hover {
-  background: var(--bg-secondary);
+.s-schema-toggle-btn i {
+  font-size: 0.8rem;
+}
+
+.s-schema-toggle-btn:hover {
+  background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-.schema-toggle-btn.active {
+.s-schema-toggle-btn.s-active {
   color: var(--accent);
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.schema-header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--bg-secondary);
-}
-
-.schema-footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-}
-
-.schema-editor-wrapper {
-  height: 250px;
+.s-schema-editor-wrapper {
+  height: 240px;
   position: relative;
   width: 100%;
   border-bottom: 1px solid var(--border);
   background: var(--bg-primary);
 }
 
-.schema-editor-wrapper > div {
+.s-schema-editor-wrapper>div {
   position: absolute !important;
   inset: 0;
   height: 100% !important;
   width: 100% !important;
 }
 
-.workspace-controls {
-  padding-right: 0.5rem;
+.s-schema-footer-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 
-.sub-workspace-controls {
+.s-workspace-controls {
   display: flex;
-  flex-direction: row;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0.5rem 0 0;
+  flex-shrink: 0;
 }
 
-.upload-btn-wrapper {
+.s-sub-workspace-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.s-upload-btn-wrapper {
   position: relative;
   overflow: hidden;
   display: inline-flex;
   align-items: center;
 }
 
-.upload-btn-wrapper input[type="file"] {
+.s-upload-btn-wrapper input[type="file"] {
   font-size: 100px;
   position: absolute;
   inset: 0;
@@ -95,21 +105,61 @@
   cursor: pointer;
 }
 
+.s-sql-project-modal {
+  width: 100%;
+  max-width: 460px;
+}
+
+.s-sql-project-modal .modal-header {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.s-sql-project-modal .modal-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.s-sql-project-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+.s-sql-project-modal .modal-desc {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.s-sql-project-modal .modal-footer {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 @media (max-width: 1000px) {
-  .workspace-controls {
+  .s-workspace-controls {
     flex-direction: column;
     align-items: flex-start;
   }
 }
 
 @media (max-width: 768px) {
-  .schema-footer-actions {
+  .s-schema-footer-actions {
     flex-wrap: wrap;
   }
 }
 
 @media (max-width: 480px) {
-  .sub-workspace-controls {
+  .s-sub-workspace-controls {
     flex-wrap: wrap;
   }
 }

@@ -20,62 +20,62 @@ export function SqlBuilderInput({
   clearInputs,
 }) {
   return (
-    <div className="panel flex-col">
-      <div className="panel-header-row">
+    <div className="s-panel-input">
+      <div className="s-panel-header-row">
         <h3>
           {activeMode === 'builder' && 'Requirement'}
           {activeMode === 'converter' && 'Source Query'}
           {activeMode === 'optimizer' && 'Slow Query'}
         </h3>
-        <button className="mode-btn" onClick={clearInputs} title="Clear all">
+        <button className="s-mode-btn" onClick={clearInputs} title="Clear all">
           <i className="fa-solid fa-eraser"></i> Clear
         </button>
       </div>
 
-      <div className="controls-group">
+      <div className="s-controls-group">
         {activeMode === 'converter' ? (
-          <div className="ext-grid">
-            <div className="control-field">
-              <span className="label-text">From:</span>
+          <div className="s-ext-grid">
+            <div className="s-control-field">
+              <span className="s-label-text">From:</span>
               <DialectSelect
                 value={sourceDialect}
                 onChange={setSourceDialect}
-                className="combobox-input full-width"
+                className="s-combobox-input s-full-width"
               />
             </div>
-            <div className="control-field">
-              <span className="label-text">To:</span>
+            <div className="s-control-field">
+              <span className="s-label-text">To:</span>
               <DialectSelect
                 value={targetDialect}
                 onChange={setTargetDialect}
-                className="combobox-input full-width"
+                className="s-combobox-input s-full-width"
               />
             </div>
           </div>
         ) : (
-          <div className="dialect-selection-row">
-            <span className="label-text">Dialect:</span>
+          <div className="s-dialect-selection-row">
+            <span className="s-label-text">Dialect:</span>
             <DialectSelect value={targetDialect} onChange={setTargetDialect} />
 
             {activeMode === 'optimizer' && (
-              <label className="custom-check explain-check">
+              <label className="custom-check s-explain-check">
                 <input
                   type="checkbox"
                   checked={explainChanges}
                   onChange={(e) => setExplainChanges(e.target.checked)}
                 />
                 <div className="box"><i className="fa-solid fa-check"></i></div>
-                <span className="label-text">Explain Changes</span>
+                <span className="s-label-text">Explain Changes</span>
               </label>
             )}
           </div>
         )}
 
         {activeMode !== 'converter' && (
-          <div className="schema-wrapper">
-            <div className="schema-header-actions">
+          <div className="s-schema-wrapper">
+            <div className="s-schema-header-actions">
               <button
-                className={`schema-toggle-btn ${showSchema ? 'active' : ''}`}
+                className={`s-schema-toggle-btn ${showSchema ? 's-active' : ''}`}
                 onClick={() => setShowSchema((v) => !v)}
                 aria-expanded={showSchema}
               >
@@ -84,9 +84,9 @@ export function SqlBuilderInput({
               </button>
 
               {showSchema && (
-                <div className="workspace-controls">
+                <div className="s-workspace-controls">
                   <select
-                    className="combobox-input select-small"
+                    className="s-combobox-input s-select-small"
                     value={activeWorkspace}
                     onChange={(e) => switchWorkspace(e.target.value)}
                     aria-label="Active workspace"
@@ -96,9 +96,9 @@ export function SqlBuilderInput({
                     ))}
                   </select>
 
-                  <div className="sub-workspace-controls">
+                  <div className="s-sub-workspace-controls">
                     <button
-                      className="secondary-button btn-small"
+                      className="secondary-button s-btn-small"
                       onClick={openWorkspaceModal}
                       title="New Workspace"
                     >
@@ -107,7 +107,7 @@ export function SqlBuilderInput({
 
                     {Object.keys(workspaces).length > 1 && (
                       <button
-                        className="secondary-button btn-small"
+                        className="secondary-button s-btn-small"
                         onClick={() => deleteWorkspace(activeWorkspace)}
                         title={`Delete "${activeWorkspace}"`}
                       >
@@ -115,8 +115,8 @@ export function SqlBuilderInput({
                       </button>
                     )}
 
-                    <div className="upload-btn-wrapper" title="Import Schema File">
-                      <button className="secondary-button btn-small">
+                    <div className="s-upload-btn-wrapper" title="Import Schema File">
+                      <button className="secondary-button s-btn-small">
                         <i className="fa-solid fa-file-import"></i>
                       </button>
                       <input type="file" accept=".sql,.txt" onChange={handleFileUpload} />
@@ -128,7 +128,7 @@ export function SqlBuilderInput({
 
             {showSchema && (
               <>
-                <div className="schema-editor-wrapper">
+                <div className="s-schema-editor-wrapper">
                   <CodeEditor
                     key={activeWorkspace}
                     value={schema}
@@ -138,9 +138,9 @@ export function SqlBuilderInput({
                   />
                 </div>
 
-                <div className="schema-footer-actions action-row">
+                <div className="s-schema-footer-actions action-row">
                   <button
-                    className="secondary-button btn-small full-width"
+                    className="secondary-button s-btn-small s-full-width"
                     onClick={() => handleGenerateMockData(targetDialect)}
                     disabled={mockLoading}
                     title="Append INSERT statements to schema"
@@ -155,14 +155,14 @@ export function SqlBuilderInput({
                   {schema && (
                     <>
                       <button
-                        className="secondary-button btn-small"
+                        className="secondary-button s-btn-small"
                         onClick={handleCopySchema}
                         title="Copy schema to clipboard"
                       >
                         <i className="fa-solid fa-copy"></i>
                       </button>
                       <button
-                        className="secondary-button btn-small"
+                        className="secondary-button s-btn-small"
                         onClick={handleClearSchema}
                         title="Clear schema"
                       >
@@ -177,7 +177,7 @@ export function SqlBuilderInput({
         )}
       </div>
 
-      <div className="main-input-wrapper flex-grow">
+      <div className="s-main-input-wrapper s-flex-grow">
         <CodeEditor
           value={input}
           onValueChange={setInput}
@@ -192,7 +192,7 @@ export function SqlBuilderInput({
         />
       </div>
 
-      <div className="generate-action-row action-row">
+      <div className="s-generate-action-row action-row">
         <button
           className="primary-button"
           onClick={handleGenerate}

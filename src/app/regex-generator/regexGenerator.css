@@ -5,14 +5,14 @@
   flex-direction: column;
   gap: 1.5rem;
   animation: rgFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  margin-bottom: 3em;
+  margin-bottom: 5rem;
 }
 
 .rg-converter-grid {
   display: grid;
   grid-template-columns: minmax(400px, 1fr) minmax(500px, 1.5fr);
   gap: 1.75rem;
-  min-height: 75vh;
+  min-height: 78vh;
   align-items: start;
 }
 

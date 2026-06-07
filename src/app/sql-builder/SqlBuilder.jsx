@@ -152,18 +152,18 @@ export default function SqlBuilder() {
   }, [forge.showTestRunner]);
 
   return (
-    <div className="module-container">
+    <div className="s-module-container">
       <ModuleHeader
         title="SQL Builder"
         description="Generate, convert, execute, and optimize SQL queries for any dialect."
         resultData={forge.lastResult}
       />
 
-      <div className="tabs-container">
+      <div className="s-tabs-container">
         {MODES.map((m) => (
           <button
             key={m.id}
-            className={`tab-btn ${viewMode === 'query' && forge.activeMode === m.id ? 'active' : ''}`}
+            className={`s-tab-btn ${viewMode === 'query' && forge.activeMode === m.id ? 's-active' : ''}`}
             onClick={() => {
               setViewMode('query');
               forge.setActiveMode(m.id);
@@ -176,7 +176,7 @@ export default function SqlBuilder() {
         {hasSchema && (
           <button
             key="erd-tab"
-            className={`tab-btn ${viewMode === 'erd' ? 'active' : ''}`}
+            className={`s-tab-btn ${viewMode === 'erd' ? 's-active' : ''}`}
             onClick={() => setViewMode('erd')}
           >
             <i className="fa-solid fa-project-diagram"></i> ER Diagram
@@ -186,7 +186,7 @@ export default function SqlBuilder() {
 
       {viewMode === 'query' ? (
         <>
-          <div className="converter-grid">
+          <div className="s-converter-grid">
             <SqlBuilderInput
               activeMode={forge.activeMode}
               input={forge.input} setInput={forge.setInput}
@@ -254,7 +254,7 @@ export default function SqlBuilder() {
           )}
         </>
       ) : (
-        <div className="panel erd-panel" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+        <div className="s-panel s-erd-panel" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
           <ErdDiagram tables={erdData.tables} relationships={erdData.relationships} />
         </div>
       )}

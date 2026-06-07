@@ -38,43 +38,43 @@ export function TestRunner({
   const engine = ENGINE_LABELS[nativeEngine] ?? ENGINE_LABELS.ai;
 
   return (
-    <div className="test-runner-panel" ref={panelRef}>
+    <div className="s-test-runner-panel" ref={panelRef}>
 
       <div
-        className="test-runner-header"
+        className="s-test-runner-header"
         onClick={() => setShowTestRunner((v) => !v)}
         role="button"
         aria-expanded={showTestRunner}
       >
-        <div className="test-runner-title">
+        <div className="s-test-runner-title">
           <i className="fa-solid fa-flask-vial"></i>
           <span>Test Runner</span>
 
           {isSandboxRunning ? (
-            <span className="exec-time-badge running">
+            <span className="s-exec-time-badge s-running">
               <i className="fa-solid fa-spinner fa-spin"></i>
               {isGeneratingTestData ? 'Seeding data...' : 'Running...'}
             </span>
           ) : executionTime !== null && (
-            <span className="exec-time-badge">
+            <span className="s-exec-time-badge">
               {formatExecTime(executionTime)}
             </span>
           )}
         </div>
 
-        <div className="test-runner-header-right">
-          <span className={`dialect-badge ${engine.cls}`}>
+        <div className="s-test-runner-header-right">
+          <span className={`s-dialect-badge ${engine.cls}`}>
             <i className={`fa-solid ${engine.icon}`}></i>{' '}
             {engine.cls === 'simulated' ? `${engine.label} — ${targetDialect}` : engine.label}
           </span>
-          <i className={`fa-solid ${showTestRunner ? 'fa-chevron-up' : 'fa-chevron-down'} tr-chevron`}></i>
+          <i className={`fa-solid ${showTestRunner ? 'fa-chevron-up' : 'fa-chevron-down'} s-tr-chevron`}></i>
         </div>
       </div>
 
       {showTestRunner && (
-        <div className="test-runner-body">
-          <div className="test-runner-controls" onClick={(e) => e.stopPropagation()}>
-            <div className="tr-controls-left">
+        <div className="s-test-runner-body">
+          <div className="s-test-runner-controls" onClick={(e) => e.stopPropagation()}>
+            <div className="s-tr-controls-left">
 
               <label className="custom-check">
                 <input
@@ -83,13 +83,13 @@ export function TestRunner({
                   onChange={(e) => setAutoTestData(e.target.checked)}
                 />
                 <div className="box"><i className="fa-solid fa-check"></i></div>
-                <span className="label-text">Auto-generate test data</span>
+                <span className="s-label-text">Auto-generate test data</span>
               </label>
 
               {testDataSQL ? (
                 <>
                   <button
-                    className="secondary-button btn-small"
+                    className="secondary-button s-btn-small"
                     onClick={() => setShowTestDataPreview((v) => !v)}
                     title="View / edit seed data"
                   >
@@ -97,7 +97,7 @@ export function TestRunner({
                     {showTestDataPreview ? 'Hide' : 'View'} Test Data
                   </button>
                   <button
-                    className="secondary-button btn-small"
+                    className="secondary-button s-btn-small"
                     onClick={clearTestData}
                     title="Clear test data"
                   >
@@ -106,7 +106,7 @@ export function TestRunner({
                 </>
               ) : autoTestData && (
                 <button
-                  className="secondary-button btn-small"
+                  className="secondary-button s-btn-small"
                   onClick={generateTestData}
                   disabled={isGeneratingTestData}
                   title="Pre-generate test data without running"
@@ -120,10 +120,10 @@ export function TestRunner({
               )}
             </div>
 
-            <div className="tr-controls-right">
+            <div className="s-tr-controls-right">
               {hasTableResults && (
                 <button
-                  className="secondary-button btn-small"
+                  className="secondary-button s-btn-small"
                   onClick={exportResultsAsCSV}
                   title="Export results as CSV"
                 >
@@ -131,7 +131,7 @@ export function TestRunner({
                 </button>
               )}
               <button
-                className="primary-button btn-small"
+                className="primary-button s-btn-small"
                 onClick={runSandbox}
                 disabled={isSandboxRunning}
               >
@@ -147,11 +147,11 @@ export function TestRunner({
           </div>
 
           {showTestDataPreview && testDataSQL && (
-            <div className="test-data-section">
-              <div className="test-data-section-header">
+            <div className="s-test-data-section">
+              <div className="s-test-data-section-header">
                 <span><i className="fa-solid fa-table"></i> Test Data (editable)</span>
                 <button
-                  className="secondary-button btn-small"
+                  className="secondary-button s-btn-small"
                   onClick={generateTestData}
                   disabled={isGeneratingTestData}
                   title="Regenerate test data"
@@ -160,7 +160,7 @@ export function TestRunner({
                   {' '}Regenerate
                 </button>
               </div>
-              <div className="test-data-editor-wrapper">
+              <div className="s-test-data-editor-wrapper">
                 <CodeEditor
                   value={testDataSQL}
                   onValueChange={setTestDataSQL}
@@ -172,18 +172,18 @@ export function TestRunner({
           )}
 
           {sandboxError && (
-            <div className="alert-box error-box tr-result-area">
+            <div className="s-alert-box s-error-box s-tr-result-area">
               <strong>
                 <i className="fa-solid fa-circle-xmark"></i> Execution Error
               </strong>
-              <p className="sandbox-error-text">{sandboxError}</p>
+              <p className="s-sandbox-error-text">{sandboxError}</p>
             </div>
           )}
 
           {sandboxResults?.length > 0 && (
-            <div className="tr-result-area">
+            <div className="s-tr-result-area">
               {isSimulated && (
-                <div className="simulation-notice">
+                <div className="s-simulation-notice">
                   <i className="fa-solid fa-robot"></i>
                   These results are AI-simulated — {targetDialect} cannot run natively in the browser.
                 </div>
@@ -198,7 +198,7 @@ export function TestRunner({
                 />
               )}
 
-              <div className="sandbox-results">
+              <div className="s-sandbox-results">
                 {sandboxResults.map((result, idx) => (
                   <ResultTable
                     key={idx}
@@ -212,7 +212,7 @@ export function TestRunner({
           )}
 
           {simulationNote && (
-            <div className="ai-summary simulation-note-box">
+            <div className="s-ai-summary s-simulation-note-box">
               <strong><i className="fa-solid fa-circle-info"></i> Simulation Notes</strong>
               <div dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(simulationNote.replace(/\n/g, '<br/>'))
@@ -221,12 +221,12 @@ export function TestRunner({
           )}
 
           {!isSandboxRunning && !sandboxResults && !sandboxError && (
-            <div className="tr-empty-state">
+            <div className="s-tr-empty-state">
               <i className="fa-solid fa-play-circle"></i>
               <p>
                 Click <strong>Run Query</strong> to test your SQL.
                 {nativeEngine === 'ai' && (
-                  <span className="tr-empty-note">
+                  <span className="s-tr-empty-note">
                     {' '}Results for <strong>{targetDialect}</strong> will be AI-simulated.
                   </span>
                 )}

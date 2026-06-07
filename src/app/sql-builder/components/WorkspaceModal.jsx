@@ -12,7 +12,7 @@ export function WorkspaceModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-content sql-project-modal"
+        className="modal-content s-sql-project-modal"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -20,7 +20,7 @@ export function WorkspaceModal({
       >
         <div className="modal-header">
           <h4 id="workspace-modal-title">Create New Workspace</h4>
-          <button className="close-btn" onClick={onClose} aria-label="Close">
+          <button className="s-close-btn" onClick={onClose} aria-label="Close">
             <i className="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -28,7 +28,7 @@ export function WorkspaceModal({
           <p className="modal-desc">Enter a name for your new database schema workspace:</p>
           <input
             type="text"
-            className="combobox-input full-width"
+            className="s-combobox-input s-full-width"
             value={newWorkspaceName}
             onChange={(e) => setNewWorkspaceName(e.target.value)}
             placeholder="e.g., E-commerce DB"
