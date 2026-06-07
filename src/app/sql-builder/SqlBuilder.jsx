@@ -50,11 +50,21 @@ function parseSchemaToErd(schemaSql) {
 
     tableChunks.forEach(chunk => {
       // Extract the table name and the body inside the parentheses
-      const match = chunk.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_".]+)\s*\(([\s\S]*)\)/i);
-      if (!match) return;
+      const headerMatch = chunk.match(
+        /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_".]+)\s*\(/i
+      );
+      if (!headerMatch) return;
 
-      const tableName = match[1].replace(/["']/g, '').split('.').pop();
-      const body = match[2];
+      const tableName = headerMatch[1].replace(/["']/g, '').split('.').pop();
+      const startIdx = headerMatch.index + headerMatch[0].length;
+      let depth = 1, i = startIdx;
+      
+      while (i < chunk.length && depth > 0) {
+        if (chunk[i] === '(') depth++;
+        else if (chunk[i] === ')') depth--;
+        i++;
+      }
+      const body = chunk.slice(startIdx, i - 1);
 
       const lines = splitByTopLevelCommas(body);
       const rowsObj = {};

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { convertCode } from '@/lib';
 import { useApp } from '@/context';
 import { toast } from 'sonner';
@@ -17,6 +17,9 @@ export function useWorkspace() {
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [mockLoading, setMockLoading] = useState(false);
 
+  const activeWorkspaceRef = useRef(activeWorkspace);
+  const workspacesRef = useRef(workspaces);
+
   // Rehydrate persisted workspaces on mount
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -29,19 +32,24 @@ export function useWorkspace() {
     setSchema(parsed[firstKey] ?? '');
   }, []);
 
+
+  useEffect(() => { activeWorkspaceRef.current = activeWorkspace; }, [activeWorkspace]);
+
   const handleSchemaChange = useCallback((val) => {
     setSchema(val);
     setWorkspaces((prev) => {
-      const updated = { ...prev, [activeWorkspace]: val };
+      const updated = { ...prev, [activeWorkspaceRef.current]: val };
       persistWorkspaces(updated);
       return updated;
     });
-  }, [activeWorkspace]);
+  }, []);
+
+  useEffect(() => { workspacesRef.current = workspaces; }, [workspaces]);
 
   const switchWorkspace = useCallback((name) => {
     setActiveWorkspace(name);
-    setSchema(workspaces[name] ?? '');
-  }, [workspaces]);
+    setSchema(workspacesRef.current[name] ?? '');
+  }, []);
 
   const openWorkspaceModal = () => { setNewWorkspaceName(''); setIsWorkspaceModalOpen(true); };
   const closeWorkspaceModal = () => { setIsWorkspaceModalOpen(false); setNewWorkspaceName(''); };
@@ -78,17 +86,25 @@ export function useWorkspace() {
     toast.success(`Workspace "${name}" deleted.`);
   };
 
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+  const ALLOWED = ['application/sql', 'text/plain', 'text/x-sql', ''];
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = '';
+    if (file.size > MAX_BYTES) {
+      toast.error('File too large. Max 5 MB.'); return;
+    }
+    if (!ALLOWED.includes(file.type)) {
+      toast.error('Only .sql or .txt files are supported.'); return;
+    }
     const reader = new FileReader();
     reader.onload = (evt) => {
       handleSchemaChange(evt.target.result);
       toast.success('Schema loaded from file!');
       setShowSchema(true);
     };
-    reader.onerror = () => toast.error('Failed to read the file.');
     reader.readAsText(file);
   };
 

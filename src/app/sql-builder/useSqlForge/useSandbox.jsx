@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { convertCode } from '@/lib';
 import { useApp } from '@/context';
 import { toast } from 'sonner';
@@ -25,24 +25,17 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
   const nativeEngine = getNativeEngine(targetDialect);
   const isNativeSqlite = nativeEngine === 'sqlite';
 
-  const resetSandboxState = () => {
-    setSandboxResults(null);
-    setSandboxError(null);
-    setSimulationNote('');
-    setExecutionTime(null);
-    setIsSimulated(false);
-    setTestDataSQL('');
-  };
+  const schemaRef = useRef(schema);
+  const outputCodeRef = useRef(outputCode);
 
-  const resetSandbox = () => {
-    resetSandboxState();
-    setShowTestRunner(false);
-  };
+  useEffect(() => { schemaRef.current = schema; }, [schema]);
+  useEffect(() => { outputCodeRef.current = outputCode; }, [outputCode]);
 
   const generateTestData = useCallback(async () => {
-    const context = schema.trim() || outputCode.trim();
+    const context = schemaRef.current.trim() || outputCodeRef.current.trim();
     if (!context) return null;
     setIsGeneratingTestData(true);
+
     try {
       const result = await convertCode('sql', 'Generate realistic INSERT statements for testing', {
         targetLang: 'SQLite',
@@ -57,28 +50,33 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
       setIsGeneratingTestData(false);
     }
     return null;
-  }, [schema, outputCode, qualityMode]);
+  }, [qualityMode]);
 
   const clearTestData = () => { setTestDataSQL(''); setShowTestDataPreview(false); };
 
   const runNativeSqlite = async (resolvedTestData) => {
     let db = null;
     const t0 = Date.now();
+
     try {
       const initSqlJs = window.initSqlJs;
       if (!initSqlJs) throw new Error('sql.js not loaded.');
       const SQL = await initSqlJs({ locateFile: (f) => `/${f}` });
       db = new SQL.Database();
+
       if (schema?.trim()) db.exec(schema);
       if (resolvedTestData?.trim()) {
         try { db.exec(resolvedTestData); }
         catch (err) { toast.warning(`Test data partial: ${err.message.substring(0, 80)}`); }
       }
+
       const res = db.exec(outputCode);
       const formattedResults = res?.map((rs) => ({ columns: rs.columns, values: rs.values })) ?? [];
       const modified = db.getRowsModified();
+
       if (modified > 0) formattedResults.push({ message: `Rows affected: ${modified}` });
       else if (formattedResults.length === 0) formattedResults.push({ message: 'Query executed (0 rows returned).' });
+
       setExecutionTime(Date.now() - t0);
       setSandboxResults(formattedResults);
       setIsSimulated(false);
@@ -111,8 +109,10 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
         const stmts = [];
         let current = '';
         let inSingle = false, inDouble = false;
+
         for (let i = 0; i < sql.length; i++) {
           const ch = sql[i];
+
           if (ch === "'" && !inDouble) inSingle = !inSingle;
           else if (ch === '"' && !inSingle) inDouble = !inDouble;
           if (ch === ';' && !inSingle && !inDouble) {
@@ -123,6 +123,7 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
             current += ch;
           }
         }
+
         const trimmed = current.trim();
         if (trimmed) stmts.push(trimmed);
         return stmts;
@@ -161,22 +162,23 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
 
   const runNativeDuckdb = async (resolvedTestData) => {
     const t0 = Date.now();
-    let worker = null, db = null, conn = null; // ADD
+    let worker = null, db = null, conn = null;
+
     try {
       const duckdb = await import('@duckdb/duckdb-wasm');
       const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
       const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-
       const worker_url = URL.createObjectURL(
         new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
       );
-      worker = new Worker(worker_url); // CHANGE (was const)
+
+      worker = new Worker(worker_url);
       const logger = new duckdb.ConsoleLogger();
-      db = new duckdb.AsyncDuckDB(logger, worker); // CHANGE
+      db = new duckdb.AsyncDuckDB(logger, worker);
       await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
       URL.revokeObjectURL(worker_url);
 
-      conn = await db.connect(); // CHANGE
+      conn = await db.connect();
 
       if (schema?.trim()) {
         try { await conn.query(schema); }
@@ -213,6 +215,7 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
 
   const runAiSimulation = async (resolvedTestData) => {
     const t0 = Date.now();
+
     try {
       const combinedSchema = [schema?.trim(), resolvedTestData?.trim()]
         .filter(Boolean).join('\n\n-- Test Data Seed:\n');
@@ -287,14 +290,36 @@ export function useSandbox({ outputCode, schema, targetDialect }) {
   const exportResultsAsCSV = () => {
     const firstTable = sandboxResults?.find((r) => r.columns?.length > 0);
     if (!firstTable) { toast.error('No tabular results to export.'); return; }
+
     const { columns, values } = firstTable;
-    const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const coerce = (v) => {
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'bigint') return v.toString();
+      if (typeof v === 'object') return JSON.stringify(v);
+      return String(v);
+    };
+    
+    const escape = (v) => `"${coerce(v).replace(/"/g, '""')}"`;
     const csv = [columns.map(escape).join(','), ...values.map((r) => r.map(escape).join(','))].join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     const a = Object.assign(document.createElement('a'), { href: url, download: 'query-results.csv' });
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Exported as CSV!');
+  };
+
+  const resetSandboxState = () => {
+    setSandboxResults(null);
+    setSandboxError(null);
+    setSimulationNote('');
+    setExecutionTime(null);
+    setIsSimulated(false);
+    setTestDataSQL('');
+  };
+
+  const resetSandbox = () => {
+    resetSandboxState();
+    setShowTestRunner(false);
   };
 
   return {

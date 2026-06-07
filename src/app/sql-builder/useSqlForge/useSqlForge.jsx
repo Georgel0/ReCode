@@ -33,12 +33,17 @@ export function useSqlForge() {
   });
 
   // Sync module data when opened from elsewhere in the app
+
   useEffect(() => {
     if (moduleData?.type === 'sql') {
       setInput(moduleData.input || '');
-      setOutputCode(moduleData.fullOutput?.query || moduleData.fullOutput?.convertedCode || '');
+      setOutputCode(moduleData.fullOutput?.query
+        || moduleData.fullOutput?.convertedCode || '');
       if (moduleData.targetLang) setTargetDialect(moduleData.targetLang);
       if (moduleData.mode) setActiveMode(moduleData.mode);
+    } else if (moduleData === null) {
+      setInput('');
+      setOutputCode('');
     }
   }, [moduleData]);
 

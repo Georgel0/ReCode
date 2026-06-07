@@ -7,9 +7,11 @@ import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 import JsonView from 'react18-json-view';
 import 'react18-json-view/src/style.css';
-import { useJsonFormatter, downloadFile } from './useJsonFormatter';
+import { useJsonFormatter } from './useJsonFormatter';
+import { downloadFile } from './jsonFormatter.utils';
 
-import './JsonFormatter.css';
+import './JsonFormatter.base.css';
+import './JsonFormatter.panels.css';
 
 export default function JsonFormatter() {
   const { moduleData, qualityMode } = useApp();
