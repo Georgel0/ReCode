@@ -39,7 +39,7 @@ export function useCodeConverter() {
   const fileInputRef = useRef(null);
   const sourceScrollRef = useRef(null);
   const targetScrollRef = useRef(null);
-  const [syncScroll, setSyncScroll] = useState(true);
+  const [syncScroll, setSyncScroll] = useState(false);
 
   const isSyncingRef = useRef(false);
 

@@ -43,7 +43,6 @@ export default function CodeConverter() {
     <div className="c-module">
       <ModuleHeader
         title="Code Converter"
-        description="Translate entire files or partial blocks between languages and frameworks."
       />
 
       <div className="c-control-bar">
@@ -124,7 +123,7 @@ export default function CodeConverter() {
           )}
           {hasOutput && (
             <button
-              className={`secondary-button c-btn-icon${syncScroll ? ' c-btn-active' : ''}`}
+              className={`secondary-button c-btn-icon${syncScroll ? ' c-btn-active' : ''} sync-btn`}
               onClick={() => setSyncScroll(s => !s)}
               title="Toggle Sync Scroll"
             >
@@ -229,13 +228,6 @@ export default function CodeConverter() {
                   </div>
                   <CopyButton codeToCopy={activeOutputFile?.content || ''} />
                 </div>
-
-                <ConversionNotesPanel
-                  notes={conversionNotes}
-                  activeTabId={activeTabId}
-                  open={notesOpen}
-                  onToggle={() => setNotesOpen(o => !o)}
-                />
               </div>
             ) : (
               <div className="c-output-empty">
@@ -278,6 +270,12 @@ export default function CodeConverter() {
                 </span>
               )}
             </div>
+            <ConversionNotesPanel
+              notes={conversionNotes}
+              activeTabId={activeTabId}
+              open={notesOpen}
+              onToggle={() => setNotesOpen(o => !o)}
+            />
           </div>
 
           <div className="c-module-footer__bottom-row">

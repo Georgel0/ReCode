@@ -167,7 +167,6 @@
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
@@ -523,16 +522,20 @@
 @media (max-width: 768px) {
   .c-module {
     padding: 0 0.75rem 0.75rem;
+    padding-bottom: 20rem;
   }
 
   .c-grid {
     grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
     overflow: visible;
     flex: none;
   }
 
   .c-panel {
-    min-height: 360px;
+    height: 480px;
+    min-height: 0;
   }
 
   .c-panel__header {
@@ -542,13 +545,27 @@
 
   .c-panel__actions {
     width: 100%;
-  }
-
-  .c-panel__actions button {
-    justify-content: center;
+    margin-left: 0;
+    display: flex;
+    gap: 0.5rem;
   }
 
   .c-btn-icon {
-    padding: 0.3rem 0.55rem;
+    padding: 0.7rem 0.55rem;
+  }
+
+  .c-panel__body,
+  .c-output,
+  .c-scroll,
+  .c-output__scroll {
+    height: auto !important;
+  }
+
+  .c-lang-select {
+    padding: 0.45rem 2rem 0.45rem 0.75rem;
+  }
+
+  .sync-btn {
+    display: none;
   }
 }

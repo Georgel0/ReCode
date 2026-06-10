@@ -35,7 +35,7 @@
 
 .seo-details summary {
   cursor: pointer;
-  list-style: none; 
+  list-style: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -67,20 +67,6 @@
   grid-template-columns: 1fr;
 }
 
-@media (max-width: 768px) {
-  .feature-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .footer-content {
-    grid-template-columns: 1fr;
-    margin-left: 10px;
-    margin-right: 10px;
-    gap: 10px;
-  }
-}
-
 .feature-card h4 {
   color: var(--text-primary);
   margin-bottom: 0.5rem;
@@ -106,6 +92,27 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    margin-left: 10px;
+    margin-right: 10px;
+    gap: 10px;
+  }
 }

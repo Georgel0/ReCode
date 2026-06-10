@@ -355,7 +355,7 @@ export function ConversionNotesPanel({ notes, activeTabId, open, onToggle }) {
         <i className={`fa-solid fa-chevron-${open ? 'down' : 'right'}`}></i>
         <i className="fa-solid fa-lightbulb"></i>
         Conversion Notes
-        {!open && <span className="c-notes__count">{(activeNotes.match(/\n/g) || []).length + 1} notes</span>}
+        {!open && <span className="c-notes__count">{(activeNotes.match(/\n/g) || []).length + 1}</span>}
       </button>
       {open && (
         <div className="c-notes__body">
