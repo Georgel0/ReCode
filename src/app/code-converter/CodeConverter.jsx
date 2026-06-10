@@ -42,7 +42,7 @@ export default function CodeConverter() {
   return (
     <div className="c-module">
       <ModuleHeader
-        title="Universal Code Converter"
+        title="Code Converter"
         description="Translate entire files or partial blocks between languages and frameworks."
       />
 

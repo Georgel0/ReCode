@@ -1,8 +1,9 @@
 .r-module-container {
   display: flex;
   flex-direction: column;
-  padding: 2rem;
   gap: 1rem;
+  margin-left: 1rem;
+  margin-bottom: 0;
 }
 
 .r-banner {
@@ -412,7 +413,7 @@
 
 @media (max-width: 900px) {
   .r-converter-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     overflow: visible;
   }
 
@@ -420,6 +421,7 @@
     height: auto;
     min-height: 100%;
     overflow: visible;
+    flex-direction: column;
   }
 
   .r-panel {

@@ -199,6 +199,15 @@ textarea:focus {
   .app-wrapper {
     flex-direction: column;
   }
+
+  .logo-group {
+    font-size: 1rem;
+  }
+
+  .logo-image {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 

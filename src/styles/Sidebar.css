@@ -826,6 +826,10 @@ html[data-theme='quartz'] .history-modal-container {
 }
 
 @media (max-width: 900px) {
+  .sidebar {
+    width: 230px;
+  }
+
   .history-modal-container {
     width: 95%;
     height: 90%;
@@ -833,5 +837,10 @@ html[data-theme='quartz'] .history-modal-container {
 
   .history-grid {
     grid-template-columns: 1fr;
+  }
+
+  .sidebar-toggle {
+    padding: 0.3rem;
+    font-size: 1.4rem;
   }
 }

@@ -96,8 +96,8 @@ export function MainLayout({ children }) {
             <>
               <Link href="/" className="logo-link">
                 <div className="logo-group">
-                  <div className="logo-image" style={{ backgroundColor: '#38bdf8' }} />
-                  <span style={{ color: '#fff' }}>ReCode</span>
+                  <div className="logo-image"/>
+                  <span>ReCode</span>
                 </div>
               </Link>
               <Link
