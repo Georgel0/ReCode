@@ -138,7 +138,7 @@ export default function CodeConverter() {
           <div className="c-panel__header">
             <h3 className="c-panel__title"><i className="fa-solid fa-file-code"></i> Source Files</h3>
             <div className="c-panel__actions">
-              <button className="secondary-button c-btn-icon c-btn-danger" onClick={handleClearAll}>
+              <button className="secondary-button" onClick={handleClearAll}>
                 <i className="fa-solid fa-trash-can"></i>
               </button>
               <button className="secondary-button" onClick={() => fileInputRef.current.click()}>
@@ -270,22 +270,24 @@ export default function CodeConverter() {
                 </span>
               )}
             </div>
-            <ConversionNotesPanel
-              notes={conversionNotes}
-              activeTabId={activeTabId}
-              open={notesOpen}
-              onToggle={() => setNotesOpen(o => !o)}
-            />
           </div>
 
           <div className="c-module-footer__bottom-row">
-            <HistoryPanel
-              history={conversionHistory}
-              activeTabId={activeTabId}
-              open={historyPanelOpen}
-              onToggle={() => setHistoryPanelOpen(o => !o)}
-              onRestore={restoreHistoryEntry}
-            />
+            <div className="footer__sub-bottom-row">
+              <HistoryPanel
+                history={conversionHistory}
+                activeTabId={activeTabId}
+                open={historyPanelOpen}
+                onToggle={() => setHistoryPanelOpen(o => !o)}
+                onRestore={restoreHistoryEntry}
+              />
+              <ConversionNotesPanel
+                notes={conversionNotes}
+                activeTabId={activeTabId}
+                open={notesOpen}
+                onToggle={() => setNotesOpen(o => !o)}
+              />
+            </div>
             <div className="c-reconvert">
               <div className="c-reconvert__header">
                 <i className="fa-solid fa-rotate"></i>

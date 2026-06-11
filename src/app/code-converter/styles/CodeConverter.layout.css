@@ -106,7 +106,6 @@
 .c-btn-icon {
   padding: 0.6rem 0.85rem;
   flex-shrink: 0;
-  aspect-ratio: 1;
 }
 
 .c-btn-danger {
@@ -399,11 +398,11 @@
 .c-module-footer {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: 1rem;
   margin-top: 2rem;
   position: relative;
   z-index: 2;
@@ -432,7 +431,14 @@
   gap: 1.5rem;
 }
 
-.c-history,
+.footer__sub-bottom-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.c-history, .c-notes,
 .c-module-footer .c-reconvert {
   width: 50%;
   background: var(--bg-primary);
@@ -442,6 +448,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.c-notes, .c-history {
+  width: 100%;
 }
 
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { convertCode, LANGUAGES } from '@/lib';
+import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
 import { useApp } from '@/context';
 import { get, set, del } from 'idb-keyval';
 import debounce from 'lodash/debounce';
@@ -118,9 +118,17 @@ export function useCodeConverter() {
     const newFilesPromises = validFiles.map(file => new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (event) => {
+        const content = event.target.result;
         const ext = '.' + file.name.split('.').pop().toLowerCase();
-        const matchedLang = LANGUAGES.find(l => l.ext === ext) || LANGUAGES.find(l => l.value === 'plaintext');
-        resolve({ id: crypto.randomUUID(), name: file.name, language: matchedLang.value, content: event.target.result, size: file.size });
+        const byExt = LANGUAGES.find(l => l.ext === ext);
+
+        const language = byExt
+          ? byExt.value
+          : (LANGUAGES.some(l => l.value === detectLanguage(content))
+            ? detectLanguage(content)
+            : 'plaintext');
+
+        resolve({ id: crypto.randomUUID(), name: file.name, language, content, size: file.size });
       };
       reader.readAsText(file);
     }));

@@ -278,20 +278,25 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
           <div key={i} className="c-diff__line c-diff__line--phantom">
             <span className="c-diff__gutter-strip" />
             <span className="c-diff__linenum" />
-            <pre className="c-diff__text">&nbsp;</pre>
+            <pre className="c-diff__text" />
           </div>
         );
       }
 
       const cls =
         row.type === 'add' ? ' c-diff__line--add'
-        : row.type === 'remove' ? ' c-diff__line--remove'
-        : '';
+          : row.type === 'remove' ? ' c-diff__line--remove'
+            : '';
+
+      const sign = row.type === 'add' ? '+' : row.type === 'remove' ? '−' : '';
 
       return (
         <div key={i} className={`c-diff__line${cls}`}>
           <span className="c-diff__gutter-strip" />
-          <span className="c-diff__linenum">{row.lineNum}</span>
+          <span className="c-diff__linenum">
+            <span className="c-diff__linenum-num">{row.lineNum}</span>
+            <span className="c-diff__linenum-sign">{sign}</span>
+          </span>
           <pre className={`c-diff__text prism-${prismTheme}`}>
             <HighlightedLine
               text={row.text}
@@ -349,19 +354,23 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
 export function ConversionNotesPanel({ notes, activeTabId, open, onToggle }) {
   const activeNotes = notes[activeTabId] || notes['__global__'];
   if (!activeNotes) return null;
+
   return (
-    <div className="c-notes">
+    <div className={`c-notes ${open ? 'is-open' : ''}`}>
       <button className="c-notes__toggle" onClick={onToggle}>
-        <i className={`fa-solid fa-chevron-${open ? 'down' : 'right'}`}></i>
+        <i className="fa-solid fa-chevron-right c-collapse-icon"></i>
         <i className="fa-solid fa-lightbulb"></i>
         Conversion Notes
         {!open && <span className="c-notes__count">{(activeNotes.match(/\n/g) || []).length + 1}</span>}
       </button>
-      {open && (
-        <div className="c-notes__body">
-          <div className="c-notes__content" dangerouslySetInnerHTML={{ __html: activeNotes.replace(/\n/g, '<br/>') }} />
+
+      <div className="c-collapse-wrapper">
+        <div className="c-collapse-inner">
+          <div className="c-notes__body">
+            <div className="c-notes__content" dangerouslySetInnerHTML={{ __html: activeNotes.replace(/\n/g, '<br/>') }} />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -369,41 +378,45 @@ export function ConversionNotesPanel({ notes, activeTabId, open, onToggle }) {
 export function HistoryPanel({ history, activeTabId, open, onToggle, onRestore }) {
   const entries = history[activeTabId] || [];
   if (entries.length === 0) return null;
+
   return (
-    <div className="c-history">
+    <div className={`c-history ${open ? 'is-open' : ''}`}>
       <button className="c-history__toggle" onClick={onToggle}>
-        <i className={`fa-solid fa-chevron-${open ? 'down' : 'right'}`}></i>
+        <i className="fa-solid fa-chevron-right c-collapse-icon"></i>
         <i className="fa-solid fa-clock-rotate-left"></i>
         Conversion History
         {!open && <span className="c-history__count">{entries.length}</span>}
       </button>
-      {open && (
-        <div className="c-history__entries">
-          {entries.map((entry, idx) => (
-            <div key={idx} className="c-history__entry">
-              <div className="c-history__meta">
-                <span className="c-history__badge">{entry.targetLang}</span>
-                {entry.targetFramework && entry.targetFramework !== 'none' && (
-                  <span className="c-history__badge c-history__badge--sec">{entry.targetFramework}</span>
+
+      <div className="c-collapse-wrapper">
+        <div className="c-collapse-inner">
+          <div className="c-history__entries">
+            {entries.map((entry, idx) => (
+              <div key={idx} className="c-history__entry">
+                <div className="c-history__meta">
+                  <span className="c-history__badge">{entry.targetLang}</span>
+                  {entry.targetFramework && entry.targetFramework !== 'none' && (
+                    <span className="c-history__badge c-history__badge--sec">{entry.targetFramework}</span>
+                  )}
+                  {idx === 0 && <span className="c-history__current">current</span>}
+                  <span className="c-history__time">
+                    <i className="fa-regular fa-clock"></i>{' '}
+                    {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className="c-history__preview">
+                  <pre>{(entry.outputFile?.content || '').split('\n').slice(0, 3).join('\n')}</pre>
+                </div>
+                {idx !== 0 && (
+                  <button className="secondary-button c-history__restore" onClick={() => onRestore(activeTabId, idx)}>
+                    <i className="fa-solid fa-rotate-left"></i> Restore
+                  </button>
                 )}
-                <span className="c-history__time">
-                  <i className="fa-regular fa-clock"></i>{' '}
-                  {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-                {idx === 0 && <span className="c-history__current">current</span>}
               </div>
-              <div className="c-history__preview">
-                <pre>{(entry.outputFile?.content || '').split('\n').slice(0, 3).join('\n')}</pre>
-              </div>
-              {idx !== 0 && (
-                <button className="secondary-button c-history__restore" onClick={() => onRestore(activeTabId, idx)}>
-                  <i className="fa-solid fa-rotate-left"></i> Restore
-                </button>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

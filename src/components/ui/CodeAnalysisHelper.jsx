@@ -131,7 +131,7 @@ export function CodeAnalysisInfoIcon() {
       <Tooltip
         id="code-analysis-tooltip"
         place="right"
-        content={<p>💡 Tip: Drag your mouse to highlight any snippet <br />
+        content={<p>Tip: Drag your mouse to highlight any snippet <br />
           of code on this page to quickly run a structural audit!</p>}
         className="custom-analysis-tooltip"
       />
