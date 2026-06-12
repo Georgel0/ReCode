@@ -81,9 +81,8 @@ export async function POST(request) {
     // Only strip INSERT statements for non-simulate types
     if (payload.schema && type !== 'sql-simulate') {
       payload.schema = payload.schema.replace(/INSERT\s+INTO[\s\S]*?;/gi, '');
-      if (payload.schema.length > 15000) {
-        payload.schema = payload.schema.substring(0, 20000) +
-          '\n-- [Schema truncated due to length limits]';
+      if (payload.schema.length > 20000) {
+        payload.schema = payload.schema.substring(0, 15000) + '\n-- [Schema truncated due to length limits]';
       }
     }
 

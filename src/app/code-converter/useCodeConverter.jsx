@@ -281,7 +281,6 @@ export function useCodeConverter() {
         framework: targetFramework,
         isPartial: isPartialMode,
         qualityMode,
-        includeNotes: true,
       });
 
       if (result && Array.isArray(result.files)) {

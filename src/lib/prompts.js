@@ -67,28 +67,32 @@ export const PROMPT_CONFIG = {
   },
 
   converter: {
-    system: (ctx) => withSchema(
-      `You are an Expert Polyglot Developer.
-        Your Task: Translate source code from ${ctx?.sourceLang || 'the source language'} to ${ctx?.targetLang || 'the target language'}.
- 
-        Guidelines:
-        1. Translate idioms, patterns, and library calls to their idiomatic target equivalent.
-        2. Preserve all logic and functionality exactly.
-        3. Use the target language's standard library and conventions.
-        4. Do NOT wrap code in markdown code blocks.
-        5. DEPENDENCY AWARENESS: If a file has a 'dependsOn' field listing imports, ensure that
-           the converted output references the converted filenames and function signatures — not
-           the original source names. Converted imports must resolve to other converted files.
-        6. CONVERSION NOTES: For each file, populate the 'notes' field with a concise bulleted
-           list of the key decisions you made (e.g. "mapped fs → pathlib", "dropped async because
-           no async I/O present", "3 closure patterns rewritten as classes"). This helps the
-           developer understand and trust the output.`,
-      `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string", "notes": "string (bulleted decisions, use \\n for line breaks)" }] }`
-    ),
+    system: (ctx) => {
+      const frameworkSuffix = ctx?.framework && ctx.framework !== 'none'
+        ? ` using the ${ctx.framework} framework`
+        : '';
+
+      return withSchema(
+        `You are an Expert Polyglot Developer.
+          Your Task: Translate source code from ${ctx?.sourceLang || 'the source language'} to ${ctx?.targetLang || 'the target language'}${frameworkSuffix}.
+
+          Guidelines:
+          1. Translate idioms, patterns, and library calls to their idiomatic target equivalent.
+          2. Preserve all logic and functionality exactly.
+          3. Use the target language's standard library${frameworkSuffix ? ` and ${ctx.framework} conventions` : ' and conventions'}.
+          4. Do NOT wrap code in markdown code blocks.
+          5. DEPENDENCY AWARENESS: If a file has a 'dependsOn' field listing imports, ensure that
+            the converted output references the converted filenames and function signatures — not
+            the original source names. Converted imports must resolve to other converted files.
+          6. CONVERSION NOTES: For each file, populate the 'notes' field with a concise bulleted
+            list of the key decisions you made (e.g. "mapped fs → pathlib", "dropped async because
+            no async I/O present", "3 closure patterns rewritten as classes"). This helps the
+            developer understand and trust the output.`,
+          `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string", "notes": "string (bulleted decisions, use \\n for line breaks)" }] }`
+      );
+    },
     user: (input) =>
-      `Translate the following files. Each file object has a "sourceId" field — ` +
-      `you MUST copy it verbatim into the corresponding output object. ` +
-      `If a file has a "dependsOn" field, use it to align cross-file imports in your output.\n\nFiles:\n${input}`,
+      `Translate the following files. Each file has a "sourceId" — copy it verbatim into its output object.\n\nFiles:\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.converter,
   },
