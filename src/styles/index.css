@@ -51,62 +51,6 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-button {
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  transition: all 0.15s ease-out;
-}
-
-select,
-input,
-textarea {
-  font-family: inherit;
-}
-
-select:disabled {
-  cursor: not-allowed;
-}
-
-textarea {
-  flex: 1;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
-  resize: none;
-  font-family: monospace;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  box-shadow: var(--shadow-subtle);
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-textarea:focus {
-  border-color: var(--accent);
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
-
 .logo-group {
   display: flex;
   align-items: center;

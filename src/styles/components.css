@@ -14,27 +14,6 @@
   padding: 0.75rem 1rem;
 }
 
-h3 {
-  margin-top: 0;
-  color: var(--header-color);
-  background: var(--header-color);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  border-bottom: 1px solid var(--bg-tertiary);
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-}
-
-html[data-theme='midnight-gold'] h3,
-html[data-theme='quartz'] h3 {
-  border-bottom: 1px solid transparent;
-  border-image: var(--gradient-gold) 1;
-  border-image-slice: 1;
-  border-style: solid;
-  border-width: 0 0 1px 0;
-}
-
 .primary-button {
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius);
@@ -144,36 +123,6 @@ html[data-theme='quartz'] .primary-button:hover::after {
 .clear-btn:hover {
   background-color: #ff4d4d;
   color: white;
-}
-
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: .65rem 1.5rem;
-  line-height: 1.5;
-  cursor: pointer;
-  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
-  background-image: url("data:imagesvg+xml,%3Csvg xmlns='http:www.w3.org2000svg' viewBox='0 0 20 20'%3E%3Cpath fill='%238b949e' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'%3E%3Csvg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 0.8em;
-  padding-right: 3rem;
-}
-
-select:focus {
-  border-color: var(--accent);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-}
-
-select option {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
 }
 
 .save-btn {
@@ -458,11 +407,6 @@ select option {
     font-size: 0.85rem;
   }
 
-  select {
-    padding: 0.55rem 2.5rem 0.55rem 0.75rem;
-    font-size: 0.9rem;
-  }
-
   .mode-btn {
     font-size: 0.55rem;
     padding: 3px 7px;
@@ -470,11 +414,6 @@ select option {
 }
 
 @media (max-width: 860px) {
-  h3 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-
   .model-options-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;

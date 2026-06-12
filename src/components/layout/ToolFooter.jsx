@@ -1,5 +1,5 @@
 import React from 'react';
-import '@/styles/ToolFooter.css';
+import '@/styles/components/ToolFooter.css';
 
 export function ToolFooter({ content }) {
   if (!content) return null;
