@@ -16,16 +16,20 @@ export function CodeHighlightAnalyzer() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleMouseUp = (e) => {
-      if (buttonRef.current && buttonRef.current.contains(e.target)) return;
+    // The main logic extracted so it can be called by multiple event types
+    const checkSelection = (e) => {
+      // If the event triggered inside our popup button, ignore it
+      const target = e?.target || document.activeElement;
+      if (buttonRef.current && buttonRef.current.contains(target)) return;
 
       let text = '';
       let isCodeBlock = false;
       let rect = null;
 
-      // Try finding the textarea directly from the event target or its parent
-      const target = e.target;
-      const textarea = target.tagName === 'TEXTAREA' ? target : target.closest('.editor-container, .code-editor')?.querySelector('textarea');
+      // Try finding the textarea directly
+      const textarea = target?.tagName === 'TEXTAREA'
+        ? target
+        : target?.closest?.('.editor-container, .code-editor')?.querySelector('textarea');
 
       if (textarea) {
         const start = textarea.selectionStart;
@@ -35,10 +39,13 @@ export function CodeHighlightAnalyzer() {
           text = textarea.value.substring(start, end).trim();
           isCodeBlock = true;
 
-          // Use exact mouse coordinates relative to the viewport
+          // Safely extract coordinates: Mouse vs. Touch vs. Fallback
+          const clientY = e?.clientY || e?.changedTouches?.[0]?.clientY || window.innerHeight / 2;
+          const clientX = e?.clientX || e?.changedTouches?.[0]?.clientX || window.innerWidth / 2;
+
           rect = {
-            top: e.clientY,
-            left: e.clientX,
+            top: clientY,
+            left: clientX,
             width: 0
           };
         }
@@ -54,7 +61,8 @@ export function CodeHighlightAnalyzer() {
           let container = range.commonAncestorContainer;
           if (container.nodeType === Node.TEXT_NODE) container = container.parentElement;
 
-          if (container.closest('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]')) {
+          // Ensure container exists before calling closest()
+          if (container?.closest?.('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]')) {
             isCodeBlock = true;
             const bounding = range.getBoundingClientRect();
             rect = {
@@ -67,7 +75,6 @@ export function CodeHighlightAnalyzer() {
       }
 
       if (isCodeBlock && text && rect) {
-        // Switch to viewport-based coordinates to bypass parent layout traps
         setPosition({
           top: rect.top - 45,
           left: rect.left + (rect.width / 2),
@@ -77,20 +84,37 @@ export function CodeHighlightAnalyzer() {
         return;
       }
 
-      setVisible(false);
+      // Only hide if the text is truly empty to prevent flickering on mobile
+      if (!text) {
+        setVisible(false);
+      }
     };
 
-    const handleMouseDown = (e) => {
+    const handlePointerDown = (e) => {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return;
       setVisible(false);
     };
 
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('mousedown', handleMouseDown);
+    // Debounce the selectionchange event so the button doesn't jump wildly while dragging handles
+    let timeoutId;
+    const handleSelectionChange = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => checkSelection(), 150);
+    };
+
+    document.addEventListener('mouseup', checkSelection);
+    document.addEventListener('touchend', checkSelection);
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('selectionchange', handleSelectionChange);
 
     return () => {
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', checkSelection);
+      document.removeEventListener('touchend', checkSelection);
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -115,6 +139,10 @@ export function CodeHighlightAnalyzer() {
       className="floating-analyze-btn"
       style={{ top: `${position.top}px`, left: `${position.left}px` }}
       onClick={handleAnalyzeClick}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        handleAnalyzeClick();
+      }}
     >
       <i className="fa-solid fa-magnifying-glass-chart"></i> Analyze Snippet
     </button>

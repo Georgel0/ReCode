@@ -1,4 +1,4 @@
-.history-panel {
+.j-history-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -7,7 +7,7 @@
   flex-shrink: 0;
 }
 
-.history-panel-header {
+.j-history-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,7 +16,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.history-panel-header>span {
+.j-history-panel-header>span {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -27,7 +27,7 @@
   color: var(--text-secondary);
 }
 
-.history-clear-btn {
+.j-history-clear-btn {
   font-size: 0.71rem;
   font-family: inherit;
   background: transparent;
@@ -39,19 +39,19 @@
   transition: color 0.14s, border-color 0.14s;
 }
 
-.history-clear-btn:hover {
+.j-history-clear-btn:hover {
   color: var(--danger, #ef4444);
   border-color: var(--danger, #ef4444);
 }
 
-.history-list {
+.j-history-list {
   display: flex;
   flex-direction: column;
   max-height: 210px;
   overflow-y: auto;
 }
 
-.history-item {
+.j-history-item {
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -60,15 +60,15 @@
   transition: background 0.12s;
 }
 
-.history-item:last-child {
+.j-history-item:last-child {
   border-bottom: none;
 }
 
-.history-item:hover {
+.j-history-item:hover {
   background: var(--bg-tertiary);
 }
 
-.history-item-preview {
+.j-history-item-preview {
   flex: 1;
   font-family: 'Fira Code', monospace;
   font-size: 0.76rem;
@@ -81,11 +81,11 @@
   transition: color 0.12s;
 }
 
-.history-item-preview:hover {
+.j-history-item-preview:hover {
   color: var(--accent);
 }
 
-.history-item-meta {
+.j-history-item-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -93,20 +93,20 @@
   flex-shrink: 0;
 }
 
-.history-item-time {
+.j-history-item-time {
   font-size: 0.68rem;
   color: var(--text-secondary);
   white-space: nowrap;
   font-family: 'Fira Code', monospace;
 }
 
-.history-item-actions {
+.j-history-item-actions {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.history-restore-btn {
+.j-history-restore-btn {
   font-size: 0.7rem;
   font-family: inherit;
   background: transparent;
@@ -119,13 +119,13 @@
   transition: background 0.14s, border-color 0.14s, color 0.14s;
 }
 
-.history-restore-btn:hover {
+.j-history-restore-btn:hover {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--text-on-accent, #fff);
 }
 
-.history-delete-btn {
+.j-history-delete-btn {
   width: 22px;
   height: 22px;
   display: flex;
@@ -141,13 +141,13 @@
   transition: background 0.14s, border-color 0.14s, color 0.14s;
 }
 
-.history-delete-btn:hover {
+.j-history-delete-btn:hover {
   background: var(--danger, #ef4444);
   border-color: var(--danger, #ef4444);
   color: #fff;
 }
 
-.history-empty {
+.j-history-empty {
   padding: 1.25rem;
   text-align: center;
   color: var(--text-secondary);
@@ -155,14 +155,14 @@
   opacity: 0.5;
 }
 
-.jsonpath-bar {
+.j-jsonpath-bar {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
 }
 
-.jsonpath-input {
+.j-jsonpath-input {
   flex: 1;
   font-size: 0.81rem;
   font-family: 'Fira Code', monospace;
@@ -176,23 +176,23 @@
   box-sizing: border-box;
 }
 
-.jsonpath-input:focus {
+.j-jsonpath-input:focus {
   outline: none;
   border-color: #a78bfa;
   box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.14);
 }
 
-.jsonpath-input::placeholder {
+.j-jsonpath-input::placeholder {
   color: var(--text-secondary);
   opacity: 0.55;
 }
 
-.jsonpath-input:disabled {
+.j-jsonpath-input:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.jsonpath-result-count {
+.j-jsonpath-result-count {
   font-size: 0.72rem;
   font-family: 'Fira Code', monospace;
   color: #a78bfa;
@@ -205,7 +205,7 @@
   user-select: none;
 }
 
-.jsonpath-results-panel {
+.j-jsonpath-results-panel {
   background: var(--bg-secondary);
   border: 1px solid rgba(167, 139, 250, 0.22);
   border-radius: var(--radius);
@@ -214,7 +214,7 @@
   flex-shrink: 0;
 }
 
-.jsonpath-results-header {
+.j-jsonpath-results-header {
   display: flex;
   align-items: center;
   padding: 0.4rem 0.75rem;
@@ -227,7 +227,7 @@
   color: #a78bfa;
 }
 
-.jsonpath-results-body {
+.j-jsonpath-results-body {
   padding: 0.4rem 0.65rem;
   max-height: 150px;
   overflow-y: auto;
@@ -238,7 +238,7 @@
   gap: 1px;
 }
 
-.jsonpath-result-item {
+.j-jsonpath-result-item {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
@@ -248,21 +248,21 @@
   transition: background 0.1s;
 }
 
-.jsonpath-result-item:hover {
+.j-jsonpath-result-item:hover {
   background: rgba(167, 139, 250, 0.08);
 }
 
-.jsonpath-result-path {
+.j-jsonpath-result-path {
   color: #a78bfa;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.jsonpath-result-value {
+.j-jsonpath-result-value {
   color: var(--text-primary);
 }
 
-.diff-container {
+.j-diff-container {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -270,13 +270,13 @@
 }
 
 @media (min-width: 900px) {
-  .diff-container {
+  .j-diff-container {
     flex-direction: row;
     gap: 0.75rem;
   }
 }
 
-.diff-input-col {
+.j-diff-input-col {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -284,7 +284,7 @@
   min-width: 0;
 }
 
-.diff-label {
+.j-diff-label {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -295,20 +295,20 @@
   color: var(--text-secondary);
 }
 
-.diff-label.left {
+.j-diff-label.j-left {
   color: #f87171;
 }
 
-.diff-label.right {
+.j-diff-label.j-right {
   color: #34d399;
 }
 
-.diff-textarea {
+.j-diff-textarea {
   min-height: 150px;
   resize: vertical;
 }
 
-.diff-summary {
+.j-diff-summary {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -316,7 +316,7 @@
   flex-shrink: 0;
 }
 
-.diff-badge {
+.j-diff-badge {
   font-size: 0.7rem;
   font-family: 'Fira Code', monospace;
   padding: 2px 9px;
@@ -325,25 +325,25 @@
   user-select: none;
 }
 
-.diff-badge.added {
+.j-diff-badge.j-added {
   background: rgba(52, 211, 153, 0.1);
   color: #34d399;
   border: 1px solid rgba(52, 211, 153, 0.25);
 }
 
-.diff-badge.removed {
+.j-diff-badge.j-removed {
   background: rgba(248, 113, 113, 0.1);
   color: #f87171;
   border: 1px solid rgba(248, 113, 113, 0.25);
 }
 
-.diff-badge.same {
+.j-diff-badge.j-same {
   background: rgba(245, 158, 11, 0.1);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
-.diff-result-panel {
+.j-diff-result-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -355,30 +355,30 @@
   flex-shrink: 0;
 }
 
-.diff-line {
+.j-diff-line {
   display: flex;
   align-items: flex-start;
   padding: 2px 0.75rem;
   line-height: 1.65;
 }
 
-.diff-line:hover {
+.j-diff-line:hover {
   background: rgba(255, 255, 255, 0.025);
 }
 
-.diff-line.added {
+.j-diff-line.j-added {
   background: rgba(52, 211, 153, 0.05);
 }
 
-.diff-line.removed {
+.j-diff-line.j-removed {
   background: rgba(248, 113, 113, 0.05);
 }
 
-.diff-line.changed {
+.j-diff-line.j-changed {
   background: rgba(245, 158, 11, 0.04);
 }
 
-.diff-gutter {
+.j-diff-gutter {
   min-width: 18px;
   flex-shrink: 0;
   text-align: center;
@@ -388,37 +388,37 @@
   opacity: 0.75;
 }
 
-.diff-line.added .diff-gutter {
+.j-diff-line.j-added .j-diff-gutter {
   color: #34d399;
 }
 
-.diff-line.removed .diff-gutter {
+.j-diff-line.j-removed .j-diff-gutter {
   color: #f87171;
 }
 
-.diff-line.changed .diff-gutter {
+.j-diff-line.j-changed .j-diff-gutter {
   color: #fbbf24;
 }
 
-.diff-content {
+.j-diff-content {
   flex: 1;
   word-break: break-all;
   white-space: pre-wrap;
 }
 
-.diff-line.added .diff-content {
+.j-diff-line.j-added .j-diff-content {
   color: #34d399;
 }
 
-.diff-line.removed .diff-content {
+.j-diff-line.j-removed .j-diff-content {
   color: #f87171;
 }
 
-.diff-line.changed .diff-content {
+.j-diff-line.j-changed .j-diff-content {
   color: #fbbf24;
 }
 
-.diff-empty-msg {
+.j-diff-empty-msg {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,7 +428,7 @@
   font-size: 0.83rem;
 }
 
-.zod-output-panel {
+.j-zod-output-panel {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -436,12 +436,12 @@
   gap: 0.5rem;
 }
 
-.zod-textarea {
+.j-zod-textarea {
   flex: 1;
   min-height: 220px;
 }
 
-.zod-meta-bar {
+.j-zod-meta-bar {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -449,14 +449,14 @@
   flex-shrink: 0;
 }
 
-.zod-actions-right {
+.j-zod-actions-right {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   margin-left: auto;
 }
 
-.zod-meta-badge {
+.j-zod-meta-badge {
   font-size: 0.7rem;
   font-family: 'Fira Code', monospace;
   font-weight: 700;
@@ -468,7 +468,7 @@
   user-select: none;
 }
 
-.zod-action-btn {
+.j-zod-action-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -485,19 +485,19 @@
   white-space: nowrap;
 }
 
-.zod-action-btn:hover:not(:disabled) {
+.j-zod-action-btn:hover:not(:disabled) {
   background: #ec4899;
   border-color: #ec4899;
   color: #fff;
   box-shadow: 0 3px 10px rgba(236, 72, 153, 0.28);
 }
 
-.zod-action-btn:disabled {
+.j-zod-action-btn:disabled {
   opacity: 0.38;
   cursor: not-allowed;
 }
 
-.schema-validation-panel {
+.j-schema-validation-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -505,7 +505,7 @@
   flex-shrink: 0;
 }
 
-.schema-validation-header {
+.j-schema-validation-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -520,21 +520,21 @@
   color: var(--text-primary);
 }
 
-.schema-validation-header:hover {
+.j-schema-validation-header:hover {
   background: color-mix(in srgb, var(--bg-tertiary) 80%, var(--accent) 20%);
 }
 
-.schema-validation-panel:has(.schema-validation-body) .schema-validation-header {
+.j-schema-validation-panel:has(.j-schema-validation-body) .j-schema-validation-header {
   border-bottom-color: var(--border);
 }
 
-.header-left {
+.j-header-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.schema-status-dot {
+.j-schema-status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -543,29 +543,29 @@
   transition: background 0.2s, box-shadow 0.2s;
 }
 
-.schema-status-dot.valid {
+.j-schema-status-dot.j-valid {
   background: #34d399;
   box-shadow: 0 0 5px rgba(52, 211, 153, 0.5);
 }
 
-.schema-status-dot.invalid {
+.j-schema-status-dot.j-invalid {
   background: #f87171;
   box-shadow: 0 0 5px rgba(248, 113, 113, 0.5);
 }
 
-.schema-status-dot.idle {
+.j-schema-status-dot.j-idle {
   background: var(--text-secondary);
   opacity: 0.5;
 }
 
-.schema-validation-body {
+.j-schema-validation-body {
   padding: 0.6rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.schema-textarea {
+.j-schema-textarea {
   width: 100%;
   font-family: 'Fira Code', monospace;
   font-size: 0.78rem;
@@ -580,13 +580,13 @@
   box-sizing: border-box;
 }
 
-.schema-textarea:focus {
+.j-schema-textarea:focus {
   outline: none;
   border-color: #f59e0b;
   box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.12);
 }
 
-.schema-errors-list {
+.j-schema-errors-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -594,7 +594,7 @@
   overflow-y: auto;
 }
 
-.schema-error-item {
+.j-schema-error-item {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
@@ -606,19 +606,19 @@
   font-family: 'Fira Code', monospace;
 }
 
-.schema-error-path {
+.j-schema-error-path {
   font-weight: 700;
   color: #f87171;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.schema-error-msg {
+.j-schema-error-msg {
   color: var(--text-secondary);
   line-height: 1.45;
 }
 
-.schema-valid-msg {
+.j-schema-valid-msg {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -631,7 +631,7 @@
   font-weight: 500;
 }
 
-.tree-view-container {
+.j-tree-view-container {
   flex: 1;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -644,32 +644,32 @@
 }
 
 @media (max-width: 600px) {
-  .history-list {
+  .j-history-list {
     max-height: 175px;
   }
 
-  .history-item {
+  .j-history-item {
     padding: 0.45rem 0.65rem;
   }
 
-  .diff-container {
+  .j-diff-container {
     gap: 0.5rem;
   }
 
-  .diff-textarea {
+  .j-diff-textarea {
     min-height: 120px;
   }
 
-  .zod-meta-bar {
+  .j-zod-meta-bar {
     gap: 0.3rem;
   }
 
-  .zod-action-btn {
+  .j-zod-action-btn {
     font-size: 0.73rem;
     padding: 0.25rem 0.6rem;
   }
 
-  .jsonpath-results-body {
+  .j-jsonpath-results-body {
     max-height: 120px;
   }
 }

@@ -81,20 +81,20 @@ export default function JsonFormatter() {
   };
 
   return (
-    <div className="module-container">
+    <div className="j-module-container">
       <ModuleHeader
         title="JSON Formatter & Validator"
         description="Format instantly, validate against schemas, run JSONPath, or use AI to repair structures."
         resultData={lastResult}
       />
 
-      <div className="converter-grid json-flex-layout">
+      <div className="converter-grid j-json-flex-layout">
 
-        <div className="panel flex-panel">
+        <div className="panel j-flex-panel">
 
-          <div className="panel-header-row">
+          <div className="j-panel-header-row">
             <h3>Input JSON</h3>
-            <div className="header-actions">
+            <div className="j-header-actions">
               <input
                 type="file"
                 accept=".json,.txt,.js,.yaml,.yml,.toml"
@@ -104,7 +104,7 @@ export default function JsonFormatter() {
                 aria-label="Upload file"
               />
               <button
-                className="icon-btn-sm"
+                className="j-icon-btn-sm"
                 onClick={() => setShowHistory(!showHistory)}
                 title="View history"
               >
@@ -112,29 +112,29 @@ export default function JsonFormatter() {
                 <span>History</span>
               </button>
               <button
-                className="icon-btn-sm"
+                className="j-icon-btn-sm"
                 onClick={() => fileInputRef.current?.click()}
                 title="Upload JSON, YAML, or TOML"
               >
                 <i className="fa-solid fa-upload"></i>
                 <span>Upload</span>
               </button>
-              <button className="icon-btn-sm" onClick={loadSample}>
+              <button className="j-icon-btn-sm" onClick={loadSample}>
                 Sample
               </button>
             </div>
           </div>
 
-          <div className="url-import-bar">
+          <div className="j-url-import-bar">
             <input
-              className="url-import-input"
+              className="j-url-import-input"
               placeholder="Paste a URL or cURL command…"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleUrlImport()}
             />
             <button
-              className="secondary-button url-fetch-btn"
+              className="secondary-button j-url-fetch-btn"
               onClick={handleUrlImport}
               disabled={urlLoading || !urlInput.trim()}
             >
@@ -146,42 +146,42 @@ export default function JsonFormatter() {
           </div>
 
           {showHistory && (
-            <div className="history-panel">
-              <div className="history-panel-header">
+            <div className="j-history-panel">
+              <div className="j-history-panel-header">
                 <span>
                   <i className="fa-solid fa-clock-rotate-left"></i>
                   Recent Sessions
                 </span>
                 <button
-                  className="history-clear-btn"
+                  className="j-history-clear-btn"
                   onClick={handleClearAllHistory}
                 >
                   Clear All
                 </button>
               </div>
-              <div className="history-list">
+              <div className="j-history-list">
                 {history.length ? history.map((entry) => (
-                  <div key={entry.id} className="history-item">
+                  <div key={entry.id} className="j-history-item">
                     <div
-                      className="history-item-preview"
+                      className="j-history-item-preview"
                       onClick={() => handleRestoreHistory(entry)}
                       title="Click to restore"
                     >
                       {entry.input}
                     </div>
-                    <div className="history-item-meta">
-                      <span className="history-item-time">
+                    <div className="j-history-item-meta">
+                      <span className="j-history-item-time">
                         {new Date(entry.timestamp).toLocaleTimeString()}
                       </span>
-                      <div className="history-item-actions">
+                      <div className="j-history-item-actions">
                         <button
-                          className="history-restore-btn"
+                          className="j-history-restore-btn"
                           onClick={() => handleRestoreHistory(entry)}
                         >
                           Restore
                         </button>
                         <button
-                          className="history-delete-btn"
+                          className="j-history-delete-btn"
                           onClick={() => handleDeleteHistory(entry.id)}
                           title="Delete entry"
                         >
@@ -191,14 +191,14 @@ export default function JsonFormatter() {
                     </div>
                   </div>
                 )) : (
-                  <div className="history-empty">No history recorded yet.</div>
+                  <div className="j-history-empty">No history recorded yet.</div>
                 )}
               </div>
             </div>
           )}
 
           <div
-            className={`input-wrapper${isDragging ? ' drag-active' : ''}`}
+            className={`j-input-wrapper${isDragging ? ' j-drag-active' : ''}`}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
@@ -209,11 +209,11 @@ export default function JsonFormatter() {
               onPaste={handlePaste}
               placeholder="Paste JSON, YAML, TOML here, or drag & drop a file…"
               spellCheck="false"
-              className={`json-textarea${errorMsg ? ' has-error' : ''}`}
+              className={`j-json-textarea${errorMsg ? ' j-has-error' : ''}`}
             />
             {input && (
               <button
-                className="clear-input-btn"
+                className="j-clear-input-btn"
                 onClick={() => { setInput(''); setOutputCode(''); setErrorMsg(null); }}
                 title="Clear input"
               >
@@ -221,19 +221,19 @@ export default function JsonFormatter() {
               </button>
             )}
             {isDragging && (
-              <div className="drag-overlay">Drop file to load & parse</div>
+              <div className="j-drag-overlay">Drop file to load & parse</div>
             )}
           </div>
 
           {errorMsg && (
-            <div className="error-message">
+            <div className="j-error-message">
               <i className="fa-solid fa-circle-exclamation"></i>
               {errorMsg}
             </div>
           )}
 
-          <div className="action-row input-controls-row">
-            <div className="controls-left">
+          <div className="action-row j-input-controls-row">
+            <div className="j-controls-left">
               <label className="custom-check" title="Sort JSON keys alphabetically">
                 <input
                   type="checkbox"
@@ -243,7 +243,7 @@ export default function JsonFormatter() {
                 <div className="box"><i className="fa-solid fa-check"></i></div>
                 <span className="label-text">Sort keys</span>
               </label>
-              <label className="toggle-label" title="Automatically format JSON upon pasting">
+              <label className="j-toggle-label" title="Automatically format JSON upon pasting">
                 <input
                   type="checkbox"
                   checked={autoFormat}
@@ -252,7 +252,7 @@ export default function JsonFormatter() {
                 <span>Auto-format on paste</span>
               </label>
             </div>
-            <div className="controls-right">
+            <div className="j-controls-right">
               <button
                 className="secondary-button"
                 onClick={() => handleLocalFormat(input)}
@@ -262,7 +262,7 @@ export default function JsonFormatter() {
                 Format
               </button>
               <button
-                className="primary-button ai-glow"
+                className="primary-button j-ai-glow"
                 onClick={handleAiFix}
                 disabled={loading || !input.trim()}
               >
@@ -274,18 +274,18 @@ export default function JsonFormatter() {
 
         </div>
 
-        <div className="panel flex-panel">
+        <div className="panel j-flex-panel">
 
-          <div className="output-tabs">
+          <div className="j-output-tabs">
             <button
-              className={`output-tab-btn${viewMode === 'code' ? ' active' : ''}`}
+              className={`j-output-tab-btn${viewMode === 'code' ? ' j-active' : ''}`}
               onClick={() => setViewMode('code')}
             >
               <i className="fa-solid fa-code"></i>
               Code
             </button>
             <button
-              className={`output-tab-btn${viewMode === 'tree' ? ' active' : ''}`}
+              className={`j-output-tab-btn${viewMode === 'tree' ? ' j-active' : ''}`}
               onClick={() => setViewMode('tree')}
               disabled={!outputCode || !!errorMsg}
             >
@@ -293,14 +293,14 @@ export default function JsonFormatter() {
               Tree
             </button>
             <button
-              className={`output-tab-btn${viewMode === 'diff' ? ' active' : ''}`}
+              className={`j-output-tab-btn${viewMode === 'diff' ? ' j-active' : ''}`}
               onClick={() => setViewMode('diff')}
             >
               <i className="fa-solid fa-not-equal"></i>
               Diff
             </button>
             <button
-              className={`output-tab-btn zod-tab${viewMode === 'zod' ? ' active' : ''}`}
+              className={`j-output-tab-btn j-zod-tab${viewMode === 'zod' ? ' j-active' : ''}`}
               onClick={() => { setViewMode('zod'); if (!zodOutput) handleGenerateZod(); }}
               disabled={!outputCode}
             >
@@ -309,17 +309,17 @@ export default function JsonFormatter() {
             </button>
           </div>
 
-          <div className="results-container flex-results">
+          <div className="j-results-container flex-results">
 
             {viewMode === 'code' && (
               <>
-                <div className="output-header">
-                  <div className="indent-toggle">
-                    <span className="indent-toggle-label">Indent:</span>
+                <div className="j-output-header">
+                  <div className="j-indent-toggle">
+                    <span className="j-indent-toggle-label">Indent:</span>
                     {['2', '4', 'tab'].map((v) => (
                       <button
                         key={v}
-                        className={`indent-btn${indentSize === v ? ' active' : ''}`}
+                        className={`j-indent-btn${indentSize === v ? ' j-active' : ''}`}
                         onClick={() => setIndentSize(v)}
                       >
                         {v}
@@ -327,23 +327,23 @@ export default function JsonFormatter() {
                     ))}
                   </div>
 
-                  <div className="conversion-bar">
+                  <div className="j-conversion-bar">
                     <button
-                      className="convert-btn yaml-btn"
+                      className="j-convert-btn j-yaml-btn"
                       onClick={() => handleConvert('yaml')}
                       disabled={!outputCode || convertLoading}
                     >
                       YAML
                     </button>
                     <button
-                      className="convert-btn toml-btn"
+                      className="j-convert-btn j-toml-btn"
                       onClick={() => handleConvert('toml')}
                       disabled={!outputCode || convertLoading}
                     >
                       TOML
                     </button>
                     <button
-                      className="convert-btn csv-btn"
+                      className="j-convert-btn j-csv-btn"
                       onClick={() => handleConvert('csv')}
                       disabled={!outputCode || convertLoading}
                     >
@@ -352,38 +352,38 @@ export default function JsonFormatter() {
                   </div>
 
                   {outputCode && (
-                    <div className="output-stats">
-                      <span className="stat-badge chars">{outputCounts.chars.toLocaleString()} chars</span>
-                      <span className="stat-badge tokens">~{outputCounts.tokens.toLocaleString()} tokens</span>
+                    <div className="j-output-stats">
+                      <span className="j-stat-badge j-chars">{outputCounts.chars.toLocaleString()} chars</span>
+                      <span className="j-stat-badge j-tokens">~{outputCounts.tokens.toLocaleString()} tokens</span>
                     </div>
                   )}
                 </div>
 
-                <div className="jsonpath-bar">
+                <div className="j-jsonpath-bar">
                   <input
-                    className="jsonpath-input"
+                    className="j-jsonpath-input"
                     placeholder="JSONPath query (e.g. $.users[*].id)"
                     value={jsonPathQuery}
                     onChange={(e) => setJsonPathQuery(e.target.value)}
                     disabled={!outputCode}
                   />
                   {jsonPathResult?.values?.length > 0 && (
-                    <span className="jsonpath-result-count">
+                    <span className="j-jsonpath-result-count">
                       {jsonPathResult.values.length} match{jsonPathResult.values.length !== 1 ? 'es' : ''}
                     </span>
                   )}
                 </div>
 
                 {jsonPathQuery && jsonPathResult?.values?.length > 0 && (
-                  <div className="jsonpath-results-panel">
-                    <div className="jsonpath-results-header">
+                  <div className="j-jsonpath-results-panel">
+                    <div className="j-jsonpath-results-header">
                       <span>Query Results</span>
                     </div>
-                    <div className="jsonpath-results-body">
+                    <div className="j-jsonpath-results-body">
                       {jsonPathResult.values.map((val, idx) => (
-                        <div key={idx} className="jsonpath-result-item">
-                          <span className="jsonpath-result-path">{jsonPathResult.paths[idx]}</span>
-                          <span className="jsonpath-result-value">
+                        <div key={idx} className="j-jsonpath-result-item">
+                          <span className="j-jsonpath-result-path">{jsonPathResult.paths[idx]}</span>
+                          <span className="j-jsonpath-result-value">
                             {typeof val === 'object' ? JSON.stringify(val) : String(val)}
                           </span>
                         </div>
@@ -393,13 +393,13 @@ export default function JsonFormatter() {
                 )}
 
                 {conversionResult ? (
-                  <div className="converted-output-panel">
-                    <div className="converted-output-header">
-                      <span className={`converted-format-badge ${conversionResult.format}`}>
+                  <div className="j-converted-output-panel">
+                    <div className="j-converted-output-header">
+                      <span className={`j-converted-format-badge j-${conversionResult.format}`}>
                         {conversionResult.format.toUpperCase()} Output
                       </span>
                       <button
-                        className="icon-btn-sm"
+                        className="j-icon-btn-sm"
                         onClick={() => setConversionResult(null)}
                       >
                         <i className="fa-solid fa-arrow-left"></i>
@@ -409,9 +409,9 @@ export default function JsonFormatter() {
                     <textarea
                       value={conversionResult.content}
                       readOnly
-                      className="json-textarea output-textarea"
+                      className="j-json-textarea j-output-textarea"
                     />
-                    <div className="output-copy-row">
+                    <div className="j-output-copy-row">
                       <CopyButton codeToCopy={conversionResult.content} />
                       <button
                         className="secondary-button"
@@ -426,18 +426,18 @@ export default function JsonFormatter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="output-wrapper json-output-box">
+                  <div className="j-json-output-box">
                     <textarea
                       value={outputCode}
                       onChange={(e) => setOutputCode(e.target.value)}
-                      className="json-textarea output-textarea"
+                      className="j-json-textarea j-output-textarea"
                       spellCheck="false"
                       placeholder="Formatted JSON will appear here…"
                     />
-                    <div className="output-copy-row">
+                    <div className="j-output-copy-row">
                       <CopyButton codeToCopy={outputCode} />
                       <button
-                        className="icon-btn-sm"
+                        className="j-icon-btn-sm"
                         onClick={handleMinify}
                         title="Minify JSON"
                         disabled={!outputCode}
@@ -457,9 +457,9 @@ export default function JsonFormatter() {
                   </div>
                 )}
 
-                <div className="schema-validation-panel">
+                <div className="j-schema-validation-panel">
                   <div
-                    className="schema-validation-header"
+                    className="j-schema-validation-header"
                     onClick={() => {
                       if (!jsonSchemaText) {
                         setJsonSchemaText('{\n  "type": "object",\n  "properties": {}\n}');
@@ -468,9 +468,9 @@ export default function JsonFormatter() {
                       }
                     }}
                   >
-                    <div className="header-left">
+                    <div className="j-header-left">
                       <div
-                        className={`schema-status-dot ${
+                        className={`j-schema-status-dot j-${
                           schemaErrors.length
                             ? 'invalid'
                             : jsonSchemaText && outputCode
@@ -485,24 +485,24 @@ export default function JsonFormatter() {
                     ></i>
                   </div>
                   {jsonSchemaText !== '' && (
-                    <div className="schema-validation-body">
+                    <div className="j-schema-validation-body">
                       <textarea
-                        className="schema-textarea"
+                        className="j-schema-textarea"
                         placeholder="Paste JSON Schema here to validate your output…"
                         value={jsonSchemaText}
                         onChange={(e) => setJsonSchemaText(e.target.value)}
                       />
                       {schemaErrors.length > 0 ? (
-                        <div className="schema-errors-list">
+                        <div className="j-schema-errors-list">
                           {schemaErrors.map((err, i) => (
-                            <div key={i} className="schema-error-item">
-                              <span className="schema-error-path">{err.path}</span>
-                              <span className="schema-error-msg">{err.message}</span>
+                            <div key={i} className="j-schema-error-item">
+                              <span className="j-schema-error-path">{err.path}</span>
+                              <span className="j-schema-error-msg">{err.message}</span>
                             </div>
                           ))}
                         </div>
                       ) : jsonSchemaText && outputCode ? (
-                        <div className="schema-valid-msg">
+                        <div className="j-schema-valid-msg">
                           <i className="fa-solid fa-circle-check"></i>
                           Passes validation
                         </div>
@@ -514,7 +514,7 @@ export default function JsonFormatter() {
             )}
 
             {viewMode === 'tree' && (
-              <div className="tree-view-container">
+              <div className="j-tree-view-container">
                 <JsonView
                   src={getJsonForTree()}
                   theme={isDarkTheme ? 'ocean' : 'rjv-default'}
@@ -531,28 +531,28 @@ export default function JsonFormatter() {
 
             {viewMode === 'diff' && (
               <>
-                <div className="diff-container">
-                  <div className="diff-input-col">
-                    <div className="diff-label left">
+                <div className="j-diff-container">
+                  <div className="j-diff-input-col">
+                    <div className="j-diff-label j-left">
                       <i className="fa-solid fa-circle-minus"></i>
                       Original (A)
                     </div>
                     <textarea
                       value={outputCode}
                       readOnly
-                      className="json-textarea diff-textarea"
+                      className="j-json-textarea j-diff-textarea"
                       placeholder="Format JSON first to populate A…"
                     />
                   </div>
-                  <div className="diff-input-col">
-                    <div className="diff-label right">
+                  <div className="j-diff-input-col">
+                    <div className="j-diff-label j-right">
                       <i className="fa-solid fa-circle-plus"></i>
                       Compare Against (B)
                     </div>
                     <textarea
                       value={diffInput}
                       onChange={(e) => setDiffInput(e.target.value)}
-                      className="json-textarea diff-textarea"
+                      className="j-json-textarea j-diff-textarea"
                       placeholder="Paste JSON here to find differences…"
                     />
                   </div>
@@ -561,21 +561,21 @@ export default function JsonFormatter() {
                 {diffInput && diffResult && (
                   <>
                     {diffCounts && (
-                      <div className="diff-summary">
-                        <span className="diff-badge added">+{diffCounts.added} added</span>
-                        <span className="diff-badge removed">−{diffCounts.removed} removed</span>
+                      <div className="j-diff-summary">
+                        <span className="j-diff-badge j-added">+{diffCounts.added} added</span>
+                        <span className="j-diff-badge j-removed">−{diffCounts.removed} removed</span>
                         {diffCounts.same > 0 && (
-                          <span className="diff-badge same">{diffCounts.same} changed</span>
+                          <span className="j-diff-badge j-same">{diffCounts.same} changed</span>
                         )}
                       </div>
                     )}
-                    <div className="diff-result-panel">
+                    <div className="j-diff-result-panel">
                       {diffResult.length > 0 ? diffResult.map((diff, i) => (
-                        <div key={i} className={`diff-line ${diff.type}`}>
-                          <div className="diff-gutter">
+                        <div key={i} className={`j-diff-line j-${diff.type}`}>
+                          <div className="j-diff-gutter">
                             {diff.type === 'added' ? '+' : diff.type === 'removed' ? '−' : '~'}
                           </div>
-                          <div className="diff-content">
+                          <div className="j-diff-content">
                             <strong>{diff.path}</strong>
                             {': '}
                             {diff.type === 'added'
@@ -586,7 +586,7 @@ export default function JsonFormatter() {
                           </div>
                         </div>
                       )) : (
-                        <div className="diff-empty-msg">
+                        <div className="j-diff-empty-msg">
                           <i className="fa-solid fa-circle-check"></i>
                           No structural differences found.
                         </div>
@@ -598,11 +598,11 @@ export default function JsonFormatter() {
             )}
 
             {viewMode === 'zod' && (
-              <div className="zod-output-panel">
-                <div className="zod-meta-bar">
-                  <span className="zod-meta-badge">Zod Schema</span>
+              <div className="j-zod-output-panel">
+                <div className="j-zod-meta-bar">
+                  <span className="j-zod-meta-badge">Zod Schema</span>
                   <button
-                    className="zod-action-btn"
+                    className="j-zod-action-btn"
                     onClick={handleGenerateZod}
                     disabled={!outputCode || zodLoading}
                   >
@@ -612,7 +612,7 @@ export default function JsonFormatter() {
                     Regenerate
                   </button>
                   <button
-                    className="zod-action-btn"
+                    className="j-zod-action-btn"
                     onClick={handleZodToExample}
                     disabled={!zodOutput}
                   >
@@ -620,7 +620,7 @@ export default function JsonFormatter() {
                     Gen Example JSON
                   </button>
                   {zodOutput && (
-                    <div className="zod-actions-right">
+                    <div className="j-zod-actions-right">
                       <CopyButton codeToCopy={zodOutput} />
                       <button
                         className="secondary-button"
@@ -635,19 +635,19 @@ export default function JsonFormatter() {
                 <textarea
                   value={zodOutput}
                   readOnly
-                  className="json-textarea output-textarea zod-textarea"
+                  className="j-json-textarea j-output-textarea j-zod-textarea"
                   placeholder="Zod schema will be inferred here…"
                 />
               </div>
             )}
 
             {explanation && (
-              <div className="ai-summary json-explanation">
+              <div className="ai-summary j-json-explanation">
                 <strong>
                   <i className="fa-solid fa-clipboard-check"></i>
                   Action Log
                 </strong>
-                <div className="explanation-content">{explanation}</div>
+                <div className="j-explanation-content">{explanation}</div>
               </div>
             )}
 
