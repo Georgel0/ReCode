@@ -34,7 +34,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
   };
 
   return (
-    <div className="c-tabs" aria-label="Open files">
+    <div className="c-tabs" role="tablist" aria-label="Open files">
       {files.map((f) => (
         <button
           key={f.id}

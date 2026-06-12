@@ -367,7 +367,11 @@ export function ConversionNotesPanel({ notes, activeTabId, open, onToggle }) {
       <div className="c-collapse-wrapper">
         <div className="c-collapse-inner">
           <div className="c-notes__body">
-            <div className="c-notes__content" dangerouslySetInnerHTML={{ __html: activeNotes.replace(/\n/g, '<br/>') }} />
+            <div className="c-notes__content">
+              {activeNotes.split('\n').map((line, i) => (
+                <span key={i}>{line}<br /></span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -423,21 +427,19 @@ export function HistoryPanel({ history, activeTabId, open, onToggle, onRestore }
 
 export function LineSelector({ content, selectedRange, onRangeChange }) {
   const lines = (content || '').split('\n');
-  const [selecting, setSelecting] = useState(false);
-  const [selectStart, setSelectStart] = useState(null);
+  const selectStartRef = useRef(null);
   const selectingRef = useRef(false);
 
   const handleLineMouseDown = (idx) => {
     selectingRef.current = true;
-    setSelecting(true);
-    setSelectStart(idx);
+    selectStartRef.current = idx;
     onRangeChange({ start: idx, end: idx });
   };
   const handleLineMouseEnter = (idx) => {
-    if (!selectingRef.current) return;
-    onRangeChange({ start: Math.min(selectStart, idx), end: Math.max(selectStart, idx) });
+    if (!selectingRef.current || selectStartRef.current === null) return;
+    onRangeChange({ start: Math.min(selectStartRef.current, idx), end: Math.max(selectStartRef.current, idx) });
   };
-  const handleMouseUp = () => { selectingRef.current = false; setSelecting(false); };
+  const handleMouseUp = () => { selectingRef.current = false; };
 
   useEffect(() => {
     window.addEventListener('mouseup', handleMouseUp);

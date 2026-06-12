@@ -71,7 +71,7 @@ export function useCodeConverter() {
   }, []);
 
   useEffect(() => {
-    saveDraft({ files, outputFiles, targetLang, targetFramework });
+    saveDraft({ files, outputFiles, targetLang, targetFramework, activeTabId });
   }, [files, outputFiles, targetLang, targetFramework, saveDraft]);
 
   const saveHistoryToIdb = useCallback(
@@ -162,7 +162,11 @@ export function useCodeConverter() {
     setActiveTabId(newId);
     setLintStatus('idle');
     setConversionNotes({});
+    setConversionHistory({});
     setSelectedRange(null);
+    setHistoryPanelOpen(false);
+    setNotesOpen(false);
+    setDiffMode(false);
   };
 
   const removeFile = (idToRemove) => {
@@ -246,7 +250,6 @@ export function useCodeConverter() {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     setLintStatus('idle');
-    setOutputFiles([]);
     setConversionNotes({});
 
     try {
@@ -286,7 +289,9 @@ export function useCodeConverter() {
       if (result && Array.isArray(result.files)) {
         const mapped = result.files.map((rf, i) => ({
           ...rf,
-          sourceId: rf.sourceId ?? files.find(f => f.name === rf.fileName)?.id
+          sourceId: rf.sourceId
+            ?? files.find(f => f.name === rf.fileName)?.id
+            ?? files[i]?.id  // positional fallback — same order as input
         }));
         setOutputFiles(mapped);
 
@@ -375,7 +380,7 @@ export function useCodeConverter() {
 
     let formatted = targetFile.content;
     try {
-      if (targetFile.language === 'json' || targetFile.name?.endsWith('.json')) {
+      if (targetLang === 'json' || targetFile.fileName?.endsWith('.json') || targetFile.name?.endsWith('.json')) {
         formatted = JSON.stringify(JSON.parse(formatted), null, 2);
       } else {
         let indentLevel = 0;
@@ -418,7 +423,7 @@ export function useCodeConverter() {
 
   const handleConfirmDraft = () => {
     setFiles(pendingDraft.files);
-    setActiveTabId(pendingDraft.files[0]?.id);
+    setActiveTabId(pendingDraft.activeTabId ?? pendingDraft.files[0]?.id);
     if (pendingDraft.outputFiles?.length > 0) setOutputFiles(pendingDraft.outputFiles);
     if (pendingDraft.targetLang) setTargetLang(pendingDraft.targetLang);
     if (pendingDraft.targetFramework) setTargetFramework(pendingDraft.targetFramework);
