@@ -9,7 +9,7 @@ import { saveAs } from 'file-saver';
 const MAX_HISTORY_PER_FILE = 3;
 
 export function useCodeConverter() {
-  const { qualityMode } = useApp();
+  const { qualityMode, moduleData, setModuleData } = useApp();
 
   const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
   const [outputFiles, setOutputFiles] = useState([]);
@@ -23,7 +23,11 @@ export function useCodeConverter() {
   const [selectedRange, setSelectedRange] = useState(null); // { start, end } line indices
 
   const [loading, setLoading] = useState(false);
-  const [lintStatus, setLintStatus] = useState('idle');
+  const [formatting, setFormatting] = useState(false);
+  // lintResult: null | { status: 'linting'|'success'|'error'|'warning', summary, errors, warnings }
+  const [lintResult, setLintResult] = useState(null);
+  const [linting, setLinting] = useState(false);
+  const [toasts, setToasts] = useState([]);
   const [pendingDraft, setPendingDraft] = useState(null);
 
   const [diffMode, setDiffMode] = useState(false);
@@ -71,8 +75,8 @@ export function useCodeConverter() {
   }, []);
 
   useEffect(() => {
-    saveDraft({ files, outputFiles, targetLang, targetFramework, activeTabId });
-  }, [files, outputFiles, targetLang, targetFramework, saveDraft]);
+    saveDraft({ files, outputFiles, targetLang, targetFramework, activeTabId, conversionNotes });
+  }, [files, outputFiles, targetLang, targetFramework, conversionNotes, saveDraft]);
 
   const saveHistoryToIdb = useCallback(
     debounce(async (history) => {
@@ -89,7 +93,6 @@ export function useCodeConverter() {
     };
   }, []);
 
-  // Load history from IDB on mount
   useEffect(() => {
     const loadHistory = async () => {
       try {
@@ -99,6 +102,19 @@ export function useCodeConverter() {
     };
     loadHistory();
   }, []);
+
+  useEffect(() => {
+    if (!moduleData || moduleData.type !== 'converter') return;
+    if (Array.isArray(moduleData.input) && moduleData.input.length > 0) {
+      setFiles(moduleData.input);
+      setActiveTabId(moduleData.input[0].id);
+    }
+    if (Array.isArray(moduleData.outputFiles) && moduleData.outputFiles.length > 0) setOutputFiles(moduleData.outputFiles);
+    if (moduleData.targetLang) setTargetLang(moduleData.targetLang);
+    if (moduleData.targetFramework) setTargetFramework(moduleData.targetFramework);
+    if (moduleData.conversionNotes && Object.keys(moduleData.conversionNotes).length > 0) setConversionNotes(moduleData.conversionNotes);
+    setModuleData(null);
+  }, [moduleData]);
 
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
@@ -222,10 +238,12 @@ export function useCodeConverter() {
     return filesArray.map(f => {
       const importMatches = [];
       const lines = f.content.split('\n');
+
       lines.forEach(line => {
         // match: import ... from './foo' or require('./foo')
         const m = line.match(/(?:import|require)\s*(?:\(?\s*['"]([^'"]+)['"]\s*\)?|[^'"]*from\s*['"]([^'"]+)['"])/);
         const importPath = m?.[1] || m?.[2];
+
         if (importPath) {
           const baseName = importPath.split('/').pop();
           // Try to find a matching file
@@ -246,10 +264,20 @@ export function useCodeConverter() {
     });
   };
 
+  const addToast = useCallback((type, message, detail = null) => {
+    const id = crypto.randomUUID();
+    setToasts(prev => [...prev, { id, type, message, detail }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+  }, []);
+
+  const dismissToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
   const handleConvert = async (feedbackOverride = null) => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
-    setLintStatus('idle');
+    setLintResult(null);
     setConversionNotes({});
 
     try {
@@ -303,6 +331,17 @@ export function useCodeConverter() {
         if (result.notes) newNotes['__global__'] = result.notes;
         if (Object.keys(newNotes).length > 0) setConversionNotes(newNotes);
 
+        const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
+        setModuleData(sanitize({
+          type: 'converter',
+          input: files,
+          outputFiles: mapped,
+          targetLang,
+          targetFramework,
+          conversionNotes: newNotes,
+          timestamp: new Date().toISOString(),
+        }));
+
         // Save to history
         const timestamp = new Date().toISOString();
         setConversionHistory(prev => {
@@ -349,60 +388,131 @@ export function useCodeConverter() {
     setHistoryPanelOpen(false);
   };
 
-  const runLinter = async () => {
-    setLintStatus('linting');
-    setTimeout(() => {
-      if (!activeOutputFile) { setLintStatus('error'); return; }
-      const code = activeOutputFile.content;
+  // Syntax checker
+  const runNativeLint = (code, lang) => {
+    // JSON
+    if (lang === 'json') {
       try {
-        if (targetLang === 'json') {
-          JSON.parse(code);
-        } else {
-          const stack = [];
-          const pairs = { '(': ')', '{': '}', '[': ']' };
-          for (const char of code) {
-            if (pairs[char]) stack.push(char);
-            else if (Object.values(pairs).includes(char)) {
-              if (!stack.length || pairs[stack.pop()] !== char)
-                throw new Error(`Mismatched bracket: ${char}`);
-            }
-          }
-          if (stack.length) throw new Error(`Unclosed: ${stack.pop()}`);
-        }
-        setLintStatus('success');
-      } catch { setLintStatus('error'); }
-    }, 500);
+        JSON.parse(code);
+        return { valid: true, errors: [], warnings: [], summary: 'Valid JSON.' };
+      } catch (e) {
+        // Extract line/col from the native error message where possible
+        const match = e.message.match(/line (\d+) column (\d+)/i);
+        return {
+          valid: false,
+          errors: [{ line: match ? +match[1] : null, col: match ? +match[2] : null, message: e.message }],
+          warnings: [],
+          summary: 'Invalid JSON: 1 syntax error.',
+        };
+      }
+    }
+
+    // HTML — DOMParser gives us real parse errors
+    if (lang === 'html') {
+      const doc = new DOMParser().parseFromString(code, 'text/html');
+      const errs = Array.from(doc.querySelectorAll('parsererror, parsererror *'))
+        .filter(el => el.textContent.trim())
+        .map(el => ({ line: null, col: null, message: el.textContent.trim() }));
+      if (errs.length) return { valid: false, errors: errs, warnings: [], summary: `${errs.length} HTML parse error(s).` };
+      return { valid: true, errors: [], warnings: [], summary: 'Well-formed HTML.' };
+    }
+
+    return null; // no native parser for this language → fall through to AI
   };
 
-  const formatActiveCode = (isOutput = false) => {
-    const targetFile = isOutput ? activeOutputFile : activeFile;
-    if (!targetFile || !targetFile.content) return;
+  const runLinter = async () => {
+    if (!activeOutputFile?.content) return;
+    setLinting(true);
+    setLintResult(null);
 
-    let formatted = targetFile.content;
-    try {
-      if (targetLang === 'json' || targetFile.fileName?.endsWith('.json') || targetFile.name?.endsWith('.json')) {
-        formatted = JSON.stringify(JSON.parse(formatted), null, 2);
-      } else {
-        let indentLevel = 0;
-        formatted = formatted.split('\n').map(line => {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('}') || trimmed.startsWith(']'))
-            indentLevel = Math.max(0, indentLevel - 1);
-          const out = '  '.repeat(indentLevel) + trimmed;
-          if (trimmed.endsWith('{') || trimmed.endsWith('['))
-            indentLevel++;
-          return out;
-        }).join('\n');
-      }
-    } catch {
-      alert('Could not format: the content is not valid JSON.');
+    const code = activeOutputFile.content;
+    const lang = targetLang;
+
+    const nativeResult = runNativeLint(code, lang);
+    if (nativeResult) {
+      const status = nativeResult.valid ? 'success' : 'error';
+      setLintResult({ status, ...nativeResult });
+      addToast(
+        status,
+        nativeResult.valid ? 'Syntax check passed' : 'Syntax errors found',
+        nativeResult.summary
+      );
+      setLinting(false);
       return;
     }
 
-    if (!isOutput) {
-      updateFile(targetFile.id || activeTabId, formatted);
-    } else {
-      setOutputFiles(prev => prev.map(f => f.sourceId === targetFile.sourceId ? { ...f, content: formatted } : f));
+    try {
+      const result = await convertCode('linter', JSON.stringify({ code, lang }), { lang });
+      if (!result) throw new Error('No response from linter');
+
+      const status = result.valid ? 'success' : (result.errors?.length ? 'error' : 'warning');
+      setLintResult({
+        status,
+        valid: result.valid,
+        errors: result.errors || [],
+        warnings: result.warnings || [],
+        summary: result.summary || (result.valid ? 'No errors found.' : 'Errors detected.'),
+      });
+      addToast(
+        status,
+        result.valid ? 'Syntax check passed' : 'Syntax errors found',
+        result.summary
+      );
+    } catch (e) {
+      addToast('error', 'Linter failed', e.message);
+      setLintResult({ status: 'error', valid: false, errors: [], warnings: [], summary: 'Linter failed to run.' });
+    } finally {
+      setLinting(false);
+    }
+  };
+
+  const formatActiveCode = async (isOutput = false) => {
+    const targetFile = isOutput ? activeOutputFile : activeFile;
+    if (!targetFile?.content?.trim()) return;
+
+    const lang = isOutput ? targetLang : (activeFile?.language || 'plaintext');
+    const isJson = lang === 'json'
+      || targetFile.fileName?.endsWith('.json')
+      || targetFile.name?.endsWith('.json');
+
+    // Fast path — JSON never needs an AI call
+    if (isJson) {
+      try {
+        const formatted = JSON.stringify(JSON.parse(targetFile.content), null, 2);
+        if (isOutput) {
+          setOutputFiles(prev => prev.map(f => f.sourceId === targetFile.sourceId ? { ...f, content: formatted } : f));
+        } else {
+          updateFile(targetFile.id || activeTabId, formatted);
+        }
+        addToast('success', 'Formatted', 'JSON pretty-printed successfully.');
+      } catch {
+        addToast('error', 'Format failed', 'Content is not valid JSON.');
+      }
+      return;
+    }
+
+    // AI path for all other languages
+    setFormatting(true);
+    try {
+      const result = await convertCode('formatter', targetFile.content, { lang });
+      if (!result?.content) throw new Error('No output returned.');
+
+      if (isOutput) {
+        setOutputFiles(prev => prev.map(f =>
+          f.sourceId === targetFile.sourceId ? { ...f, content: result.content } : f
+        ));
+      } else {
+        updateFile(targetFile.id || activeTabId, result.content);
+      }
+
+      const detail = result.changes?.length
+        ? result.changes.slice(0, 3).join(' · ')
+        : 'No changes needed.';
+      addToast('success', 'Formatted', detail);
+    } catch (e) {
+      addToast('error', 'Format failed', e.message);
+    } finally {
+      setFormatting(false);
     }
   };
 
@@ -427,6 +537,7 @@ export function useCodeConverter() {
     if (pendingDraft.outputFiles?.length > 0) setOutputFiles(pendingDraft.outputFiles);
     if (pendingDraft.targetLang) setTargetLang(pendingDraft.targetLang);
     if (pendingDraft.targetFramework) setTargetFramework(pendingDraft.targetFramework);
+    if (pendingDraft.conversionNotes) setConversionNotes(pendingDraft.conversionNotes);
     setPendingDraft(null);
   };
 
@@ -439,7 +550,8 @@ export function useCodeConverter() {
     files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
     selectedRange, setSelectedRange,
-    loading, lintStatus, pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
+    loading, formatting, linting, lintResult, toasts, dismissToast,
+    pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
     diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
     feedbackText, setFeedbackText, handleReconvert,

@@ -97,6 +97,40 @@ export const PROMPT_CONFIG = {
     schema: OUTPUT_SCHEMAS.converter,
   },
 
+  formatter: {
+    system: (ctx) => withSchema(
+      `You are a Code Formatter. Your only job is to format the provided ${ctx?.lang || 'code'} for readability.
+
+      Rules:
+      1. DO NOT change any logic, variable names, or behaviour — formatting only.
+      2. Fix indentation (use 2 spaces), normalize blank lines, align operators where idiomatic.
+      3. Apply the standard style conventions for ${ctx?.lang || 'the language'} (e.g. PEP 8 for Python, gofmt style for Go).
+      4. In 'changes', list only the categories of changes made (max 5 bullets). If nothing needed fixing, say so.
+      5. Do NOT wrap code in markdown fences.`,
+      `{ "content": "string (formatted code)", "changes": ["string"] }`
+    ),
+    user: (input) => `Format this code:\n\n${input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.formatter,
+  },
+
+  linter: {
+    system: (ctx) => withSchema(
+      `You are a Syntax Checker for ${ctx?.lang || 'code'}. Perform a strict syntax-only analysis.
+
+      Rules:
+      1. Check ONLY for syntax errors — undefined variables, type mismatches, and logic bugs are OUT OF SCOPE.
+      2. For each error: provide the exact 1-based line number if determinable, and a clear message.
+      3. Warnings are for non-fatal issues: deprecated syntax, shadowed names, or dialect quirks.
+      4. If the code is syntactically valid, return valid: true and an empty errors array.
+      5. Be precise — do not hallucinate errors that aren't there.`,
+      `{ "valid": boolean, "errors": [{ "line": number|null, "col": number|null, "message": "string" }], "warnings": [{ "line": number|null, "col": number|null, "message": "string" }], "summary": "string" }`
+    ),
+    user: (input) => `Check this ${input.lang || 'code'} for syntax errors:\n\n${input.code || input}`,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.linter,
+  },
+
   generator: {
     system: (ctx) => {
       const language = ctx?.language || 'Auto-detect';

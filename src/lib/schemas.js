@@ -22,6 +22,28 @@ export const OUTPUT_SCHEMAS = {
     explanation: z.string().describe('Bulleted list of specific syntax errors fixed'),
   }),
 
+  // Code formatter
+  formatter: z.object({
+    content: z.string().describe('The fully formatted code, preserving all logic exactly'),
+    changes: z.array(z.string()).describe('Short bullet list of formatting changes applied (e.g. "Fixed indentation", "Normalized spacing around operators")'),
+  }),
+
+  // Syntax / lint checker
+  linter: z.object({
+    valid: z.boolean().describe('true if no syntax errors were found'),
+    errors: z.array(z.object({
+      line: z.number().nullable().describe('1-based line number, or null if not locatable'),
+      col: z.number().nullable().describe('1-based column number, or null'),
+      message: z.string().describe('Clear description of the syntax error'),
+    })).describe('Empty array when valid is true'),
+    warnings: z.array(z.object({
+      line: z.number().nullable(),
+      col: z.number().nullable(),
+      message: z.string(),
+    })).optional().describe('Non-fatal style or compatibility warnings'),
+    summary: z.string().describe('One-sentence human-readable verdict, e.g. "No errors found." or "2 syntax errors detected."'),
+  }),
+
   // Code refactor / translate (multi-file)
   refactor: z.object({
     files: z.array(z.object({

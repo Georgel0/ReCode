@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor, CodeOutput, ConfirmModal, CodeAnalysisInfoIcon } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
+import { useApp } from '@/context';
 import { ConverterTabs } from './ConverterTabs';
 import { useCodeConverter } from './useCodeConverter';
 import { buildDiffRows, DiffView, ConversionNotesPanel, HistoryPanel, LineSelector } from './components';
@@ -22,11 +24,15 @@ const FRAMEWORKS = [
 ];
 
 export default function CodeConverter() {
+  const { setModuleData } = useApp();
+  const router = useRouter();
+
   const {
     files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
     selectedRange, setSelectedRange,
-    loading, lintStatus, pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
+    loading, formatting, linting, lintResult, toasts, dismissToast,
+    pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
     diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
     feedbackText, setFeedbackText, handleReconvert,
@@ -39,10 +45,44 @@ export default function CodeConverter() {
   const [selectionMode, setSelectionMode] = useState(false);
   const hasOutput = outputFiles.length > 0;
 
+  const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
+
+  const lastResult = hasOutput
+    ? sanitize({ type: 'converter', input: files, outputFiles, targetLang, targetFramework, conversionNotes })
+    : null;
+
+  const handleSendToAnalysis = () => {
+    if (!activeFile?.content) return;
+    setModuleData({
+      type: 'analysis',
+      input: activeOutputFile?.content || activeFile.content,
+      sourceModule: 'converter',
+    });
+    router.push('/code-analysis');
+  };
+
+  const handleSendToRefactor = () => {
+    if (!activeOutputFile?.content) return;
+    const ext = LANGUAGES.find(l => l.value === targetLang)?.ext || '.txt';
+    setModuleData({
+      type: 'refactor',
+      input: outputFiles.map(f => ({
+        id: f.sourceId,
+        name: f.fileName || `converted${ext}`,
+        language: targetLang,
+        content: f.content,
+      })),
+      sourceModule: 'converter',
+    });
+    router.push('/code-refactor');
+  };
+
   return (
     <div className="c-module">
       <ModuleHeader
         title="Code Converter"
+        description="Translate source files across languages and frameworks, with diff view, partial conversion, and syntax checking."
+        resultData={lastResult}
       />
 
       <div className="c-control-bar">
@@ -62,8 +102,13 @@ export default function CodeConverter() {
           >
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
-          <button className="secondary-button c-btn-icon" onClick={() => formatActiveCode(false)} title="Format source">
-            <i className="fa-solid fa-wand-magic"></i>
+          <button
+            className="secondary-button c-btn-icon"
+            onClick={() => formatActiveCode(false)}
+            disabled={formatting || !activeFile?.content?.trim()}
+            title="Format source"
+          >
+            <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i>
           </button>
         </div>
 
@@ -107,10 +152,10 @@ export default function CodeConverter() {
           <button
             className="secondary-button c-btn-icon"
             onClick={() => formatActiveCode(true)}
-            disabled={!hasOutput}
+            disabled={!hasOutput || formatting}
             title="Format output"
           >
-            <i className="fa-solid fa-wand-magic"></i>
+            <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i>
           </button>
           {hasOutput && (
             <button
@@ -197,6 +242,20 @@ export default function CodeConverter() {
             <div className="c-panel__actions">
               {hasOutput && (
                 <>
+                  <button
+                    className="secondary-button"
+                    onClick={handleSendToAnalysis}
+                    title="Audit converted output in Code Analysis"
+                  >
+                    <i className="fa-solid fa-magnifying-glass-chart"></i> Audit
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={handleSendToRefactor}
+                    title="Refactor converted output"
+                  >
+                    <i className="fa-solid fa-wand-magic-sparkles"></i> Refactor
+                  </button>
                   <button className="secondary-button" onClick={downloadSingleFile} title="Download File">
                     <i className="fa-solid fa-file-arrow-down"></i> File
                   </button>
@@ -247,6 +306,23 @@ export default function CodeConverter() {
         </div>
       </div>
 
+      {toasts.length > 0 && (
+        <div className="c-toast-stack">
+          {toasts.map(t => (
+            <div key={t.id} className={`c-toast c-toast--${t.type}`}>
+              <i className={`fa-solid ${t.type === 'success' ? 'fa-check-circle' : t.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`}></i>
+              <div className="c-toast__body">
+                <span className="c-toast__msg">{t.message}</span>
+                {t.detail && <span className="c-toast__detail">{t.detail}</span>}
+              </div>
+              <button className="c-toast__close" onClick={() => dismissToast(t.id)}>
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {hasOutput && (
         <div className="c-module-footer">
           <div className="c-module-footer__top-row">
@@ -254,20 +330,40 @@ export default function CodeConverter() {
               <button
                 className="secondary-button"
                 onClick={runLinter}
-                disabled={lintStatus === 'linting'}
+                disabled={linting}
               >
-                <i className={`fa-solid ${lintStatus === 'linting' ? 'fa-spinner fa-spin' : 'fa-stethoscope'}`}></i>
-                {' '}Check Syntax
+                <i className={`fa-solid ${linting ? 'fa-spinner fa-spin' : 'fa-stethoscope'}`}></i>
+                {' '}{linting ? 'Checking…' : 'Check Syntax'}
               </button>
-              {lintStatus === 'success' && (
-                <span className="c-lint__badge c-lint__badge--ok">
-                  <i className="fa-solid fa-check-circle"></i> Clean
-                </span>
-              )}
-              {lintStatus === 'error' && (
-                <span className="c-lint__badge c-lint__badge--error">
-                  <i className="fa-solid fa-triangle-exclamation"></i> Warnings
-                </span>
+
+              {lintResult && (
+                <div className={`c-lint-result c-lint-result--${lintResult.status}`}>
+                  <div className="c-lint-result__header">
+                    <i className={`fa-solid ${lintResult.status === 'success' ? 'fa-check-circle' : lintResult.status === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`}></i>
+                    <span>{lintResult.summary}</span>
+                  </div>
+
+                  {(lintResult.errors?.length > 0 || lintResult.warnings?.length > 0) && (
+                    <ul className="c-lint-result__list">
+                      {lintResult.errors?.map((e, i) => (
+                        <li key={`e${i}`} className="c-lint-result__item c-lint-result__item--error">
+                          {e.line != null && (
+                            <span className="c-lint-result__loc">L{e.line}{e.col != null ? `:${e.col}` : ''}</span>
+                          )}
+                          <span>{e.message}</span>
+                        </li>
+                      ))}
+                      {lintResult.warnings?.map((w, i) => (
+                        <li key={`w${i}`} className="c-lint-result__item c-lint-result__item--warning">
+                          {w.line != null && (
+                            <span className="c-lint-result__loc">L{w.line}{w.col != null ? `:${w.col}` : ''}</span>
+                          )}
+                          <span>{w.message}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               )}
             </div>
           </div>
