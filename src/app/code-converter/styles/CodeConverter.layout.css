@@ -479,6 +479,22 @@
   }
 }
 
+@media (max-width: 1450px) {
+  .c-control-bar__group {
+    flex: none;
+  }
+
+  .c-text-to-hide {
+    display: none;
+  }
+}
+
+@media (max-width: 1260px) {
+  .c-control-bar {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 1100px) {
   .c-control-bar {
     gap: 0.6rem;

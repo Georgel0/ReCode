@@ -253,20 +253,20 @@ export default function CodeConverter() {
                     onClick={handleSendToAnalysis}
                     title="Audit converted output in Code Analysis"
                   >
-                    <i className="fa-solid fa-magnifying-glass-chart"></i> Audit
+                    <i className="fa-solid fa-magnifying-glass-chart"></i> <span className="c-text-to-hide">Audit</span>
                   </button>
                   <button
                     className="secondary-button"
                     onClick={handleSendToRefactor}
                     title="Refactor converted output"
                   >
-                    <i className="fa-solid fa-wand-magic-sparkles"></i> Refactor
+                    <i className="fa-solid fa-wand-magic-sparkles"></i> <span className="c-text-to-hide">Refactor</span>
                   </button>
                   <button className="secondary-button" onClick={downloadSingleFile} title="Download File">
-                    <i className="fa-solid fa-file-arrow-down"></i> File
+                    <i className="fa-solid fa-file-arrow-down"></i> <span className="c-text-to-hide">File</span>
                   </button>
                   <button className="secondary-button" onClick={downloadZip} title="Download ZIP">
-                    <i className="fa-solid fa-file-zipper"></i> ZIP
+                    <i className="fa-solid fa-file-zipper"></i> <span className="c-text-to-hide">ZIP</span>
                   </button>
                 </>
               )}

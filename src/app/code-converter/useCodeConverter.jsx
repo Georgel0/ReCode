@@ -60,7 +60,7 @@ export function useCodeConverter() {
   useEffect(() => {
     const loadDraft = async () => {
       if (moduleData?.type === 'converter') return;
-      
+
       try {
         const saved = await get('converter-draft-data');
         if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
@@ -181,7 +181,7 @@ export function useCodeConverter() {
     setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
     setOutputFiles([]);
     setActiveTabId(newId);
-    setLintStatus('idle');
+    setLintStatus(null);
     setConversionNotes({});
     setConversionHistory({});
     setSelectedRange(null);
