@@ -48,7 +48,13 @@ export default function CodeConverter() {
   const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
 
   const lastResult = hasOutput
-    ? sanitize({ type: 'converter', input: files, outputFiles, targetLang, targetFramework, conversionNotes })
+    ? sanitize({
+      type: 'converter',
+      input: files,
+      sourceLang: activeFile?.language || null,
+      targetLang,
+      output: { outputFiles, targetLang, targetFramework, conversionNotes }
+    })
     : null;
 
   const handleSendToAnalysis = () => {

@@ -284,7 +284,12 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
 
                         {item.input && (
                           <span className="history-snippet">
-                            {item.input.substring(0, 35)}{item.input.length > 35 ? '...' : ''}
+                            {(() => {
+                              const preview = Array.isArray(item.input)
+                                ? item.input.map(f => f.name).join(', ')
+                                : item.input;
+                              return <>{preview.substring(0, 35)}{preview.length > 35 ? '...' : ''}</>;
+                            })()}
                           </span>
                         )}
 
@@ -360,7 +365,12 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
                       {item.input && (
                         <div className="detail-snippet">
                           <strong>Input Snippet:</strong>
-                          <pre>{item.input.substring(0, 150)}{item.input.length > 150 ? '...' : ''}</pre>
+                          {(() => {
+                            const preview = Array.isArray(item.input)
+                              ? item.input.map(f => f.name).join(', ')
+                              : item.input;
+                            return <pre>{preview.substring(0, 150)}{preview.length > 150 ? '...' : ''}</pre>;
+                          })()}
                         </div>
                       )}
                     </div>

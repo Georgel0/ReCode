@@ -59,11 +59,12 @@ export function useCodeConverter() {
 
   useEffect(() => {
     const loadDraft = async () => {
+      if (moduleData?.type === 'converter') return;
+      
       try {
         const saved = await get('converter-draft-data');
         if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
           setPendingDraft(saved);
-          // Restore target settings immediately so the UI reflects them even before confirming
           if (saved.targetLang) setTargetLang(saved.targetLang);
           if (saved.targetFramework) setTargetFramework(saved.targetFramework);
         }
@@ -105,14 +106,18 @@ export function useCodeConverter() {
 
   useEffect(() => {
     if (!moduleData || moduleData.type !== 'converter') return;
+
     if (Array.isArray(moduleData.input) && moduleData.input.length > 0) {
       setFiles(moduleData.input);
       setActiveTabId(moduleData.input[0].id);
     }
-    if (Array.isArray(moduleData.outputFiles) && moduleData.outputFiles.length > 0) setOutputFiles(moduleData.outputFiles);
-    if (moduleData.targetLang) setTargetLang(moduleData.targetLang);
-    if (moduleData.targetFramework) setTargetFramework(moduleData.targetFramework);
-    if (moduleData.conversionNotes && Object.keys(moduleData.conversionNotes).length > 0) setConversionNotes(moduleData.conversionNotes);
+    const out = moduleData.output ?? moduleData.fullOutput ?? moduleData;
+
+    if (Array.isArray(out.outputFiles) && out.outputFiles.length > 0) setOutputFiles(out.outputFiles);
+    if (out.targetLang) setTargetLang(out.targetLang);
+    if (out.targetFramework) setTargetFramework(out.targetFramework);
+    if (out.conversionNotes && Object.keys(out.conversionNotes).length > 0) setConversionNotes(out.conversionNotes);
+
     setModuleData(null);
   }, [moduleData]);
 
@@ -335,10 +340,9 @@ export function useCodeConverter() {
         setModuleData(sanitize({
           type: 'converter',
           input: files,
-          outputFiles: mapped,
           targetLang,
-          targetFramework,
-          conversionNotes: newNotes,
+          sourceLang: activeFile?.language || null,
+          output: { outputFiles: mapped, targetLang, targetFramework, conversionNotes: newNotes },
           timestamp: new Date().toISOString(),
         }));
 

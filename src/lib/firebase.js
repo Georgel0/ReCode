@@ -137,7 +137,7 @@ export const cleanupOldHistory = async () => {
 
   try {
     const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 30);
 
     const q = query(historyRef, where("createdAt", "<", Timestamp.fromDate(tenDaysAgo)));
     const snapshot = await getDocs(q);
@@ -193,15 +193,16 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
   if (!historyRef) return;
 
   try {
+    const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
     const data = {
-      type,
-      input,
-      fullOutput: output,
+      ...sanitize({ 
+        type, 
+        input, 
+        fullOutput: output, 
+        sourceLang: sourceLang || null, 
+        targetLang: targetLang || null }),
       createdAt: serverTimestamp(),
-      ...(sourceLang && { sourceLang }),
-      ...(targetLang && { targetLang })
     };
-
     await addDoc(historyRef, data);
   } catch (e) {
     console.error("Error adding document: ", e);

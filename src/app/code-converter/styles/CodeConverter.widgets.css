@@ -81,7 +81,8 @@
 
 .c-lint {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   flex-wrap: wrap;
   flex: 1;
