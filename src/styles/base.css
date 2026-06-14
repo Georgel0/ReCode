@@ -48,15 +48,6 @@ h3 {
   font-weight: 600;
 }
 
-html[data-theme='midnight-gold'] h3,
-html[data-theme='quartz'] h3 {
-  border-bottom: 1px solid transparent;
-  border-image: var(--gradient-gold) 1;
-  border-image-slice: 1;
-  border-style: solid;
-  border-width: 0 0 1px 0;
-}
-
 select {
   -webkit-appearance: none;
   -moz-appearance: none;

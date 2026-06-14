@@ -28,7 +28,6 @@ export function useCodeConverter() {
   const [lintResult, setLintResult] = useState(null);
   const [linting, setLinting] = useState(false);
   const [toasts, setToasts] = useState([]);
-  const [pendingDraft, setPendingDraft] = useState(null);
 
   const [diffMode, setDiffMode] = useState(false);
 
@@ -64,9 +63,15 @@ export function useCodeConverter() {
       try {
         const saved = await get('converter-draft-data');
         if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
-          setPendingDraft(saved);
+          // Apply draft state directly
+          setFiles(saved.files);
+          setActiveTabId(saved.activeTabId ?? saved.files[0]?.id);
+          if (saved.outputFiles?.length > 0) setOutputFiles(saved.outputFiles);
           if (saved.targetLang) setTargetLang(saved.targetLang);
           if (saved.targetFramework) setTargetFramework(saved.targetFramework);
+          if (saved.conversionNotes) setConversionNotes(saved.conversionNotes);
+
+          addToast('success', 'Session restored', 'Your previous workspace was automatically loaded.');
         }
       } catch (err) {
         console.error("Draft load failed", err);
@@ -181,7 +186,7 @@ export function useCodeConverter() {
     setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
     setOutputFiles([]);
     setActiveTabId(newId);
-    setLintStatus(null);
+    setLintResult(null);
     setConversionNotes({});
     setConversionHistory({});
     setSelectedRange(null);
@@ -535,33 +540,17 @@ export function useCodeConverter() {
     saveAs(blob, activeOutputFile.fileName || fallback);
   };
 
-  const handleConfirmDraft = () => {
-    setFiles(pendingDraft.files);
-    setActiveTabId(pendingDraft.activeTabId ?? pendingDraft.files[0]?.id);
-    if (pendingDraft.outputFiles?.length > 0) setOutputFiles(pendingDraft.outputFiles);
-    if (pendingDraft.targetLang) setTargetLang(pendingDraft.targetLang);
-    if (pendingDraft.targetFramework) setTargetFramework(pendingDraft.targetFramework);
-    if (pendingDraft.conversionNotes) setConversionNotes(pendingDraft.conversionNotes);
-    setPendingDraft(null);
-  };
-
-  const handleCancelDraft = async () => {
-    await del('converter-draft-data');
-    setPendingDraft(null);
-  };
-
   return {
     files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
     selectedRange, setSelectedRange,
     loading, formatting, linting, lintResult, toasts, dismissToast,
-    pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
+    fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
     diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
     handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
-    handleConfirmDraft, handleCancelDraft
   };
 }

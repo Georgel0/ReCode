@@ -32,14 +32,13 @@ export default function CodeConverter() {
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
     selectedRange, setSelectedRange,
     loading, formatting, linting, lintResult, toasts, dismissToast,
-    pendingDraft, fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
+    fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
     diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
     handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
-    handleConfirmDraft, handleCancelDraft
   } = useCodeConverter();
 
   const [selectionMode, setSelectionMode] = useState(false);
@@ -189,13 +188,13 @@ export default function CodeConverter() {
           <div className="c-panel__header">
             <h3 className="c-panel__title"><i className="fa-solid fa-file-code"></i> Source Files</h3>
             <div className="c-panel__actions">
-              <button className="secondary-button" onClick={handleClearAll}>
+              <button className="secondary-button" onClick={handleClearAll} title="Clear Workspace">
                 <i className="fa-solid fa-trash-can"></i>
               </button>
-              <button className="secondary-button" onClick={() => fileInputRef.current.click()}>
+              <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">
                 <i className="fa-solid fa-cloud-arrow-up"></i> Upload
               </button>
-              <button className="secondary-button" onClick={handleAddFile}>
+              <button className="secondary-button" onClick={handleAddFile} title="Add File Tab">
                 <i className="fa-solid fa-plus"></i> Add
               </button>
             </div>
@@ -437,16 +436,6 @@ export default function CodeConverter() {
           />
         </div>
       )}
-
-      <ConfirmModal
-        isOpen={!!pendingDraft}
-        title="Continue Previous Session?"
-        message="You have unsaved files. Restore them?"
-        confirmText="Restore Files"
-        cancelText="Discard"
-        onConfirm={handleConfirmDraft}
-        onCancel={handleCancelDraft}
-      />
     </div>
   );
 }

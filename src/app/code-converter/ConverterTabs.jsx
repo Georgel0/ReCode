@@ -5,6 +5,8 @@ import React, { useState, useRef, useEffect } from 'react';
 export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, renameFile, readOnly = false }) {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
+
+  const isClosingRef = useRef(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +24,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
   };
 
   const handleRenameSubmit = (id) => {
+    isClosingRef.current = true;
     if (editName.trim()) {
       renameFile(id, editName.trim());
     }
@@ -30,13 +33,16 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
 
   const handleInputKeyDown = (e, id) => {
     if (e.key === 'Enter') handleRenameSubmit(id);
-    if (e.key === 'Escape') setEditingId(null);
+    if (e.key === 'Escape') {
+      isClosingRef.current = true;
+      setEditingId(null);
+    }
   };
 
   return (
     <div className="c-tabs" role="tablist" aria-label="Open files">
       {files.map((f) => (
-        <button
+        <div
           key={f.id}
           role="tab"
           aria-selected={activeTabId === f.id}
@@ -44,6 +50,12 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
           className={`c-tab${activeTabId === f.id ? ' c-tab--active' : ''}`}
           onClick={() => { if (editingId !== f.id) setActiveTabId(f.id); }}
           onDoubleClick={(e) => !readOnly && handleDoubleClick(e, f)}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && editingId !== f.id) {
+              e.preventDefault();
+              setActiveTabId(f.id);
+            }
+          }}
           title={!readOnly ? "Double click to rename" : ""}
         >
           <i className="fa-solid fa-file-code"></i>
@@ -55,7 +67,13 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
                 className="c-tab-input"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                onBlur={() => handleRenameSubmit(f.id)}
+                onBlur={() => {
+                  if (isClosingRef.current) {
+                    isClosingRef.current = false;
+                    return;
+                  }
+                  handleRenameSubmit(f.id);
+                }}
                 onKeyDown={(e) => handleInputKeyDown(e, f.id)}
                 onClick={(e) => e.stopPropagation()}
                 autoFocus
@@ -75,7 +93,7 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
               <i className="fa-solid fa-xmark"></i>
             </span>
           )}
-        </button>
+        </div>
       ))}
     </div>
   );
