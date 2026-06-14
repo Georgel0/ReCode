@@ -37,14 +37,14 @@ export function ToolFooter({ content }) {
             <span className="toggle-icon">▼</span>
           </summary>
           <div className="details-content">
-            <dl className="faq-list">
+            <div className="faq-list">
               {content.faq.map((item, index) => (
                 <div key={index} className="faq-item">
-                  <dt>{item.question}</dt>
-                  <dd>{item.answer}</dd>
+                  <h4>{item.question}</h4>
+                  <p>{item.answer}</p>
                 </div>
               ))}
-            </dl>
+            </div>
           </div>
         </details>
 

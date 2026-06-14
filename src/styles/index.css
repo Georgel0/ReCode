@@ -11,9 +11,9 @@ html[data-theme='recode-dark'],
   --danger: #ff4d4d;
   --danger-hover: #cc0000;
   --border: #343437;
-  --shadow-subtle: 0 4px 6px rgba(0, 0, 0, 0.2);
+  --shadow-subtle: 0 3px 4.5px rgba(0, 0, 0, 0.2);
   --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  --radius: 6px;
+  --radius: 4.5px;
   --btn-background: var(--accent);
   --btn-background-hover: var(--accent-hover);
   --btn-text: var(--text-on-accent);
@@ -37,7 +37,7 @@ html[data-theme='recode-dark'],
 html {
   scroll-behavior: smooth;
   height: auto;
-  min-height: 100%;
+  min-height: 75%;
 }
 
 body {
@@ -46,7 +46,7 @@ body {
   font-family: var(--font-family);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  min-height: 100vh;
+  min-height: 75vh;
   overflow-x: hidden;
   transition: background-color 0.3s, color 0.3s;
 }
@@ -56,13 +56,13 @@ body {
   align-items: center;
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 1.2rem;
+  font-size: 0.9rem;
 }
 
 .logo-image {
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
   background-color: var(--accent);
   -webkit-mask-image: url('/assets/logo.svg');
   mask-image: url('/assets/logo.svg');
@@ -117,7 +117,7 @@ body {
 }
 
 
-@media (max-width: 1100px) {
+@media (max-width: 825px) {
   .app-wrapper {
     overflow: hidden;
   }
@@ -128,7 +128,7 @@ body {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 675px) {
   .app-wrapper {
     overflow: hidden;
   }
@@ -139,18 +139,18 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 576px) {
   .app-wrapper {
     flex-direction: column;
   }
 
   .logo-group {
-    font-size: 1rem;
+    font-size: 0.75rem;
   }
 
   .logo-image {
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
   }
 }
 
@@ -166,8 +166,8 @@ html[data-theme='midnight-gold'] {
   --border: #33260f;
   --radius: 0;
   --text-on-accent: #000000;
-  --shadow-subtle: 0 4px 12px rgba(212, 175, 55, 0.2);
-  --gradient-gold: linear-gradient(160deg, #FFEC8B 5%, #D4AF37 30%, #B8860B 50%, #D4AF37 70%, #FFEC8B 95%);
+  --shadow-subtle: 0 3px 9px rgba(212, 175, 55, 0.2);
+  --gradient-gold: linear-gradient(160deg, #FFEC8B 3.75%, #D4AF37 22.5%, #B8860B 37.5%, #D4AF37 52.5%, #FFEC8B 71.25%);
   --btn-background: var(--gradient-gold);
   --btn-background-hover: var(--gradient-gold);
   --header-color: var(--gradient-gold);
@@ -187,7 +187,7 @@ html[data-theme='deep-sea'] {
   --accent-hover: #5e35b1;
   --border: #2a2e4a;
   --text-on-accent: #ffffff;
-  --shadow-subtle: 0 4px 12px rgba(126, 87, 194, 0.3);
+  --shadow-subtle: 0 3px 9px rgba(126, 87, 194, 0.3);
   --gradient-gold: none;
 }
 
@@ -205,7 +205,7 @@ html[data-theme='classic-light'] {
   --accent-hover: #3182ce;
   --border: #e2e8f0;
   --text-on-accent: #ffffff;
-  --shadow-subtle: 0 4px 12px rgba(66, 153, 225, 0.1);
+  --shadow-subtle: 0 3px 9px rgba(66, 153, 225, 0.1);
   --btn-background: var(--accent);
   --btn-background-hover: var(--accent-hover);
 }
@@ -225,8 +225,8 @@ html[data-theme='quartz'] {
   --border: #d4c19c;
   --radius: 0;
   --text-on-accent: #333333;
-  --shadow-subtle: 0 4px 12px rgba(184, 134, 11, 0.15);
-  --gradient-gold: linear-gradient(160deg, #FFEC8B 5%, #D4AF37 30%, #B8860B 50%, #D4AF37 70%, #FFEC8B 95%);
+  --shadow-subtle: 0 3px 9px rgba(184, 134, 11, 0.15);
+  --gradient-gold: linear-gradient(160deg, #FFEC8B 3.75%, #D4AF37 22.5%, #B8860B 37.5%, #D4AF37 52.5%, #FFEC8B 71.25%);
   --btn-background: var(--gradient-gold);
   --btn-background-hover: var(--gradient-gold);
   --header-color: var(--gradient-gold);
@@ -246,7 +246,7 @@ html[data-theme='mint'] {
   --accent-hover: #008b8b;
   --border: #cdeae6;
   --text-on-accent: #ffffff;
-  --shadow-subtle: 0 4px 12px rgba(32, 178, 170, 0.15);
+  --shadow-subtle: 0 3px 9px rgba(32, 178, 170, 0.15);
   --btn-background: var(--accent);
   --btn-background-hover: var(--accent-hover);
   --header-color: var(--accent-hover);
@@ -424,8 +424,8 @@ html[data-theme='mint'] select {
 }
 
 .code-editor {
-  --gutter-width: 52px;
-  --gutter-number-width: 36px;
+  --gutter-width: 39px;
+  --gutter-number-width: 27px;
   --editor-line-height: 1.6;
 }
 
@@ -460,7 +460,7 @@ html[data-theme='mint'] select {
   margin-right: calc(var(--gutter-width) - var(--gutter-number-width));
   text-align: right;
   color: #858585;
-  font-size: 13px;
+  font-size: 9.75px;
   line-height: inherit;
   vertical-align: top;
   opacity: 0.55;

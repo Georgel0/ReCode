@@ -19,13 +19,13 @@ textarea {
   flex: 1;
   background: var(--bg-primary);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  border: 0.75px solid var(--border);
   border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
   resize: none;
   font-family: monospace;
-  font-size: 0.9rem;
+  font-size: 0.67rem;
   line-height: 1.5;
   box-shadow: var(--shadow-subtle);
   outline: none;
@@ -43,8 +43,8 @@ h3 {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  border-bottom: 1px solid var(--bg-tertiary);
-  margin-bottom: 1.5rem;
+  border-bottom: 0.75px solid var(--bg-tertiary);
+  margin-bottom: 1rem;
   font-weight: 600;
 }
 
@@ -54,23 +54,23 @@ select {
   appearance: none;
   background-color: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  border: 0.75px solid var(--border);
   border-radius: var(--radius);
-  padding: .65rem 1.5rem;
+  padding: 0.4875rem 1.125rem;
   line-height: 1.5;
   cursor: pointer;
   transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%238b949e' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 0.8em;
-  padding-right: 3rem;
+  background-position: right 0.75rem center;
+  background-size: 0.6em;
+  padding-right: 2.25rem;
 }
 
 select:focus {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 0 2.25px rgba(56, 189, 248, 0.2);
 }
 
 select option {
@@ -79,8 +79,8 @@ select option {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -89,23 +89,23 @@ select option {
 
 ::-webkit-scrollbar-thumb {
   background: var(--bg-tertiary);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
 
-@media (max-width: 960px) {
+@media (max-width: 720px) {
   select {
-    padding: 0.55rem 2.5rem 0.55rem 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.4rem 1.87rem 0.4rem 0.56rem;
+    font-size: 0.675rem;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 645px) {
   h3 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 }
