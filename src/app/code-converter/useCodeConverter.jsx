@@ -8,6 +8,75 @@ import { saveAs } from 'file-saver';
 
 const MAX_HISTORY_PER_FILE = 3;
 
+function buildImportGraph(filesArray) {
+  const nameMap = {};
+  filesArray.forEach(f => { nameMap[f.name] = f.id; });
+
+  return filesArray.map(f => {
+    const importMatches = [];
+    const lines = f.content.split('\n');
+
+    lines.forEach(line => {
+      // match: import ... from './foo' or require('./foo')
+      const m = line.match(/(?:import|require)\s*(?:\(?\s*['"]([^'"]+)['"]\s*\)?|[^'"]*from\s*['"]([^'"]+)['"])/);
+      const importPath = m?.[1] || m?.[2];
+
+      if (importPath) {
+        const baseName = importPath.split('/').pop();
+        // Try to find a matching file
+        const matchedFile = filesArray.find(other =>
+          other.id !== f.id && (
+            other.name === baseName ||
+            other.name.startsWith(baseName + '.') ||
+            other.name === baseName + '.js' ||
+            other.name === baseName + '.ts' ||
+            other.name === baseName + '.jsx' ||
+            other.name === baseName + '.tsx'
+          )
+        );
+        if (matchedFile) importMatches.push({ path: importPath, resolvedId: matchedFile.id, resolvedName: matchedFile.name });
+      }
+    });
+    return { ...f, imports: importMatches };
+  });
+}
+
+const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
+
+function runNativeLint(code, lang) {
+  // JSON
+  if (lang === 'json') {
+    try {
+      JSON.parse(code);
+      return { valid: true, errors: [], warnings: [], summary: 'Valid JSON.' };
+    } catch (e) {
+      // Extract line/col from the native error message where possible
+      const match = e.message.match(/line (\d+) column (\d+)/i);
+      return {
+        valid: false,
+        errors: [{ line: match ? +match[1] : null, col: match ? +match[2] : null, message: e.message }],
+        warnings: [],
+        summary: 'Invalid JSON: 1 syntax error.',
+      };
+    }
+  }
+
+  // HTML — DOMParser gives us real parse errors
+  if (lang === 'html') {
+    const doc = new DOMParser().parseFromString(code, 'text/html');
+    const errs = Array.from(doc.querySelectorAll('parsererror, parsererror *'))
+      .reduce((acc, el) => {
+        const text = el.textContent.trim();
+        if (text) acc.push({ line: null, col: null, message: text });
+        return acc;
+      }, []);
+    if (errs.length) return { valid: false, errors: errs, warnings: [], summary: `${errs.length} HTML parse error(s).` };
+    return { valid: true, errors: [], warnings: [], summary: 'Well-formed HTML.' };
+  }
+
+  return null; // no native parser for this language → fall through to AI
+}
+
 export function useCodeConverter() {
   const { qualityMode, moduleData, setModuleData } = useApp();
 
@@ -238,40 +307,6 @@ export function useCodeConverter() {
     };
   }, [outputFiles, syncScroll, activeTabId]);
 
-  // Build the import graph for multi-file dependency awareness
-  const buildImportGraph = (filesArray) => {
-    const nameMap = {};
-    filesArray.forEach(f => { nameMap[f.name] = f.id; });
-
-    return filesArray.map(f => {
-      const importMatches = [];
-      const lines = f.content.split('\n');
-
-      lines.forEach(line => {
-        // match: import ... from './foo' or require('./foo')
-        const m = line.match(/(?:import|require)\s*(?:\(?\s*['"]([^'"]+)['"]\s*\)?|[^'"]*from\s*['"]([^'"]+)['"])/);
-        const importPath = m?.[1] || m?.[2];
-
-        if (importPath) {
-          const baseName = importPath.split('/').pop();
-          // Try to find a matching file
-          const matchedFile = filesArray.find(other =>
-            other.id !== f.id && (
-              other.name === baseName ||
-              other.name.startsWith(baseName + '.') ||
-              other.name === baseName + '.js' ||
-              other.name === baseName + '.ts' ||
-              other.name === baseName + '.jsx' ||
-              other.name === baseName + '.tsx'
-            )
-          );
-          if (matchedFile) importMatches.push({ path: importPath, resolvedId: matchedFile.id, resolvedName: matchedFile.name });
-        }
-      });
-      return { ...f, imports: importMatches };
-    });
-  };
-
   const addToast = useCallback((type, message, detail = null) => {
     const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, type, message, detail }]);
@@ -339,7 +374,6 @@ export function useCodeConverter() {
         if (result.notes) newNotes['__global__'] = result.notes;
         if (Object.keys(newNotes).length > 0) setConversionNotes(newNotes);
 
-        const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
         setModuleData(sanitize({
           type: 'converter',
           input: files,
@@ -393,38 +427,6 @@ export function useCodeConverter() {
     });
     if (entry.notes) setConversionNotes(prev => ({ ...prev, [sourceId]: entry.notes }));
     setHistoryPanelOpen(false);
-  };
-
-  // Syntax checker
-  const runNativeLint = (code, lang) => {
-    // JSON
-    if (lang === 'json') {
-      try {
-        JSON.parse(code);
-        return { valid: true, errors: [], warnings: [], summary: 'Valid JSON.' };
-      } catch (e) {
-        // Extract line/col from the native error message where possible
-        const match = e.message.match(/line (\d+) column (\d+)/i);
-        return {
-          valid: false,
-          errors: [{ line: match ? +match[1] : null, col: match ? +match[2] : null, message: e.message }],
-          warnings: [],
-          summary: 'Invalid JSON: 1 syntax error.',
-        };
-      }
-    }
-
-    // HTML — DOMParser gives us real parse errors
-    if (lang === 'html') {
-      const doc = new DOMParser().parseFromString(code, 'text/html');
-      const errs = Array.from(doc.querySelectorAll('parsererror, parsererror *'))
-        .filter(el => el.textContent.trim())
-        .map(el => ({ line: null, col: null, message: el.textContent.trim() }));
-      if (errs.length) return { valid: false, errors: errs, warnings: [], summary: `${errs.length} HTML parse error(s).` };
-      return { valid: true, errors: [], warnings: [], summary: 'Well-formed HTML.' };
-    }
-
-    return null; // no native parser for this language → fall through to AI
   };
 
   const runLinter = async () => {

@@ -109,14 +109,16 @@ function HighlightedLine({ text, pairText, type, lang, prismTheme }) {
   // Build an array of {start, end} ranges in the plain text that are changed
   const changedRanges = [];
   let offset = 0;
+
   for (const part of charChanges) {
+    const partLen = part.value.length;
     const isRelevant = type === 'remove' ? part.removed : part.added;
     if (isRelevant) {
-      changedRanges.push({ start: offset, end: offset + part.value.length });
+      changedRanges.push({ start: offset, end: offset + partLen });
     }
-    if (!part.added && !part.removed) offset += part.value.length;
-    else if (type === 'remove' && part.removed) offset += part.value.length;
-    else if (type === 'add' && part.added) offset += part.value.length;
+    if (!part.added && !part.removed) offset += partLen;
+    else if (type === 'remove' && part.removed) offset += partLen;
+    else if (type === 'add' && part.added) offset += partLen;
   }
 
   if (changedRanges.length === 0) {
@@ -195,7 +197,9 @@ function injectMarksIntoHTML(html, ranges, markCls) {
     }
     // text token — split at range boundaries
     let i = 0;
-    while (i < tok.value.length) {
+    const tokLen = tok.value.length;
+    
+    while (i < tokLen) {
       const absPos = plainOffset + i;
       const inRange = rangeIdx < ranges.length && absPos >= ranges[rangeIdx].start && absPos < ranges[rangeIdx].end;
 
@@ -210,7 +214,7 @@ function injectMarksIntoHTML(html, ranges, markCls) {
       if (!inRange && insideMark) { out.push('</mark>'); insideMark = false; }
 
       // Find the next boundary
-      let nextBoundary = tok.value.length;
+      let nextBoundary = tokLen;
       if (rangeIdx < ranges.length) {
         const r = ranges[rangeIdx];
         if (!inRange && r.start > absPos) nextBoundary = Math.min(nextBoundary, r.start - plainOffset);
@@ -220,10 +224,10 @@ function injectMarksIntoHTML(html, ranges, markCls) {
       out.push(tok.value.slice(i, nextBoundary));
       i = nextBoundary;
     }
-    if (insideMark && rangeIdx < ranges.length && plainOffset + tok.value.length >= ranges[rangeIdx].end) {
+    if (insideMark && rangeIdx < ranges.length && plainOffset + tokLen >= ranges[rangeIdx].end) {
       out.push('</mark>'); insideMark = false; rangeIdx++;
     }
-    plainOffset += tok.value.length;
+    plainOffset += tokLen;
   }
   if (insideMark) out.push('</mark>');
 
@@ -275,7 +279,7 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
 
       if (row.type === 'phantom') {
         return (
-          <div key={i} className="c-diff__line c-diff__line--phantom">
+          <div key={`${side}-phantom-${i}`} className="c-diff__line c-diff__line--phantom">
             <span className="c-diff__gutter-strip" />
             <span className="c-diff__linenum" />
             <pre className="c-diff__text" />
@@ -291,7 +295,7 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
       const sign = row.type === 'add' ? '+' : row.type === 'remove' ? '−' : '';
 
       return (
-        <div key={i} className={`c-diff__line${cls}`}>
+        <div key={`${side}-${row.type}-${row.lineNum}`} className={`c-diff__line${cls}`}>
           <span className="c-diff__gutter-strip" />
           <span className="c-diff__linenum">
             <span className="c-diff__linenum-num">{row.lineNum}</span>
@@ -309,6 +313,10 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
         </div>
       );
     });
+
+  function DiffRows({ rows, side, lang }) {
+    return renderRows(rows, side, lang);
+  }
 
   return (
     <div className="c-diff">
@@ -333,7 +341,7 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
             <span className="c-diff__col-filename">Source</span>
           </div>
           <div className="c-diff__lines" ref={srcScrollRef} onScroll={e => handleColScroll(e, tgtScrollRef)}>
-            {renderRows(srcRows, 'src', sourceLang)}
+            <DiffRows rows={srcRows} side="src" lang={sourceLang} />
           </div>
         </div>
 
@@ -343,7 +351,7 @@ export function DiffView({ sourceContent, targetContent, targetLang, sourceLang 
             <span className="c-diff__col-filename">Converted ({targetLang})</span>
           </div>
           <div className="c-diff__lines" ref={tgtScrollRef} onScroll={e => handleColScroll(e, srcScrollRef)}>
-            {renderRows(tgtRows, 'tgt', targetLang)}
+            <DiffRows rows={tgtRows} side="tgt" lang={targetLang} />
           </div>
         </div>
       </div>
@@ -369,7 +377,7 @@ export function ConversionNotesPanel({ notes, activeTabId, open, onToggle }) {
           <div className="c-notes__body">
             <div className="c-notes__content">
               {activeNotes.split('\n').map((line, i) => (
-                <span key={i}>{line}<br /></span>
+                <span key={`note-${i}-${line.slice(0, 20)}`}>{line}<br /></span>
               ))}
             </div>
           </div>
@@ -396,7 +404,7 @@ export function HistoryPanel({ history, activeTabId, open, onToggle, onRestore }
         <div className="c-collapse-inner">
           <div className="c-history__entries">
             {entries.map((entry, idx) => (
-              <div key={idx} className="c-history__entry">
+              <div key={entry.timestamp} className="c-history__entry">
                 <div className="c-history__meta">
                   <span className="c-history__badge">{entry.targetLang}</span>
                   {entry.targetFramework && entry.targetFramework !== 'none' && (
@@ -452,7 +460,7 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
         const inRange = selectedRange && i >= selectedRange.start && i <= selectedRange.end;
         return (
           <div
-            key={i}
+            key={`line-${i}`}
             className={`c-line-selector__row${inRange ? ' c-line-selector__row--selected' : ''}`}
             onMouseDown={() => handleLineMouseDown(i)}
             onMouseEnter={() => handleLineMouseEnter(i)}

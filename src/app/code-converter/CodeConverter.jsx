@@ -13,6 +13,8 @@ import { buildDiffRows, DiffView, ConversionNotesPanel, HistoryPanel, LineSelect
 import './styles/CodeConverter.layout.css';
 import './styles/CodeConverter.widgets.css';
 
+const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
+
 const FRAMEWORKS = [
   { value: 'none', label: 'Vanilla' },
   { value: 'react', label: 'React' },
@@ -43,8 +45,6 @@ export default function CodeConverter() {
 
   const [selectionMode, setSelectionMode] = useState(false);
   const hasOutput = outputFiles.length > 0;
-
-  const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
 
   const lastResult = hasOutput
     ? sanitize({
@@ -351,7 +351,7 @@ export default function CodeConverter() {
                   {(lintResult.errors?.length > 0 || lintResult.warnings?.length > 0) && (
                     <ul className="c-lint-result__list">
                       {lintResult.errors?.map((e, i) => (
-                        <li key={`e${i}`} className="c-lint-result__item c-lint-result__item--error">
+                        <li key={`e-${e.line ?? i}-${e.message.slice(0, 30)}`} className="c-lint-result__item c-lint-result__item--error">
                           {e.line != null && (
                             <span className="c-lint-result__loc">L{e.line}{e.col != null ? `:${e.col}` : ''}</span>
                           )}
@@ -359,7 +359,7 @@ export default function CodeConverter() {
                         </li>
                       ))}
                       {lintResult.warnings?.map((w, i) => (
-                        <li key={`w${i}`} className="c-lint-result__item c-lint-result__item--warning">
+                        <li key={`w-${w.line ?? i}-${w.message.slice(0, 30)}`} className="c-lint-result__item c-lint-result__item--warning">
                           {w.line != null && (
                             <span className="c-lint-result__loc">L{w.line}{w.col != null ? `:${w.col}` : ''}</span>
                           )}
