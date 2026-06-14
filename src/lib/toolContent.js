@@ -245,6 +245,5 @@ export const LANGUAGES = [
   { value: 'elixir', label: 'Elixir', ext: '.ex' },
   { value: 'haskell', label: 'Haskell', ext: '.hs' },
   { value: 'lua', label: 'Lua', ext: '.lua' },
-  { value: 'sql', label: 'SQL', ext: '.sql' },
   { value: 'plaintext', label: 'Plain Text', ext: '.txt' },
 ];

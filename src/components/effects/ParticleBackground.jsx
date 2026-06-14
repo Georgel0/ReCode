@@ -22,7 +22,7 @@ export function ParticleBackground() {
     let connectionDistance = 200;
     let connectionDistanceSq = connectionDistance * connectionDistance;
 
-    let speedFactor = 0.6;
+    let speedFactor = 1;
     const mouseDistance = 150;
     const lineOpacityFactor = 0.5;
 
@@ -101,10 +101,10 @@ export function ParticleBackground() {
 
       if (width < 768) {
         connectionDistance = 80;
-        speedFactor = 0.5;
+        speedFactor = 0.15;
       } else {
         connectionDistance = 150;
-        speedFactor = 1.0;
+        speedFactor = 0.5;
       }
 
       connectionDistanceSq = connectionDistance * connectionDistance;
