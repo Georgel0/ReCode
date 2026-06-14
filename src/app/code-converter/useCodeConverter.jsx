@@ -70,8 +70,6 @@ export function useCodeConverter() {
           if (saved.targetLang) setTargetLang(saved.targetLang);
           if (saved.targetFramework) setTargetFramework(saved.targetFramework);
           if (saved.conversionNotes) setConversionNotes(saved.conversionNotes);
-
-          addToast('success', 'Session restored', 'Your previous workspace was automatically loaded.');
         }
       } catch (err) {
         console.error("Draft load failed", err);

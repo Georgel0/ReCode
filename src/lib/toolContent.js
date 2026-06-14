@@ -113,15 +113,22 @@ export const toolsContent = [
     slug: 'code-converter',
     title: 'Universal Code Translator & Converter',
     heading: 'Translate Code Between Any Programming Language',
-    description: 'Migrating a project? Easily convert snippets or entire files from Python to JavaScript, Java to C#, or even legacy code to modern syntax.',
+    description: 'Migrating a project or learning a new stack? Convert snippets or entire files between languages — Python to TypeScript, Java to Kotlin, C++ to Rust — and get working, idiomatic output in seconds.',
     features: [
-      { title: 'Syntax Mapping', text: 'Deeply understands the semantic differences between languages for accurate translation.' },
-      { title: 'Library Equivalents', text: 'Often suggests equivalent standard libraries in the target language.' },
-      { title: 'Upload Support', text: 'Upload your source file directly to preserve formatting during conversion.' }
+      { title: 'Syntax Mapping', text: 'Goes beyond find-and-replace — understands semantic differences so loops, classes, and control flow translate correctly.' },
+      { title: 'Library Equivalents', text: 'Automatically suggests the closest standard library alternatives in the target language, not just raw syntax.' },
+      { title: 'Multi-File Support', text: 'Upload multiple source files at once and convert them as a batch, with cross-file imports resolved automatically.' },
+      { title: 'Partial Conversion', text: 'Select specific lines to convert instead of the whole file — useful when you only need to port a single function or block.' },
+      { title: 'Diff View', text: 'See a side-by-side diff of source and output so you can review every change before using the result.' },
+      { title: 'Conversion History', text: 'Each conversion is saved locally so you can compare outputs or roll back to an earlier version at any time.' }
     ],
     faq: [
-      { question: 'Which languages are supported?', answer: 'We support over 20 languages including Rust, Go, Swift, Mojo, and Kotlin.' },
-      { question: 'Does it keep my prompts?', answer: 'Yes, you can save your code snippets to the history section and access then anytime.' }
+      { question: 'Which languages are supported?', answer: 'Over 20 languages including Python, TypeScript, Rust, Go, Swift, Kotlin, C#, Java, PHP, Ruby, and more.' },
+      { question: 'Can I convert multiple files at once?', answer: 'Yes — upload or paste several files and they will all be converted in a single run, with shared imports and dependencies taken into account.' },
+      { question: 'How accurate is the output?', answer: 'For most common patterns the output is directly usable. Complex or language-specific idioms include conversion notes explaining any decisions made.' },
+      { question: 'Is my code sent anywhere or stored?', answer: 'Code is processed in the moment and never stored on our servers. Your workspace is saved locally in your browser only.' },
+      { question: 'Can I give feedback on a bad conversion?', answer: 'Yes — use the feedback bar below the output to describe what went wrong and the converter will revise it on the spot.' },
+      { question: 'Does it work for partial snippets?', answer: 'Absolutely. You can paste a single function, a class, or even a few lines — it does not require complete, runnable files.' }
     ]
   },
   {
@@ -153,7 +160,7 @@ export const tools = [
     path: '/code-converter',
     icon: 'fas fa-rotate',
     desc: 'Translate logic across languages instantly.',
-    info: 'Seamlessly migrate logic from one programming language to another while preserving functional intent. This tool handles complex syntactic differences—like turning Java class structures into concise Python scripts—making it ideal for legacy migrations or learning new frameworks.'
+    info: 'Paste code in one language and get a working equivalent in another — classes, loops, idioms and all. Handles the structural differences between languages automatically, so you can focus on reviewing the output rather than rewriting it by hand. Useful for migrations, cross-team handoffs, or just picking up a new language faster.'
   },
   {
     name: 'Code Refactor',

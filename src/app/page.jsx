@@ -4,8 +4,54 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ParticleBackground, ScrollAnimation } from '@/components/effects';
-import { tools } from '@/lib/toolContent'
+import { tools, toolsContent } from '@/lib/toolContent';
 import '@/styles/landingpage.css';
+
+function ToolPopover({ tool }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const content = toolsContent.find(t => t.slug === tool.path.replace('/', ''));
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      className={`tool-popover-anchor ${open ? 'is-open' : ''}`}
+      onClick={(e) => { e.preventDefault(); setOpen(v => !v); }}
+    >
+      <i className="fas fa-circle-info tool-popover-trigger" />
+
+      <div className="tool-popover">
+        <div className="tool-popover__header">
+          <i className={tool.icon} />
+          <span>{tool.name}</span>
+        </div>
+        <div className="tool-popover__body">
+          <p className="tool-popover__info">{tool.info}</p>
+          {content?.features?.length > 0 && (
+            <div className="tool-popover__features">
+              {content.features.map((f, i) => (
+                <span key={i} className="tool-popover__pill">
+                  <i className="fas fa-check" />
+                  {f.title}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const router = useRouter();
@@ -100,15 +146,7 @@ export default function LandingPage() {
                     <div className="card-header">
                       <div className="lp-card-icon"><i className={tool.icon}></i></div>
 
-                      <div className="info-trigger-lp">
-                        <i className="fas fa-circle-info"></i>
-                        <div className="speech-bubble">
-                          <p>
-                            <i className={tool.icon} style={{marginRight: '10px'}}></i>
-                            {tool.info}
-                          </p>
-                        </div>
-                      </div>
+                      <ToolPopover tool={tool} />
 
                     </div>
                     <h3>{tool.name}</h3>
