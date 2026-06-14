@@ -7,6 +7,8 @@ import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-markup-templating';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-tsx';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-c';
 import 'prismjs/components/prism-cpp';
@@ -32,9 +34,23 @@ import { useTheme } from '@/context';
 const DARK_THEMES = ['recode-dark', 'midnight-gold', 'deep-sea'];
 
 function getGrammar(lang) {
-  if (languages[lang]) return languages[lang];
-  if (lang === 'c' || lang === 'cpp') return languages.clike;
-  return languages.plaintext || languages.js;
+  const aliases = {
+    js: 'javascript',
+    ts: 'typescript',
+    jsx: 'jsx',
+    tsx: 'tsx',
+    py: 'python',
+    rb: 'ruby',
+    rs: 'rust',
+    cs: 'csharp',
+    md: 'markdown',
+  };
+
+  const resolved = aliases[lang] ?? lang;
+
+  if (languages[resolved]) return languages[resolved];
+  if (resolved === 'c' || resolved === 'cpp') return languages.clike;
+  return languages.plaintext ?? languages.js;
 }
 
 function makeHighlighter(language) {

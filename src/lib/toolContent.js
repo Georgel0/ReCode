@@ -224,7 +224,10 @@ export const tools = [
 export const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', ext: '.js' },
   { value: 'typescript', label: 'TypeScript', ext: '.ts' },
+  { value: 'jsx', label: 'JSX', ext: '.jsx' },
+  { value: 'tsx', label: 'TSX', ext: '.tsx' },
   { value: 'python', label: 'Python', ext: '.py' },
+  { value: 'mojo', label: 'Mojo', ext: '.mojo' },
   { value: 'java', label: 'Java', ext: '.java' },
   { value: 'c', label: 'C', ext: '.c' },
   { value: 'csharp', label: 'C#', ext: '.cs' },
@@ -237,11 +240,11 @@ export const LANGUAGES = [
   { value: 'ruby', label: 'Ruby', ext: '.rb' },
   { value: 'dart', label: 'Dart', ext: '.dart' },
   { value: 'zig', label: 'Zig', ext: '.zig' },
-  { value: 'mojo', label: 'Mojo', ext: '.mojo' },
   { value: 'r', label: 'R', ext: '.r' },
   { value: 'scala', label: 'Scala', ext: '.scala' },
   { value: 'elixir', label: 'Elixir', ext: '.ex' },
   { value: 'haskell', label: 'Haskell', ext: '.hs' },
   { value: 'lua', label: 'Lua', ext: '.lua' },
-  { value: 'plaintext', label: 'Plain Text', ext: '.txt' }
+  { value: 'sql', label: 'SQL', ext: '.sql' },
+  { value: 'plaintext', label: 'Plain Text', ext: '.txt' },
 ];
