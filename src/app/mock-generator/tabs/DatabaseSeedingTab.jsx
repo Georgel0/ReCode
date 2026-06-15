@@ -2,8 +2,9 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import DOMPurify from 'dompurify';
-import { CodeEditor, ConfirmModal, ErdDiagram } from '@/components/ui';
+import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
+import { ErdDiagram } from '@/components/widgets';
 import {
   useDatabaseSeedingTab,
   inferColumnBadges,

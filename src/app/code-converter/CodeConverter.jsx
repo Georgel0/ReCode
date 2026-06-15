@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LANGUAGES } from '@/lib';
-import { CopyButton, CodeEditor, CodeOutput, ConfirmModal, CodeAnalysisInfoIcon } from '@/components/ui';
+import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
+import { DiffViewer, CodeAnalysisInfoIcon } from '@/components/widgets';
 import { useApp } from '@/context';
 import { ConverterTabs } from './ConverterTabs';
 import { useCodeConverter } from './useCodeConverter';
-import { buildDiffRows, DiffView, ConversionNotesPanel, HistoryPanel, LineSelector } from './components';
+import { ConversionNotesPanel, HistoryPanel, LineSelector } from './components';
 
 import './styles/CodeConverter.layout.css';
 import './styles/CodeConverter.widgets.css';

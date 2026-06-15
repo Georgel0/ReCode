@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import { ConfirmModal, CodeAnalysisInfoIcon } from '@/components/ui';
+import { ConfirmModal } from '@/components/ui';
+import { CodeAnalysisInfoIcon } from '@/components/widgets';
 import ConfigTab from './ConfigTab';
 import OutputPanel from './OutputPanel';
 import { useCodeGenerator } from './useCodeGenerator';

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { ModuleHeader } from '@/components/layout';
-import { ErdDiagram } from '@/components/ui';
+import { ErdDiagram } from '@/components/widgets';
 import { useTheme } from '@/context';
 import { useSqlForge } from './useSqlForge/useSqlForge';
 import { MODES } from './components/sqlForgeConstants';
