@@ -1,12 +1,10 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
 import { Tooltip } from 'react-tooltip';
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
-import { useTheme } from '@/context';
+import { DiffView } from '@/components/widgets';
 import { REFACTOR_MODES } from './utils';
 import { formatBytes } from '@/lib';
-import ReactDiffViewer from 'react-diff-viewer-continued';
 
 export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
 
@@ -71,6 +69,7 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
           title={mode.desc}
         >
           <span className="r-mode-title">
+            <i className={mode.icon} aria-hidden="true" />
             {mode.label}
             {suggestedMode === mode.id && (
               <span className="r-suggested-badge">
@@ -98,29 +97,16 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
 );
 
 export const OutputPanel = React.memo(({
-  activeSourceFile,
+  activeFile,
+  activeOutputFile,
+  targetLang,
   outputFiles,
   viewMode,
   setViewMode,
   downloadSingleFile,
   loadingStage,
 }) => {
-  const [isMobile, setIsMobile] = useState(false);
-  const { currentTheme } = useTheme();
-  const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  const activeOutput = outputFiles.find(
-    (out) => out.sourceId === activeSourceFile?.id || out.name === activeSourceFile?.name,
-  );
-
-  if (!activeOutput) {
+  if (!activeOutputFile) {
     return (
       <EmptyState
         isLoading={loadingStage !== 'idle'}
@@ -163,42 +149,24 @@ export const OutputPanel = React.memo(({
         {viewMode === 'final' ? (
           <>
             <CodeOutput
-              language={activeSourceFile.language || 'javascript'}
-              content={activeOutput.content}
+              language={activeFile.language || 'javascript'}
+              content={activeOutputFile.content}
             />
-            <CopyButton codeToCopy={activeOutput.content} />
+            <CopyButton codeToCopy={activeOutputFile.content} />
           </>
         ) : (
-          <ReactDiffViewer
-            oldValue={activeSourceFile.content}
-            newValue={activeOutput.content}
-            splitView={isMobile ? false : viewMode === 'split'}
-            useDarkTheme={isDarkTheme}
-            compareMethod="diffLines"
-            leftTitle="Original"
-            rightTitle="Refactored"
-            styles={!isDarkTheme ? undefined : {
-              variables: {
-                diffViewerBackground: '#000000',
-                addedBackground: 'rgba(55, 211, 94, 0.15)',
-                addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
-                removedBackground: 'rgba(248, 81, 73, 0.15)',
-                removedGutterBackground: 'rgba(248, 81, 73, 0.25)',
-                wordAddedBackground: 'rgba(46, 160, 67, 0.35)',
-                wordRemovedBackground: 'rgba(248, 81, 73, 0.35)',
-              },
-              contentText: {
-                fontSize: '13px',
-                lineHeight: '20px',
-              },
-            }}
+          <DiffView
+            sourceContent={activeFile?.content || ''}
+            targetContent={activeOutputFile?.content || ''}
+            sourceLang={activeFile?.language || 'plaintext'}
+            targetLang={targetLang}
           />
         )}
       </div>
 
       <div className="r-output-action">
         <div className="action-row">
-          <button className="primary-button" onClick={() => downloadSingleFile(activeOutput)}>
+          <button className="primary-button" onClick={() => downloadSingleFile(activeOutputFile)}>
             <i className="fa-solid fa-download" aria-hidden="true" />
             Download File
           </button>
