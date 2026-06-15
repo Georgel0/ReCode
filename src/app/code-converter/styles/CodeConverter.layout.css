@@ -162,8 +162,10 @@
 .c-panel__title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.37rem;
-  font-size: 0.58rem;
+  margin: 0;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-secondary);

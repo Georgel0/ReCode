@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
-import { DiffViewer, CodeAnalysisInfoIcon } from '@/components/widgets';
+import { DiffView, CodeAnalysisInfoIcon } from '@/components/widgets';
 import { useApp } from '@/context';
 import { ConverterTabs } from './ConverterTabs';
 import { useCodeConverter } from './useCodeConverter';

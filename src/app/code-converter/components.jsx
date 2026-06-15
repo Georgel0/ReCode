@@ -81,32 +81,69 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
   const selectStartRef = useRef(null);
   const selectingRef = useRef(false);
 
-  const handleLineMouseDown = (idx) => {
+  const startSelection = (idx) => {
     selectingRef.current = true;
     selectStartRef.current = idx;
     onRangeChange({ start: idx, end: idx });
   };
-  const handleLineMouseEnter = (idx) => {
+
+  const updateSelection = (idx) => {
     if (!selectingRef.current || selectStartRef.current === null) return;
-    onRangeChange({ start: Math.min(selectStartRef.current, idx), end: Math.max(selectStartRef.current, idx) });
+    onRangeChange({ 
+      start: Math.min(selectStartRef.current, idx), 
+      end: Math.max(selectStartRef.current, idx) 
+    });
   };
-  const handleMouseUp = () => { selectingRef.current = false; };
+
+  const stopSelection = () => { 
+    selectingRef.current = false; 
+  };
+
+  // Handle dragging on mobile using element coordinates
+  const handleTouchMove = (e) => {
+    if (!selectingRef.current) return;
+    
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    if (!element) return;
+
+    // Traverse up to find the specific line row
+    const row = element.closest('[data-index]');
+    if (row) {
+      const idx = parseInt(row.getAttribute('data-index'), 10);
+      updateSelection(idx);
+    }
+  };
 
   useEffect(() => {
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mouseup', stopSelection);
+    window.addEventListener('touchend', stopSelection);
+    window.addEventListener('touchcancel', stopSelection); 
+    
+    return () => {
+      window.removeEventListener('mouseup', stopSelection);
+      window.removeEventListener('touchend', stopSelection);
+      window.removeEventListener('touchcancel', stopSelection);
+    };
   }, []);
 
   return (
-    <div className="c-line-selector">
+    <div 
+      className="c-line-selector"
+      onTouchMove={handleTouchMove}
+      style={{ touchAction: 'none' }} 
+    >
       {lines.map((line, i) => {
         const inRange = selectedRange && i >= selectedRange.start && i <= selectedRange.end;
         return (
           <div
             key={`line-${i}`}
+            data-index={i}
             className={`c-line-selector__row${inRange ? ' c-line-selector__row--selected' : ''}`}
-            onMouseDown={() => handleLineMouseDown(i)}
-            onMouseEnter={() => handleLineMouseEnter(i)}
+            onMouseDown={() => startSelection(i)}
+            onMouseEnter={() => updateSelection(i)}
+            onTouchStart={() => startSelection(i)}
           >
             <span className="c-line-selector__num">{i + 1}</span>
             <span className="c-line-selector__text">{line || '\u00A0'}</span>

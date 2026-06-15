@@ -3,7 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AppProvider, ThemeProvider } from '@/context';
 import { MainLayout } from '@/components/layout';
-import { CodeHighlightAnalyzer } from '@/components/ui';
+import { CodeHighlightAnalyzer } from '@/components/widgets';
 
 import '@/styles/index.css';
 import '@/styles/base.css';
