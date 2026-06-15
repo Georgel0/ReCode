@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useTheme } from '@/context';
+import '@/styles/components/ErdDiagram.css';
 
 function inferMermaidType(colName, sampleValue) {
   const lower = colName.toLowerCase();

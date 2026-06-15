@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/context';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
+import '@/styles/components/CodeAnalysisHelper.css';
 
 export function CodeHighlightAnalyzer() {
   const [visible, setVisible] = useState(false);

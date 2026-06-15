@@ -8,9 +8,6 @@ import { CodeHighlightAnalyzer } from '@/components/ui';
 import '@/styles/index.css';
 import '@/styles/base.css';
 import '@/styles/components.css';
-import '@/styles/components/Sidebar.css';
-import '@/styles/components/ErdDiagram.css';
-import '@/styles/components/CodeAnalysisHelper.css';
 
 export const viewport = {
   width: 'device-width',

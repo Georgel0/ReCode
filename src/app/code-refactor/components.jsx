@@ -179,8 +179,8 @@ export const OutputPanel = React.memo(({
             rightTitle="Refactored"
             styles={!isDarkTheme ? undefined : {
               variables: {
-                diffViewerBackground: '#1e1e1e',
-                addedBackground: 'rgba(46, 160, 67, 0.15)',
+                diffViewerBackground: '#000000',
+                addedBackground: 'rgba(55, 211, 94, 0.15)',
                 addedGutterBackground: 'rgba(46, 160, 67, 0.25)',
                 removedBackground: 'rgba(248, 81, 73, 0.15)',
                 removedGutterBackground: 'rgba(248, 81, 73, 0.25)',

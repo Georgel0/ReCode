@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context';
 import Link from 'next/link';
 import { ConfirmModal } from '@/components/ui';
+import '@/styles/components/Sidebar.css';
 
 const modules = [
   { id: 'converter', label: 'Code Converter', icon: 'fas fa-sync-alt', path: '/code-converter' },
