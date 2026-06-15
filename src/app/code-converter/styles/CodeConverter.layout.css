@@ -440,7 +440,8 @@
   width: 100%;
 }
 
-.c-history, .c-notes,
+.c-history,
+.c-notes,
 .c-module-footer .c-reconvert {
   width: 50%;
   background: var(--bg-primary);
@@ -452,7 +453,8 @@
   overflow: hidden;
 }
 
-.c-notes, .c-history {
+.c-notes,
+.c-history {
   width: 100%;
 }
 
@@ -505,6 +507,10 @@
 
   .c-control-bar__group {
     flex: unset;
+  }
+
+  .c-panel__title {
+    font-size: 0.5rem;
   }
 }
 

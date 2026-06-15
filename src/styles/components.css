@@ -719,6 +719,7 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 }
 
 @media (max-width: 825px) {
+
   .primary-button,
   .secondary-button {
     padding: 0.48rem 0.82rem;
@@ -813,6 +814,10 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
   .action-row button,
   .action-row a {
     flex-shrink: 0;
+  }
+
+  .copy-btn-absolute {
+    padding: .2rem .3rem .2rem .3rem;
   }
 }
 
