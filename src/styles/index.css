@@ -145,12 +145,12 @@ body {
   }
 
   .logo-group {
-    font-size: 0.75rem;
+    font-size: 1rem;
   }
 
   .logo-image {
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
   }
 }
 

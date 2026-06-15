@@ -61,7 +61,7 @@
   padding: 7.5px 10.5px !important;
   text-align: center;
   box-shadow: 0 4.5px 12px rgba(0, 0, 0, 0.3);
-  opacity: 1;
+  opacity: 1 !important;
   z-index: 9999;
 }
 

@@ -371,7 +371,7 @@ export function useCodeConverter() {
         mapped.forEach((rf, i) => {
           if (rf.notes) newNotes[rf.sourceId] = rf.notes;
         });
-        if (result.notes) newNotes['__global__'] = result.notes;
+        if (result.notes) newNotes['global'] = result.notes;
         if (Object.keys(newNotes).length > 0) setConversionNotes(newNotes);
 
         setModuleData(sanitize({

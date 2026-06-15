@@ -843,7 +843,7 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 
   .mobile-header {
     display: flex;
-    padding: 0.075rem;
+    padding: .1rem;
   }
 
   .action-row {
