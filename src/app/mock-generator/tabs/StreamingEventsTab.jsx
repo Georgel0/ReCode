@@ -148,6 +148,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               <div className="editor-wrapper-box">
                 <CodeEditor
                   value={schemaInput}
+                  lineNumbers={false}
                   onValueChange={setSchemaInput}
                   language="json"
                   placeholder={`// Describe your event shape, state machine, or entity\n{\n  "event_type": "page_view | click | purchase",\n  "user_id": "UUID",\n  "session_id": "string",\n  "timestamp": "ISO8601"\n}`}

@@ -188,6 +188,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <div className="editor-wrapper-box">
                 <CodeEditor
                   value={specInput}
+                  lineNumbers={false}
                   onValueChange={setSpecInput}
                   language={detectedFormat === 'auto' ? 'graphql' : detectedFormat === 'typescript' ? 'typescript' : detectedFormat === 'json' ? 'json' : 'graphql'}
                   placeholder={`Paste a GraphQL SDL, OpenAPI definition, TypeScript interfaces, or plain REST spec…\n\nExamples:\n  type User { id: ID!, name: String! }\n  GET /api/users\n  { "id": 1, "name": "Alice" }`}

@@ -53,32 +53,37 @@ function getGrammar(lang) {
   return languages.plaintext ?? languages.js;
 }
 
-function makeHighlighter(language) {
+function makeHighlighter(language, lineNumbers = true) {
   return (code) => {
     const highlighted = highlight(code, getGrammar(language), language);
 
-    // Split on newlines produced by Prism.  An empty line must still emit a
+    // Split on newlines produced by Prism. An empty line must still emit a
     // span so the CSS counter increments for every source line — including
     // blank ones — keeping gutter numbers in sync with the textarea cursor.
     // A zero-width space is used for empty lines because a truly empty <span>
     // collapses to zero height in some browsers, visually swallowing the line.
     return highlighted
       .split('\n')
-      .map((line) => `<span class="editor-line">${line || '\u200B'}</span>`)
+      .map((line) => {
+        // If lineNumbers is false, we bypass the 'editor-line' class that triggers the CSS counter
+        const className = lineNumbers ? 'editor-line' : 'editor-line-plain';
+        return `<span class="${className}">${line || '\u200B'}</span>`;
+      })
       .join('\n');
   };
 }
 
-export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here..." }) {
+export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here...", lineNumbers = true 
+}) {
   const { currentTheme } = useTheme();
   const isDarkTheme = DARK_THEMES.includes(currentTheme);
 
   return (
-    <div className="editor-container">
+    <div className={`editor-container ${lineNumbers ? 'has-line-numbers' : 'no-line-numbers'}`}>
       <Editor
         value={value || ''}
         onValueChange={onValueChange}
-        highlight={makeHighlighter(language)}
+        highlight={makeHighlighter(language, lineNumbers)}
         padding={15}
         className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
         placeholder={placeholder}
@@ -87,16 +92,16 @@ export function CodeEditor({ value, onValueChange, language = 'javascript', plac
   );
 }
 
-export function CodeOutput({ content, language = 'javascript' }) {
+export function CodeOutput({ content, language = 'javascript', lineNumbers = true }) {
   const { currentTheme } = useTheme();
   const isDarkTheme = DARK_THEMES.includes(currentTheme);
 
   return (
-    <div className="editor-container">
+    <div className={`editor-container ${lineNumbers ? 'has-line-numbers' : 'no-line-numbers'}`}>
       <Editor
         value={content || ''}
         onValueChange={() => { }}
-        highlight={makeHighlighter(language)}
+        highlight={makeHighlighter(language, lineNumbers)}
         padding={15}
         className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
         style={{ caretColor: 'transparent' }}
@@ -104,4 +109,4 @@ export function CodeOutput({ content, language = 'javascript' }) {
       />
     </div>
   );
-};
+}

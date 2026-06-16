@@ -320,6 +320,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               <div className="editor-wrapper-box">
                 <CodeEditor
                   value={schemaInput}
+                  lineNumbers={false}
                   onValueChange={setSchemaInput}
                   language={detectedLanguage}
                   placeholder="CREATE TABLE users (id UUID PRIMARY KEY, created_at TIMESTAMP);"
