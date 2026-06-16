@@ -210,21 +210,23 @@ export const OutputPanel = React.memo(({
 }) => {
   if (!activeOutputFile) {
     return (
-      <EmptyState
-        isLoading={loadingStage !== 'idle'}
-        condition={outputFiles.length === 0}
-        icon="fas fa-wand-magic-sparkles"
-        title="Awaiting Refactoring Target"
-        description="Add your source files and select a transformation model to automatically update project code health."
-        hint={
-          <>
-            Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or{' '}
-            <code>Type Safety</code> variants in the controller layout.
-          </>
-        }
-        loadingTitle="Refactoring Project Architecture"
-        loadingDescription="Decoupling complex logical layers, resolving cyclical file dependencies, and rewriting code blocks…"
-      />
+      <div className="c-output-empty">
+        <EmptyState
+          isLoading={loadingStage !== 'idle'}
+          condition={outputFiles.length === 0}
+          icon="fas fa-wand-magic-sparkles"
+          title="Awaiting Refactoring Target"
+          description="Add your source files and select a transformation model to automatically update project code health."
+          hint={
+            <>
+              Choose between <code>Clean Code</code>, <code>Performance Optimization</code>, or{' '}
+              <code>Type Safety</code> variants in the controller layout.
+            </>
+          }
+          loadingTitle="Refactoring Project Architecture"
+          loadingDescription="Decoupling complex logical layers, resolving cyclical file dependencies, and rewriting code blocks…"
+        />
+      </div>
     );
   }
 

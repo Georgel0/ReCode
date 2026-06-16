@@ -128,7 +128,7 @@ body {
   }
 }
 
-@media (max-width: 675px) {
+@media (max-width: 750px) {
   .app-wrapper {
     overflow: hidden;
   }
@@ -136,6 +136,12 @@ body {
   .main-content {
     min-width: 0;
     overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .main-content::-webkit-scrollbar {
+    display: none;
   }
 }
 

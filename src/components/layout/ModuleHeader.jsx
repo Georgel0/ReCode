@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { saveHistory } from '@/lib/firebase';
 
 export function ModuleHeader({ title, description, resultData }) {
@@ -8,25 +8,13 @@ export function ModuleHeader({ title, description, resultData }) {
   const [saved, setSaved] = useState(false);
   const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);
 
-  useEffect(() => {
-    const savedSetting = localStorage.getItem('recode_autoSave') === "true";
-    setIsAutoSaveEnabled(savedSetting);
-  }, []);
-
-  useEffect(() => {
-    const handleSettingChange = (e) => {
-      setIsAutoSaveEnabled(e.detail);
-    };
-
-    window.addEventListener("recode_autoSave_changed", handleSettingChange);
-
-    return () => window.removeEventListener("recode_autoSave_changed", handleSettingChange);
-  }, []);
+  const savingRef = useRef(false);
+  const savedRef = useRef(false);
 
   const handleSave = async () => {
-    // Only proced if there is data and aren't already saving/saved
-    if (!resultData || saving || saved) return;
+    if (!resultData || savingRef.current || savedRef.current) return;
 
+    savingRef.current = true;
     setSaving(true);
     try {
       await saveHistory(
@@ -36,19 +24,23 @@ export function ModuleHeader({ title, description, resultData }) {
         resultData.sourceLang || null,
         resultData.targetLang || null
       );
+      savedRef.current = true;
       setSaved(true);
-      // Allows saving again after 3 sec.
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => {
+        savedRef.current = false;
+        setSaved(false);
+      }, 3000);
     } catch (error) {
       console.error("Manual save failed:", error);
       alert("Error saving to history.");
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
 
   useEffect(() => {
-    if (isAutoSaveEnabled && resultData && !saved && !saving) {
+    if (isAutoSaveEnabled && resultData && !savedRef.current && !savingRef.current) {
       handleSave();
     }
   }, [resultData, isAutoSaveEnabled]);

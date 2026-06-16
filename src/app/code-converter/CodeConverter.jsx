@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
@@ -47,7 +47,7 @@ export default function CodeConverter() {
   const [selectionMode, setSelectionMode] = useState(false);
   const hasOutput = outputFiles.length > 0;
 
-  const lastResult = hasOutput
+  const lastResult = useMemo(() => hasOutput
     ? sanitize({
       type: 'converter',
       input: files,
@@ -55,7 +55,9 @@ export default function CodeConverter() {
       targetLang,
       output: { outputFiles, targetLang, targetFramework, conversionNotes }
     })
-    : null;
+    : null,
+    [hasOutput, files, activeFile?.language, targetLang, outputFiles, targetFramework, conversionNotes]
+  );
 
   const handleSendToAnalysis = () => {
     if (!activeFile?.content) return;
