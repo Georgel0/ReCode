@@ -133,14 +133,14 @@ export const ProjectContextInput = ({ value, onChange }) => {
       {expanded && (
         <div className="r-context-body">
           <p className="r-context-hint">
-            Tell the AI about your stack, conventions, or constraints. The more specific, the better.
+            Tell the AI about your stack, conventions, or constraints.
           </p>
           <textarea
             className="r-context-textarea"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="e.g. Node.js + Express API · use Zod for validation · no class components · keep all errors typed"
-            rows={3}
+            placeholder="e.g. Node.js + Express API · use Zod for validation · no class components"
+            rows={2}
             spellCheck={false}
             aria-label="Project context for the AI"
           />
@@ -201,10 +201,7 @@ const ChangeSummary = ({ outputFile }) => {
 export const OutputPanel = React.memo(({
   activeFile,
   activeOutputFile,
-  targetLang,
   outputFiles,
-  viewMode,
-  setViewMode,
   downloadSingleFile,
   loadingStage,
 }) => {
@@ -232,42 +229,13 @@ export const OutputPanel = React.memo(({
 
   return (
     <div className="r-output-panel">
-      <div className="r-view-toggle" role="group" aria-label="Output view mode">
-        <button
-          className={`r-view-btn ${viewMode === 'final' ? 'r-active' : ''}`}
-          onClick={() => setViewMode('final')}
-        >
-          <i className="fa-solid fa-file-lines" aria-hidden="true" />
-          Final Output
-        </button>
-        <button
-          className={`r-view-btn ${viewMode === 'split' ? 'r-active' : ''}`}
-          onClick={() => setViewMode('split')}
-        >
-          <i className="fa-solid fa-table-columns" aria-hidden="true" />
-          Split View (Diff)
-        </button>
-      </div>
-
       <ChangeSummary outputFile={activeOutputFile} />
-
-      <div className="r-diff-container">
-        {viewMode === 'final' ? (
-          <>
-            <CodeOutput
-              language={activeFile.language || 'javascript'}
-              content={activeOutputFile.content}
-            />
-            <CopyButton codeToCopy={activeOutputFile.content} />
-          </>
-        ) : (
-          <DiffView
-            sourceContent={activeFile?.content || ''}
-            targetContent={activeOutputFile?.content || ''}
-            sourceLang={activeFile?.language || 'plaintext'}
-            targetLang={targetLang}
-          />
-        )}
+      <div className="r-clean-output-view">
+        <CodeOutput
+          language={activeFile.language || 'javascript'}
+          content={activeOutputFile.content}
+        />
+        <CopyButton codeToCopy={activeOutputFile.content} />
       </div>
     </div>
   );

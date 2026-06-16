@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { ModuleHeader } from '@/components/layout';
 import { CodeEditor } from '@/components/ui';
+import { DiffView } from '@/components/widgets';
 import { LANGUAGES } from '@/lib';
 import { useCodeRefactor } from './useCodeRefactor';
 import { FileTabs, RefactorControls, OutputPanel, ProjectContextInput } from './components';
@@ -12,11 +14,13 @@ export default function CodeRefactor() {
     files, activeFile, activeTabId, setActiveTabId,
     outputFiles, activeOutputFile, targetLang, lastResult,
     loadingStage, isLoading, hasContent, refactorMode, setRefactorMode,
-    suggestedMode, viewMode, setViewMode, errorMsg, storageWarning,
+    suggestedMode, errorMsg, storageWarning,
     projectContext, setProjectContext, handleClearAll,
     fileInputRef, handleRefactor, handleLanguageChange, handleFileUpload,
     updateFile, removeFile, handleAddFile, downloadSingleFile, downloadZip,
   } = useCodeRefactor();
+
+  const [isDiffExpanded, setIsDiffExpanded] = useState(false);
 
   return (
     <div className="r-module-container">
@@ -39,7 +43,40 @@ export default function CodeRefactor() {
         </div>
       )}
 
+      {/* Modern Dashboard Options Header */}
+      <div className="r-dashboard-config-card">
+        <div className="r-config-left-group">
+          <div className="r-lang-row">
+            <label htmlFor="r-lang-select">Language</label>
+            <select
+              id="r-lang-select"
+              value={activeFile?.language || 'javascript'}
+              onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
+            >
+              {LANGUAGES.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ProjectContextInput
+            value={projectContext}
+            onChange={setProjectContext}
+          />
+        </div>
+        <div className="r-config-right-group">
+          <RefactorControls
+            refactorMode={refactorMode}
+            setRefactorMode={setRefactorMode}
+            suggestedMode={suggestedMode}
+          />
+        </div>
+      </div>
+
+      {/* Main Multi-File Code Editor & Code Output Layout Grid */}
       <div className="r-converter-grid">
+        {/* Workspace Input Block */}
         <div className="r-panel">
           <div className="r-panel-header">
             <h3>Source Files</h3>
@@ -63,32 +100,6 @@ export default function CodeRefactor() {
               aria-hidden="true"
             />
           </div>
-
-          <div className="r-lang-row">
-            <label htmlFor="r-lang-select">Language</label>
-            <select
-              id="r-lang-select"
-              value={activeFile?.language || 'javascript'}
-              onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang.value} value={lang.value}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <RefactorControls
-            refactorMode={refactorMode}
-            setRefactorMode={setRefactorMode}
-            suggestedMode={suggestedMode}
-          />
-
-          <ProjectContextInput
-            value={projectContext}
-            onChange={setProjectContext}
-          />
 
           <FileTabs
             files={files}
@@ -120,6 +131,7 @@ export default function CodeRefactor() {
           </div>
         </div>
 
+        {/* Workspace Output Block */}
         <div className="r-panel">
           <div className="r-panel-header">
             <h3>
@@ -143,13 +155,41 @@ export default function CodeRefactor() {
             activeOutputFile={activeOutputFile}
             targetLang={targetLang}
             outputFiles={outputFiles}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             loadingStage={loadingStage}
             downloadSingleFile={downloadSingleFile}
           />
         </div>
       </div>
+
+      {/* Rearranged Full Width Toggleable Diff Component Node */}
+      {outputFiles.length > 0 && activeOutputFile && (
+        <div className="r-diff-toggle-container">
+          <button 
+            className={`secondary-button r-diff-expand-btn ${isDiffExpanded ? 'r-diff-active-state' : ''}`}
+            onClick={() => setIsDiffExpanded(!isDiffExpanded)}
+          >
+            <i className={`fa-solid ${isDiffExpanded ? 'fa-angles-up' : 'fa-code-compare'}`} aria-hidden="true" />
+            {isDiffExpanded ? 'Hide Visual Diff Comparison' : 'Show Visual Diff Comparison'}
+          </button>
+
+          {isDiffExpanded && (
+            <div className="r-fullwidth-diff-panel">
+              <div className="r-diff-panel-title">
+                <i className="fa-solid fa-code-compare" aria-hidden="true" />
+                Line-by-Line Changes (Diff View)
+              </div>
+              <div className="r-diff-container">
+                <DiffView
+                  sourceContent={activeFile?.content || ''}
+                  targetContent={activeOutputFile?.content || ''}
+                  sourceLang={activeFile?.language || 'plaintext'}
+                  targetLang={targetLang}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

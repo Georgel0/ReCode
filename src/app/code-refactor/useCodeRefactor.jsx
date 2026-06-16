@@ -4,7 +4,7 @@ import { useApp } from '@/context';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import debounce from 'lodash/debounce';
-import { get, set } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 
 export const sanitizeFilename = (name) => {
   // Removes path traversal and dangerous characters
@@ -151,8 +151,6 @@ export const suggestRefactorMode = (code) => {
   return { mode: bestMode, reasons: reasons[bestMode] };
 };
 
-const DRAFT_KEY = 'refactor-draft-data';
-
 const createEmptyFile = (overrides = {}) => ({
   id: crypto.randomUUID(),
   name: 'main.js',
@@ -175,7 +173,6 @@ export function useCodeRefactor() {
   const [suggestedMode, setSuggestedMode] = useState(null); // { mode, reasons[] } | null
   const [viewMode, setViewMode] = useState('final');
   const [errorMsg, setErrorMsg] = useState('');
-  const [storageWarning, setStorageWarning] = useState(false);
   const [projectContext, setProjectContext] = useState('');
 
   const fileInputRef = useRef(null);
@@ -225,7 +222,7 @@ export function useCodeRefactor() {
     let cancelled = false;
     (async () => {
       try {
-        const saved = await get(DRAFT_KEY);
+        const saved = await get('refactor-draft-data');
         if (cancelled || historyLoaded.current) return;
         if (saved?.files?.length > 0 && saved.files.some((f) => f.content.trim())) {
           isRestoring.current = true;
@@ -258,17 +255,17 @@ export function useCodeRefactor() {
 
   const saveDraft = useCallback(
     debounce(async (draftData) => {
-      if (draftData.files.some((f) => f.content.trim())) {
-        try {
-          await set(DRAFT_KEY, draftData);
-          setStorageWarning(false);
-        } catch (e) {
-          console.error('IndexedDB Error:', e);
-          setStorageWarning(true);
+      try {
+        if (draftData.files.some(f => f.content.trim())) {
+          await set('refactor-draft-data', draftData);
+        } else {
+          await del('refactor-draft-data');
         }
+      } catch (e) {
+        console.error("IndexedDB Error:", e);
       }
     }, 1500),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -439,7 +436,6 @@ export function useCodeRefactor() {
     setOutputFiles([]);
     setProjectContext('');
     setRefactorMode(DEFAULT_REFACTOR_MODE);
-    setStorageWarning(false);
     setErrorMsg('');
     setViewMode('final');
   };
@@ -462,7 +458,6 @@ export function useCodeRefactor() {
     viewMode,
     setViewMode,
     errorMsg,
-    storageWarning,
     projectContext,
     setProjectContext,
     fileInputRef,
