@@ -120,7 +120,8 @@ export default function JsonFormatter() {
                 <span>Upload</span>
               </button>
               <button className="j-icon-btn-sm" onClick={loadSample}>
-                Sample
+                <i className="fa-solid fa-flask"></i>
+                <span>Sample</span>
               </button>
             </div>
           </div>
@@ -141,7 +142,7 @@ export default function JsonFormatter() {
               {urlLoading
                 ? <i className="fa-solid fa-spinner fa-spin"></i>
                 : <i className="fa-solid fa-cloud-arrow-down"></i>}
-              Fetch
+              <span>Fetch</span>
             </button>
           </div>
 
@@ -259,7 +260,7 @@ export default function JsonFormatter() {
                 disabled={!input.trim()}
               >
                 <i className="fa-solid fa-bolt"></i>
-                Format
+                <span>Format</span>
               </button>
               <button
                 className="primary-button j-ai-glow"
@@ -267,7 +268,7 @@ export default function JsonFormatter() {
                 disabled={loading || !input.trim()}
               >
                 <i className={`fa-solid ${loading ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}></i>
-                {loading ? 'Repairing…' : 'AI Fix'}
+                <span>{loading ? 'Repairing…' : 'AI Fix'}</span>
               </button>
             </div>
           </div>
@@ -403,7 +404,7 @@ export default function JsonFormatter() {
                         onClick={() => setConversionResult(null)}
                       >
                         <i className="fa-solid fa-arrow-left"></i>
-                        Back to JSON
+                        <span>Back to JSON</span>
                       </button>
                     </div>
                     <textarea
@@ -421,7 +422,7 @@ export default function JsonFormatter() {
                         )}
                       >
                         <i className="fa-solid fa-download"></i>
-                        Download {conversionResult.format.toUpperCase()}
+                        <span>Download {conversionResult.format.toUpperCase()}</span>
                       </button>
                     </div>
                   </div>
@@ -443,7 +444,7 @@ export default function JsonFormatter() {
                         disabled={!outputCode}
                       >
                         <i className="fa-solid fa-compress"></i>
-                        Minify
+                        <span>Minify</span>
                       </button>
                       <button
                         className="secondary-button"
@@ -451,7 +452,7 @@ export default function JsonFormatter() {
                         disabled={!outputCode}
                       >
                         <i className="fa-solid fa-download"></i>
-                        Download
+                        <span>Download</span>
                       </button>
                     </div>
                   </div>
@@ -609,7 +610,7 @@ export default function JsonFormatter() {
                     {zodLoading
                       ? <i className="fa-solid fa-spinner fa-spin"></i>
                       : <i className="fa-solid fa-rotate"></i>}
-                    Regenerate
+                    <span>Regenerate</span>
                   </button>
                   <button
                     className="j-zod-action-btn"
@@ -617,7 +618,7 @@ export default function JsonFormatter() {
                     disabled={!zodOutput}
                   >
                     <i className="fa-solid fa-vial"></i>
-                    Gen Example JSON
+                    <span>Gen Example JSON</span>
                   </button>
                   {zodOutput && (
                     <div className="j-zod-actions-right">
@@ -627,7 +628,7 @@ export default function JsonFormatter() {
                         onClick={() => downloadFile(zodOutput, 'schema.ts', 'text/plain')}
                       >
                         <i className="fa-solid fa-file-code"></i>
-                        Save .ts
+                        <span>Save .ts</span>
                       </button>
                     </div>
                   )}
