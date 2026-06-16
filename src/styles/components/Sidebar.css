@@ -192,6 +192,10 @@ html[data-theme='quartz'] .history-section {
   gap: 3px;
 }
 
+.autosave-btn i {
+  margin-top: 2px;
+}
+
 .autosave-btn:active {
   color: var(--text-secondary);
 }
@@ -568,8 +572,8 @@ html[data-theme='quartz'] .second-model-trigger-btn {
   position: fixed;
   top: 0;
   left: 0;
-  width: 75vw;
-  height: 75vh;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
@@ -579,8 +583,8 @@ html[data-theme='quartz'] .second-model-trigger-btn {
 }
 
 .history-modal-container {
-  width: 60%;
-  height: 60%;
+  width: 90%;
+  height: 90%;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -616,6 +620,7 @@ html[data-theme='quartz'] .history-modal-container {
   -webkit-text-fill-color: transparent;
   display: flex;
   align-items: center;
+  font-size: 1rem;
 }
 
 .history-modal-actions {
@@ -664,7 +669,7 @@ html[data-theme='quartz'] .history-modal-container {
 
 .history-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(262px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
 }
 

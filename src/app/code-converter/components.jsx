@@ -30,7 +30,7 @@ export function ConversionNotesPanel({ notes, activeTabId, open, onToggle }) {
   );
 }
 
-export function HistoryPanel({ history, activeTabId, open, onToggle, onRestore }) {
+export function HistoryPanel({ history, activeTabId, open, onToggle, onRestore, onRemove }) {
   const entries = history[activeTabId] || [];
   if (entries.length === 0) return null;
 
@@ -54,14 +54,20 @@ export function HistoryPanel({ history, activeTabId, open, onToggle, onRestore }
                     <span className="c-history__badge c-history__badge--sec">{entry.targetFramework}</span>
                   )}
                   {idx === 0 && <span className="c-history__current">current</span>}
-                  <span className="c-history__time">
-                    <i className="fa-regular fa-clock"></i>{' '}
-                    {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  <div className="c-history__actions">
+                    <span className="c-history__time">
+                      <i className="fa-regular fa-clock"></i>{' '}
+                      {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <button className="delete-item-btn" onClick={() => onRemove(activeTabId, idx)} title="Delete history entry">
+                      <i className="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
                 </div>
                 <div className="c-history__preview">
                   <pre>{(entry.outputFile?.content || '').split('\n').slice(0, 3).join('\n')}</pre>
                 </div>
+
                 {idx !== 0 && (
                   <button className="secondary-button c-history__restore" onClick={() => onRestore(activeTabId, idx)}>
                     <i className="fa-solid fa-rotate-left"></i> Restore
@@ -89,23 +95,23 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
 
   const updateSelection = (idx) => {
     if (!selectingRef.current || selectStartRef.current === null) return;
-    onRangeChange({ 
-      start: Math.min(selectStartRef.current, idx), 
-      end: Math.max(selectStartRef.current, idx) 
+    onRangeChange({
+      start: Math.min(selectStartRef.current, idx),
+      end: Math.max(selectStartRef.current, idx)
     });
   };
 
-  const stopSelection = () => { 
-    selectingRef.current = false; 
+  const stopSelection = () => {
+    selectingRef.current = false;
   };
 
   // Handle dragging on mobile using element coordinates
   const handleTouchMove = (e) => {
     if (!selectingRef.current) return;
-    
+
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    
+
     if (!element) return;
 
     // Traverse up to find the specific line row
@@ -119,8 +125,8 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
   useEffect(() => {
     window.addEventListener('mouseup', stopSelection);
     window.addEventListener('touchend', stopSelection);
-    window.addEventListener('touchcancel', stopSelection); 
-    
+    window.addEventListener('touchcancel', stopSelection);
+
     return () => {
       window.removeEventListener('mouseup', stopSelection);
       window.removeEventListener('touchend', stopSelection);
@@ -129,10 +135,10 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
   }, []);
 
   return (
-    <div 
+    <div
       className="c-line-selector"
       onTouchMove={handleTouchMove}
-      style={{ touchAction: 'none' }} 
+      style={{ touchAction: 'none' }}
     >
       {lines.map((line, i) => {
         const inRange = selectedRange && i >= selectedRange.start && i <= selectedRange.end;

@@ -117,9 +117,14 @@ export function useCodeConverter() {
 
   const saveDraft = useCallback(
     debounce(async (draftData) => {
-      if (draftData.files.some(f => f.content.trim())) {
-        try { await set('converter-draft-data', draftData); }
-        catch (e) { console.error("IndexedDB Error:", e); }
+      try {
+        if (draftData.files.some(f => f.content.trim())) {
+          await set('converter-draft-data', draftData);
+        } else {
+          await del('converter-draft-data');
+        }
+      } catch (e) {
+        console.error("IndexedDB Error:", e);
       }
     }, 1500),
     []
@@ -185,10 +190,40 @@ export function useCodeConverter() {
     }
     const out = moduleData.output ?? moduleData.fullOutput ?? moduleData;
 
-    if (Array.isArray(out.outputFiles) && out.outputFiles.length > 0) setOutputFiles(out.outputFiles);
+    let newNotes = {};
+    if (out.conversionNotes && Object.keys(out.conversionNotes).length > 0) {
+      newNotes = out.conversionNotes;
+      setConversionNotes(newNotes);
+    }
+
+    if (Array.isArray(out.outputFiles) && out.outputFiles.length > 0) {
+      setOutputFiles(out.outputFiles);
+
+      // Inject the loaded data into the conversion history as a baseline
+      const timestamp = new Date().toISOString();
+      setConversionHistory(prev => {
+        const updated = { ...prev };
+        out.outputFiles.forEach(rf => {
+          const entry = {
+            outputFile: rf,
+            targetLang: out.targetLang,
+            targetFramework: out.targetFramework,
+            timestamp,
+            notes: newNotes[rf.sourceId] || null,
+          };
+          const existing = updated[rf.sourceId] || [];
+          // Only add if it's not already the most recent entry (prevents dupes on remount)
+          if (existing[0]?.outputFile.content !== rf.content) {
+            updated[rf.sourceId] = [entry, ...existing].slice(0, MAX_HISTORY_PER_FILE);
+          }
+        });
+        saveHistoryToIdb(updated);
+        return updated;
+      });
+    }
+
     if (out.targetLang) setTargetLang(out.targetLang);
     if (out.targetFramework) setTargetFramework(out.targetFramework);
-    if (out.conversionNotes && Object.keys(out.conversionNotes).length > 0) setConversionNotes(out.conversionNotes);
 
     setModuleData(null);
   }, [moduleData]);
@@ -525,6 +560,18 @@ export function useCodeConverter() {
     }
   };
 
+  const removeHistoryEntry = (sourceId, entryIndex) => {
+    setConversionHistory(prev => {
+      const updated = { ...prev };
+      if (updated[sourceId]) {
+        updated[sourceId] = updated[sourceId].filter((_, i) => i !== entryIndex);
+        if (updated[sourceId].length === 0) delete updated[sourceId];
+      }
+      saveHistoryToIdb(updated);
+      return updated;
+    });
+  };
+
   const downloadZip = async () => {
     const zip = new JSZip();
     outputFiles.forEach(file => zip.file(file.fileName || 'file.txt', file.content));
@@ -551,6 +598,6 @@ export function useCodeConverter() {
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
+    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile, removeHistoryEntry
   };
 }

@@ -41,7 +41,7 @@ export default function CodeConverter() {
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile,
+    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile, removeHistoryEntry
   } = useCodeConverter();
 
   const [selectionMode, setSelectionMode] = useState(false);
@@ -382,6 +382,7 @@ export default function CodeConverter() {
                 open={historyPanelOpen}
                 onToggle={() => setHistoryPanelOpen(o => !o)}
                 onRestore={restoreHistoryEntry}
+                onRemove={removeHistoryEntry}
               />
               <ConversionNotesPanel
                 notes={conversionNotes}
