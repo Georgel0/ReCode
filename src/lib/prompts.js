@@ -48,17 +48,34 @@ export const PROMPT_CONFIG = {
         comments: "Comprehensive documentation explaining the 'Why' and 'How'.",
       };
 
+      const contextBlock = ctx?.projectContext
+        ? `\n\n          Project Context (provided by the developer — treat as authoritative):\n          ${ctx.projectContext}`
+        : '';
+
       return withSchema(
         `You are a Senior Software Engineer specialising in code quality and refactoring.
           Your Task: Refactor the provided code with this primary goal: ${goals[mode] || goals.clean}
-          Target Language: ${ctx?.targetLang || 'Auto-detect from input'}
+          Target Language: ${ctx?.targetLang || 'Auto-detect from input'}${contextBlock}
 
           Guidelines:
           1. Preserve all original functionality — never change what the code does, only how it does it.
           2. Apply the goal strictly and holistically across the entire file.
           3. Do NOT wrap code in markdown code blocks.
-          4. Return each refactored file as a separate entry in the 'files' array.`,
-        `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string" }] }`
+          4. Return each refactored file as a separate entry in the 'files' array.
+          5. For each file, provide a short 'summary' (1–2 sentences) and a 'changes' array.
+             Each change must have:
+               - "type": one of "rename" | "extract" | "simplify" | "async" | "perf" | "docs" | "style" | "fix"
+               - "description": a plain-English sentence explaining what changed and why.
+             Keep change descriptions concise (≤15 words). Aim for 3–8 changes per file.`,
+        `{
+          "files": [{
+            "sourceId": "string|number",
+            "fileName": "string",
+            "content": "string",
+            "summary": "string",
+            "changes": [{ "type": "string", "description": "string" }]
+          }]
+        }`
       );
     },
     user: (input) => `Code to refactor:\n${input}`,
@@ -88,7 +105,7 @@ export const PROMPT_CONFIG = {
             list of the key decisions you made (e.g. "mapped fs → pathlib", "dropped async because
             no async I/O present", "3 closure patterns rewritten as classes"). This helps the
             developer understand and trust the output.`,
-          `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string", "notes": "string (bulleted decisions, use \\n for line breaks)" }] }`
+        `{ "files": [{ "sourceId": "string|number", "fileName": "string", "content": "string", "notes": "string (bulleted decisions, use \\n for line breaks)" }] }`
       );
     },
     user: (input) =>

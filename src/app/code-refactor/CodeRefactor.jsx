@@ -4,7 +4,7 @@ import { ModuleHeader } from '@/components/layout';
 import { CodeEditor } from '@/components/ui';
 import { LANGUAGES } from '@/lib';
 import { useCodeRefactor } from './useCodeRefactor';
-import { FileTabs, RefactorControls, OutputPanel } from './components';
+import { FileTabs, RefactorControls, OutputPanel, ProjectContextInput } from './components';
 import './codeRefactor.css';
 
 export default function CodeRefactor() {
@@ -13,6 +13,7 @@ export default function CodeRefactor() {
     outputFiles, activeOutputFile, targetLang, lastResult,
     loadingStage, isLoading, hasContent, refactorMode, setRefactorMode,
     suggestedMode, viewMode, setViewMode, errorMsg, storageWarning,
+    projectContext, setProjectContext, handleClearAll,
     fileInputRef, handleRefactor, handleLanguageChange, handleFileUpload,
     updateFile, removeFile, handleAddFile, downloadSingleFile, downloadZip,
   } = useCodeRefactor();
@@ -43,11 +44,14 @@ export default function CodeRefactor() {
           <div className="r-panel-header">
             <h3>Source Files</h3>
             <div className="r-header-actions">
-              <button className="secondary-button" onClick={() => fileInputRef.current.click()}>
-                <i className="fa-solid fa-upload" aria-hidden="true" /> Upload
+              <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">
+                <i className="fas fa-upload" />
               </button>
-              <button className="secondary-button" onClick={handleAddFile}>
-                <i className="fa-solid fa-plus" aria-hidden="true" /> Add File
+              <button className="secondary-button" onClick={handleAddFile} title="Add Tab">
+                <i className="fas fa-plus" />
+              </button>
+              <button className="secondary-button r-clear-all-btn" onClick={handleClearAll} title="Clear Workspace">
+                <i className="fas fa-trash" />
               </button>
             </div>
             <input
@@ -79,6 +83,11 @@ export default function CodeRefactor() {
             refactorMode={refactorMode}
             setRefactorMode={setRefactorMode}
             suggestedMode={suggestedMode}
+          />
+
+          <ProjectContextInput
+            value={projectContext}
+            onChange={setProjectContext}
           />
 
           <FileTabs
@@ -119,8 +128,11 @@ export default function CodeRefactor() {
             </h3>
             {outputFiles.length > 0 && (
               <div className="r-header-actions">
-                <button className="secondary-button" onClick={downloadZip}>
-                  <i className="fa-solid fa-file-zipper" aria-hidden="true" /> Download ZIP
+                <button className="secondary-button" onClick={downloadZip} title="Download ZIP">
+                  <i className="fa-solid fa-file-zipper" aria-hidden="true" /> ZIP
+                </button>
+                <button className="secondary-button" onClick={() => downloadSingleFile(activeOutputFile)} title="Download File">
+                  <i className="fa-solid fa-download" aria-hidden="true" /> File
                 </button>
               </div>
             )}

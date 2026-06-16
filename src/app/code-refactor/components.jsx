@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
@@ -59,42 +59,144 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
     </div>
 
     <div className="r-mode-group" role="radiogroup" aria-label="Refactor goal">
-      {REFACTOR_MODES.map((mode) => (
-        <button
-          key={mode.id}
-          role="radio"
-          aria-checked={refactorMode === mode.id}
-          className={`r-mode-btn ${refactorMode === mode.id ? 'r-selected' : ''}`}
-          onClick={() => setRefactorMode(mode.id)}
-          title={mode.desc}
-        >
-          <span className="r-mode-title">
-            <i className={mode.icon} aria-hidden="true" />
-            {mode.label}
-            {suggestedMode === mode.id && (
-              <span className="r-suggested-badge">
-                <i className="fa-solid fa-star" aria-hidden="true" />
-                Suggested
-              </span>
-            )}
-          </span>
-          <div
-            type="button"
-            className="r-info-btn"
-            data-tooltip-id="r-refactor-tooltip"
-            data-tooltip-content={mode.desc}
-            aria-label={`Info: ${mode.desc}`}
-            onClick={(e) => e.stopPropagation()}
+      {REFACTOR_MODES.map((mode) => {
+        const isSuggested = suggestedMode?.mode === mode.id;
+        const suggestionReasons = isSuggested ? suggestedMode.reasons : [];
+        const tooltipContent = isSuggested && suggestionReasons.length > 0
+          ? `Suggested — ${suggestionReasons.join(' · ')}`
+          : mode.desc;
+
+        return (
+          <button
+            key={mode.id}
+            role="radio"
+            aria-checked={refactorMode === mode.id}
+            className={`r-mode-btn ${refactorMode === mode.id ? 'r-selected' : ''}`}
+            onClick={() => setRefactorMode(mode.id)}
+            title={mode.desc}
           >
-            <i className="fas fa-info-circle" aria-hidden="true" />
-          </div>
-        </button>
-      ))}
+            <span className="r-mode-title">
+              <i className={mode.icon} aria-hidden="true" />
+              {mode.label}
+              {isSuggested && (
+                <span
+                  className="r-suggested-badge"
+                  data-tooltip-id="r-refactor-tooltip"
+                  data-tooltip-content={suggestionReasons.length > 0 ? suggestionReasons.join(' · ') : 'Matches patterns in your code'}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <i className="fa-solid fa-star" aria-hidden="true" />
+                  Suggested
+                </span>
+              )}
+            </span>
+            <div
+              type="button"
+              className="r-info-btn"
+              data-tooltip-id="r-refactor-tooltip"
+              data-tooltip-content={tooltipContent}
+              aria-label={`Info: ${mode.desc}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <i className="fas fa-info-circle" aria-hidden="true" />
+            </div>
+          </button>
+        );
+      })}
     </div>
 
     <Tooltip id="r-refactor-tooltip" />
   </div>
 );
+
+export const ProjectContextInput = ({ value, onChange }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="r-context-block">
+      <button
+        className="r-context-toggle"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        <span className="r-context-toggle-left">
+          <i className="fa-solid fa-circle-info" aria-hidden="true" />
+          Project Context
+          {value.trim() && <span className="r-context-dot" aria-label="Context set" />}
+        </span>
+        <i
+          className={`fa-solid fa-chevron-${expanded ? 'up' : 'down'} r-context-chevron`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {expanded && (
+        <div className="r-context-body">
+          <p className="r-context-hint">
+            Tell the AI about your stack, conventions, or constraints. The more specific, the better.
+          </p>
+          <textarea
+            className="r-context-textarea"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="e.g. Node.js + Express API · use Zod for validation · no class components · keep all errors typed"
+            rows={3}
+            spellCheck={false}
+            aria-label="Project context for the AI"
+          />
+          <div className="r-context-chars">{value.length} / 500</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ChangeSummary = ({ outputFile }) => {
+  const [open, setOpen] = useState(true);
+
+  const { summary, changes } = outputFile;
+  if (!summary && (!changes || changes.length === 0)) return null;
+
+  return (
+    <div className="r-change-summary">
+      <button
+        className="r-change-summary-header"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="r-change-summary-title">
+          <i className="fa-solid fa-list-check" aria-hidden="true" />
+          What changed
+          {changes?.length > 0 && (
+            <span className="r-change-count">{changes.length}</span>
+          )}
+        </span>
+        <i
+          className={`fa-solid fa-chevron-${open ? 'up' : 'down'} r-change-chevron`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open && (
+        <div className="r-change-body">
+          {summary && <p className="r-change-overview">{summary}</p>}
+          {changes?.length > 0 && (
+            <ul className="r-change-list">
+              {changes.map((change, i) => (
+                <li key={i} className="r-change-item">
+                  <span className={`r-change-tag r-change-tag--${change.type || 'info'}`}>
+                    {change.type || 'change'}
+                  </span>
+                  <span className="r-change-text">{change.description}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const OutputPanel = React.memo(({
   activeFile,
@@ -145,6 +247,8 @@ export const OutputPanel = React.memo(({
         </button>
       </div>
 
+      <ChangeSummary outputFile={activeOutputFile} />
+
       <div className="r-diff-container">
         {viewMode === 'final' ? (
           <>
@@ -162,15 +266,6 @@ export const OutputPanel = React.memo(({
             targetLang={targetLang}
           />
         )}
-      </div>
-
-      <div className="r-output-action">
-        <div className="action-row">
-          <button className="primary-button" onClick={() => downloadSingleFile(activeOutputFile)}>
-            <i className="fa-solid fa-download" aria-hidden="true" />
-            Download File
-          </button>
-        </div>
       </div>
     </div>
   );

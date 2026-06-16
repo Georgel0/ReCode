@@ -47,16 +47,6 @@ export const getLanguageFromFilename = (filename, fallback = 'plaintext') => {
 
 const countMatches = (code, regex) => (code.match(regex) || []).length;
 
-const MODERN_PATTERNS = [
-  [/\bvar\s+/g, 2],
-  [/\.then\s*\(/g, 2],
-  [/\brequire\s*\(/g, 1.5],
-  [/module\.exports/g, 1.5],
-  [/function\s*\(\s*err\s*,/g, 2.5],
-  [/==(?!=)|!=(?!=)/g, 1],
-  [/\bnew\s+Promise\s*\(/g, 0.5],
-  [/\.apply\s*\(|\.call\s*\(/g, 0.5],
-];
 
 const maxLoopNestingDepth = (lines) => {
   const loopOpenRegex = /\b(for|while)\s*\(/;
@@ -86,45 +76,79 @@ export const suggestRefactorMode = (code) => {
   if (totalLines < 3) return null;
 
   const scores = { clean: 0, perf: 0, modern: 0, comments: 0 };
+  // Collect human-readable reasons per mode, keyed by a stable id
+  const reasons = { clean: [], perf: [], modern: [], comments: [] };
 
-  for (const [regex, weight] of MODERN_PATTERNS) {
-    scores.modern += countMatches(code, regex) * weight;
-  }
+  // Modern signals
+  const varCount = countMatches(code, /\bvar\s+/g);
+  if (varCount > 0) { scores.modern += varCount * 2; reasons.modern.push(`${varCount} var declaration${varCount > 1 ? 's' : ''} found`); }
+  const thenCount = countMatches(code, /\.then\s*\(/g);
+  if (thenCount > 0) { scores.modern += thenCount * 2; reasons.modern.push(`${thenCount} .then() chain${thenCount > 1 ? 's' : ''} — could use async/await`); }
+  const requireCount = countMatches(code, /\brequire\s*\(/g);
+  if (requireCount > 0) { scores.modern += requireCount * 1.5; reasons.modern.push(`${requireCount} require() call${requireCount > 1 ? 's' : ''} — consider ESM imports`); }
+  const cjsExports = countMatches(code, /module\.exports/g);
+  if (cjsExports > 0) { scores.modern += cjsExports * 1.5; reasons.modern.push('CommonJS module.exports — consider ESM export'); }
+  const errCbCount = countMatches(code, /function\s*\(\s*err\s*,/g);
+  if (errCbCount > 0) { scores.modern += errCbCount * 2.5; reasons.modern.push(`${errCbCount} error-first callback${errCbCount > 1 ? 's' : ''} — async/await opportunity`); }
+  const looseEqCount = countMatches(code, /==(?!=)|!=(?!=)/g);
+  if (looseEqCount > 0) { scores.modern += looseEqCount; reasons.modern.push(`${looseEqCount} loose equality operator${looseEqCount > 1 ? 's' : ''} (== or !=)`); }
 
+  // Perf signals
   const nesting = maxLoopNestingDepth(lines);
-  if (nesting >= 2) scores.perf += 3 * (nesting - 1);
-  scores.perf += countMatches(code, /\.(indexOf|includes|find|findIndex)\s*\(/g) * 0.4;
-  scores.perf += countMatches(code, /JSON\.parse\s*\(\s*JSON\.stringify/g) * 2;
+  if (nesting >= 2) { scores.perf += 3 * (nesting - 1); reasons.perf.push(`${nesting}-level loop nesting detected`); }
+  const searchCount = countMatches(code, /\.(indexOf|includes|find|findIndex)\s*\(/g);
+  if (searchCount > 0) { scores.perf += searchCount * 0.4; reasons.perf.push(`${searchCount} linear-search operation${searchCount > 1 ? 's' : ''} in hot paths`); }
+  const cloneCount = countMatches(code, /JSON\.parse\s*\(\s*JSON\.stringify/g);
+  if (cloneCount > 0) { scores.perf += cloneCount * 2; reasons.perf.push(`${cloneCount} JSON.parse(JSON.stringify()) deep-clone${cloneCount > 1 ? 's' : ''}`); }
 
+  // Comments signals
   const commentLines = lines.filter((l) => /^\s*(\/\/|\/\*|\*)/.test(l)).length;
   const commentRatio = commentLines / totalLines;
   const functionCount = countMatches(code, /\bfunction\b/g) + countMatches(code, /=>/g);
+  if (totalLines > 15 && commentRatio < 0.05) {
+    scores.comments += 2;
+    reasons.comments.push(`${Math.round(commentRatio * 100)}% comment coverage (under 5%)`);
+  }
+  if (functionCount > 2 && commentRatio < 0.1) {
+    const bump = Math.min(functionCount * 0.5, 3);
+    scores.comments += bump;
+    reasons.comments.push(`${functionCount} functions with little documentation`);
+  }
 
-  if (totalLines > 15 && commentRatio < 0.05) scores.comments += 2;
-  if (functionCount > 2 && commentRatio < 0.1) scores.comments += Math.min(functionCount * 0.5, 3);
-
-  scores.clean += countMatches(code, /\b(?:let|const|var)\s+(?:tmp\d*|temp\d*|foo|bar|baz|val\d*|data\d*|[a-z]\d?)\b/g);
-
+  // Clean signals
+  const badNameCount = countMatches(code, /\b(?:let|const|var)\s+(?:tmp\d*|temp\d*|foo|bar|baz|val\d*|data\d*|[a-z]\d?)\b/g);
+  if (badNameCount > 0) { scores.clean += badNameCount; reasons.clean.push(`${badNameCount} non-descriptive variable name${badNameCount > 1 ? 's' : ''} (tmp, val, foo…)`); }
   const deepIndentLines = lines.filter((l) => {
     const m = l.match(/^(\s+)/);
     return m && m[1].replace(/\t/g, '  ').length >= 8;
   }).length;
-
-  scores.clean += (deepIndentLines / totalLines) * 10;
-  if (functionCount > 0 && totalLines / functionCount > 40) scores.clean += 2;
-  scores.clean += Math.min(countMatches(code, /[^\w.](?:[2-9]\d*|\d{2,})(?!\w)/g) * 0.25, 3);
+  if (deepIndentLines > 0) {
+    scores.clean += (deepIndentLines / totalLines) * 10;
+    reasons.clean.push(`${deepIndentLines} deeply-indented line${deepIndentLines > 1 ? 's' : ''} (≥4 levels)`);
+  }
+  if (functionCount > 0 && totalLines / functionCount > 40) {
+    scores.clean += 2;
+    reasons.clean.push('Functions average >40 lines — extraction likely needed');
+  }
+  const magicNumCount = countMatches(code, /[^\w.](?:[2-9]\d*|\d{2,})(?!\w)/g);
+  if (magicNumCount > 0) {
+    scores.clean += Math.min(magicNumCount * 0.25, 3);
+    reasons.clean.push(`${magicNumCount} magic number${magicNumCount > 1 ? 's' : ''} without named constants`);
+  }
 
   const THRESHOLD = 2.5;
   let bestMode = null;
   let bestScore = THRESHOLD;
-  
+
   for (const [mode, score] of Object.entries(scores)) {
     if (score > bestScore) {
       bestScore = score;
       bestMode = mode;
     }
   }
-  return bestMode;
+
+  if (!bestMode) return null;
+  return { mode: bestMode, reasons: reasons[bestMode] };
 };
 
 const DRAFT_KEY = 'refactor-draft-data';
@@ -148,10 +172,11 @@ export function useCodeRefactor() {
 
   const [loadingStage, setLoadingStage] = useState('idle');
   const [refactorMode, setRefactorMode] = useState(DEFAULT_REFACTOR_MODE);
-  const [suggestedMode, setSuggestedMode] = useState(null);
+  const [suggestedMode, setSuggestedMode] = useState(null); // { mode, reasons[] } | null
   const [viewMode, setViewMode] = useState('final');
   const [errorMsg, setErrorMsg] = useState('');
   const [storageWarning, setStorageWarning] = useState(false);
+  const [projectContext, setProjectContext] = useState('');
 
   const fileInputRef = useRef(null);
   const isRestoring = useRef(false);
@@ -208,6 +233,7 @@ export function useCodeRefactor() {
           setActiveTabId(saved.files[0].id);
           if (saved.outputFiles?.length > 0) setOutputFiles(saved.outputFiles);
           if (saved.refactorMode) setRefactorMode(resolveRefactorMode(saved.refactorMode));
+          if (saved.projectContext) setProjectContext(saved.projectContext);
           setTimeout(() => { isRestoring.current = false; }, 100);
         }
       } catch (err) {
@@ -247,9 +273,9 @@ export function useCodeRefactor() {
 
   useEffect(() => {
     if (isRestoring.current) return; // don't overwrite the draft while restoring
-    saveDraft({ files, outputFiles, refactorMode });
+    saveDraft({ files, outputFiles, refactorMode, projectContext });
     return () => saveDraft.cancel();
-  }, [files, outputFiles, refactorMode, saveDraft]);
+  }, [files, outputFiles, refactorMode, projectContext, saveDraft]);
 
   useEffect(() => {
     setSuggestedMode(activeFile?.content?.trim() ? suggestRefactorMode(activeFile.content) : null);
@@ -271,6 +297,7 @@ export function useCodeRefactor() {
       const result = await convertCode('refactor', inputPayload, {
         mode: resolveRefactorMode(refactorMode),
         qualityMode,
+        projectContext: projectContext.trim() || undefined,
       });
 
       if (result && Array.isArray(result.files)) {
@@ -285,7 +312,7 @@ export function useCodeRefactor() {
       clearTimeout(valTimeout);
       setLoadingStage('idle');
     }
-  }, [files, refactorMode, qualityMode]);
+  }, [files, refactorMode, qualityMode, projectContext]);
 
   const handleLanguageChange = useCallback((id, newLangValue) => {
     const selectedLang = LANGUAGES.find((l) => l.value === newLangValue);
@@ -399,12 +426,23 @@ export function useCodeRefactor() {
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        saveDraft({ files, outputFiles, refactorMode });
+        saveDraft({ files, outputFiles, refactorMode, projectContext });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [files, outputFiles, refactorMode, handleRefactor, saveDraft]);
+  }, [files, outputFiles, refactorMode, projectContext, handleRefactor, saveDraft]);
+
+  const handleClearAll = () => {
+    setFiles(() => [createEmptyFile()]);
+    setActiveTabId(() => files[0].id);
+    setOutputFiles([]);
+    setProjectContext('');
+    setRefactorMode(DEFAULT_REFACTOR_MODE);
+    setStorageWarning(false);
+    setErrorMsg('');
+    setViewMode('final');
+  };
 
   return {
     files,
@@ -425,10 +463,13 @@ export function useCodeRefactor() {
     setViewMode,
     errorMsg,
     storageWarning,
+    projectContext,
+    setProjectContext,
     fileInputRef,
     handleRefactor,
     handleLanguageChange,
     handleFileUpload,
+    handleClearAll,
     updateFile,
     removeFile,
     handleAddFile,

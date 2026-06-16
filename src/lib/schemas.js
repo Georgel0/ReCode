@@ -44,25 +44,38 @@ export const OUTPUT_SCHEMAS = {
     summary: z.string().describe('One-sentence human-readable verdict, e.g. "No errors found." or "2 syntax errors detected."'),
   }),
 
-  // Code refactor / translate (multi-file)
   refactor: z.object({
-    files: z.array(z.object({
-      sourceId: z.union([z.string(), z.number()])
-        .describe('The original unique ID provided in the input'),
-      fileName: z.string()
-        .describe('The file name (may be updated if refactoring suggests better naming)'),
-      content: z.string().describe('The full refactored code'),
-    })),
+    files: z.array(
+      z.object({
+        sourceId: z.union([z.string(), z.number()])
+          .describe('The original unique ID provided in the input'),
+        fileName: z.string()
+          .describe('The file name (may be updated if refactoring suggests better naming)'),
+        content: z.string()
+          .describe('The full refactored code'),
+        summary: z.string().optional()
+          .describe('1–2 sentence overview of what was refactored and why'),
+        changes: z.array(
+          z.object({
+            type: z.enum(['rename', 'extract', 'simplify', 'async', 'perf', 'docs', 'style', 'fix'])
+              .describe('Category of change'),
+            description: z.string()
+              .describe('Plain-English explanation of what changed and why (≤15 words)'),
+          })
+        ).optional()
+          .describe('Itemised list of notable changes made to this file'),
+      })
+    ),
   }),
 
   converter: z.object({
-  files: z.array(z.object({
-    sourceId: z.union([z.string(), z.number()]),
-    fileName: z.string(),
-    content: z.string(),
-    notes: z.string().optional(),
-  })),
-}),
+    files: z.array(z.object({
+      sourceId: z.union([z.string(), z.number()]),
+      fileName: z.string(),
+      content: z.string(),
+      notes: z.string().optional(),
+    })),
+  }),
 
   // Code generator (multi-file)
   generator: z.object({
