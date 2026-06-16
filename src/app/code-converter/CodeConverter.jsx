@@ -195,10 +195,10 @@ export default function CodeConverter() {
                 <i className="fa-solid fa-trash-can"></i>
               </button>
               <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">
-                <i className="fa-solid fa-cloud-arrow-up"></i> Upload
+                <i className="fa-solid fa-cloud-arrow-up"></i> <span className="c-text-to-hide">Upload</span>
               </button>
               <button className="secondary-button" onClick={handleAddFile} title="Add File Tab">
-                <i className="fa-solid fa-plus"></i> Add
+                <i className="fa-solid fa-plus"></i> <span className="c-text-to-hide">Add</span>
               </button>
             </div>
             <input type="file" ref={fileInputRef} className="c-file-input-hidden" onChange={handleFileUpload} multiple />
