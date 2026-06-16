@@ -1,9 +1,8 @@
 .r-module-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   margin-left: 0.75rem;
-  margin-bottom: 0;
+  margin-bottom: 1rem;
 }
 
 .r-banner {
@@ -38,7 +37,7 @@
   display: flex;
   gap: 0.93rem;
   min-height: 0;
-  height: 77vh;
+  height: 82vh;
 }
 
 .r-panel {
@@ -131,7 +130,7 @@
 
 .r-refactor-options-header i {
   color: var(--accent);
-  font-size: 0.63em;
+  font-size: 1em;
 }
 
 .r-mode-group {

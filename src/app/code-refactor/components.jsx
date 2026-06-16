@@ -3,7 +3,7 @@ import { Tooltip } from 'react-tooltip';
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import { DiffView } from '@/components/widgets';
-import { REFACTOR_MODES } from './utils';
+import { REFACTOR_MODES } from './useCodeRefactor';
 import { formatBytes } from '@/lib';
 
 export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
