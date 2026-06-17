@@ -62,11 +62,8 @@ export const PROMPT_CONFIG = {
           2. Apply the goal strictly and holistically across the entire file.
           3. Do NOT wrap code in markdown code blocks.
           4. Return each refactored file as a separate entry in the 'files' array.
-          5. For each file, provide a short 'summary' (1–2 sentences) and a 'changes' array.
-             Each change must have:
-               - "type": one of "rename" | "extract" | "simplify" | "async" | "perf" | "docs" | "style" | "fix"
-               - "description": a plain-English sentence explaining what changed and why.
-             Keep change descriptions concise (≤15 words). Aim for 3–8 changes per file.
+          5. Every single entry in your 'changes' array MUST directly relate to the primary goal (${mode.toUpperCase()}). 
+             Do not list generic formatting changes.
           6. Also return a 'suggestions' array of strings: things you would have changed but did not
              due to scope, the refactor goal, or safety (e.g. would require architectural changes,
              out-of-scope refactors, breaking changes). Each entry is one plain sentence (~20 words).
@@ -83,7 +80,7 @@ export const PROMPT_CONFIG = {
         }`
       );
     },
-    user: (input) => `Code to refactor:\n${input}`,
+    user: (input, ctx) => `Apply the ${ctx?.mode || 'clean'} refactor goal to this code:\n\n${input}`,
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.refactor,
   },
