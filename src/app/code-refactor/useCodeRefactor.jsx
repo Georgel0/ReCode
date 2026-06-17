@@ -429,6 +429,17 @@ export function useCodeRefactor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [files, outputFiles, refactorMode, projectContext, handleRefactor, saveDraft]);
 
+  const renameFile = useCallback((id, newName) => {
+    setFiles((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
+        const sanitized = sanitizeFilename(newName);
+        const lang = getLanguageFromFilename(sanitized, f.language);
+        return { ...f, name: sanitized, language: lang };
+      }),
+    );
+  }, []);
+
   const handleClearAll = () => {
     const fresh = createEmptyFile();
     setFiles([fresh]);
@@ -467,5 +478,6 @@ export function useCodeRefactor() {
     handleAddFile,
     downloadSingleFile,
     downloadZip,
+    renameFile,
   };
 }

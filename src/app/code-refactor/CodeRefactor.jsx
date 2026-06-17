@@ -6,7 +6,7 @@ import { CodeEditor } from '@/components/ui';
 import { DiffView } from '@/components/widgets';
 import { LANGUAGES } from '@/lib';
 import { useCodeRefactor } from './useCodeRefactor';
-import { FileTabs, RefactorControls, OutputPanel, ProjectContextInput } from './components';
+import { FileTabs, OutputFileTabs, RefactorControls, OutputPanel, ProjectContextInput, ChangeSummary } from './components';
 import './codeRefactor.css';
 
 export default function CodeRefactor() {
@@ -18,6 +18,7 @@ export default function CodeRefactor() {
     projectContext, setProjectContext, handleClearAll,
     fileInputRef, handleRefactor, handleLanguageChange, handleFileUpload,
     updateFile, removeFile, handleAddFile, downloadSingleFile, downloadZip,
+    renameFile,
   } = useCodeRefactor();
 
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
@@ -37,49 +38,55 @@ export default function CodeRefactor() {
         </div>
       )}
 
-      <div className="r-dashboard-config-card">
-        <div className="r-config-left-group">
-          <div className="r-lang-row">
-            <div className="r-lang-select">
-              <label htmlFor="r-lang-select">Language</label>
-              <select
-                id="r-lang-select"
-                value={activeFile?.language || 'javascript'}
-                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
-              >
-                {LANGUAGES.map((lang) => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              className="primary-button r-refactor-inline-btn"
-              onClick={handleRefactor}
-              disabled={isLoading || !hasContent}
+      <div className="r-config-bar">
+        <div className="r-config-cluster">
+          <div className="r-lang-pill">
+            <label htmlFor="r-lang-select" className="r-lang-label">
+              <i className="fa-solid fa-code" aria-hidden="true" />
+              Language
+            </label>
+            <select
+              id="r-lang-select"
+              className="r-lang-select"
+              value={activeFile?.language || 'javascript'}
+              onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
             >
-              <i
-                className={isLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-wand-magic-sparkles'}
-                aria-hidden="true"
-              />
-              {isLoading ? 'Processing…' : 'Refactor Project'}
-            </button>
+              {LANGUAGES.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
           </div>
+
+          <button
+            className="primary-button r-refactor-btn"
+            onClick={handleRefactor}
+            disabled={isLoading || !hasContent}
+          >
+            <i
+              className={isLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-wand-magic-sparkles'}
+              aria-hidden="true"
+            />
+            {isLoading ? 'Processing…' : 'Refactor'}
+          </button>
         </div>
-        <div className="r-config-right-group">
-          <RefactorControls
-            refactorMode={refactorMode}
-            setRefactorMode={setRefactorMode}
-            suggestedMode={suggestedMode}
-          />
-        </div>
+
+        <div className="r-config-divider" aria-hidden="true" />
+
+        <RefactorControls
+          refactorMode={refactorMode}
+          setRefactorMode={setRefactorMode}
+          suggestedMode={suggestedMode}
+        />
       </div>
 
       <div className="r-converter-grid">
         <div className="r-panel">
           <div className="r-panel-header">
-            <h3 className="r-header-title"><i className="fas fa-file-code"></i> Source Files</h3>
+            <h3 className="r-header-title">
+              <i className="fas fa-file-code" aria-hidden="true" /> Source Files
+            </h3>
             <div className="r-header-actions">
               <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">
                 <i className="fas fa-upload" />
@@ -106,6 +113,7 @@ export default function CodeRefactor() {
             activeTabId={activeTabId}
             setActiveTabId={setActiveTabId}
             removeFile={removeFile}
+            renameFile={renameFile}
           />
 
           <div className="r-editor-wrap">
@@ -119,21 +127,27 @@ export default function CodeRefactor() {
 
         <div className="r-panel">
           <div className="r-panel-header">
-            <h3>
-              <i className="fa-solid fa-square-check" />
-              Refactored Result
+            <h3 className="r-header-title">
+              <i className="fa-solid fa-square-check" aria-hidden="true" /> Refactored Result
             </h3>
             {outputFiles.length > 0 && (
               <div className="r-header-actions">
                 <button className="secondary-button" onClick={downloadZip} title="Download ZIP">
-                  <i className="fa-solid fa-file-zipper" aria-hidden="true" /> ZIP
+                  <i className="fa-solid fa-file-zipper" aria-hidden="true" />
                 </button>
                 <button className="secondary-button" onClick={() => downloadSingleFile(activeOutputFile)} title="Download File">
-                  <i className="fa-solid fa-download" aria-hidden="true" /> File
+                  <i className="fa-solid fa-download" aria-hidden="true" />
                 </button>
               </div>
             )}
           </div>
+
+          <OutputFileTabs
+            outputFiles={outputFiles}
+            inputFiles={files}
+            activeTabId={activeTabId}
+            setActiveTabId={setActiveTabId}
+          />
 
           <OutputPanel
             activeFile={activeFile}
@@ -146,20 +160,28 @@ export default function CodeRefactor() {
         </div>
       </div>
 
-      <div className="r-diff-toggle-container">
-        <ProjectContextInput
-          value={projectContext}
-          onChange={setProjectContext}
-        />
+      <div className="r-footer">
+        <div className="r-footer-context">
+          <ProjectContextInput
+            value={projectContext}
+            onChange={setProjectContext}
+          />
+        </div>
+
+        {activeOutputFile && (
+          <div className="r-footer-changes">
+            <ChangeSummary outputFile={activeOutputFile} />
+          </div>
+        )}
 
         {outputFiles.length > 0 && activeOutputFile && (
-          <>
+          <div className="r-footer-diff">
             <button
               className={`secondary-button r-diff-expand-btn ${isDiffExpanded ? 'r-diff-active-state' : ''}`}
               onClick={() => setIsDiffExpanded(!isDiffExpanded)}
             >
               <i className={`fa-solid ${isDiffExpanded ? 'fa-angles-up' : 'fa-code-compare'}`} aria-hidden="true" />
-              {isDiffExpanded ? 'Hide Visual Diff Comparison' : 'Show Visual Diff Comparison'}
+              {isDiffExpanded ? 'Hide Diff' : 'Show Diff'}
             </button>
 
             {isDiffExpanded && (
@@ -178,7 +200,7 @@ export default function CodeRefactor() {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

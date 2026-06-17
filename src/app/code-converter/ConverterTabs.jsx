@@ -23,6 +23,12 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
     setEditName(f.name);
   };
 
+  const startEdit = (f) => {
+    if (readOnly) return;
+    setEditingId(f.id);
+    setEditName(f.name);
+  };
+
   const handleRenameSubmit = (id) => {
     isClosingRef.current = true;
     if (editName.trim()) {
@@ -39,9 +45,27 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
     }
   };
 
+  const handleTabKeyDown = (e, f, index) => {
+    if (editingId === f.id) return;
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setActiveTabId(f.id);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setActiveTabId(files[(index + 1) % files.length].id);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setActiveTabId(files[(index - 1 + files.length) % files.length].id);
+    } else if (e.key === 'F2' && !readOnly) {
+      e.preventDefault();
+      startEdit(f);
+    }
+  };
+
   return (
     <div className="c-tabs" role="tablist" aria-label="Open files">
-      {files.map((f) => (
+      {files.map((f, index) => (
         <div
           key={f.id}
           role="tab"
@@ -50,13 +74,8 @@ export function ConverterTabs({ files, activeTabId, setActiveTabId, removeFile, 
           className={`c-tab${activeTabId === f.id ? ' c-tab--active' : ''}`}
           onClick={() => { if (editingId !== f.id) setActiveTabId(f.id); }}
           onDoubleClick={(e) => !readOnly && handleDoubleClick(e, f)}
-          onKeyDown={(e) => {
-            if ((e.key === 'Enter' || e.key === ' ') && editingId !== f.id) {
-              e.preventDefault();
-              setActiveTabId(f.id);
-            }
-          }}
-          title={!readOnly ? "Double click to rename" : ""}
+          onKeyDown={(e) => handleTabKeyDown(e, f, index)}
+          title={!readOnly ? "Double-click or F2 to rename" : ""}
         >
           <i className="fa-solid fa-file-code"></i>
 

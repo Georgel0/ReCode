@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Tooltip } from 'react-tooltip';
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
@@ -6,17 +6,38 @@ import { DiffView } from '@/components/widgets';
 import { REFACTOR_MODES } from './useCodeRefactor';
 import { formatBytes } from '@/lib';
 
-export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => {
+export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile, renameFile }) => {
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const inputRef = useRef(null);
+
+  const startEdit = (e, file) => {
+    e.stopPropagation();
+    setEditingId(file.id);
+    setEditValue(file.name || 'untitled');
+  };
+
+  const commitEdit = () => {
+    if (editingId && editValue.trim()) {
+      renameFile(editingId, editValue.trim());
+    }
+    setEditingId(null);
+  };
 
   const handleKeyDown = (e, index) => {
-    if (e.key === 'ArrowRight') {
-      setActiveTabId(files[(index + 1) % files.length].id);
-    } else if (e.key === 'ArrowLeft') {
-      setActiveTabId(files[(index - 1 + files.length) % files.length].id);
-    } else if (e.key === 'Enter') {
-      setActiveTabId(files[index].id);
-    }
+    if (editingId) return;
+    if (e.key === 'ArrowRight') setActiveTabId(files[(index + 1) % files.length].id);
+    else if (e.key === 'ArrowLeft') setActiveTabId(files[(index - 1 + files.length) % files.length].id);
+    else if (e.key === 'Enter') setActiveTabId(files[index].id);
+    else if (e.key === 'F2') startEdit(e, files[index]);
   };
+
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
 
   return (
     <div className="r-tabs-bar" role="tablist" aria-label="Open files">
@@ -28,13 +49,32 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
           tabIndex={0}
           className={`r-tab ${activeTabId === file.id ? 'r-active' : ''}`}
           onClick={() => setActiveTabId(file.id)}
+          onDoubleClick={(e) => startEdit(e, file)}
           onKeyDown={(e) => handleKeyDown(e, index)}
         >
           <i className="fa-solid fa-file-code" aria-hidden="true" />
           <span className="r-tab-name">
-            {file.name || 'untitled'}
-            {file.size > 0 && (
-              <small className="r-file-size">({formatBytes(file.size)})</small>
+            {editingId === file.id ? (
+              <input
+                ref={inputRef}
+                className="r-tab-rename-input"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') commitEdit();
+                  if (e.key === 'Escape') setEditingId(null);
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <>
+                {file.name || 'untitled'}
+                {file.size > 0 && (
+                  <small className="r-file-size">({formatBytes(file.size)})</small>
+                )}
+              </>
             )}
           </span>
           <span
@@ -51,13 +91,49 @@ export const FileTabs = ({ files, activeTabId, setActiveTabId, removeFile }) => 
   );
 };
 
+export const OutputFileTabs = ({ outputFiles, inputFiles, activeTabId, setActiveTabId }) => {
+  if (!outputFiles || outputFiles.length === 0) return null;
+
+  // Build an ordered list matching inputFiles order (with fallback)
+  const orderedTabs = inputFiles
+    .map((f) => {
+      const out = outputFiles.find((o) => o.sourceId === f.id || o.fileName === f.name);
+      return out ? { ...out, displayName: out.fileName || f.name } : null;
+    })
+    .filter(Boolean);
+
+  if (orderedTabs.length === 0) return null;
+
+  return (
+    <div className="r-tabs-bar" role="tablist" aria-label="Output files">
+      {orderedTabs.map((out) => {
+        const matchInput = inputFiles.find(
+          (f) => f.id === out.sourceId || f.name === out.fileName,
+        );
+        const isActive = activeTabId === matchInput?.id;
+        return (
+          <button
+            key={out.sourceId || out.fileName}
+            role="tab"
+            aria-selected={isActive}
+            className={`r-tab ${isActive ? 'r-active' : ''}`}
+            onClick={() => matchInput && setActiveTabId(matchInput.id)}
+          >
+            <i className="fa-solid fa-file-code" aria-hidden="true" />
+            <span className="r-tab-name">{out.displayName}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode }) => (
   <div className="r-refactor-options">
-    <div className="r-refactor-options-header">
+    <span className="r-refactor-label">
       <i className="fa-solid fa-bullseye" aria-hidden="true" />
-      Refactor Goal
-    </div>
-
+      Goal
+    </span>
     <div className="r-mode-group" role="radiogroup" aria-label="Refactor goal">
       {REFACTOR_MODES.map((mode) => {
         const isSuggested = suggestedMode?.mode === mode.id;
@@ -73,45 +149,20 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
             aria-checked={refactorMode === mode.id}
             className={`r-mode-btn ${refactorMode === mode.id ? 'r-selected' : ''}`}
             onClick={() => setRefactorMode(mode.id)}
-            title={mode.desc}
+            data-tooltip-id="r-refactor-tooltip"
+            data-tooltip-content={tooltipContent}
           >
-            <span className="r-mode-title">
-              <i className={mode.icon} aria-hidden="true" />
-              {mode.label}
-              {isSuggested && (
-                <span
-                  className="r-suggested-badge"
-                  data-tooltip-id="r-refactor-tooltip"
-                  data-tooltip-content={suggestionReasons.length > 0 ? suggestionReasons.join(' · ') : 'Matches patterns in your code'}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <i className="fa-solid fa-star" aria-hidden="true" />
-                  Suggested
-                </span>
-              )}
-            </span>
-            <div
-              role="button"
-              tabIndex={0}
-              className="r-info-btn"
-              data-tooltip-id="r-refactor-tooltip"
-              data-tooltip-content={tooltipContent}
-              aria-label={`Info: ${mode.desc}`}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-              }}
-            >
-              <i className="fas fa-info-circle" aria-hidden="true" />
-            </div>
+            <i className={mode.icon} aria-hidden="true" />
+            <span className="r-mode-btn-label">{mode.label}</span>
+            {isSuggested && (
+              <span className="r-suggested-badge" onClick={(e) => e.stopPropagation()}>
+                <i className="fa-solid fa-star" aria-hidden="true" />
+              </span>
+            )}
           </button>
         );
       })}
     </div>
-
     <Tooltip id="r-refactor-tooltip" />
   </div>
 );
@@ -139,27 +190,29 @@ export const ProjectContextInput = ({ value, onChange }) => {
 
       {expanded && (
         <div className="r-context-body">
-          <p className="r-context-hint">
-            Tell the AI about your stack, conventions, or constraints.
-          </p>
           <textarea
             className="r-context-textarea"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onChange(e.target.value.slice(0, 500))}
             placeholder="e.g. Node.js + Express API · use Zod for validation · no class components"
             spellCheck={false}
             aria-label="Project context for the AI"
+            rows={4}
           />
-          <div className="r-context-chars">{value.length} / 500</div>
+          <div className="r-context-footer">
+            <span className="r-context-hint">Tell the AI about your stack, conventions, or constraints.</span>
+            <span className={`r-context-chars ${value.length > 450 ? 'r-context-chars--warn' : ''}`}>
+              {value.length} / 500
+            </span>
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-const ChangeSummary = ({ outputFile }) => {
+export const ChangeSummary = ({ outputFile }) => {
   const [open, setOpen] = useState(true);
-
   const { summary, changes } = outputFile;
   if (!summary && (!changes || changes.length === 0)) return null;
 
@@ -235,7 +288,6 @@ export const OutputPanel = React.memo(({
 
   return (
     <div className="r-output-panel">
-      <ChangeSummary outputFile={activeOutputFile} />
       <div className="r-clean-output-view">
         <CodeOutput
           language={activeFile.language || 'javascript'}
