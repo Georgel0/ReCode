@@ -287,6 +287,45 @@ export const ChangeSummary = ({ outputFile }) => {
   );
 };
 
+export const Suggestions = ({ outputFile }) => {
+  const [open, setOpen] = useState(false);
+  const { suggestions } = outputFile;
+  if (!suggestions || suggestions.length === 0) return null;
+
+  return (
+    <div className="r-change-summary">
+      <button
+        className="r-change-summary-header"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="r-change-summary-title">
+          <i className="fa-solid fa-lightbulb" aria-hidden="true" />
+          Suggestions
+          <span className="r-change-count">{suggestions.length}</span>
+        </span>
+        <i
+          className={`fa-solid fa-chevron-down r-change-chevron ${open ? 'r-change-chevron--open' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      <div className={`r-change-body-wrap ${open ? 'r-change-body-wrap--open' : ''}`}>
+        <div className="r-change-body">
+          <ul className="r-change-list">
+            {suggestions.map((s, i) => (
+              <li key={i} className="r-change-item">
+                <span className="r-change-tag r-change-tag--info">idea</span>
+                <span className="r-change-text">{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const OutputPanel = React.memo(({
   activeFile,
   activeOutputFile,

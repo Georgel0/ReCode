@@ -6,7 +6,7 @@ import { CodeEditor } from '@/components/ui';
 import { DiffView } from '@/components/widgets';
 import { LANGUAGES } from '@/lib';
 import { useCodeRefactor } from './useCodeRefactor';
-import { FileTabs, OutputFileTabs, RefactorControls, OutputPanel, ProjectContextInput, ChangeSummary } from './components';
+import { FileTabs, OutputFileTabs, RefactorControls, OutputPanel, ProjectContextInput, ChangeSummary, Suggestions } from './components';
 import './codeRefactor.css';
 
 export default function CodeRefactor() {
@@ -169,6 +169,7 @@ export default function CodeRefactor() {
         {activeOutputFile && (
           <div className="r-footer-changes">
             <ChangeSummary outputFile={activeOutputFile} />
+            <Suggestions outputFile={activeOutputFile} />
           </div>
         )}
 

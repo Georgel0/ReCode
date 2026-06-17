@@ -66,13 +66,18 @@ export const PROMPT_CONFIG = {
              Each change must have:
                - "type": one of "rename" | "extract" | "simplify" | "async" | "perf" | "docs" | "style" | "fix"
                - "description": a plain-English sentence explaining what changed and why.
-             Keep change descriptions concise (≤15 words). Aim for 3–8 changes per file.`,
+             Keep change descriptions concise (≤15 words). Aim for 3–8 changes per file.
+          6. Also return a 'suggestions' array of strings: things you would have changed but did not
+             due to scope, the refactor goal, or safety (e.g. would require architectural changes,
+             out-of-scope refactors, breaking changes). Each entry is one plain sentence (~20 words).
+             Aim for 2–5 suggestions. Omit if there is genuinely nothing to suggest.`,
         `{
           "files": [{
             "sourceId": "string|number",
             "fileName": "string",
             "content": "string",
             "summary": "string",
+            "suggestions" : ["string"],
             "changes": [{ "type": "string", "description": "string" }]
           }]
         }`

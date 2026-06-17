@@ -377,20 +377,19 @@
 
 .r-footer {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    "context changes"
-    "diff    diff";
+  grid-template-columns: 1fr;
   gap: 0.75rem;
-  align-items: start;
+  align-items: center;
 }
 
 .r-footer-changes {
-  grid-area: changes;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.56rem;
 }
 
 .r-footer-diff {
-  grid-area: diff;
   display: flex;
   flex-direction: column;
   gap: 0.56rem;
@@ -521,9 +520,10 @@
 
 .r-change-summary {
   background: var(--bg-secondary);
-  border: 0.75px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  width: 50%;
 }
 
 .r-change-summary-header {
@@ -558,12 +558,11 @@
 }
 
 .r-change-count {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   min-width: 16px;
   height: 16px;
-  padding: 0 4px;
   background: rgba(56, 189, 248, 0.12);
   color: var(--accent);
   border-radius: 10px;
@@ -599,14 +598,20 @@
 }
 
 .r-change-body {
-  border-top: 0.75px solid var(--border);
-  padding: 0.5rem 0.75rem 0.56rem;
+  border-top: 0px solid var(--border);
+  padding: 0 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.44rem;
   max-height: 260px;
   overflow-y: auto;
   min-height: 0;
+  transition: padding 0.24s ease, border-width 0.24s ease;
+}
+
+.r-change-body-wrap--open .r-change-body {
+  border-top-width: 0.75px;
+  padding: 0.5rem 0.75rem 0.56rem;
 }
 
 .r-change-overview {

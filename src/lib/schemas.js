@@ -55,6 +55,8 @@ export const OUTPUT_SCHEMAS = {
           .describe('The full refactored code'),
         summary: z.string().optional()
           .describe('1–2 sentence overview of what was refactored and why'),
+        suggestions: z.array(z.string()).optional()
+          .describe('Things the AI would have changed but could not due to constraints, scope, or safety'),
         changes: z.array(
           z.object({
             type: z.enum(['rename', 'extract', 'simplify', 'async', 'perf', 'docs', 'style', 'fix'])
