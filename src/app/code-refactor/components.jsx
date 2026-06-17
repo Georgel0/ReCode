@@ -168,51 +168,81 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
 );
 
 export const ProjectContextInput = ({ value, onChange }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
 
   return (
-    <div className="r-context-block">
+    <>
       <button
-        className="r-context-toggle"
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
+        className={`r-context-btn secondary-button ${value.trim() ? 'r-context-btn--active' : ''}`}
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
       >
-        <span className="r-context-toggle-left">
-          <i className="fa-solid fa-circle-info" aria-hidden="true" />
-          Project Context
-          {value.trim() && <span className="r-context-dot" aria-label="Context set" />}
-        </span>
-        <i
-          className={`fa-solid fa-chevron-${expanded ? 'up' : 'down'} r-context-chevron`}
-          aria-hidden="true"
-        />
+        <i className="fa-solid fa-circle-info" aria-hidden="true" />
+        Project Context
+        {value.trim() && <span className="r-context-dot" aria-label="Context set" />}
       </button>
 
-      {expanded && (
-        <div className="r-context-body">
-          <textarea
-            className="r-context-textarea"
-            value={value}
-            onChange={(e) => onChange(e.target.value.slice(0, 500))}
-            placeholder="e.g. Node.js + Express API · use Zod for validation · no class components"
-            spellCheck={false}
-            aria-label="Project context for the AI"
-            rows={4}
-          />
-          <div className="r-context-footer">
-            <span className="r-context-hint">Tell the AI about your stack, conventions, or constraints.</span>
-            <span className={`r-context-chars ${value.length > 450 ? 'r-context-chars--warn' : ''}`}>
-              {value.length} / 500
-            </span>
+      {open && (
+        <div
+          className="modal-overlay r-context-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Project context"
+          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+        >
+          <div className="modal-content r-context-modal">
+            <div className="modal-header">
+              <h2>
+                <i className="fa-solid fa-circle-info" aria-hidden="true" />
+                Project Context
+              </h2>
+              <button
+                className="r-context-modal-close"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+              >
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
+              </button>
+            </div>
+            <p className="r-context-modal-desc">
+              Tell the AI about your stack, conventions, or constraints so it can tailor refactors to your project.
+            </p>
+            <textarea
+              className="r-context-textarea"
+              value={value}
+              onChange={(e) => onChange(e.target.value.slice(0, 500))}
+              placeholder="e.g. Node.js + Express API · use Zod for validation · no class components"
+              spellCheck={false}
+              aria-label="Project context for the AI"
+              rows={5}
+              autoFocus
+            />
+            <div className="r-context-footer">
+              <span className={`r-context-chars ${value.length > 450 ? 'r-context-chars--warn' : ''}`}>
+                {value.length} / 500
+              </span>
+            </div>
+            <div className="modal-footer">
+              <button className="secondary-button" onClick={() => setOpen(false)}>
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
 export const ChangeSummary = ({ outputFile }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const { summary, changes } = outputFile;
   if (!summary && (!changes || changes.length === 0)) return null;
 
@@ -231,12 +261,12 @@ export const ChangeSummary = ({ outputFile }) => {
           )}
         </span>
         <i
-          className={`fa-solid fa-chevron-${open ? 'up' : 'down'} r-change-chevron`}
+          className={`fa-solid fa-chevron-down r-change-chevron ${open ? 'r-change-chevron--open' : ''}`}
           aria-hidden="true"
         />
       </button>
 
-      {open && (
+      <div className={`r-change-body-wrap ${open ? 'r-change-body-wrap--open' : ''}`}>
         <div className="r-change-body">
           {summary && <p className="r-change-overview">{summary}</p>}
           {changes?.length > 0 && (
@@ -252,7 +282,7 @@ export const ChangeSummary = ({ outputFile }) => {
             </ul>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

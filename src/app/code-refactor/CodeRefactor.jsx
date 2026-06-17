@@ -79,6 +79,11 @@ export default function CodeRefactor() {
           setRefactorMode={setRefactorMode}
           suggestedMode={suggestedMode}
         />
+
+        <ProjectContextInput
+          value={projectContext}
+          onChange={setProjectContext}
+        />
       </div>
 
       <div className="r-converter-grid">
@@ -161,13 +166,6 @@ export default function CodeRefactor() {
       </div>
 
       <div className="r-footer">
-        <div className="r-footer-context">
-          <ProjectContextInput
-            value={projectContext}
-            onChange={setProjectContext}
-          />
-        </div>
-
         {activeOutputFile && (
           <div className="r-footer-changes">
             <ChangeSummary outputFile={activeOutputFile} />
