@@ -189,7 +189,7 @@ export default function CodeConverter() {
       <div className="c-grid">
         <div className="c-panel">
           <div className="c-panel__header">
-            <h3 className="c-panel__title"><i className="fa-solid fa-file-code"></i> Source Files</h3>
+            <h3 className="c-panel__title"><i className="fas fa-file-code"></i> Source Files</h3>
             <div className="c-panel__actions">
               <button className="secondary-button c-btn-danger" onClick={handleClearAll} title="Clear Workspace">
                 <i className="fa-solid fa-trash-can"></i>

@@ -14,7 +14,7 @@ export default function CodeRefactor() {
     files, activeFile, activeTabId, setActiveTabId,
     outputFiles, activeOutputFile, targetLang, lastResult,
     loadingStage, isLoading, hasContent, refactorMode, setRefactorMode,
-    suggestedMode, errorMsg, storageWarning,
+    suggestedMode, errorMsg,
     projectContext, setProjectContext, handleClearAll,
     fileInputRef, handleRefactor, handleLanguageChange, handleFileUpload,
     updateFile, removeFile, handleAddFile, downloadSingleFile, downloadZip,
@@ -36,34 +36,36 @@ export default function CodeRefactor() {
           {errorMsg}
         </div>
       )}
-      {storageWarning && (
-        <div className="r-banner r-warning" role="alert">
-          <i className="fa-solid fa-hard-drive" aria-hidden="true" />
-          Storage is full. Drafts will not be saved.
-        </div>
-      )}
 
-      {/* Modern Dashboard Options Header */}
       <div className="r-dashboard-config-card">
         <div className="r-config-left-group">
           <div className="r-lang-row">
-            <label htmlFor="r-lang-select">Language</label>
-            <select
-              id="r-lang-select"
-              value={activeFile?.language || 'javascript'}
-              onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
+            <div className="r-lang-select">
+              <label htmlFor="r-lang-select">Language</label>
+              <select
+                id="r-lang-select"
+                value={activeFile?.language || 'javascript'}
+                onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
+              >
+                {LANGUAGES.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              className="primary-button r-refactor-inline-btn"
+              onClick={handleRefactor}
+              disabled={isLoading || !hasContent}
             >
-              {LANGUAGES.map((lang) => (
-                <option key={lang.value} value={lang.value}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
+              <i
+                className={isLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-wand-magic-sparkles'}
+                aria-hidden="true"
+              />
+              {isLoading ? 'Processing…' : 'Refactor Project'}
+            </button>
           </div>
-          <ProjectContextInput
-            value={projectContext}
-            onChange={setProjectContext}
-          />
         </div>
         <div className="r-config-right-group">
           <RefactorControls
@@ -74,12 +76,10 @@ export default function CodeRefactor() {
         </div>
       </div>
 
-      {/* Main Multi-File Code Editor & Code Output Layout Grid */}
       <div className="r-converter-grid">
-        {/* Workspace Input Block */}
         <div className="r-panel">
           <div className="r-panel-header">
-            <h3>Source Files</h3>
+            <h3 className="r-header-title"><i className="fas fa-file-code"></i> Source Files</h3>
             <div className="r-header-actions">
               <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">
                 <i className="fas fa-upload" />
@@ -115,27 +115,12 @@ export default function CodeRefactor() {
               language={activeFile?.language || 'javascript'}
             />
           </div>
-
-          <div className="r-refactor-action">
-            <button
-              className="primary-button r-full-width"
-              onClick={handleRefactor}
-              disabled={isLoading || !hasContent}
-            >
-              <i
-                className={isLoading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-wand-magic-sparkles'}
-                aria-hidden="true"
-              />
-              {isLoading ? 'Processing…' : 'Refactor Project'}
-            </button>
-          </div>
         </div>
 
-        {/* Workspace Output Block */}
         <div className="r-panel">
           <div className="r-panel-header">
             <h3>
-              <i className="fa-solid fa-square-check" aria-hidden="true" />
+              <i className="fa-solid fa-square-check" />
               Refactored Result
             </h3>
             {outputFiles.length > 0 && (
@@ -161,35 +146,41 @@ export default function CodeRefactor() {
         </div>
       </div>
 
-      {/* Rearranged Full Width Toggleable Diff Component Node */}
-      {outputFiles.length > 0 && activeOutputFile && (
-        <div className="r-diff-toggle-container">
-          <button 
-            className={`secondary-button r-diff-expand-btn ${isDiffExpanded ? 'r-diff-active-state' : ''}`}
-            onClick={() => setIsDiffExpanded(!isDiffExpanded)}
-          >
-            <i className={`fa-solid ${isDiffExpanded ? 'fa-angles-up' : 'fa-code-compare'}`} aria-hidden="true" />
-            {isDiffExpanded ? 'Hide Visual Diff Comparison' : 'Show Visual Diff Comparison'}
-          </button>
+      <div className="r-diff-toggle-container">
+        <ProjectContextInput
+          value={projectContext}
+          onChange={setProjectContext}
+        />
 
-          {isDiffExpanded && (
-            <div className="r-fullwidth-diff-panel">
-              <div className="r-diff-panel-title">
-                <i className="fa-solid fa-code-compare" aria-hidden="true" />
-                Line-by-Line Changes (Diff View)
+        {outputFiles.length > 0 && activeOutputFile && (
+          <>
+            <button
+              className={`secondary-button r-diff-expand-btn ${isDiffExpanded ? 'r-diff-active-state' : ''}`}
+              onClick={() => setIsDiffExpanded(!isDiffExpanded)}
+            >
+              <i className={`fa-solid ${isDiffExpanded ? 'fa-angles-up' : 'fa-code-compare'}`} aria-hidden="true" />
+              {isDiffExpanded ? 'Hide Visual Diff Comparison' : 'Show Visual Diff Comparison'}
+            </button>
+
+            {isDiffExpanded && (
+              <div className="r-fullwidth-diff-panel">
+                <div className="r-diff-panel-title">
+                  <i className="fa-solid fa-code-compare" aria-hidden="true" />
+                  Line-by-Line Changes (Diff View)
+                </div>
+                <div className="r-diff-container">
+                  <DiffView
+                    sourceContent={activeFile?.content || ''}
+                    targetContent={activeOutputFile?.content || ''}
+                    sourceLang={activeFile?.language || 'plaintext'}
+                    targetLang={targetLang}
+                  />
+                </div>
               </div>
-              <div className="r-diff-container">
-                <DiffView
-                  sourceContent={activeFile?.content || ''}
-                  targetContent={activeOutputFile?.content || ''}
-                  sourceLang={activeFile?.language || 'plaintext'}
-                  targetLang={targetLang}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

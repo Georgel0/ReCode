@@ -171,7 +171,6 @@ export function useCodeRefactor() {
   const [loadingStage, setLoadingStage] = useState('idle');
   const [refactorMode, setRefactorMode] = useState(DEFAULT_REFACTOR_MODE);
   const [suggestedMode, setSuggestedMode] = useState(null); // { mode, reasons[] } | null
-  const [viewMode, setViewMode] = useState('final');
   const [errorMsg, setErrorMsg] = useState('');
   const [projectContext, setProjectContext] = useState('');
 
@@ -431,13 +430,13 @@ export function useCodeRefactor() {
   }, [files, outputFiles, refactorMode, projectContext, handleRefactor, saveDraft]);
 
   const handleClearAll = () => {
-    setFiles(() => [createEmptyFile()]);
-    setActiveTabId(() => files[0].id);
+    const fresh = createEmptyFile();
+    setFiles([fresh]);
+    setActiveTabId(fresh.id);
     setOutputFiles([]);
     setProjectContext('');
     setRefactorMode(DEFAULT_REFACTOR_MODE);
     setErrorMsg('');
-    setViewMode('final');
   };
 
   return {
@@ -455,8 +454,6 @@ export function useCodeRefactor() {
     refactorMode,
     setRefactorMode,
     suggestedMode,
-    viewMode,
-    setViewMode,
     errorMsg,
     projectContext,
     setProjectContext,

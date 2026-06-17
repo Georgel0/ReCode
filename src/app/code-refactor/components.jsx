@@ -91,12 +91,19 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
               )}
             </span>
             <div
-              type="button"
+              role="button"
+              tabIndex={0}
               className="r-info-btn"
               data-tooltip-id="r-refactor-tooltip"
               data-tooltip-content={tooltipContent}
               aria-label={`Info: ${mode.desc}`}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             >
               <i className="fas fa-info-circle" aria-hidden="true" />
             </div>
@@ -140,7 +147,6 @@ export const ProjectContextInput = ({ value, onChange }) => {
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="e.g. Node.js + Express API · use Zod for validation · no class components"
-            rows={2}
             spellCheck={false}
             aria-label="Project context for the AI"
           />
