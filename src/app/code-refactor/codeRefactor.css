@@ -39,7 +39,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
   background: var(--bg-secondary);
   border: 0.75px solid var(--border);
@@ -157,11 +157,6 @@
   max-width: 180px;
   padding: 0.3rem 1.87rem 0.3rem 0.6rem;
   font-size: 0.63rem;
-}
-
-.r-refactor-inline-btn {
-  margin-left: auto;
-  white-space: nowrap;
 }
 
 .r-refactor-options {
@@ -484,7 +479,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.25rem;
+  padding: 0.5rem;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -527,7 +522,7 @@
 }
  
 .r-context-body {
-  padding: 0.25rem;
+  padding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -542,9 +537,7 @@
  
 .r-context-textarea {
   width: 100%;
-  resize: vertical;
-  min-height: 44px;
-  padding: 0.44rem 0.56rem;
+  padding: .5rem;
   margin: 0;
   background: var(--bg-primary);
   border: 0.75px solid var(--border);
@@ -702,7 +695,7 @@
   border: 1px solid var(--danger-hover);
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1300px) {
   .r-lang-row {
     flex-direction: column;
   }
