@@ -6,6 +6,7 @@ import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { DiffView, CodeAnalysisInfoIcon } from '@/components/widgets';
+import { useSyncScroll } from '@/components/effects';
 import { useApp } from '@/context';
 import { ConverterTabs } from './ConverterTabs';
 import { useCodeConverter } from './useCodeConverter';
@@ -35,14 +36,16 @@ export default function CodeConverter() {
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
     selectedRange, setSelectedRange,
     loading, formatting, linting, lintResult, toasts, dismissToast,
-    fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
-    diffMode, setDiffMode,
+    fileInputRef, diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
     handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile, removeHistoryEntry
   } = useCodeConverter();
+
+  const { sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll } =
+    useSyncScroll({ deps: [outputFiles, activeTabId] });
 
   const [selectionMode, setSelectionMode] = useState(false);
   const hasOutput = outputFiles.length > 0;

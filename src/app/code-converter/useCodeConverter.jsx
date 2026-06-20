@@ -109,11 +109,6 @@ export function useCodeConverter() {
   const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
 
   const fileInputRef = useRef(null);
-  const sourceScrollRef = useRef(null);
-  const targetScrollRef = useRef(null);
-  const [syncScroll, setSyncScroll] = useState(false);
-
-  const isSyncingRef = useRef(false);
 
   const saveDraft = useCallback(
     debounce(async (draftData) => {
@@ -308,39 +303,6 @@ export function useCodeConverter() {
       if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
     }
   };
-
-  useEffect(() => {
-    const src = sourceScrollRef.current?.querySelector('.editor-container');
-    const tgt = targetScrollRef.current?.querySelector('.editor-container');
-    if (!src || !tgt) return;
-
-    const syncFrom = (source, target) => () => {
-      if (!syncScroll || isSyncingRef.current) return;
-      isSyncingRef.current = true;
-
-      const maxSrcTop = source.scrollHeight - source.clientHeight;
-      const maxTgtTop = target.scrollHeight - target.clientHeight;
-
-      if (maxSrcTop > 0 && maxTgtTop > 0) {
-        target.scrollTop = Math.round((source.scrollTop / maxSrcTop) * maxTgtTop);
-      } else if (maxTgtTop > 0) {
-        target.scrollTop = 0;
-      }
-
-      requestAnimationFrame(() => { isSyncingRef.current = false; });
-    };
-
-    const srcHandler = syncFrom(src, tgt);
-    const tgtHandler = syncFrom(tgt, src);
-
-    src.addEventListener('scroll', srcHandler, { passive: true });
-    tgt.addEventListener('scroll', tgtHandler, { passive: true });
-
-    return () => {
-      src.removeEventListener('scroll', srcHandler);
-      tgt.removeEventListener('scroll', tgtHandler);
-    };
-  }, [outputFiles, syncScroll, activeTabId]);
 
   const addToast = useCallback((type, message, detail = null) => {
     const id = crypto.randomUUID();
@@ -592,8 +554,7 @@ export function useCodeConverter() {
     targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
     selectedRange, setSelectedRange,
     loading, formatting, linting, lintResult, toasts, dismissToast,
-    fileInputRef, sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll,
-    diffMode, setDiffMode,
+    fileInputRef, diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
     feedbackText, setFeedbackText, handleReconvert,
     conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
