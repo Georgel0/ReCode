@@ -170,10 +170,6 @@
   transition: border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
-.r-mode-btn i {
-  font-size: 0.72em;
-}
-
 .r-mode-btn:hover {
   border-color: var(--accent);
   color: var(--text-primary);
@@ -410,10 +406,6 @@
   align-items: flex-start;
 }
 
-.r-sync-btn {
-  margin-left: 5px;
-}
-
 .r-sync-btn i {
   font-size: .8rem;
 }
@@ -430,7 +422,7 @@
 
 .r-context-btn i {
   color: var(--accent);
-  font-size: 0.82em;
+  margin-top: 2px;
 }
 
 .r-context-btn:hover i {

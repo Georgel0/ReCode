@@ -44,111 +44,184 @@ export const getLanguageFromFilename = (filename, fallback = 'plaintext') => {
 
 // Refactor mode suggestion — scores the code against weighted signals per
 // mode and returns the strongest one, or null if nothing stands out.
+const countMatches = (str, re) => (str.match(re) ?? []).length;
+const stripStrings = (code) => code.replace(/(['"`])(?:(?!\1)[^\\]|\\.)*\1/gs, '""');
 
-const countMatches = (code, regex) => (code.match(regex) || []).length;
-
-
+const plural = (n, singular, pluralForm) =>
+  `${n} ${n === 1 ? singular : (pluralForm ?? singular + 's')}`;
 const maxLoopNestingDepth = (lines) => {
-  const loopOpenRegex = /\b(for|while)\s*\(/;
-  let braceDepth = 0;
-  const loopStack = [];
-  let max = 0;
-
+  let depth = 0, max = 0;
   for (const line of lines) {
-    if (loopOpenRegex.test(line)) loopStack.push(braceDepth);
-
-    braceDepth += (line.match(/{/g) || []).length;
-    braceDepth -= (line.match(/}/g) || []).length;
-
-    while (loopStack.length && braceDepth < loopStack[loopStack.length - 1] + 1) {
-      loopStack.pop();
-    }
-    max = Math.max(max, loopStack.length);
+    if (/\b(for|while|do)\b/.test(line)) depth++;
+    max = Math.max(max, depth);
+    if (/^\s*\}/.test(line)) depth = Math.max(0, depth - 1);
   }
   return max;
 };
 
 export const suggestRefactorMode = (code) => {
-  if (!code || !code.trim()) return null;
+  if (!code?.trim()) return null;
 
   const lines = code.split('\n');
-  const totalLines = lines.filter((l) => l.trim().length > 0).length;
-  if (totalLines < 3) return null;
+  const nonBlankLines = lines.filter((l) => l.trim().length > 0).length;
+  if (nonBlankLines < 3) return null;
+
+  const clean = code;
+  const noStrings = stripStrings(code);
 
   const scores = { clean: 0, perf: 0, modern: 0, comments: 0 };
-  // Collect human-readable reasons per mode, keyed by a stable id
   const reasons = { clean: [], perf: [], modern: [], comments: [] };
 
   // Modern signals
-  const varCount = countMatches(code, /\bvar\s+/g);
-  if (varCount > 0) { scores.modern += varCount * 2; reasons.modern.push(`${varCount} var declaration${varCount > 1 ? 's' : ''} found`); }
-  const thenCount = countMatches(code, /\.then\s*\(/g);
-  if (thenCount > 0) { scores.modern += thenCount * 2; reasons.modern.push(`${thenCount} .then() chain${thenCount > 1 ? 's' : ''} — could use async/await`); }
-  const requireCount = countMatches(code, /\brequire\s*\(/g);
-  if (requireCount > 0) { scores.modern += requireCount * 1.5; reasons.modern.push(`${requireCount} require() call${requireCount > 1 ? 's' : ''} — consider ESM imports`); }
-  const cjsExports = countMatches(code, /module\.exports/g);
-  if (cjsExports > 0) { scores.modern += cjsExports * 1.5; reasons.modern.push('CommonJS module.exports — consider ESM export'); }
-  const errCbCount = countMatches(code, /function\s*\(\s*err\s*,/g);
-  if (errCbCount > 0) { scores.modern += errCbCount * 2.5; reasons.modern.push(`${errCbCount} error-first callback${errCbCount > 1 ? 's' : ''} — async/await opportunity`); }
-  const looseEqCount = countMatches(code, /==(?!=)|!=(?!=)/g);
-  if (looseEqCount > 0) { scores.modern += looseEqCount; reasons.modern.push(`${looseEqCount} loose equality operator${looseEqCount > 1 ? 's' : ''} (== or !=)`); }
+
+  const varCount = countMatches(clean, /\bvar\s+/g);
+  if (varCount > 0) {
+    scores.modern += varCount * 2;
+    reasons.modern.push(
+      `Replace ${plural(varCount, 'var declaration')} with const/let to prevent hoisting surprises`
+    );
+  }
+
+  const thenCount = countMatches(clean, /\.then\s*\(/g);
+  if (thenCount > 0) {
+    scores.modern += thenCount * 2;
+    reasons.modern.push(
+      `${plural(thenCount, '.then() chain')} — flatten with async/await for clearer control flow`
+    );
+  }
+
+  const requireCount = countMatches(clean, /\brequire\s*\(/g);
+  if (requireCount > 0) {
+    scores.modern += requireCount * 1.5;
+    reasons.modern.push(
+      `${plural(requireCount, 'require() call')} — migrate to ESM import/export`
+    );
+  }
+
+  const cjsExports = countMatches(clean, /module\.exports/g);
+  if (cjsExports > 0) {
+    scores.modern += cjsExports * 1.5;
+    reasons.modern.push('module.exports found — replace with ESM export statements');
+  }
+
+  const errCbCount = countMatches(clean, /function\s*\(\s*err\s*,/g);
+  if (errCbCount > 0) {
+    scores.modern += errCbCount * 2.5;
+    reasons.modern.push(
+      `${plural(errCbCount, 'error-first callback')} — wrap in a promisify helper or rewrite with async/await`
+    );
+  }
+
+  const looseEqCount = countMatches(clean, /==(?!=)|!=(?!=)/g);
+  if (looseEqCount > 0) {
+    scores.modern += looseEqCount;
+    reasons.modern.push(
+      `${plural(looseEqCount, 'loose equality check', 'loose equality checks')} (== / !=) — use === / !== to avoid type coercion bugs`
+    );
+  }
 
   // Perf signals
+
   const nesting = maxLoopNestingDepth(lines);
-  if (nesting >= 2) { scores.perf += 3 * (nesting - 1); reasons.perf.push(`${nesting}-level loop nesting detected`); }
-  const searchCount = countMatches(code, /\.(indexOf|includes|find|findIndex)\s*\(/g);
-  if (searchCount > 0) { scores.perf += searchCount * 0.4; reasons.perf.push(`${searchCount} linear-search operation${searchCount > 1 ? 's' : ''} in hot paths`); }
-  const cloneCount = countMatches(code, /JSON\.parse\s*\(\s*JSON\.stringify/g);
-  if (cloneCount > 0) { scores.perf += cloneCount * 2; reasons.perf.push(`${cloneCount} JSON.parse(JSON.stringify()) deep-clone${cloneCount > 1 ? 's' : ''}`); }
+  if (nesting >= 2) {
+    scores.perf += 3 * (nesting - 1);
+    reasons.perf.push(
+      `${nesting}-level nested loop → O(n^${nesting}) complexity — consider a Map/Set for O(n) lookup`
+    );
+  }
+
+  const searchCount = countMatches(clean, /\.(indexOf|includes|find|findIndex)\s*\(/g);
+  if (searchCount > 0) {
+    scores.perf += searchCount * 0.4;
+    reasons.perf.push(
+      `${plural(searchCount, 'linear-search call', 'linear-search calls')} (.find/.includes etc.) inside loops — hoist to a Set/Map lookup`
+    );
+  }
+
+  const cloneCount = countMatches(clean, /JSON\.parse\s*\(\s*JSON\.stringify/g);
+  if (cloneCount > 0) {
+    scores.perf += cloneCount * 2;
+    reasons.perf.push(
+      `${plural(cloneCount, 'JSON.parse(JSON.stringify()) clone')} — replace with structuredClone() or a targeted spread/slice`
+    );
+  }
 
   // Comments signals
   const commentLines = lines.filter((l) => /^\s*(\/\/|\/\*|\*)/.test(l)).length;
-  const commentRatio = commentLines / totalLines;
-  const functionCount = countMatches(code, /\bfunction\b/g) + countMatches(code, /=>/g);
-  if (totalLines > 15 && commentRatio < 0.05) {
+  const commentRatio = commentLines / nonBlankLines;
+  const functionCount =
+    countMatches(clean, /\bfunction\b/g) + countMatches(clean, /=>/g);
+
+  if (nonBlankLines > 15 && commentRatio < 0.05) {
     scores.comments += 2;
-    reasons.comments.push(`${Math.round(commentRatio * 100)}% comment coverage (under 5%)`);
+    reasons.comments.push(
+      `${Math.round(commentRatio * 100)}% comment coverage — add at least a one-liner above each exported function`
+    );
   }
+
   if (functionCount > 2 && commentRatio < 0.1) {
     const bump = Math.min(functionCount * 0.5, 3);
     scores.comments += bump;
-    reasons.comments.push(`${functionCount} functions with little documentation`);
+    reasons.comments.push(
+      `${plural(functionCount, 'function', 'functions')} with <10% comment coverage — document parameters, return values, and edge cases`
+    );
   }
 
-  // Clean signals
-  const badNameCount = countMatches(code, /\b(?:let|const|var)\s+(?:tmp\d*|temp\d*|foo|bar|baz|val\d*|data\d*|[a-z]\d?)\b/g);
-  if (badNameCount > 0) { scores.clean += badNameCount; reasons.clean.push(`${badNameCount} non-descriptive variable name${badNameCount > 1 ? 's' : ''} (tmp, val, foo…)`); }
+  // Clean signals 
+  const badNameCount = countMatches(
+    clean,
+    /\b(?:let|const|var)\s+(?:tmp\d*|temp\d*|foo|bar|baz|val\d*|data\d*|[a-z]\d?)\b/g
+  );
+  if (badNameCount > 0) {
+    scores.clean += badNameCount;
+    reasons.clean.push(
+      `${plural(badNameCount, 'non-descriptive name', 'non-descriptive names')} (tmp, val, foo…) — rename to reflect the value's purpose`
+    );
+  }
+
   const deepIndentLines = lines.filter((l) => {
     const m = l.match(/^(\s+)/);
     return m && m[1].replace(/\t/g, '  ').length >= 8;
   }).length;
+
   if (deepIndentLines > 0) {
-    scores.clean += (deepIndentLines / totalLines) * 10;
-    reasons.clean.push(`${deepIndentLines} deeply-indented line${deepIndentLines > 1 ? 's' : ''} (≥4 levels)`);
+    scores.clean += (deepIndentLines / nonBlankLines) * 10;
+    reasons.clean.push(
+      `${plural(deepIndentLines, 'line', 'lines')} indented ≥4 levels — extract inner blocks into named functions`
+    );
   }
-  if (functionCount > 0 && totalLines / functionCount > 40) {
+
+  if (functionCount > 0 && nonBlankLines / functionCount > 40) {
     scores.clean += 2;
-    reasons.clean.push('Functions average >40 lines — extraction likely needed');
+    reasons.clean.push(
+      `Functions average ${Math.round(nonBlankLines / functionCount)} lines — split into smaller single-responsibility units`
+    );
   }
-  const magicNumCount = countMatches(code, /[^\w.](?:[2-9]\d*|\d{2,})(?!\w)/g);
+
+  const magicNumCount = countMatches(
+    noStrings,
+    /[^\w.](?:[2-9]\d*|\d{2,})(?!\w)/g
+  );
   if (magicNumCount > 0) {
     scores.clean += Math.min(magicNumCount * 0.25, 3);
-    reasons.clean.push(`${magicNumCount} magic number${magicNumCount > 1 ? 's' : ''} without named constants`);
+    reasons.clean.push(
+      `${plural(magicNumCount, 'magic number')} — extract into named constants (const MAX_RETRIES = 3)`
+    );
   }
 
+  // Rank all modes that clear the threshold
   const THRESHOLD = 2.5;
-  let bestMode = null;
-  let bestScore = THRESHOLD;
 
-  for (const [mode, score] of Object.entries(scores)) {
-    if (score > bestScore) {
-      bestScore = score;
-      bestMode = mode;
-    }
-  }
+  const ranked = Object.entries(scores)
+    .filter(([, score]) => score >= THRESHOLD)
+    .sort(([modeA, scoreA], [modeB, scoreB]) => {
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      // Tie-break: prefer the mode with more specific reasons
+      return reasons[modeB].length - reasons[modeA].length;
+    })
+    .map(([mode]) => ({ mode, score: scores[mode], reasons: reasons[mode] }));
 
-  if (!bestMode) return null;
-  return { mode: bestMode, reasons: reasons[bestMode] };
+  return ranked.length ? ranked : null;
 };
 
 const createEmptyFile = (overrides = {}) => ({
@@ -166,7 +239,7 @@ export function useCodeRefactor() {
   const [files, setFiles] = useState(() => [createEmptyFile()]);
   const [activeTabId, setActiveTabId] = useState(() => files[0].id);
   const [outputFiles, setOutputFiles] = useState([]);
-  const [lastResult, setLastResult] = useState(false);
+  const [lastResult, setLastResult] = useState(null);
 
   const [loadingStage, setLoadingStage] = useState('idle');
   const [refactorMode, setRefactorMode] = useState(DEFAULT_REFACTOR_MODE);
@@ -252,20 +325,19 @@ export function useCodeRefactor() {
     }
   }, [outputFiles, files, refactorMode, qualityMode]);
 
-  const saveDraft = useCallback(
+  const saveDraft = useRef(
     debounce(async (draftData) => {
       try {
-        if (draftData.files.some(f => f.content.trim())) {
+        if (draftData.files.some((f) => f.content.trim())) {
           await set('refactor-draft-data', draftData);
         } else {
           await del('refactor-draft-data');
         }
       } catch (e) {
-        console.error("IndexedDB Error:", e);
+        console.error('IndexedDB error:', e);
       }
-    }, 1500),
-    []
-  );
+    }, 1500)
+  ).current;
 
   useEffect(() => {
     if (isRestoring.current) return; // don't overwrite the draft while restoring
@@ -274,7 +346,9 @@ export function useCodeRefactor() {
   }, [files, outputFiles, refactorMode, projectContext, saveDraft]);
 
   useEffect(() => {
-    setSuggestedMode(activeFile?.content?.trim() ? suggestRefactorMode(activeFile.content) : null);
+    setSuggestedMode(activeFile?.content?.trim()
+      ? (suggestRefactorMode(activeFile.content)?.[0] ?? null)
+      : null);
   }, [activeTabId, activeFile?.content]);
 
   const handleRefactor = useCallback(async () => {
@@ -374,26 +448,28 @@ export function useCodeRefactor() {
   );
 
   const removeFile = useCallback((idToRemove) => {
-    const remaining = files.filter((f) => f.id !== idToRemove);
-    if (remaining.length === 0) {
-      const fresh = createEmptyFile({ name: 'untitled.txt', language: 'plaintext' });
-      setFiles([fresh]);
-      setActiveTabId(fresh.id);
-    } else {
-      setFiles(remaining);
-      if (activeTabId === idToRemove) setActiveTabId(remaining[0].id);
-    }
-  }, [files, activeTabId]);
+    setFiles((prev) => {
+      const remaining = prev.filter((f) => f.id !== idToRemove);
+      if (remaining.length === 0) {
+        const fresh = createEmptyFile({ name: 'untitled.txt', language: 'plaintext' });
+        setActiveTabId(fresh.id);
+        return [fresh];
+      }
+      setActiveTabId((cur) => cur === idToRemove ? remaining[0].id : cur);
+      return remaining;
+    });
+  }, []);
 
   const handleAddFile = useCallback(() => {
-    const ext = activeFile?.language
-      ? LANGUAGES.find((l) => l.value === activeFile.language)?.ext ?? '.js'
-      : '.js';
-    const lang = activeFile?.language || 'javascript';
-    const newFile = createEmptyFile({ name: `new-file${ext}`, language: lang });
-    setFiles((prev) => [...prev, newFile]);
-    setActiveTabId(newFile.id);
-  }, [activeFile]);
+    setFiles((prev) => {
+      const active = prev.find((f) => f.id === activeTabId) ?? prev[prev.length - 1];
+      const ext = LANGUAGES.find((l) => l.value === active?.language)?.ext ?? '.js';
+      const lang = active?.language || 'javascript';
+      const newFile = createEmptyFile({ name: `new-file${ext}`, language: lang });
+      setActiveTabId(newFile.id);
+      return [...prev, newFile];
+    });
+  }, [activeTabId]);
 
   const downloadSingleFile = useCallback((file) => {
     const blob = new Blob([file.content], { type: 'text/plain' });
@@ -401,7 +477,9 @@ export function useCodeRefactor() {
     const a = document.createElement('a');
     a.href = url;
     a.download = sanitizeFilename(file.fileName || file.name || 'refactored-file.txt');
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, []);
 
@@ -440,7 +518,7 @@ export function useCodeRefactor() {
     );
   }, []);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     const fresh = createEmptyFile();
     setFiles([fresh]);
     setActiveTabId(fresh.id);
@@ -448,7 +526,7 @@ export function useCodeRefactor() {
     setProjectContext('');
     setRefactorMode(DEFAULT_REFACTOR_MODE);
     setErrorMsg('');
-  };
+  }, []);
 
   return {
     files,

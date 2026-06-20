@@ -84,18 +84,19 @@ export default function CodeRefactor() {
           suggestedMode={suggestedMode}
         />
 
-        <ProjectContextInput
-          value={projectContext}
-          onChange={setProjectContext}
-        />
-
-        <button
-          className={`secondary-button r-sync-btn ${syncScroll ? ' btn-active' : ''}`}
-          onClick={() => setSyncScroll(s => !s)}
-          title="Toggle Sync Scroll"
-        >
-          <i className={`fa-solid ${syncScroll ? 'fa-link' : 'fa-link-slash'}`} />
-        </button>
+        <div className="r-config-cluster">
+          <ProjectContextInput
+            value={projectContext}
+            onChange={setProjectContext}
+          />
+          <button
+            className={`secondary-button r-sync-btn ${syncScroll ? ' btn-active' : ''}`}
+            onClick={() => setSyncScroll(s => !s)}
+            title="Toggle Sync Scroll"
+          >
+            <i className={`fa-solid ${syncScroll ? 'fa-link' : 'fa-link-slash'}`} />
+          </button>
+        </div>
       </div>
 
       <div className="r-converter-grid">
