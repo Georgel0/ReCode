@@ -167,7 +167,7 @@ export default function CodeConverter() {
           </button>
           {hasOutput && (
             <button
-              className={`secondary-button c-btn-icon${diffMode ? ' c-btn-active' : ''}`}
+              className={`secondary-button c-btn-icon${diffMode ? ' btn-active' : ''}`}
               onClick={() => setDiffMode(d => !d)}
               title="Toggle diff view"
             >
@@ -176,7 +176,7 @@ export default function CodeConverter() {
           )}
           {hasOutput && (
             <button
-              className={`secondary-button c-btn-icon${syncScroll ? ' c-btn-active' : ''} sync-btn`}
+              className={`secondary-button c-btn-icon${syncScroll ? ' btn-active' : ''} sync-btn`}
               onClick={() => setSyncScroll(s => !s)}
               title="Toggle Sync Scroll"
             >

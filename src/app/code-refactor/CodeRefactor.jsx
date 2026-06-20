@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ModuleHeader } from '@/components/layout';
 import { CodeEditor } from '@/components/ui';
+import { useSyncScroll } from '@/components/effects';
 import { DiffView } from '@/components/widgets';
 import { LANGUAGES } from '@/lib';
 import { useCodeRefactor } from './useCodeRefactor';
@@ -20,6 +21,9 @@ export default function CodeRefactor() {
     updateFile, removeFile, handleAddFile, downloadSingleFile, downloadZip,
     renameFile,
   } = useCodeRefactor();
+
+  const { sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll } =
+    useSyncScroll({ deps: [outputFiles, activeTabId] });
 
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
 
@@ -84,6 +88,14 @@ export default function CodeRefactor() {
           value={projectContext}
           onChange={setProjectContext}
         />
+
+        <button
+          className={`secondary-button r-sync-btn ${syncScroll ? ' btn-active' : ''}`}
+          onClick={() => setSyncScroll(s => !s)}
+          title="Toggle Sync Scroll"
+        >
+          <i className={`fa-solid ${syncScroll ? 'fa-link' : 'fa-link-slash'}`} />
+        </button>
       </div>
 
       <div className="r-converter-grid">
@@ -121,7 +133,7 @@ export default function CodeRefactor() {
             renameFile={renameFile}
           />
 
-          <div className="r-editor-wrap">
+          <div className="r-editor-wrap" ref={sourceScrollRef}>
             <CodeEditor
               value={activeFile?.content || ''}
               onValueChange={(code) => updateFile(activeTabId, code)}
@@ -161,6 +173,7 @@ export default function CodeRefactor() {
             outputFiles={outputFiles}
             loadingStage={loadingStage}
             downloadSingleFile={downloadSingleFile}
+            targetScrollRef={targetScrollRef}
           />
         </div>
       </div>

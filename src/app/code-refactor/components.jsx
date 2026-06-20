@@ -332,6 +332,7 @@ export const OutputPanel = React.memo(({
   outputFiles,
   downloadSingleFile,
   loadingStage,
+  targetScrollRef
 }) => {
   if (!activeOutputFile) {
     return (
@@ -357,7 +358,7 @@ export const OutputPanel = React.memo(({
 
   return (
     <div className="r-output-panel">
-      <div className="r-clean-output-view">
+      <div className="r-clean-output-view" ref={targetScrollRef}>
         <CodeOutput
           language={activeFile.language || 'javascript'}
           content={activeOutputFile.content}

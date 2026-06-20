@@ -410,11 +410,19 @@
   align-items: flex-start;
 }
 
-.r-context-btn {
+.r-sync-btn {
+  margin-left: 5px;
+}
+
+.r-sync-btn i {
+  font-size: .8rem;
+}
+
+.r-context-btn, .r-sync-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.61rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: var(--text-secondary);
   padding: 0.4rem 0.75rem;
@@ -611,7 +619,7 @@
   opacity: 1;
 }
 
-.r-change-body-wrap > .r-change-body {
+.r-change-body-wrap>.r-change-body {
   overflow: hidden;
 }
 

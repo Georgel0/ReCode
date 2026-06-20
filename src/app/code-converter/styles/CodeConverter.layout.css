@@ -121,13 +121,6 @@
   border-color: #ff4d4d;
 }
 
-.c-btn-active {
-  background: var(--accent) !important;
-  color: var(--bg-primary) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1.5px rgba(56, 189, 248, 0.25) !important;
-}
-
 .c-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -427,6 +427,13 @@ html[data-theme='quartz'] .copy-btn {
   color: var(--text-on-accent);
 }
 
+.btn-active {
+  background: var(--accent) !important;
+  color: var(--bg-primary) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1.5px rgba(56, 189, 248, 0.25) !important;
+}
+
 .action-row.start {
   justify-content: flex-start;
 }
