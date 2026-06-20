@@ -67,7 +67,7 @@ export const PROMPT_CONFIG = {
           6. Also return a 'suggestions' array of strings: things you would have changed but did not
              due to scope, the refactor goal, or safety (e.g. would require architectural changes,
              out-of-scope refactors, breaking changes). Each entry is one plain sentence (~20 words).
-             Aim for 2–5 suggestions. Omit if there is genuinely nothing to suggest.`,
+             Aim for 2–5 suggestions. IMPORTNAT! Omit if there is genuinely nothing to say. DO NOT suggest things to improve or add, just thing you didn't do.`,
         `{
           "files": [{
             "sourceId": "string|number",

@@ -37,6 +37,7 @@
 .r-config-bar {
   display: flex;
   align-items: center;
+  position: relative;
   gap: 0;
   background: var(--bg-secondary);
   border: 0.75px solid var(--border);
@@ -44,6 +45,19 @@
   padding: 0.56rem 0.75rem;
   flex-wrap: wrap;
   row-gap: 0.56rem;
+}
+
+.r-config-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg,
+      var(--accent) 0%,
+      transparent 50%,
+      var(--accent) 100%);
+  opacity: 0.03;
+  pointer-events: none;
 }
 
 .r-config-cluster {
@@ -411,6 +425,10 @@
   font-size: 0.82em;
 }
 
+.r-context-btn:hover i {
+  color: var(--text-on-accent);
+}
+
 .r-context-btn--active {
   border-color: var(--accent);
   color: var(--text-primary);
@@ -724,11 +742,8 @@
 }
 
 .r-fullwidth-diff-panel {
+  overflow: visible;
   width: 100%;
-  background: var(--bg-secondary);
-  border: 0.75px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
 }
 
 .r-diff-panel-title {
@@ -749,14 +764,8 @@
 }
 
 .r-diff-container {
-  max-height: 450px;
-  overflow: auto;
   background: var(--bg-primary);
-  -webkit-overflow-scrolling: touch;
-}
-
-.r-diff-container table {
-  min-width: 100%;
+  display: flex;
 }
 
 .r-clear-all-btn {
@@ -799,7 +808,7 @@
   }
 
   .r-panel {
-    min-height: 380px;
+    height: 500px;
     flex-shrink: 0;
   }
 
@@ -828,5 +837,15 @@
 
   .r-footer {
     gap: 0.5rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .r-footer-changes {
+    flex-direction: column;
+  }
+
+  .r-change-summary {
+    width: 100%;
   }
 }

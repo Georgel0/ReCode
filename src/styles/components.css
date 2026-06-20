@@ -343,6 +343,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
 }
 
 .custom-check .box i {
+  margin-top: 2px;
   color: var(--text-on-accent);
   font-size: 7.5px;
   transform: scale(0);

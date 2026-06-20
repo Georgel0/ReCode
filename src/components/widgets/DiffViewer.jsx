@@ -171,7 +171,7 @@ function HighlightedLine({ text, pairText, type, lang }) {
     return <span>{text}</span>;
   }
 
-  const markCls  = type === 'remove' ? 'c-diff__inline--remove' : 'c-diff__inline--add';
+  const markCls  = type === 'remove' ? 'diff__inline--remove' : 'diff__inline--add';
   const injected = injectMarksIntoHTML(html !== null ? html : escapeHtml(text), changedRanges, markCls);
 
   return (
@@ -276,26 +276,26 @@ export function DiffView({
     rows.map((row, i) => {
       if (row.type === 'phantom') {
         return (
-          <div key={`${side}-phantom-${i}`} className="c-diff__line c-diff__line--phantom">
-            <span className="c-diff__gutter-strip" />
-            <span className="c-diff__linenum" />
-            <pre className="c-diff__text" />
+          <div key={`${side}-phantom-${i}`} className="diff__line diff__line--phantom">
+            <span className="diff__gutter-strip" />
+            <span className="diff__linenum" />
+            <pre className="diff__text" />
           </div>
         );
       }
 
-      const cls  = row.type === 'add' ? ' c-diff__line--add' : row.type === 'remove' ? ' c-diff__line--remove' : '';
+      const cls  = row.type === 'add' ? ' diff__line--add' : row.type === 'remove' ? ' diff__line--remove' : '';
       const sign = row.type === 'add' ? '+' : row.type === 'remove' ? '−' : '';
       const pairText = pairMap.current[`${side}-${i}`];
 
       return (
-        <div key={`${side}-${row.type}-${row.lineNum}`} className={`c-diff__line${cls}`}>
-          <span className="c-diff__gutter-strip" />
-          <span className="c-diff__linenum">
-            <span className="c-diff__linenum-num">{row.lineNum}</span>
-            <span className="c-diff__linenum-sign">{sign}</span>
+        <div key={`${side}-${row.type}-${row.lineNum}`} className={`diff__line${cls}`}>
+          <span className="diff__gutter-strip" />
+          <span className="diff__linenum">
+            <span className="diff__linenum-num">{row.lineNum}</span>
+            <span className="diff__linenum-sign">{sign}</span>
           </span>
-          <pre className={`c-diff__text prism-${prismTheme}`}>
+          <pre className={`diff__text prism-${prismTheme}`}>
             <HighlightedLine
               text={row.text}
               pairText={pairText}
@@ -311,15 +311,15 @@ export function DiffView({
   const resolvedRightLabel = rightLabel ?? `Converted (${targetLang})`;
 
   return (
-    <div className="c-diff">
-      <div className="c-diff__toolbar">
-        <div className="c-diff__stats">
-          <span className="c-diff__stat c-diff__stat--add">+{stats.added}</span>
-          <span className="c-diff__stat c-diff__stat--remove">−{stats.removed}</span>
-          <span className="c-diff__stat c-diff__stat--unchanged">{stats.unchanged} unchanged</span>
-          <span className="c-diff__stat c-diff__stat--delta">{delta}% delta</span>
+    <div className="diff">
+      <div className="diff__toolbar">
+        <div className="diff__stats">
+          <span className="diff__stat diff__stat--add">+{stats.added}</span>
+          <span className="diff__stat diff__stat--remove">−{stats.removed}</span>
+          <span className="diff__stat diff__stat--unchanged">{stats.unchanged} unchanged</span>
+          <span className="diff__stat diff__stat--delta">{delta}% delta</span>
         </div>
-        <label className="custom-check c-sync-check">
+        <label className="custom-check syncheck">
           <input
             type="checkbox"
             checked={diffSyncScroll}
@@ -330,14 +330,14 @@ export function DiffView({
         </label>
       </div>
 
-      <div className="c-diff__columns">
-        <div className="c-diff__col">
-          <div className="c-diff__col-header">
-            <i className="fa-solid fa-circle c-diff__col-dot c-diff__col-dot--remove" />
-            <span className="c-diff__col-filename">{resolvedLeftLabel}</span>
+      <div className="diff__columns">
+        <div className="diff__col">
+          <div className="diff__col-header">
+            <i className="fa-solid fa-circle diff__col-dot diff__col-dot--remove" />
+            <span className="diff__col-filename">{resolvedLeftLabel}</span>
           </div>
           <div
-            className="c-diff__lines"
+            className="diff__lines"
             ref={srcScrollRef}
             onScroll={e => handleColScroll(e, tgtScrollRef)}
           >
@@ -345,13 +345,13 @@ export function DiffView({
           </div>
         </div>
 
-        <div className="c-diff__col">
-          <div className="c-diff__col-header">
-            <i className="fa-solid fa-circle c-diff__col-dot c-diff__col-dot--add" />
-            <span className="c-diff__col-filename">{resolvedRightLabel}</span>
+        <div className="diff__col">
+          <div className="diff__col-header">
+            <i className="fa-solid fa-circle diff__col-dot diff__col-dot--add" />
+            <span className="diff__col-filename">{resolvedRightLabel}</span>
           </div>
           <div
-            className="c-diff__lines"
+            className="diff__lines"
             ref={tgtScrollRef}
             onScroll={e => handleColScroll(e, srcScrollRef)}
           >

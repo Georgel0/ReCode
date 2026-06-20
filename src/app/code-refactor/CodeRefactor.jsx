@@ -187,7 +187,7 @@ export default function CodeRefactor() {
               <div className="r-fullwidth-diff-panel">
                 <div className="r-diff-panel-title">
                   <i className="fa-solid fa-code-compare" aria-hidden="true" />
-                  Line-by-Line Changes (Diff View)
+                  Changes (Diff View)
                 </div>
                 <div className="r-diff-container">
                   <DiffView
