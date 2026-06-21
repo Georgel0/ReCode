@@ -12,6 +12,9 @@ export function CodeHighlightAnalyzer() {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
   const buttonRef = useRef(null);
+  // Track whether the current position was already set by a textarea mouseup
+  // so the selectionchange debounce doesn't overwrite it with a jittery DOM rect.
+  const positionFromTextareaRef = useRef(false);
 
   const { setModuleData } = useApp();
   const router = useRouter();
@@ -25,6 +28,7 @@ export function CodeHighlightAnalyzer() {
       let text = '';
       let isCodeBlock = false;
       let rect = null;
+      let isFromTextarea = false;
 
       // Try finding the textarea directly
       const textarea = target?.tagName === 'TEXTAREA'
@@ -38,20 +42,19 @@ export function CodeHighlightAnalyzer() {
         if (start !== end) {
           text = textarea.value.substring(start, end).trim();
           isCodeBlock = true;
+          isFromTextarea = true;
 
-          // Safely extract coordinates: Mouse vs. Touch vs. Fallback
-          const clientY = e?.clientY || e?.changedTouches?.[0]?.clientY || window.innerHeight / 2;
-          const clientX = e?.clientX || e?.changedTouches?.[0]?.clientX || window.innerWidth / 2;
+          // Use the mouse/touch coordinates at the moment of release — these are
+          // stable and don't jump. We only fall back to viewport centre when the
+          // event truly carries no coordinates (shouldn't happen on mouseup/touchend).
+          const clientY = e?.clientY ?? e?.changedTouches?.[0]?.clientY ?? window.innerHeight / 2;
+          const clientX = e?.clientX ?? e?.changedTouches?.[0]?.clientX ?? window.innerWidth / 2;
 
-          rect = {
-            top: clientY,
-            left: clientX,
-            width: 0
-          };
+          rect = { top: clientY, left: clientX, width: 0 };
         }
       }
 
-      // Fallback to standard DOM selection (for SyntaxHighlighter)
+      // Fallback to standard DOM selection (for SyntaxHighlighter / diff view)
       if (!text) {
         const selection = window.getSelection();
         text = selection.toString().trim();
@@ -102,13 +105,11 @@ export function CodeHighlightAnalyzer() {
       if (isCodeBlock && text && rect) {
         const BUTTON_CLEARANCE = 45;
         const top = rect.top > BUTTON_CLEARANCE
-          ? rect.top - BUTTON_CLEARANCE  
-          : rect.top + 22;               
+          ? rect.top - BUTTON_CLEARANCE
+          : rect.top + 22;
 
-        setPosition({
-          top,
-          left: rect.left + (rect.width / 2),
-        });
+        positionFromTextareaRef.current = isFromTextarea;
+        setPosition({ top, left: rect.left + (rect.width / 2) });
         setSelectedText(text);
         setVisible(true);
         return;
@@ -116,12 +117,14 @@ export function CodeHighlightAnalyzer() {
 
       // Only hide if the text is truly empty to prevent flickering on mobile
       if (!text) {
+        positionFromTextareaRef.current = false;
         setVisible(false);
       }
     };
 
     const handlePointerDown = (e) => {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return;
+      positionFromTextareaRef.current = false;
       // Don't hide yet — wait for mouseup/checkSelection to decide
       // Only hide if clicking on clearly non-code elements
       const target = e.target;
@@ -129,11 +132,19 @@ export function CodeHighlightAnalyzer() {
       if (!isCodeArea) setVisible(false);
     };
 
-    // Debounce the selectionchange event so the button doesn't jump wildly while dragging handles
+    // Debounce the selectionchange event so the button doesn't jump wildly while
+    // dragging selection handles. For textareas the DOM Selection API returns nothing
+    // useful, so skip the re-check entirely if mouseup already placed the button via
+    // the textarea path — that position is already correct and stable.
     let timeoutId;
     const handleSelectionChange = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
+        // If the last stable position came from a textarea, don't overwrite it.
+        // The DOM Selection API cannot see textarea selections, so this would only
+        // produce a wrong/jittery rect from whatever happens to be selected in the DOM.
+        if (positionFromTextareaRef.current) return;
+
         if (window.getSelection()?.toString().trim()) {
           checkSelection();
         }
@@ -169,18 +180,17 @@ export function CodeHighlightAnalyzer() {
     router.push('/code-analysis');
   };
 
-  if (!visible) return null;
-
   return (
     <button
       ref={buttonRef}
-      className="floating-analyze-btn"
+      className={`floating-analyze-btn${visible ? ' floating-analyze-btn--visible' : ''}`}
       style={{ top: `${position.top}px`, left: `${position.left}px` }}
       onClick={handleAnalyzeClick}
       onTouchEnd={(e) => {
         e.preventDefault();
         handleAnalyzeClick();
       }}
+      aria-hidden={!visible}
     >
       <i className="fa-solid fa-magnifying-glass-chart"></i> Analyze Snippet
     </button>

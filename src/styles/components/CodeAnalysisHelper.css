@@ -15,8 +15,17 @@
   align-items: center;
   gap: 4px;
   white-space: nowrap;
-  animation: popIn 0.15s cubic-bezier(0.17, 0.88, 0.3, 1.27);
-  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: background-color 0.2s ease;
+}
+
+.floating-analyze-btn--visible {
+  opacity: 1;
+  pointer-events: auto;
+  animation: popIn 0.15s cubic-bezier(0.17, 0.88, 0.3, 1.27) forwards;
 }
 
 .floating-analyze-btn:hover {

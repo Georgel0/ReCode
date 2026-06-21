@@ -81,6 +81,7 @@ select option {
 }
 
 @supports (appearance: base-select) {
+
   select,
   ::picker(select) {
     appearance: base-select;
@@ -88,7 +89,7 @@ select option {
 
   select {
     background-image: none !important;
-    padding-right: 0.75rem; 
+    padding-right: 0.75rem;
   }
 
   ::picker(select) {
@@ -98,10 +99,18 @@ select option {
     border-radius: var(--radius);
     padding: 0.25rem;
     box-shadow: var(--shadow-subtle);
+    scrollbar-width: none;
   }
 
   select::picker-icon {
-    color: var(--text-secondary);
+    content: "";
+    display: block;
+    width: 12px;
+    height: 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%238b949e' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     transition: rotate 0.2s ease-out;
   }
 
@@ -126,6 +135,14 @@ select option {
 
   option::checkmark {
     color: var(--accent);
+    order: 1;
+  }
+
+  option:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-on-accent);
+    cursor: pointer;
+    transform: scale(1.1);
   }
 }
 
