@@ -330,12 +330,11 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                         ))}
                       </>
                     ) : (
-                      <div className="f-result-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <div className="f-result-card">
                         <textarea
                           className="f-code-textarea"
                           value={data.convertedHtml || data.convertedCode || ''}
                           readOnly
-                          style={{ background: 'var(--bg-tertiary)' }}
                         />
                       </div>
                     )}
