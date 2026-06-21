@@ -95,12 +95,10 @@ export const OutputFileTabs = ({ outputFiles, inputFiles, activeTabId, setActive
   if (!outputFiles || outputFiles.length === 0) return null;
 
   // Build an ordered list matching inputFiles order (with fallback)
-  const orderedTabs = inputFiles
-    .map((f) => {
-      const out = outputFiles.find((o) => o.sourceId === f.id || o.fileName === f.name);
-      return out ? { ...out, displayName: out.fileName || f.name } : null;
-    })
-    .filter(Boolean);
+  const orderedTabs = inputFiles.flatMap((f) => {
+    const out = outputFiles.find((o) => o.sourceId === f.id || o.fileName === f.name);
+    return out ? [{ ...out, displayName: out.fileName || f.name }] : [];
+  });
 
   if (orderedTabs.length === 0) return null;
 
@@ -272,7 +270,7 @@ export const ChangeSummary = ({ outputFile }) => {
           {changes?.length > 0 && (
             <ul className="r-change-list">
               {changes.map((change, i) => (
-                <li key={i} className="r-change-item">
+                <li key={`change-${change.type}-${i}`} className="r-change-item">
                   <span className={`r-change-tag r-change-tag--${change.type || 'info'}`}>
                     {change.type || 'change'}
                   </span>
@@ -314,7 +312,7 @@ export const Suggestions = ({ outputFile }) => {
         <div className="r-change-body">
           <ul className="r-change-list">
             {suggestions.map((s, i) => (
-              <li key={i} className="r-change-item">
+              <li key={`change-${change.type}-${i}`} className="r-change-item">
                 <span className="r-change-tag r-change-tag--info">idea</span>
                 <span className="r-change-text">{s}</span>
               </li>
