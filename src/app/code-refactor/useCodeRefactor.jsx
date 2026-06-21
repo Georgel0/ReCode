@@ -221,7 +221,7 @@ export const suggestRefactorMode = (code) => {
     })
     .map(([mode]) => ({ mode, score: scores[mode], reasons: reasons[mode] }));
 
-  return ranked.length ? ranked : null;
+  return ranked.length ? ranked[0] : null;
 };
 
 const createEmptyFile = (overrides = {}) => ({
@@ -373,7 +373,15 @@ export function useCodeRefactor() {
       });
 
       if (result && Array.isArray(result.files)) {
+        const inputSnapshot = JSON.stringify(files);
         setOutputFiles(result.files);
+        setLastResult({
+          input: inputSnapshot,
+          output: result.files,
+          type: 'refactor',
+          refactorMode,
+          qualityMode,
+        });
       } else {
         setErrorMsg(result?.error || 'Invalid format returned from the API.');
       }

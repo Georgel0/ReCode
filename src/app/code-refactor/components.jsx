@@ -155,7 +155,7 @@ export const RefactorControls = ({ refactorMode, setRefactorMode, suggestedMode 
             <i className={mode.icon} aria-hidden="true" />
             <span className="r-mode-btn-label">{mode.label}</span>
             {isSuggested && (
-              <span className="r-suggested-badge" onClick={(e) => e.stopPropagation()}>
+              <span className="r-suggested-badge">
                 <i className="fa-solid fa-star" aria-hidden="true" />
               </span>
             )}
@@ -332,7 +332,8 @@ export const OutputPanel = React.memo(({
   outputFiles,
   downloadSingleFile,
   loadingStage,
-  targetScrollRef
+  targetScrollRef,
+  targetLang
 }) => {
   if (!activeOutputFile) {
     return (
@@ -360,7 +361,7 @@ export const OutputPanel = React.memo(({
     <div className="r-output-panel">
       <div className="r-clean-output-view" ref={targetScrollRef}>
         <CodeOutput
-          language={activeFile.language || 'javascript'}
+          language={targetLang || 'javascript'}
           content={activeOutputFile.content}
         />
         <CopyButton codeToCopy={activeOutputFile.content} />

@@ -87,11 +87,17 @@ export const toolsContent = [
     features: [
       { title: 'Clean Code Transformation', text: 'Focuses on readability, reducing nesting, and simplifying complex conditionals.' },
       { title: 'Performance Tuning', text: 'Refactors loops and data handling to reduce memory footprint and execution time.' },
-      { title: 'Bug Prevention', text: 'Identifies and fixes common "code smells" that lead to runtime errors.' }
+      { title: 'Bug Prevention', text: 'Identifies and fixes common "code smells" that lead to runtime errors.' },
+      { title: 'Modern Syntax Upgrades', text: 'Automatically replaces legacy patterns with ES6+, async/await, and current language idioms.' },
+      { title: 'Inline Documentation', text: 'Generates clear JSDoc-style comments for functions, parameters, and non-obvious logic blocks.' }
     ],
     faq: [
       { question: 'Will it change my code logic?', answer: 'The AI is designed to preserve functional parity while improving the internal structure.' },
-      { question: 'What is the "Dry Run" mode?', answer: 'It allows you to see the suggestions before applying them to your production files.' }
+      { question: 'What is the "Dry Run" mode?', answer: 'It allows you to see the suggestions before applying them to your production files.' },
+      { question: 'Which languages are supported?', answer: 'The tool supports JavaScript, TypeScript, Python, Java, C#, Go, and several other common languages.' },
+      { question: 'Can I refactor multiple files at once?', answer: 'Yes. You can upload several files simultaneously and the AI processes each one, preserving cross-file naming consistency.' },
+      { question: 'Is my code stored or used for training?', answer: 'No. Code you submit is processed in memory for the duration of the request and is never stored or used to train any model.' },
+      { question: 'How do I get the best results?', answer: 'Select the refactor mode that matches your goal — Clean, Performance, Modernize, or Comments — and add a short project context note so the AI can tailor its output to your stack.' }
     ]
   },
   {
@@ -167,7 +173,7 @@ export const tools = [
     path: '/code-refactor',
     icon: 'fas fa-wand-magic-sparkles',
     desc: 'Clean, optimize, and modernize your snippets.',
-    info: 'Transform "spaghetti code" into professional, readable source. The AI identifies redundant loops, simplifies nested conditionals, and implements modern best practices (like ES6+ syntax) to reduce technical debt and improve long-term maintainability.'
+    info: 'Transform tangled, hard-to-maintain code into clean, professional source. The AI eliminates redundant loops, flattens nested conditionals, enforces modern syntax (ES6+, async/await), and applies established design patterns to cut technical debt and keep your codebase easy to extend.'
   },
   {
     name: 'Code Analysis',
