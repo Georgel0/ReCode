@@ -3,9 +3,9 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { LANGUAGES } from '@/lib';
-import { CopyButton, CodeEditor, CodeOutput, ConfirmModal } from '@/components/ui';
+import { CopyButton, CodeEditor, CodeOutput } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
-import { DiffView, CodeAnalysisInfoIcon } from '@/components/widgets';
+import { DiffView, FormatButton, SyntaxCheckerPanel, ToastStack, CodeAnalysisInfoIcon } from '@/components/widgets';
 import { useSyncScroll } from '@/components/effects';
 import { useApp } from '@/context';
 import { ConverterTabs } from './ConverterTabs';
@@ -15,16 +15,14 @@ import { ConversionNotesPanel, HistoryPanel, LineSelector } from './components';
 import './styles/CodeConverter.layout.css';
 import './styles/CodeConverter.widgets.css';
 
-const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
-
 const FRAMEWORKS = [
-  { value: 'none', label: 'Vanilla' },
-  { value: 'react', label: 'React' },
-  { value: 'angular', label: 'Angular' },
-  { value: 'vue', label: 'Vue.js' },
-  { value: 'svelte', label: 'Svelte' },
-  { value: 'express', label: 'Express.js' },
-  { value: 'fastify', label: 'Fastify' }
+  { value: 'none',     label: 'Vanilla'    },
+  { value: 'react',    label: 'React'      },
+  { value: 'angular',  label: 'Angular'    },
+  { value: 'vue',      label: 'Vue.js'     },
+  { value: 'svelte',   label: 'Svelte'     },
+  { value: 'express',  label: 'Express.js' },
+  { value: 'fastify',  label: 'Fastify'    },
 ];
 
 export default function CodeConverter() {
@@ -32,16 +30,32 @@ export default function CodeConverter() {
   const router = useRouter();
 
   const {
+    // file state
     files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
-    targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
-    selectedRange, setSelectedRange,
-    loading, formatting, linting, lintResult, toasts, dismissToast,
-    fileInputRef, diffMode, setDiffMode,
+    // conversion settings
+    targetLang, setTargetLang, targetFramework, setTargetFramework,
+    isPartialMode, setIsPartialMode, selectedRange, setSelectedRange,
+    // async flags
+    loading, formatting, linting,
+    // lint / toast state
+    lintResult, toasts, dismissToast,
+    // refs
+    fileInputRef,
+    // ui toggles
+    diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
-    feedbackText, setFeedbackText, handleReconvert,
-    conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
+    feedbackText, setFeedbackText,
+    conversionHistory, historyPanelOpen, setHistoryPanelOpen,
+    // file actions
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile, removeHistoryEntry
+    // conversion actions
+    handleConvert, handleReconvert,
+    // lint / format actions
+    runLinter, formatActiveCode,
+    // history actions
+    restoreHistoryEntry, removeHistoryEntry,
+    // download actions
+    downloadZip, downloadSingleFile,
   } = useCodeConverter();
 
   const { sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll } =
@@ -51,13 +65,13 @@ export default function CodeConverter() {
   const hasOutput = outputFiles.length > 0;
 
   const lastResult = useMemo(() => hasOutput
-    ? sanitize({
-      type: 'converter',
-      input: files,
-      sourceLang: activeFile?.language || null,
-      targetLang,
-      output: { outputFiles, targetLang, targetFramework, conversionNotes }
-    })
+    ? {
+        type: 'converter',
+        input: files,
+        sourceLang: activeFile?.language || null,
+        targetLang,
+        output: { outputFiles, targetLang, targetFramework, conversionNotes },
+      }
     : null,
     [hasOutput, files, activeFile?.language, targetLang, outputFiles, targetFramework, conversionNotes]
   );
@@ -105,21 +119,17 @@ export default function CodeConverter() {
           <select
             value={activeFile?.language || 'javascript'}
             onChange={(e) =>
-              setFiles(prev =>
-                prev.map(f => f.id === activeTabId ? { ...f, language: e.target.value } : f)
-              )
+              setFiles(prev => prev.map(f => f.id === activeTabId ? { ...f, language: e.target.value } : f))
             }
           >
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
-          <button
-            className="secondary-button c-btn-icon"
+          <FormatButton
             onClick={() => formatActiveCode(false)}
             disabled={formatting || !activeFile?.content?.trim()}
+            formatting={formatting}
             title="Format source"
-          >
-            <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i>
-          </button>
+          />
         </div>
 
         <div className="c-control-bar__cta">
@@ -159,14 +169,12 @@ export default function CodeConverter() {
           <select value={targetFramework} onChange={(e) => setTargetFramework(e.target.value)}>
             {FRAMEWORKS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
-          <button
-            className="secondary-button c-btn-icon"
+          <FormatButton
             onClick={() => formatActiveCode(true)}
             disabled={!hasOutput || formatting}
+            formatting={formatting}
             title="Format output"
-          >
-            <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i>
-          </button>
+          />
           {hasOutput && (
             <button
               className={`secondary-button c-btn-icon${diffMode ? ' btn-active' : ''}`}
@@ -284,10 +292,9 @@ export default function CodeConverter() {
                   files={outputFiles.map(f => ({ id: f.sourceId, name: f.fileName }))}
                   activeTabId={activeTabId}
                   setActiveTabId={setActiveTabId}
-                  removeFile={() => { }}
+                  removeFile={() => {}}
                   readOnly={true}
                 />
-
                 <div className="c-output__inner">
                   <div className="c-output__scroll" ref={targetScrollRef}>
                     <CodeOutput
@@ -316,66 +323,16 @@ export default function CodeConverter() {
         </div>
       </div>
 
-      {toasts.length > 0 && (
-        <div className="c-toast-stack">
-          {toasts.map(t => (
-            <div key={t.id} className={`c-toast c-toast--${t.type}`}>
-              <i className={`fa-solid ${t.type === 'success' ? 'fa-check-circle' : t.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`}></i>
-              <div className="c-toast__body">
-                <span className="c-toast__msg">{t.message}</span>
-                {t.detail && <span className="c-toast__detail">{t.detail}</span>}
-              </div>
-              <button className="c-toast__close" onClick={() => dismissToast(t.id)}>
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      <ToastStack toasts={toasts} dismissToast={dismissToast} />
 
       {hasOutput && (
         <div className="c-module-footer">
           <div className="c-module-footer__top-row">
-            <div className="c-lint">
-              <button
-                className="secondary-button"
-                onClick={runLinter}
-                disabled={linting}
-              >
-                <i className={`fa-solid ${linting ? 'fa-spinner fa-spin' : 'fa-stethoscope'}`}></i>
-                {' '}{linting ? 'Checking…' : 'Check Syntax'}
-              </button>
-
-              {lintResult && (
-                <div className={`c-lint-result c-lint-result--${lintResult.status}`}>
-                  <div className="c-lint-result__header">
-                    <i className={`fa-solid ${lintResult.status === 'success' ? 'fa-check-circle' : lintResult.status === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'}`}></i>
-                    <span>{lintResult.summary}</span>
-                  </div>
-
-                  {(lintResult.errors?.length > 0 || lintResult.warnings?.length > 0) && (
-                    <ul className="c-lint-result__list">
-                      {lintResult.errors?.map((e, i) => (
-                        <li key={`e-${e.line ?? i}-${e.message.slice(0, 30)}`} className="c-lint-result__item c-lint-result__item--error">
-                          {e.line != null && (
-                            <span className="c-lint-result__loc">L{e.line}{e.col != null ? `:${e.col}` : ''}</span>
-                          )}
-                          <span>{e.message}</span>
-                        </li>
-                      ))}
-                      {lintResult.warnings?.map((w, i) => (
-                        <li key={`w-${w.line ?? i}-${w.message.slice(0, 30)}`} className="c-lint-result__item c-lint-result__item--warning">
-                          {w.line != null && (
-                            <span className="c-lint-result__loc">L{w.line}{w.col != null ? `:${w.col}` : ''}</span>
-                          )}
-                          <span>{w.message}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-            </div>
+            <SyntaxCheckerPanel
+              runLinter={runLinter}
+              linting={linting}
+              lintResult={lintResult}
+            />
           </div>
 
           <div className="c-module-footer__bottom-row">
@@ -395,6 +352,7 @@ export default function CodeConverter() {
                 onToggle={() => setNotesOpen(o => !o)}
               />
             </div>
+
             <div className="c-reconvert">
               <div className="c-reconvert__header">
                 <i className="fa-solid fa-rotate"></i>
@@ -421,7 +379,6 @@ export default function CodeConverter() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}
@@ -429,7 +386,9 @@ export default function CodeConverter() {
       {diffMode && hasOutput && (
         <div className="c-diff-panel">
           <div className="c-diff-panel__header">
-            <span><i className="fa-solid fa-code-branch"></i> Diff View — {activeFile?.name} → {activeOutputFile?.fileName || 'output'}</span>
+            <span>
+              <i className="fa-solid fa-code-branch"></i> Diff View — {activeFile?.name} → {activeOutputFile?.fileName || 'output'}
+            </span>
             <button className="secondary-button c-btn-icon" onClick={() => setDiffMode(false)} title="Close diff">
               <i className="fa-solid fa-xmark"></i>
             </button>

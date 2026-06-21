@@ -265,7 +265,7 @@
   height: 100%;
 }
 
-.c-scroll>.editor-container {
+.c-scroll > .editor-container {
   border: none;
   border-radius: 0;
   min-height: 100%;
@@ -333,14 +333,6 @@
   background: var(--border);
   flex-shrink: 0;
   margin: 0 0.18rem;
-}
-
-.c-btn-icon i.fa-wand-magic {
-  transition: transform 0.25s ease;
-}
-
-.c-btn-icon:hover i.fa-wand-magic {
-  transform: rotate(-15deg) scale(1.15);
 }
 
 .c-file-input-hidden {

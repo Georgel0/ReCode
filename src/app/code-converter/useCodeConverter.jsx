@@ -5,8 +5,11 @@ import { get, set, del } from 'idb-keyval';
 import debounce from 'lodash/debounce';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { useLintFormatTools } from '@/components/widgets';
 
 const MAX_HISTORY_PER_FILE = 3;
+
+const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
 
 function buildImportGraph(filesArray) {
   const nameMap = {};
@@ -17,13 +20,11 @@ function buildImportGraph(filesArray) {
     const lines = f.content.split('\n');
 
     lines.forEach(line => {
-      // match: import ... from './foo' or require('./foo')
       const m = line.match(/(?:import|require)\s*(?:\(?\s*['"]([^'"]+)['"]\s*\)?|[^'"]*from\s*['"]([^'"]+)['"])/);
       const importPath = m?.[1] || m?.[2];
 
       if (importPath) {
         const baseName = importPath.split('/').pop();
-        // Try to find a matching file
         const matchedFile = filesArray.find(other =>
           other.id !== f.id && (
             other.name === baseName ||
@@ -41,42 +42,6 @@ function buildImportGraph(filesArray) {
   });
 }
 
-const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
-
-function runNativeLint(code, lang) {
-  // JSON
-  if (lang === 'json') {
-    try {
-      JSON.parse(code);
-      return { valid: true, errors: [], warnings: [], summary: 'Valid JSON.' };
-    } catch (e) {
-      // Extract line/col from the native error message where possible
-      const match = e.message.match(/line (\d+) column (\d+)/i);
-      return {
-        valid: false,
-        errors: [{ line: match ? +match[1] : null, col: match ? +match[2] : null, message: e.message }],
-        warnings: [],
-        summary: 'Invalid JSON: 1 syntax error.',
-      };
-    }
-  }
-
-  // HTML — DOMParser gives us real parse errors
-  if (lang === 'html') {
-    const doc = new DOMParser().parseFromString(code, 'text/html');
-    const errs = Array.from(doc.querySelectorAll('parsererror, parsererror *'))
-      .reduce((acc, el) => {
-        const text = el.textContent.trim();
-        if (text) acc.push({ line: null, col: null, message: text });
-        return acc;
-      }, []);
-    if (errs.length) return { valid: false, errors: errs, warnings: [], summary: `${errs.length} HTML parse error(s).` };
-    return { valid: true, errors: [], warnings: [], summary: 'Well-formed HTML.' };
-  }
-
-  return null; // no native parser for this language → fall through to AI
-}
-
 export function useCodeConverter() {
   const { qualityMode, moduleData, setModuleData } = useApp();
 
@@ -89,18 +54,12 @@ export function useCodeConverter() {
   const [targetLang, setTargetLang] = useState('python');
   const [targetFramework, setTargetFramework] = useState('none');
   const [isPartialMode, setIsPartialMode] = useState(false);
-  const [selectedRange, setSelectedRange] = useState(null); // { start, end } line indices
+  const [selectedRange, setSelectedRange] = useState(null);
 
   const [loading, setLoading] = useState(false);
-  const [formatting, setFormatting] = useState(false);
-  // lintResult: null | { status: 'linting'|'success'|'error'|'warning', summary, errors, warnings }
-  const [lintResult, setLintResult] = useState(null);
-  const [linting, setLinting] = useState(false);
-  const [toasts, setToasts] = useState([]);
-
   const [diffMode, setDiffMode] = useState(false);
 
-  const [conversionNotes, setConversionNotes] = useState({}); // keyed by sourceId
+  const [conversionNotes, setConversionNotes] = useState({});
   const [notesOpen, setNotesOpen] = useState(false);
 
   const [feedbackText, setFeedbackText] = useState('');
@@ -109,6 +68,16 @@ export function useCodeConverter() {
   const [historyPanelOpen, setHistoryPanelOpen] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  const updateFile = useCallback((id, content) => {
+    setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
+  }, []);
+
+  const {
+    formatting, linting, lintResult, toasts,
+    setLintResult, addToast, dismissToast,
+    runLinter, formatActiveCode,
+  } = useLintFormatTools({ activeFile, activeOutputFile, targetLang, activeTabId, updateFile, setOutputFiles });
 
   const saveDraft = useCallback(
     debounce(async (draftData) => {
@@ -119,7 +88,7 @@ export function useCodeConverter() {
           await del('converter-draft-data');
         }
       } catch (e) {
-        console.error("IndexedDB Error:", e);
+        console.error('IndexedDB Error:', e);
       }
     }, 1500),
     []
@@ -128,11 +97,9 @@ export function useCodeConverter() {
   useEffect(() => {
     const loadDraft = async () => {
       if (moduleData?.type === 'converter') return;
-
       try {
         const saved = await get('converter-draft-data');
         if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
-          // Apply draft state directly
           setFiles(saved.files);
           setActiveTabId(saved.activeTabId ?? saved.files[0]?.id);
           if (saved.outputFiles?.length > 0) setOutputFiles(saved.outputFiles);
@@ -141,7 +108,7 @@ export function useCodeConverter() {
           if (saved.conversionNotes) setConversionNotes(saved.conversionNotes);
         }
       } catch (err) {
-        console.error("Draft load failed", err);
+        console.error('Draft load failed', err);
       }
     };
     loadDraft();
@@ -154,7 +121,7 @@ export function useCodeConverter() {
   const saveHistoryToIdb = useCallback(
     debounce(async (history) => {
       try { await set('converter-history', history); }
-      catch (e) { console.error("History save failed", e); }
+      catch (e) { console.error('History save failed', e); }
     }, 800),
     []
   );
@@ -171,7 +138,7 @@ export function useCodeConverter() {
       try {
         const saved = await get('converter-history');
         if (saved) setConversionHistory(saved);
-      } catch (e) { console.error("History load failed", e); }
+      } catch (e) { console.error('History load failed', e); }
     };
     loadHistory();
   }, []);
@@ -194,7 +161,6 @@ export function useCodeConverter() {
     if (Array.isArray(out.outputFiles) && out.outputFiles.length > 0) {
       setOutputFiles(out.outputFiles);
 
-      // Inject the loaded data into the conversion history as a baseline
       const timestamp = new Date().toISOString();
       setConversionHistory(prev => {
         const updated = { ...prev };
@@ -207,7 +173,6 @@ export function useCodeConverter() {
             notes: newNotes[rf.sourceId] || null,
           };
           const existing = updated[rf.sourceId] || [];
-          // Only add if it's not already the most recent entry (prevents dupes on remount)
           if (existing[0]?.outputFile.content !== rf.content) {
             updated[rf.sourceId] = [entry, ...existing].slice(0, MAX_HISTORY_PER_FILE);
           }
@@ -244,13 +209,9 @@ export function useCodeConverter() {
         const content = event.target.result;
         const ext = '.' + file.name.split('.').pop().toLowerCase();
         const byExt = LANGUAGES.find(l => l.ext === ext);
-
         const language = byExt
           ? byExt.value
-          : (LANGUAGES.some(l => l.value === detectLanguage(content))
-            ? detectLanguage(content)
-            : 'plaintext');
-
+          : (LANGUAGES.some(l => l.value === detectLanguage(content)) ? detectLanguage(content) : 'plaintext');
         resolve({ id: crypto.randomUUID(), name: file.name, language, content, size: file.size });
       };
       reader.readAsText(file);
@@ -261,11 +222,7 @@ export function useCodeConverter() {
       setFiles(prev => (prev.length === 1 && !prev[0].content.trim()) ? newFiles : [...prev, ...newFiles]);
       setActiveTabId(newFiles[0].id);
     }
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const updateFile = (id, content) => {
-    setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const renameFile = (id, newName) => {
@@ -274,7 +231,7 @@ export function useCodeConverter() {
 
   const handleAddFile = () => {
     const newId = crypto.randomUUID();
-    setFiles([...files, { id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
+    setFiles(prev => [...prev, { id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
     setActiveTabId(newId);
   };
 
@@ -304,16 +261,6 @@ export function useCodeConverter() {
     }
   };
 
-  const addToast = useCallback((type, message, detail = null) => {
-    const id = crypto.randomUUID();
-    setToasts(prev => [...prev, { id, type, message, detail }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 15000);
-  }, []);
-
-  const dismissToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
-
   const handleConvert = async (feedbackOverride = null) => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
@@ -323,7 +270,6 @@ export function useCodeConverter() {
     try {
       const filesWithGraph = buildImportGraph(files);
 
-      // Build input: include dependency graph info in the payload
       const inputPayload = JSON.stringify(
         filesWithGraph.map(f => {
           const base = {
@@ -359,15 +305,12 @@ export function useCodeConverter() {
           ...rf,
           sourceId: rf.sourceId
             ?? files.find(f => f.name === rf.fileName)?.id
-            ?? files[i]?.id  // positional fallback — same order as input
+            ?? files[i]?.id,
         }));
         setOutputFiles(mapped);
 
-        // Extract notes if returned (notes field per file or top-level)
         const newNotes = {};
-        mapped.forEach((rf, i) => {
-          if (rf.notes) newNotes[rf.sourceId] = rf.notes;
-        });
+        mapped.forEach(rf => { if (rf.notes) newNotes[rf.sourceId] = rf.notes; });
         if (result.notes) newNotes['global'] = result.notes;
         if (Object.keys(newNotes).length > 0) setConversionNotes(newNotes);
 
@@ -380,18 +323,11 @@ export function useCodeConverter() {
           timestamp: new Date().toISOString(),
         }));
 
-        // Save to history
         const timestamp = new Date().toISOString();
         setConversionHistory(prev => {
           const updated = { ...prev };
           mapped.forEach(rf => {
-            const entry = {
-              outputFile: rf,
-              targetLang,
-              targetFramework,
-              timestamp,
-              notes: newNotes[rf.sourceId] || null,
-            };
+            const entry = { outputFile: rf, targetLang, targetFramework, timestamp, notes: newNotes[rf.sourceId] || null };
             const existing = updated[rf.sourceId] || [];
             updated[rf.sourceId] = [entry, ...existing].slice(0, MAX_HISTORY_PER_FILE);
           });
@@ -401,7 +337,7 @@ export function useCodeConverter() {
 
         setFeedbackText('');
       } else {
-        throw new Error("Invalid array structure returned.");
+        throw new Error('Invalid array structure returned.');
       }
     } catch (error) {
       alert(`Conversion failed: ${error.message}`);
@@ -418,108 +354,9 @@ export function useCodeConverter() {
   const restoreHistoryEntry = (sourceId, entryIndex) => {
     const entry = conversionHistory[sourceId]?.[entryIndex];
     if (!entry) return;
-    setOutputFiles(prev => {
-      const withoutThis = prev.filter(f => f.sourceId !== sourceId);
-      return [...withoutThis, entry.outputFile];
-    });
+    setOutputFiles(prev => [...prev.filter(f => f.sourceId !== sourceId), entry.outputFile]);
     if (entry.notes) setConversionNotes(prev => ({ ...prev, [sourceId]: entry.notes }));
     setHistoryPanelOpen(false);
-  };
-
-  const runLinter = async () => {
-    if (!activeOutputFile?.content) return;
-    setLinting(true);
-    setLintResult(null);
-
-    const code = activeOutputFile.content;
-    const lang = targetLang;
-
-    const nativeResult = runNativeLint(code, lang);
-    if (nativeResult) {
-      const status = nativeResult.valid ? 'success' : 'error';
-      setLintResult({ status, ...nativeResult });
-      addToast(
-        status,
-        nativeResult.valid ? 'Syntax check passed' : 'Syntax errors found',
-        nativeResult.summary
-      );
-      setLinting(false);
-      return;
-    }
-
-    try {
-      const result = await convertCode('linter', JSON.stringify({ code, lang }), { lang });
-      if (!result) throw new Error('No response from linter');
-
-      const status = result.valid ? 'success' : (result.errors?.length ? 'error' : 'warning');
-      setLintResult({
-        status,
-        valid: result.valid,
-        errors: result.errors || [],
-        warnings: result.warnings || [],
-        summary: result.summary || (result.valid ? 'No errors found.' : 'Errors detected.'),
-      });
-      addToast(
-        status,
-        result.valid ? 'Syntax check passed' : 'Syntax errors found',
-        result.summary
-      );
-    } catch (e) {
-      addToast('error', 'Linter failed', e.message);
-      setLintResult({ status: 'error', valid: false, errors: [], warnings: [], summary: 'Linter failed to run.' });
-    } finally {
-      setLinting(false);
-    }
-  };
-
-  const formatActiveCode = async (isOutput = false) => {
-    const targetFile = isOutput ? activeOutputFile : activeFile;
-    if (!targetFile?.content?.trim()) return;
-
-    const lang = isOutput ? targetLang : (activeFile?.language || 'plaintext');
-    const isJson = lang === 'json'
-      || targetFile.fileName?.endsWith('.json')
-      || targetFile.name?.endsWith('.json');
-
-    // Fast path — JSON never needs an AI call
-    if (isJson) {
-      try {
-        const formatted = JSON.stringify(JSON.parse(targetFile.content), null, 2);
-        if (isOutput) {
-          setOutputFiles(prev => prev.map(f => f.sourceId === targetFile.sourceId ? { ...f, content: formatted } : f));
-        } else {
-          updateFile(targetFile.id || activeTabId, formatted);
-        }
-        addToast('success', 'Formatted', 'JSON pretty-printed successfully.');
-      } catch {
-        addToast('error', 'Format failed', 'Content is not valid JSON.');
-      }
-      return;
-    }
-
-    // AI path for all other languages
-    setFormatting(true);
-    try {
-      const result = await convertCode('formatter', targetFile.content, { lang });
-      if (!result?.content) throw new Error('No output returned.');
-
-      if (isOutput) {
-        setOutputFiles(prev => prev.map(f =>
-          f.sourceId === targetFile.sourceId ? { ...f, content: result.content } : f
-        ));
-      } else {
-        updateFile(targetFile.id || activeTabId, result.content);
-      }
-
-      const detail = result.changes?.length
-        ? result.changes.slice(0, 3).join(' · ')
-        : 'No changes needed.';
-      addToast('success', 'Formatted', detail);
-    } catch (e) {
-      addToast('error', 'Format failed', e.message);
-    } finally {
-      setFormatting(false);
-    }
   };
 
   const removeHistoryEntry = (sourceId, entryIndex) => {
@@ -537,8 +374,8 @@ export function useCodeConverter() {
   const downloadZip = async () => {
     const zip = new JSZip();
     outputFiles.forEach(file => zip.file(file.fileName || 'file.txt', file.content));
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, "converted_project.zip");
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'converted_project.zip');
   };
 
   const downloadSingleFile = () => {
@@ -549,16 +386,33 @@ export function useCodeConverter() {
     saveAs(blob, activeOutputFile.fileName || fallback);
   };
 
+
   return {
+    // file state
     files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
-    targetLang, setTargetLang, targetFramework, setTargetFramework, isPartialMode, setIsPartialMode,
-    selectedRange, setSelectedRange,
-    loading, formatting, linting, lintResult, toasts, dismissToast,
-    fileInputRef, diffMode, setDiffMode,
+    // conversion settings
+    targetLang, setTargetLang, targetFramework, setTargetFramework,
+    isPartialMode, setIsPartialMode, selectedRange, setSelectedRange,
+    // async flags
+    loading, formatting, linting,
+    // lint / toast state
+    lintResult, toasts, dismissToast,
+    // refs
+    fileInputRef,
+    // ui toggles
+    diffMode, setDiffMode,
     conversionNotes, notesOpen, setNotesOpen,
-    feedbackText, setFeedbackText, handleReconvert,
-    conversionHistory, historyPanelOpen, setHistoryPanelOpen, restoreHistoryEntry,
+    feedbackText, setFeedbackText,
+    conversionHistory, historyPanelOpen, setHistoryPanelOpen,
+    // file actions
     handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    handleConvert, runLinter, formatActiveCode, downloadZip, downloadSingleFile, removeHistoryEntry
+    // conversion actions
+    handleConvert, handleReconvert,
+    // lint / format actions
+    runLinter, formatActiveCode,
+    // history actions
+    restoreHistoryEntry, removeHistoryEntry,
+    // download actions
+    downloadZip, downloadSingleFile,
   };
 }
