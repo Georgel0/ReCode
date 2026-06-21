@@ -51,7 +51,6 @@ export default function CodeRefactor() {
             </label>
             <select
               id="r-lang-select"
-              className="r-lang-select"
               value={activeFile?.language || 'javascript'}
               onChange={(e) => handleLanguageChange(activeTabId, e.target.value)}
             >

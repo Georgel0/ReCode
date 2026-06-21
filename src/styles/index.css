@@ -116,7 +116,6 @@ body {
   flex: 1;
 }
 
-
 @media (max-width: 825px) {
   .app-wrapper {
     overflow: hidden;
@@ -159,7 +158,6 @@ body {
     height: 20px;
   }
 }
-
 
 html[data-theme='midnight-gold'] {
   --bg-primary: #000000;
@@ -262,8 +260,6 @@ html[data-theme='mint'] select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%234a7c76' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
 }
 
-
-
 .prism-dark {
   color: #ccc;
 }
@@ -325,7 +321,6 @@ html[data-theme='mint'] select {
 .prism-dark .token.url {
   color: #67cdcc;
 }
-
 
 .prism-light {
   color: #1a1a1a;
@@ -402,4 +397,10 @@ html[data-theme='mint'] select {
 
 .prism-light .token.function {
   color: #a8000e !important;
+}
+
+@supports (appearance: base-select) {
+  html[data-theme] select {
+    background-image: none;
+  }
 }

@@ -1,21 +1,21 @@
 .floating-analyze-btn {
   position: absolute;
-  transform: translateX(-37.5%);
+  transform: translateX(-50%);
   background-color: var(--bg-primary);
   color: var(--accent);
   border: 0.75px solid var(--accent);
   border-radius: 15px;
-  padding: 4.5px 10.5px;
+  padding: 4px 10px;
   font-size: 9px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 3px 10.5px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
   z-index: 99999;
   display: inline-flex;
   align-items: center;
-  gap: 4.5px;
+  gap: 4px;
   white-space: nowrap;
-  animation: popIn 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: popIn 0.15s cubic-bezier(0.17, 0.88, 0.3, 1.27);
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
@@ -25,11 +25,11 @@
 }
 
 .floating-analyze-btn:active {
-  transform: translateX(-37.5%) scale(0.96);
+  transform: translateX(-50%) scale(0.96);
 }
 
 .floating-analyze-btn i {
-  font-size: 8.25px;
+  font-size: 8px;
 }
 
 .code-analysis-info-wrapper {
@@ -37,7 +37,7 @@
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  margin-left: 4.5px;
+  margin-left: 4px;
 }
 
 .code-analysis-info-icon {
@@ -56,11 +56,11 @@
   color: var(--text-primary) !important;
   border: 0.75px solid var(--border) !important;
   border-radius: 6px !important;
-  font-size: 9.75px !important;
+  font-size: 10px !important;
   line-height: 1.4 !important;
-  padding: 7.5px 10.5px !important;
+  padding: 7px 10px !important;
   text-align: center;
-  box-shadow: 0 4.5px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   opacity: 1 !important;
   z-index: 9999;
 }
@@ -68,10 +68,10 @@
 @keyframes popIn {
   from {
     opacity: 0;
-    transform: translateX(-37.5%) scale(0.8);
+    transform: translateX(-50%) scale(0.8);
   }
   to {
     opacity: 1;
-    transform: translateX(-37.5%) scale(1);
+    transform: translateX(-50%) scale(1);
   }
 }

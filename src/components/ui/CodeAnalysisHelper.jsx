@@ -17,7 +17,6 @@ export function CodeHighlightAnalyzer() {
   const router = useRouter();
 
   useEffect(() => {
-    // The main logic extracted so it can be called by multiple event types
     const checkSelection = (e) => {
       // If the event triggered inside our popup button, ignore it
       const target = e?.target || document.activeElement;
@@ -59,25 +58,55 @@ export function CodeHighlightAnalyzer() {
 
         if (text && selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
-          let container = range.commonAncestorContainer;
-          if (container.nodeType === Node.TEXT_NODE) container = container.parentElement;
 
-          // Ensure container exists before calling closest()
-          if (container?.closest?.('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]')) {
+          const matchesCodeSelector = (node) => {
+            if (!node) return false;
+            if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+            return !!node?.closest?.('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]');
+          };
+
+          // commonAncestorContainer climbs above any match when a selection spans
+          // multiple sibling <pre>/<code> blocks (e.g. the diff viewer renders one
+          // <pre> per line, so selecting 2+ lines puts the common ancestor at
+          // .diff__lines, not inside any pre/code) — fall back to checking the
+          // selection's actual start/end points, which stay inside the per-line
+          // pre/code even when the common ancestor doesn't.
+          if (
+            matchesCodeSelector(range.commonAncestorContainer) ||
+            matchesCodeSelector(range.startContainer) ||
+            matchesCodeSelector(range.endContainer)
+          ) {
             isCodeBlock = true;
-            const bounding = range.getBoundingClientRect();
-            rect = {
-              top: bounding.top,
-              left: bounding.left,
-              width: bounding.width
-            };
+
+            // getBoundingClientRect() returns a zero rect for multi-line/multi-block
+            // selections. getClientRects() returns one rect per line fragment — always reliable.
+            const rects = Array.from(range.getClientRects());
+            if (rects.length > 0) {
+              const firstRect = rects[0];
+              const minLeft = Math.min(...rects.map(r => r.left));
+              const maxRight = Math.max(...rects.map(r => r.right));
+              rect = {
+                top: firstRect.top,
+                left: minLeft,
+                width: maxRight - minLeft,
+              };
+            } else {
+              // Hard fallback — shouldn't happen but keeps the button visible
+              const bounding = range.getBoundingClientRect();
+              rect = { top: bounding.top, left: bounding.left, width: bounding.width };
+            }
           }
         }
       }
 
       if (isCodeBlock && text && rect) {
+        const BUTTON_CLEARANCE = 45;
+        const top = rect.top > BUTTON_CLEARANCE
+          ? rect.top - BUTTON_CLEARANCE  
+          : rect.top + 22;               
+
         setPosition({
-          top: rect.top - 45,
+          top,
           left: rect.left + (rect.width / 2),
         });
         setSelectedText(text);
@@ -93,14 +122,22 @@ export function CodeHighlightAnalyzer() {
 
     const handlePointerDown = (e) => {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return;
-      setVisible(false);
+      // Don't hide yet — wait for mouseup/checkSelection to decide
+      // Only hide if clicking on clearly non-code elements
+      const target = e.target;
+      const isCodeArea = target?.closest?.('pre, code, textarea, [class*="code"], [class*="editor"]');
+      if (!isCodeArea) setVisible(false);
     };
 
     // Debounce the selectionchange event so the button doesn't jump wildly while dragging handles
     let timeoutId;
     const handleSelectionChange = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => checkSelection(), 150);
+      timeoutId = setTimeout(() => {
+        if (window.getSelection()?.toString().trim()) {
+          checkSelection();
+        }
+      }, 250);
     };
 
     document.addEventListener('mouseup', checkSelection);

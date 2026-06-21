@@ -109,7 +109,6 @@ export default function CodeConverter() {
                 prev.map(f => f.id === activeTabId ? { ...f, language: e.target.value } : f)
               )
             }
-            className="c-lang-select"
           >
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
@@ -154,10 +153,10 @@ export default function CodeConverter() {
           <span className="c-control-bar__label">
             <i className="fa-solid fa-code-compare"></i> Target
           </span>
-          <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} className="c-lang-select">
+          <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
-          <select value={targetFramework} onChange={(e) => setTargetFramework(e.target.value)} className="c-lang-select">
+          <select value={targetFramework} onChange={(e) => setTargetFramework(e.target.value)}>
             {FRAMEWORKS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
           <button

@@ -339,13 +339,6 @@
   color: var(--accent);
 }
 
-.c-lang-select {
-  font-size: 0.6rem;
-  padding: 0.33rem 1.9rem 0.33rem 0.56rem;
-  min-width: 82px;
-  max-width: 112px;
-}
-
 .c-control-bar__divider {
   width: 0.75px;
   height: 1.3rem;
@@ -585,10 +578,6 @@
   .c-scroll,
   .c-output__scroll {
     height: auto !important;
-  }
-
-  .c-lang-select {
-    padding: 0.33rem 1.5rem 0.33rem 0.56rem;
   }
 
   .sync-btn {

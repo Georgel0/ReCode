@@ -78,6 +78,7 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  max-height: 72vh;
   border-right: 0.75px solid var(--border);
 }
 
@@ -104,8 +105,13 @@
   flex-shrink: 0;
 }
 
-.diff__col-dot--remove { color: #f85149; }
-.diff__col-dot--add    { color: #3fb950; }
+.diff__col-dot--remove {
+  color: #f85149;
+}
+
+.diff__col-dot--add {
+  color: #3fb950;
+}
 
 .diff__col-filename {
   color: var(--text-primary);
@@ -120,10 +126,23 @@
   scrollbar-color: var(--bg-tertiary) transparent;
 }
 
-.diff__lines::-webkit-scrollbar        { width: 6px; height: 6px; }
-.diff__lines::-webkit-scrollbar-track  { background: var(--bg-primary); }
-.diff__lines::-webkit-scrollbar-thumb  { background: var(--bg-tertiary); border-radius: 3px; }
-.diff__lines::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+.diff__lines::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.diff__lines::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.diff__lines::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.diff__lines::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
 
 .diff__line {
   display: flex;
@@ -146,15 +165,37 @@
   background-size: 6px 6px;
 }
 
-.diff__line--remove                      { background: rgba(255, 0, 0, 0.08); }
-.diff__line--remove .diff__gutter-strip { background: #8b0000; }
-.diff__line--remove .diff__linenum      { color: #e06c75; }
-.diff__line--remove .diff__text         { background: rgba(255, 0, 0, 0.08); }
+.diff__line--remove {
+  background: rgba(255, 0, 0, 0.08);
+}
 
-.diff__line--add                         { background: rgba(0, 255, 60, 0.06); }
-.diff__line--add .diff__gutter-strip    { background: #14501d; }
-.diff__line--add .diff__linenum         { color: #4ec94e; }
-.diff__line--add .diff__text            { background: rgba(0, 255, 60, 0.06); }
+.diff__line--remove .diff__gutter-strip {
+  background: #8b0000;
+}
+
+.diff__line--remove .diff__linenum {
+  color: #e06c75;
+}
+
+.diff__line--remove .diff__text {
+  background: rgba(255, 0, 0, 0.08);
+}
+
+.diff__line--add {
+  background: rgba(0, 255, 60, 0.06);
+}
+
+.diff__line--add .diff__gutter-strip {
+  background: #14501d;
+}
+
+.diff__line--add .diff__linenum {
+  color: #4ec94e;
+}
+
+.diff__line--add .diff__text {
+  background: rgba(0, 255, 60, 0.06);
+}
 
 .diff__gutter-strip {
   width: 2px;
@@ -218,6 +259,10 @@
 @media (max-width: 720px) {
   .diff__columns {
     grid-template-columns: 1fr;
+    max-height: 65vh;
+  }
+
+  .diff__col {
     max-height: 65vh;
   }
 
