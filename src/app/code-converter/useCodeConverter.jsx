@@ -307,7 +307,7 @@ export function useCodeConverter() {
   const addToast = useCallback((type, message, detail = null) => {
     const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, type, message, detail }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 15000);
   }, []);
 
   const dismissToast = useCallback((id) => {
