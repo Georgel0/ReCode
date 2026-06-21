@@ -193,7 +193,7 @@ export default function CodeConverter() {
           <div className="c-panel__header">
             <h3 className="c-panel__title"><i className="fas fa-file-code"></i> Source Files</h3>
             <div className="c-panel__actions">
-              <button className="secondary-button c-btn-danger" onClick={handleClearAll} title="Clear Workspace">
+              <button className="secondary-button btn-danger" onClick={handleClearAll} title="Clear Workspace">
                 <i className="fa-solid fa-trash-can"></i>
               </button>
               <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">

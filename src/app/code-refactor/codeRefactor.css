@@ -571,7 +571,6 @@
   background: rgba(56, 189, 248, 0.12);
   color: var(--accent);
   border-radius: 10px;
-  font-size: 0.52rem;
   font-weight: 700;
 }
 
@@ -752,17 +751,6 @@
 .r-diff-container {
   background: var(--bg-primary);
   display: flex;
-}
-
-.r-clear-all-btn {
-  border: 1px solid var(--danger);
-  color: var(--danger);
-}
-
-.r-clear-all-btn:hover {
-  background: none;
-  color: var(--danger-hover);
-  border-color: var(--danger-hover);
 }
 
 

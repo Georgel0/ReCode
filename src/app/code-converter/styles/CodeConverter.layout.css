@@ -109,18 +109,6 @@
   flex-shrink: 0;
 }
 
-.c-btn-danger {
-  background-color: rgba(255, 77, 77, 0.07);
-  color: #ff4d4d;
-  border: 0.75px solid rgba(255, 77, 77, 0.35);
-}
-
-.c-btn-danger:hover {
-  background-color: #ff4d4d;
-  color: white;
-  border-color: #ff4d4d;
-}
-
 .c-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

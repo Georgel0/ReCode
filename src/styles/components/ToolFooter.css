@@ -1,6 +1,5 @@
 .tool-footer {
-  margin-left: 15px;
-  margin-right: 15px;
+  margin: 0 15px 15px 15px;
   margin-top: auto;
   padding-top: 0.075rem;
   border-top: 0.75px solid var(--border);

@@ -312,7 +312,7 @@ export const Suggestions = ({ outputFile }) => {
         <div className="r-change-body">
           <ul className="r-change-list">
             {suggestions.map((s, i) => (
-              <li key={`change-${change.type}-${i}`} className="r-change-item">
+              <li key={`change-${i}`} className="r-change-item">
                 <span className="r-change-tag r-change-tag--info">idea</span>
                 <span className="r-change-text">{s}</span>
               </li>

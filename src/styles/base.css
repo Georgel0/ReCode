@@ -98,7 +98,7 @@ select option {
     border: 0.75px solid var(--border);
     border-radius: var(--radius);
     padding: 0.25rem;
-    height: 60vh;
+    max-height: 60vh;
     box-shadow: var(--shadow-subtle);
     scrollbar-width: none;
   }
@@ -121,7 +121,6 @@ select option {
 
   option {
     padding: 0.4rem 0.5rem;
-    border-radius: 3px;
     cursor: pointer;
   }
 
@@ -141,7 +140,7 @@ select option {
 
   option:hover {
     background-color: var(--bg-secondary);
-    color: var(--text-on-accent);
+    color: var(--accent-hover);
     cursor: pointer;
     transform: scale(1.1);
   }

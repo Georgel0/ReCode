@@ -111,7 +111,7 @@ export default function CodeRefactor() {
               <button className="secondary-button" onClick={handleAddFile} title="Add Tab">
                 <i className="fas fa-plus" />
               </button>
-              <button className="secondary-button r-clear-all-btn" onClick={handleClearAll} title="Clear Workspace">
+              <button className="secondary-button btn-danger" onClick={handleClearAll} title="Clear Workspace">
                 <i className="fas fa-trash" />
               </button>
             </div>
