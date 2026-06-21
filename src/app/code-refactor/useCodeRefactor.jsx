@@ -236,8 +236,9 @@ const createEmptyFile = (overrides = {}) => ({
 export function useCodeRefactor() {
   const { moduleData, qualityMode } = useApp();
 
-  const [files, setFiles] = useState(() => [createEmptyFile()]);
-  const [activeTabId, setActiveTabId] = useState(() => files[0].id);
+  const initialFile = createEmptyFile();
+  const [files, setFiles] = useState([initialFile]);
+  const [activeTabId, setActiveTabId] = useState(initialFile.id);
   const [outputFiles, setOutputFiles] = useState([]);
   const [lastResult, setLastResult] = useState(null);
 
@@ -250,6 +251,7 @@ export function useCodeRefactor() {
   const fileInputRef = useRef(null);
   const isRestoring = useRef(false);
   const historyLoaded = useRef(false);
+  const latestDraftRef = useRef({});
 
   const activeFile = files.find((f) => f.id === activeTabId);
 
@@ -440,7 +442,7 @@ export function useCodeRefactor() {
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  }, []);
+  }, [setErrorMsg, setFiles, setActiveTabId]);
 
   const updateFile = useCallback(
     (id, content) => setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, content } : f))),
@@ -493,19 +495,18 @@ export function useCodeRefactor() {
   }, [outputFiles]);
 
   useEffect(() => {
+    latestDraftRef.current = { files, outputFiles, refactorMode, projectContext };
+  }, [files, outputFiles, refactorMode, projectContext]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleRefactor();
-      }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        saveDraft({ files, outputFiles, refactorMode, projectContext });
+        saveDraft(latestDraftRef.current);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [files, outputFiles, refactorMode, projectContext, handleRefactor, saveDraft]);
+  }, [saveDraft, handleRefactor]);
 
   const renameFile = useCallback((id, newName) => {
     setFiles((prev) =>

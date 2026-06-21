@@ -148,7 +148,7 @@ export default function CodeRefactor() {
             <h3 className="r-header-title">
               <i className="fa-solid fa-square-check" aria-hidden="true" /> Refactored Result
             </h3>
-            {outputFiles.length > 0 && (
+            {activeOutputFile && (
               <div className="r-header-actions">
                 <button className="secondary-button" onClick={downloadZip} title="Download ZIP">
                   <i className="fa-solid fa-file-zipper" aria-hidden="true" />
