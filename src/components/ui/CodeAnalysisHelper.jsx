@@ -12,25 +12,25 @@ export function CodeHighlightAnalyzer() {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
   const buttonRef = useRef(null);
-  // Track whether the current position was already set by a textarea mouseup
-  // so the selectionchange debounce doesn't overwrite it with a jittery DOM rect.
+  // tracks whether the current selection came from a <textarea> (vs. a rendered code block)
   const positionFromTextareaRef = useRef(false);
 
   const { setModuleData } = useApp();
   const router = useRouter();
 
   useEffect(() => {
+    // fired on mouseup / touchend — figures out where the selection is and whether it's inside code
     const checkSelection = (e) => {
-      // If the event triggered inside our popup button, ignore it
-      const target = e?.target || document.activeElement;
-      if (buttonRef.current && buttonRef.current.contains(target)) return;
+      // ignore clicks on the floating button itself
+      if (buttonRef.current && buttonRef.current.contains(e?.target)) return;
 
       let text = '';
       let isCodeBlock = false;
       let rect = null;
       let isFromTextarea = false;
 
-      // Try finding the textarea directly
+      // path 1: selection inside a raw <textarea> (e.g. a code editor) ---
+      const target = e?.target || document.activeElement;
       const textarea = target?.tagName === 'TEXTAREA'
         ? target
         : target?.closest?.('.editor-container, .code-editor')?.querySelector('textarea');
@@ -44,17 +44,14 @@ export function CodeHighlightAnalyzer() {
           isCodeBlock = true;
           isFromTextarea = true;
 
-          // Use the mouse/touch coordinates at the moment of release — these are
-          // stable and don't jump. We only fall back to viewport centre when the
-          // event truly carries no coordinates (shouldn't happen on mouseup/touchend).
+          // use the pointer position as the anchor since textareas have no Range rects
           const clientY = e?.clientY ?? e?.changedTouches?.[0]?.clientY ?? window.innerHeight / 2;
           const clientX = e?.clientX ?? e?.changedTouches?.[0]?.clientX ?? window.innerWidth / 2;
-
           rect = { top: clientY, left: clientX, width: 0 };
         }
       }
 
-      // Fallback to standard DOM selection (for SyntaxHighlighter / diff view)
+      // path 2: selection inside a rendered code block (pre/code/hljs/prism) ---
       if (!text) {
         const selection = window.getSelection();
         text = selection.toString().trim();
@@ -62,39 +59,28 @@ export function CodeHighlightAnalyzer() {
         if (text && selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
 
+          // checks whether a given DOM node is inside a recognised code container
           const matchesCodeSelector = (node) => {
             if (!node) return false;
             if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
             return !!node?.closest?.('pre, code, [class*="code"], [class*="hljs"], [class*="prism"]');
           };
 
-          // commonAncestorContainer climbs above any match when a selection spans
-          // multiple sibling <pre>/<code> blocks (e.g. the diff viewer renders one
-          // <pre> per line, so selecting 2+ lines puts the common ancestor at
-          // .diff__lines, not inside any pre/code) — fall back to checking the
-          // selection's actual start/end points, which stay inside the per-line
-          // pre/code even when the common ancestor doesn't.
-          if (
-            matchesCodeSelector(range.commonAncestorContainer) ||
-            matchesCodeSelector(range.startContainer) ||
-            matchesCodeSelector(range.endContainer)
-          ) {
+          const anchorMatch = matchesCodeSelector(range.commonAncestorContainer);
+          const startMatch  = matchesCodeSelector(range.startContainer);
+          const endMatch    = matchesCodeSelector(range.endContainer);
+
+          if (anchorMatch || startMatch || endMatch) {
             isCodeBlock = true;
 
-            // getBoundingClientRect() returns a zero rect for multi-line/multi-block
-            // selections. getClientRects() returns one rect per line fragment — always reliable.
+            // compute a bounding rect that spans every line of the selection
             const rects = Array.from(range.getClientRects());
             if (rects.length > 0) {
               const firstRect = rects[0];
-              const minLeft = Math.min(...rects.map(r => r.left));
-              const maxRight = Math.max(...rects.map(r => r.right));
-              rect = {
-                top: firstRect.top,
-                left: minLeft,
-                width: maxRight - minLeft,
-              };
+              const minLeft   = Math.min(...rects.map(r => r.left));
+              const maxRight  = Math.max(...rects.map(r => r.right));
+              rect = { top: firstRect.top, left: minLeft, width: maxRight - minLeft };
             } else {
-              // Hard fallback — shouldn't happen but keeps the button visible
               const bounding = range.getBoundingClientRect();
               rect = { top: bounding.top, left: bounding.left, width: bounding.width };
             }
@@ -102,12 +88,10 @@ export function CodeHighlightAnalyzer() {
         }
       }
 
+      // position the button centred above the selection; flip below if too close to the viewport top
       if (isCodeBlock && text && rect) {
         const BUTTON_CLEARANCE = 45;
-        const top = rect.top > BUTTON_CLEARANCE
-          ? rect.top - BUTTON_CLEARANCE
-          : rect.top + 22;
-
+        const top = rect.top > BUTTON_CLEARANCE ? rect.top - BUTTON_CLEARANCE : rect.top + 22;
         positionFromTextareaRef.current = isFromTextarea;
         setPosition({ top, left: rect.left + (rect.width / 2) });
         setSelectedText(text);
@@ -115,39 +99,30 @@ export function CodeHighlightAnalyzer() {
         return;
       }
 
-      // Only hide if the text is truly empty to prevent flickering on mobile
+      // nothing selected — hide the button
       if (!text) {
         positionFromTextareaRef.current = false;
         setVisible(false);
       }
     };
 
+    // hide the button when the user clicks outside a code/editor area
     const handlePointerDown = (e) => {
       if (buttonRef.current && buttonRef.current.contains(e.target)) return;
       positionFromTextareaRef.current = false;
-      // Don't hide yet — wait for mouseup/checkSelection to decide
-      // Only hide if clicking on clearly non-code elements
-      const target = e.target;
-      const isCodeArea = target?.closest?.('pre, code, textarea, [class*="code"], [class*="editor"]');
+      const isCodeArea = e.target?.closest?.('pre, code, textarea, [class*="code"], [class*="editor"]');
       if (!isCodeArea) setVisible(false);
     };
 
-    // Debounce the selectionchange event so the button doesn't jump wildly while
-    // dragging selection handles. For textareas the DOM Selection API returns nothing
-    // useful, so skip the re-check entirely if mouseup already placed the button via
-    // the textarea path — that position is already correct and stable.
+    // keyboard-driven selection changes (arrow keys, shift+click, etc.)
+    // debounced so it doesn't fire on every keystroke
     let timeoutId;
     const handleSelectionChange = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        // If the last stable position came from a textarea, don't overwrite it.
-        // The DOM Selection API cannot see textarea selections, so this would only
-        // produce a wrong/jittery rect from whatever happens to be selected in the DOM.
+        // skip: textarea selections are already handled by mouseup/touchend
         if (positionFromTextareaRef.current) return;
-
-        if (window.getSelection()?.toString().trim()) {
-          checkSelection();
-        }
+        if (window.getSelection()?.toString().trim()) checkSelection();
       }, 250);
     };
 
@@ -167,15 +142,69 @@ export function CodeHighlightAnalyzer() {
     };
   }, []);
 
+  // hide the button if the user scrolls more than THRESHOLD px after it appears
+  // (avoids the button floating over unrelated content mid-scroll)
+  useEffect(() => {
+    if (!visible) return;
+
+    const THRESHOLD = 80;
+
+    // snapshot scroll positions for every scrollable element at the moment the button appears
+    const snapshots = new Map();
+    const collectScrollables = () => {
+      snapshots.set(window, { scrollTop: window.scrollY, scrollLeft: window.scrollX });
+
+      document.querySelectorAll('*').forEach((el) => {
+        if (el.scrollTop !== 0 || el.scrollLeft !== 0) {
+          snapshots.set(el, { scrollTop: el.scrollTop, scrollLeft: el.scrollLeft });
+          return;
+        }
+        const style = window.getComputedStyle(el);
+        const ov = style.overflow + style.overflowY + style.overflowX;
+        if (/auto|scroll/.test(ov) && (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)) {
+          snapshots.set(el, { scrollTop: el.scrollTop, scrollLeft: el.scrollLeft });
+        }
+      });
+    };
+
+    collectScrollables();
+
+    const onAnyScroll = (e) => {
+      const target = e.target === document ? window : e.target;
+      const snap = snapshots.get(target);
+
+      const currentScrollTop  = target === window ? window.scrollY  : target.scrollTop;
+      const currentScrollLeft = target === window ? window.scrollX  : target.scrollLeft;
+
+      // element wasn't captured in the snapshot — hide if it has scrolled at all
+      if (!snap) {
+        if (currentScrollTop !== 0 || currentScrollLeft !== 0) {
+          setVisible(false);
+          positionFromTextareaRef.current = false;
+        }
+        return;
+      }
+
+      const driftY = Math.abs(currentScrollTop  - snap.scrollTop);
+      const driftX = Math.abs(currentScrollLeft - snap.scrollLeft);
+
+      if (driftY > THRESHOLD || driftX > THRESHOLD) {
+        setVisible(false);
+        positionFromTextareaRef.current = false;
+      }
+    };
+
+    document.addEventListener('scroll', onAnyScroll, { passive: true, capture: true });
+
+    return () => {
+      document.removeEventListener('scroll', onAnyScroll, { capture: true });
+    };
+  }, [visible, position]);
+
+  // sends the highlighted snippet to the analysis module and navigates there
   const handleAnalyzeClick = () => {
     if (!selectedText) return;
-
-    setModuleData({
-      type: 'analysis',
-      input: selectedText,
-      sourceModule: 'converter',
-    });
-
+    setModuleData({ type: 'analysis', input: selectedText, sourceModule: 'converter' });
     setVisible(false);
     router.push('/code-analysis');
   };
@@ -186,10 +215,7 @@ export function CodeHighlightAnalyzer() {
       className={`floating-analyze-btn${visible ? ' floating-analyze-btn--visible' : ''}`}
       style={{ top: `${position.top}px`, left: `${position.left}px` }}
       onClick={handleAnalyzeClick}
-      onTouchEnd={(e) => {
-        e.preventDefault();
-        handleAnalyzeClick();
-      }}
+      onTouchEnd={(e) => { e.preventDefault(); handleAnalyzeClick(); }}
       aria-hidden={!visible}
     >
       <i className="fa-solid fa-magnifying-glass-chart"></i> Analyze Snippet

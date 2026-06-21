@@ -65,8 +65,8 @@ select {
   background-size: 0.6em;
   font-size: 0.6rem;
   padding: 0.33rem .9rem 0.33rem 0.56rem;
-  min-width: 82px;
-  max-width: 112px;
+  min-width: 100px;
+  max-width: 200px;
 }
 
 select:focus {
@@ -98,6 +98,7 @@ select option {
     border: 0.75px solid var(--border);
     border-radius: var(--radius);
     padding: 0.25rem;
+    height: 60vh;
     box-shadow: var(--shadow-subtle);
     scrollbar-width: none;
   }
