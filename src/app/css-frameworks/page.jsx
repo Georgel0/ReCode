@@ -1,6 +1,6 @@
 import CssFrameworkConverter from './CssFrameworkConverter';
 import { ToolFooter } from '@/components/layout';
-import { getToolContent } from '@/lib/toolContent';
+import { getToolContent } from '@/lib/content';
 
 export const metadata = {
  title: 'CSS Framework Converter',

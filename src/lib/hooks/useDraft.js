@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
 import { get, set, del } from 'idb-keyval';
 import debounce from 'lodash/debounce';

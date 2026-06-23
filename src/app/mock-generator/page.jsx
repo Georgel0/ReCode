@@ -1,6 +1,6 @@
 import MockDataGenerator from './MockDataGenerator';
 import { ToolFooter } from '@/components/layout';
-import { getToolContent } from '@/lib/toolContent';
+import { getToolContent } from '@/lib/content';
 
 export const metadata = {
   title: 'Mock Data Factory',

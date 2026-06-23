@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ParticleBackground, ScrollAnimation } from '@/components/effects';
-import { tools, toolsContent } from '@/lib/toolContent';
+import { tools, toolsContent } from '@/lib/content';
 import '@/styles/landingpage.css';
 
 function ToolPopover({ tool }) {
