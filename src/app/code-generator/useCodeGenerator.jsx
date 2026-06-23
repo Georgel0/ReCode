@@ -1,10 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
-import { get, set } from 'idb-keyval';
-import debounce from 'lodash/debounce';
+import { useDraft } from '@/lib';
 import { generateProjectFiles } from './utils';
-
-const DRAFT_KEY = 'generator-draft-data';
 
 const DEFAULT_CONFIG = {
   language: 'Auto-Detect / Any',
@@ -18,7 +15,7 @@ const DEFAULT_CONFIG = {
 };
 
 export function useCodeGenerator() {
-  const { qualityMode } = useApp();
+  const { moduleData, qualityMode } = useApp();
 
   const [input, setInput] = useState('');
   const [files, setFiles] = useState([]);
@@ -29,58 +26,66 @@ export function useCodeGenerator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [pendingDraft, setPendingDraft] = useState(null);
+  const isRestoring = useRef(false);
+  const historyLoaded = useRef(false);
 
-  const saveDraft = useCallback(
-    debounce(async (draftData) => {
-      // Only persist when there's meaningful content
-      if (draftData.input?.trim() || draftData.files?.length > 0) {
-        try {
-          await set(DRAFT_KEY, draftData);
-        } catch (e) {
-          console.error('IndexedDB draft save error:', e);
-        }
+  useDraft(
+    'generator-draft-data',
+    { input, files, config },
+    (saved) => {
+      if (historyLoaded.current) return;
+      if (saved?.input?.trim() || saved?.files?.length > 0) {
+        isRestoring.current = true;
+
+        if (saved.input) setInput(saved.input);
+        if (saved.files?.length > 0) setFiles(saved.files);
+        if (saved.config) setConfig(saved.config);
+
+        setTimeout(() => { isRestoring.current = false; }, 100);
       }
-    }, 1500),
-    []
+    },
+    {
+      isEmpty: (d) => !d.input?.trim() && (!d.files || d.files.length === 0),
+      skip: moduleData?.type === 'generator' || isRestoring.current,
+    }
   );
 
   useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        const saved = await get(DRAFT_KEY);
-        if (saved && (saved.input?.trim() || saved.files?.length > 0)) {
-          setPendingDraft(saved);
-        }
-      } catch (err) {
-        console.error('Draft load failed:', err);
+    if (!moduleData || moduleData.type !== 'generator') return;
+
+    isRestoring.current = true;
+    historyLoaded.current = true;
+
+    try {
+      const savedInput = typeof moduleData.input === 'string' ? moduleData.input : moduleData.input?.text || '';
+      const savedOutput = typeof moduleData.fullOutput === 'string' ? JSON.parse(moduleData.fullOutput) : moduleData.fullOutput;
+
+      setInput(savedInput || '');
+
+      if (savedOutput) {
+        setFiles(Array.isArray(savedOutput) ? savedOutput : (savedOutput.files || []));
       }
-    };
-    loadDraft();
-  }, []);
+      if (moduleData.config) {
+        setConfig(moduleData.config);
+      }
+    } catch (e) {
+      console.error('Failed to restore history', e);
+    }
+
+    setTimeout(() => { isRestoring.current = false; }, 100);
+  }, [moduleData]);
 
   useEffect(() => {
-    saveDraft({ input, files, config });
-    return () => saveDraft.cancel();
-  }, [input, files, config, saveDraft]);
-
-  const handleConfirmDraft = () => {
-    if (!pendingDraft) return;
-    setInput(pendingDraft.input || '');
-    setFiles(pendingDraft.files || []);
-    setActiveFileIndex(0);
-    if (pendingDraft.config) setConfig(pendingDraft.config);
-    setPendingDraft(null);
-  };
-
-  const handleCancelDraft = async () => {
-    try {
-      await set(DRAFT_KEY, null);
-    } catch (e) {
-      console.error('Draft clear error:', e);
+    if (files.length > 0 && !isRestoring.current) {
+      setLastResult({
+        type: 'generator',
+        input,
+        output: { files },
+        config,
+        qualityMode,
+      });
     }
-    setPendingDraft(null);
-  };
+  }, [files, input, config, qualityMode]);
 
   const handleGenerate = async () => {
     if (!input.trim()) return;
@@ -95,7 +100,14 @@ export function useCodeGenerator() {
       if (result && result.files) {
         setFiles(result.files);
         setActiveFileIndex(0);
-        setLastResult({ type: 'generator', input, output: result });
+
+        setLastResult({
+          type: 'generator',
+          input,
+          output: result,
+          config,
+          qualityMode
+        });
       } else {
         throw new Error('Invalid response format from AI.');
       }
@@ -106,19 +118,14 @@ export function useCodeGenerator() {
     }
   };
 
-  const handleClearAll = async () => {
+  const handleClearAll = useCallback(() => {
     setInput('');
     setFiles([]);
     setActiveFileIndex(0);
     setError('');
     setLastResult(null);
-    // Also wipe the persisted draft so it doesn't resurface
-    try {
-      await set(DRAFT_KEY, null);
-    } catch (e) {
-      console.error('Draft clear error:', e);
-    }
-  };
+    setConfig(DEFAULT_CONFIG);
+  }, []);
 
   return {
     // State
@@ -129,12 +136,9 @@ export function useCodeGenerator() {
     lastResult,
     loading,
     error,
-    pendingDraft,
 
     // Actions
     handleGenerate,
     handleClearAll,
-    handleConfirmDraft,
-    handleCancelDraft,
   };
 }
