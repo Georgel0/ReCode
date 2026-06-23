@@ -1,14 +1,3 @@
-/**
- * @fileoverview AI Prompt Configuration Registry.
- *
- * Defines system personas and prompt templates for every AI-driven feature
- * in the application. Imports Zod schemas and the `withSchema` helper from
- * the schema registry to keep LLM outputs type-safe and consistent with UI
- * expectations.
- *
- * @module lib/prompts
- */
-
 import { OUTPUT_SCHEMAS, withSchema } from './schemas.js';
 
 /**

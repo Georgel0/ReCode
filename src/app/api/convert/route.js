@@ -4,7 +4,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { PROMPT_CONFIG } from '@/lib/prompts.js';
+import { PROMPT_CONFIG } from '@/lib/ai/prompts';
 
 function extractJson(text) {
   if (!text) return null;

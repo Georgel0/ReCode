@@ -1,5 +1,5 @@
 import hljs from 'highlight.js/lib/common';
-import { LANGUAGES } from '../content';
+import { LANGUAGES } from '@/lib/content';
 
 const HLJS_TO_APP = {
   'javascript': 'javascript', 'typescript': 'typescript',
