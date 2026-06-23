@@ -1,5 +1,5 @@
 import hljs from 'highlight.js/lib/common';
-import { LANGUAGES } from '@/lib';
+import { LANGUAGES } from '../content';
 
 const HLJS_TO_APP = {
   'javascript': 'javascript', 'typescript': 'typescript',
@@ -56,6 +56,7 @@ export const detectLanguage = (code) => {
 
   return 'plaintext';
 };
+
 
 export const formatBytes = (bytes, decimals = 2) => {
   if (!bytes) return '0 Bytes';

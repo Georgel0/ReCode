@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
+import { convertCode, LANGUAGES, detectLanguage, useDraft } from '@/lib';
 import { useApp } from '@/context';
-import { get, set, del } from 'idb-keyval';
+import { set } from 'idb-keyval';
 import debounce from 'lodash/debounce';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -79,68 +79,34 @@ export function useCodeConverter() {
     runLinter, formatActiveCode,
   } = useLintFormatTools({ activeFile, activeOutputFile, targetLang, activeTabId, updateFile, setOutputFiles });
 
-  const saveDraft = useCallback(
-    debounce(async (draftData) => {
-      try {
-        if (draftData.files.some(f => f.content.trim())) {
-          await set('converter-draft-data', draftData);
-        } else {
-          await del('converter-draft-data');
-        }
-      } catch (e) {
-        console.error('IndexedDB Error:', e);
+  useDraft(
+    'converter-draft-data',
+    { files, outputFiles, targetLang, targetFramework, activeTabId, conversionNotes },
+    (saved) => {
+      if (saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
+        setFiles(saved.files);
+        setActiveTabId(saved.activeTabId ?? saved.files[0]?.id);
+        if (saved.outputFiles?.length > 0) setOutputFiles(saved.outputFiles);
+        if (saved.targetLang) setTargetLang(saved.targetLang);
+        if (saved.targetFramework) setTargetFramework(saved.targetFramework);
+        if (saved.conversionNotes) setConversionNotes(saved.conversionNotes);
       }
-    }, 1500),
-    []
+    },
+    {
+      isEmpty: (d) => d.files.every(f => !f.content.trim()),
+      skip: moduleData?.type === 'converter',
+    }
   );
 
-  useEffect(() => {
-    const loadDraft = async () => {
-      if (moduleData?.type === 'converter') return;
-      try {
-        const saved = await get('converter-draft-data');
-        if (saved && saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
-          setFiles(saved.files);
-          setActiveTabId(saved.activeTabId ?? saved.files[0]?.id);
-          if (saved.outputFiles?.length > 0) setOutputFiles(saved.outputFiles);
-          if (saved.targetLang) setTargetLang(saved.targetLang);
-          if (saved.targetFramework) setTargetFramework(saved.targetFramework);
-          if (saved.conversionNotes) setConversionNotes(saved.conversionNotes);
-        }
-      } catch (err) {
-        console.error('Draft load failed', err);
-      }
-    };
-    loadDraft();
-  }, []);
-
-  useEffect(() => {
-    saveDraft({ files, outputFiles, targetLang, targetFramework, activeTabId, conversionNotes });
-  }, [files, outputFiles, targetLang, targetFramework, conversionNotes, saveDraft]);
-
-  const saveHistoryToIdb = useCallback(
+  const saveHistoryToIdb = useRef(
     debounce(async (history) => {
       try { await set('converter-history', history); }
       catch (e) { console.error('History save failed', e); }
-    }, 800),
-    []
-  );
+    }, 800)
+  ).current;
 
   useEffect(() => {
-    return () => {
-      saveDraft.cancel();
-      saveHistoryToIdb.cancel();
-    };
-  }, []);
-
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const saved = await get('converter-history');
-        if (saved) setConversionHistory(saved);
-      } catch (e) { console.error('History load failed', e); }
-    };
-    loadHistory();
+    return () => saveHistoryToIdb.cancel();
   }, []);
 
   useEffect(() => {
@@ -187,6 +153,7 @@ export function useCodeConverter() {
 
     setModuleData(null);
   }, [moduleData]);
+
 
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
@@ -260,6 +227,7 @@ export function useCodeConverter() {
       if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
     }
   };
+
 
   const handleConvert = async (feedbackOverride = null) => {
     if (files.every(f => !f.content.trim())) return;
@@ -351,6 +319,7 @@ export function useCodeConverter() {
     handleConvert(feedbackText.trim());
   };
 
+
   const restoreHistoryEntry = (sourceId, entryIndex) => {
     const entry = conversionHistory[sourceId]?.[entryIndex];
     if (!entry) return;
@@ -370,6 +339,7 @@ export function useCodeConverter() {
       return updated;
     });
   };
+
 
   const downloadZip = async () => {
     const zip = new JSZip();

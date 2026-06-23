@@ -1,16 +1,10 @@
 /**
- * FIREBASE CONFIGURATION & INITIALIZATION
- * * Handles connection to Firebase services (Auth, Firestore).
- * Uses a singleton pattern to prevent re-initialization in environments like Next.js where Hot Module Replacement (HMR) occurs.
+ * FIRESTORE HISTORY
+ *
+ * CRUD and real-time subscription helpers for the user's saved tool-run
+ * history, stored at users/{uid}/history.
  */
-import { initializeApp, getApps, getApp } from "firebase/app";
 import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
-} from "firebase/auth";
-import {
-  getFirestore,
   collection,
   addDoc,
   query,
@@ -25,21 +19,8 @@ import {
   serverTimestamp,
   onSnapshot
 } from "firebase/firestore";
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-};
-
-// Singleton: Initialize Firebase only if an instance doesn't already exist
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "./client";
 
 /**
  * HELPER: Gets a reference to the 'history' sub-collection for the current user.
@@ -108,29 +89,6 @@ export const subscribeToHistory = (callback) => {
   };
 };
 
-/**
- * Ensures the user is authenticated. 
- * If no user exists, it performs an anonymous sign-in.
- * @returns {Promise<User>}
- */
-export const initializeAuth = () => {
-  return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        resolve(user);
-      } else {
-        signInAnonymously(auth)
-          .then(({ user }) => resolve(user))
-          .catch((error) => {
-            console.error("Auth Error:", error);
-            reject(error);
-          });
-      }
-    });
-  });
-};
-
-
 export const cleanupOldHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
@@ -151,7 +109,6 @@ export const cleanupOldHistory = async () => {
   }
 };
 
-
 export const clearAllHistory = async () => {
   const historyRef = getHistoryRef();
   if (!historyRef) return;
@@ -167,7 +124,6 @@ export const clearAllHistory = async () => {
     throw error;
   }
 };
-
 
 export const deleteHistoryItem = async (docId) => {
   if (!auth.currentUser) return;
@@ -195,11 +151,11 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
   try {
     const sanitize = (obj) => JSON.parse(JSON.stringify(obj, (_, v) => v === undefined ? null : v));
     const data = {
-      ...sanitize({ 
-        type, 
-        input, 
-        fullOutput: output, 
-        sourceLang: sourceLang || null, 
+      ...sanitize({
+        type,
+        input,
+        fullOutput: output,
+        sourceLang: sourceLang || null,
         targetLang: targetLang || null }),
       createdAt: serverTimestamp(),
     };
@@ -208,7 +164,6 @@ export const saveHistory = async (type, input, output, sourceLang = null, target
     console.error("Error adding document: ", e);
   }
 };
-
 
 export const getHistory = async () => {
   const historyRef = getHistoryRef();
