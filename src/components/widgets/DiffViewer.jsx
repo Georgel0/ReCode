@@ -85,8 +85,8 @@ function injectMarksIntoHTML(html, ranges, markCls) {
       const charLen = 1;
       const tokEnd = plainOffset + charLen;
       const inRange = ranges.some(r => plainOffset >= r.start && plainOffset < r.end);
-      if (inRange && !insideMark)  { out.push(`<mark class="${markCls}">`); insideMark = true; }
-      if (!inRange && insideMark)  { out.push('</mark>'); insideMark = false; }
+      if (inRange && !insideMark) { out.push(`<mark class="${markCls}">`); insideMark = true; }
+      if (!inRange && insideMark) { out.push('</mark>'); insideMark = false; }
       out.push(tok.value);
       plainOffset = tokEnd;
       continue;
@@ -104,8 +104,8 @@ function injectMarksIntoHTML(html, ranges, markCls) {
         continue;
       }
 
-      if (inRange && !insideMark)  { out.push(`<mark class="${markCls}">`); insideMark = true; }
-      if (!inRange && insideMark)  { out.push('</mark>'); insideMark = false; }
+      if (inRange && !insideMark) { out.push(`<mark class="${markCls}">`); insideMark = true; }
+      if (!inRange && insideMark) { out.push('</mark>'); insideMark = false; }
 
       let nextBoundary = tokLen;
       if (rangeIdx < ranges.length) {
@@ -145,7 +145,7 @@ function HighlightedLine({ text, pairText, type, lang }) {
 
   const charChanges = diffChars(
     type === 'remove' ? text : pairText,
-    type === 'add'    ? text : pairText,
+    type === 'add' ? text : pairText,
   );
 
   const changedRanges = [];
@@ -154,9 +154,9 @@ function HighlightedLine({ text, pairText, type, lang }) {
     const partLen = part.value.length;
     const isRelevant = type === 'remove' ? part.removed : part.added;
     if (isRelevant) changedRanges.push({ start: offset, end: offset + partLen });
-    if (!part.added && !part.removed)             offset += partLen;
-    else if (type === 'remove' && part.removed)   offset += partLen;
-    else if (type === 'add'    && part.added)      offset += partLen;
+    if (!part.added && !part.removed) offset += partLen;
+    else if (type === 'remove' && part.removed) offset += partLen;
+    else if (type === 'add' && part.added) offset += partLen;
   }
 
   if (changedRanges.length === 0) {
@@ -171,7 +171,7 @@ function HighlightedLine({ text, pairText, type, lang }) {
     return <span>{text}</span>;
   }
 
-  const markCls  = type === 'remove' ? 'diff__inline--remove' : 'diff__inline--add';
+  const markCls = type === 'remove' ? 'diff__inline--remove' : 'diff__inline--add';
   const injected = injectMarksIntoHTML(html !== null ? html : escapeHtml(text), changedRanges, markCls);
 
   return (
@@ -237,10 +237,10 @@ export function DiffView({
 }) {
   const { srcRows, tgtRows, stats } = buildDiffRows(sourceContent, targetContent);
   const [diffSyncScroll, setDiffSyncScroll] = useState(true);
-  const srcScrollRef   = useRef(null);
-  const tgtScrollRef   = useRef(null);
-  const isSyncingRef   = useRef(false);
-  const prismTheme     = usePrismTheme();
+  const srcScrollRef = useRef(null);
+  const tgtScrollRef = useRef(null);
+  const isSyncingRef = useRef(false);
+  const prismTheme = usePrismTheme();
 
   // Build pair-map: adjacent remove/add lines share their text for char-diff
   const pairMap = useRef({});
@@ -262,7 +262,7 @@ export function DiffView({
     isSyncingRef.current = true;
     const { scrollTop, scrollLeft } = e.target;
     if (otherRef.current) {
-      otherRef.current.scrollTop  = scrollTop;
+      otherRef.current.scrollTop = scrollTop;
       otherRef.current.scrollLeft = scrollLeft;
     }
     requestAnimationFrame(() => { isSyncingRef.current = false; });
@@ -284,7 +284,7 @@ export function DiffView({
         );
       }
 
-      const cls  = row.type === 'add' ? ' diff__line--add' : row.type === 'remove' ? ' diff__line--remove' : '';
+      const cls = row.type === 'add' ? ' diff__line--add' : row.type === 'remove' ? ' diff__line--remove' : '';
       const sign = row.type === 'add' ? '+' : row.type === 'remove' ? '−' : '';
       const pairText = pairMap.current[`${side}-${i}`];
 
@@ -307,7 +307,7 @@ export function DiffView({
       );
     });
 
-  const resolvedLeftLabel  = leftLabel  ?? 'Source';
+  const resolvedLeftLabel = leftLabel ?? 'Source';
   const resolvedRightLabel = rightLabel ?? `Converted (${targetLang})`;
 
   return (
@@ -341,7 +341,9 @@ export function DiffView({
             ref={srcScrollRef}
             onScroll={e => handleColScroll(e, tgtScrollRef)}
           >
-            {renderRows(srcRows, 'src', sourceLang)}
+            <div className="diff__lines-inner">
+              {renderRows(srcRows, 'src', sourceLang)}
+            </div>
           </div>
         </div>
 
@@ -355,7 +357,9 @@ export function DiffView({
             ref={tgtScrollRef}
             onScroll={e => handleColScroll(e, srcScrollRef)}
           >
-            {renderRows(tgtRows, 'tgt', targetLang)}
+            <div className="diff__lines-inner">
+              {renderRows(tgtRows, 'tgt', targetLang)}
+            </div>
           </div>
         </div>
       </div>

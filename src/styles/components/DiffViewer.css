@@ -122,8 +122,14 @@
   flex: 1;
   overflow: auto;
   min-height: 0;
+  overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--bg-tertiary) transparent;
+}
+
+.diff__lines-inner {
+  display: inline-block;
+  min-width: 100%;
 }
 
 .diff__lines::-webkit-scrollbar {
@@ -148,6 +154,7 @@
   display: flex;
   align-items: stretch;
   min-height: 14px;
+  width: 100%;
   font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   font-size: 10px;
   line-height: 14px;
@@ -203,6 +210,9 @@
   align-self: stretch;
   background: transparent;
   display: block;
+  position: sticky;
+  left: 0;
+  z-index: 1;
 }
 
 .diff__linenum {
@@ -220,6 +230,9 @@
   border-right: 0.75px solid var(--border);
   background: var(--bg-secondary);
   font-family: 'Fira Code', Consolas, monospace;
+  position: sticky;
+  left: 0;
+  z-index: 1;
 }
 
 .diff__linenum-sign {
@@ -238,7 +251,7 @@
   font-size: inherit;
   line-height: inherit;
   background: transparent;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .diff__inline--remove {
