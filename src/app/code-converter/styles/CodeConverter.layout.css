@@ -105,7 +105,7 @@
 }
 
 .c-btn-icon {
-  padding: 0.45rem 0.6375rem;
+  padding: 0.45rem 0.63rem;
   flex-shrink: 0;
 }
 
@@ -385,7 +385,7 @@
 .c-module-footer__top-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 0.75rem;
   padding-bottom: 0.37rem;

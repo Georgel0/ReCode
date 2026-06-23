@@ -16,13 +16,13 @@ import './styles/CodeConverter.layout.css';
 import './styles/CodeConverter.widgets.css';
 
 const FRAMEWORKS = [
-  { value: 'none',     label: 'Vanilla'    },
-  { value: 'react',    label: 'React'      },
-  { value: 'angular',  label: 'Angular'    },
-  { value: 'vue',      label: 'Vue.js'     },
-  { value: 'svelte',   label: 'Svelte'     },
-  { value: 'express',  label: 'Express.js' },
-  { value: 'fastify',  label: 'Fastify'    },
+  { value: 'none', label: 'Vanilla' },
+  { value: 'react', label: 'React' },
+  { value: 'angular', label: 'Angular' },
+  { value: 'vue', label: 'Vue.js' },
+  { value: 'svelte', label: 'Svelte' },
+  { value: 'express', label: 'Express.js' },
+  { value: 'fastify', label: 'Fastify' },
 ];
 
 export default function CodeConverter() {
@@ -66,12 +66,12 @@ export default function CodeConverter() {
 
   const lastResult = useMemo(() => hasOutput
     ? {
-        type: 'converter',
-        input: files,
-        sourceLang: activeFile?.language || null,
-        targetLang,
-        output: { outputFiles, targetLang, targetFramework, conversionNotes },
-      }
+      type: 'converter',
+      input: files,
+      sourceLang: activeFile?.language || null,
+      targetLang,
+      output: { outputFiles, targetLang, targetFramework, conversionNotes },
+    }
     : null,
     [hasOutput, files, activeFile?.language, targetLang, outputFiles, targetFramework, conversionNotes]
   );
@@ -124,12 +124,6 @@ export default function CodeConverter() {
           >
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
-          <FormatButton
-            onClick={() => formatActiveCode(false)}
-            disabled={formatting || !activeFile?.content?.trim()}
-            formatting={formatting}
-            title="Format source"
-          />
         </div>
 
         <div className="c-control-bar__cta">
@@ -169,12 +163,7 @@ export default function CodeConverter() {
           <select value={targetFramework} onChange={(e) => setTargetFramework(e.target.value)}>
             {FRAMEWORKS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
-          <FormatButton
-            onClick={() => formatActiveCode(true)}
-            disabled={!hasOutput || formatting}
-            formatting={formatting}
-            title="Format output"
-          />
+
           {hasOutput && (
             <button
               className={`secondary-button c-btn-icon${diffMode ? ' btn-active' : ''}`}
@@ -184,6 +173,7 @@ export default function CodeConverter() {
               <i className="fa-solid fa-code-branch"></i>
             </button>
           )}
+
           {hasOutput && (
             <button
               className={`secondary-button c-btn-icon${syncScroll ? ' btn-active' : ''} sync-btn`}
@@ -292,7 +282,7 @@ export default function CodeConverter() {
                   files={outputFiles.map(f => ({ id: f.sourceId, name: f.fileName }))}
                   activeTabId={activeTabId}
                   setActiveTabId={setActiveTabId}
-                  removeFile={() => {}}
+                  removeFile={() => { }}
                   readOnly={true}
                 />
                 <div className="c-output__inner">
@@ -328,6 +318,12 @@ export default function CodeConverter() {
       {hasOutput && (
         <div className="c-module-footer">
           <div className="c-module-footer__top-row">
+            <FormatButton
+              onClick={() => formatActiveCode(false)}
+              disabled={formatting || !activeFile?.content?.trim()}
+              formatting={formatting}
+            />
+
             <SyntaxCheckerPanel
               runLinter={runLinter}
               linting={linting}

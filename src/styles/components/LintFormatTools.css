@@ -34,7 +34,7 @@
   color: #fbbf24;
 }
 
-.toast > i:first-child {
+.toast>i:first-child {
   margin-top: 0.07rem;
   flex-shrink: 0;
   font-size: 0.67rem;
@@ -79,11 +79,16 @@
   opacity: 1;
 }
 
-.btn-icon i.fa-wand-magic {
+.lint-btn {
+  padding: 0.45rem 0.63rem !important;
+  flex-shrink: 0;
+}
+
+.lint-btn i.fa-wand-magic {
   transition: transform 0.25s ease;
 }
 
-.btn-icon:hover i.fa-wand-magic {
+.lint-btn:hover i.fa-wand-magic {
   transform: rotate(-15deg) scale(1.15);
 }
 
@@ -92,7 +97,6 @@
   align-items: center;
   gap: 0.56rem;
   flex-wrap: wrap;
-  flex: 1;
 }
 
 .lint-result {

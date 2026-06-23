@@ -160,10 +160,10 @@ export function useLintFormatTools({
   };
 }
 
-export function FormatButton({ onClick, disabled, formatting, title = 'Format code' }) {
+export function FormatButton({ onClick, disabled, formatting }) {
   return (
-    <button className="secondary-button btn-icon" onClick={onClick} disabled={disabled} title={title}>
-      <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i>
+    <button className="secondary-button" onClick={onClick} disabled={disabled} title="Format Code">
+      <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i> Format Code
     </button>
   );
 }
