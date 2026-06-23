@@ -3,6 +3,15 @@ import { useState, useCallback } from 'react';
 import { convertCode } from '@/lib';
 import '@/styles/components/LintFormatTools.css';
 
+// Languages where AI linting makes sense.
+// Anything not in this set gets skipped rather than sending to AI.
+const AI_LINTABLE = new Set([
+  'javascript', 'typescript', 'jsx', 'tsx',
+  'python', 'ruby', 'go', 'rust', 'java', 'kotlin', 'swift',
+  'css', 'scss', 'sass', 'sql', 'yaml', 'toml', 'xml',
+  'php', 'c', 'cpp', 'csharp',
+]);
+
 function runNativeLint(code, lang) {
   if (lang === 'json') {
     try {
@@ -31,7 +40,7 @@ function runNativeLint(code, lang) {
     return { valid: true, errors: [], warnings: [], summary: 'Well-formed HTML.' };
   }
 
-  return null; // no native parser → fall through to AI
+  return null; // no native parser, fall through to AI
 }
 
 
@@ -62,7 +71,10 @@ export function useLintFormatTools({
   const addToast = useCallback((type, message, detail = null) => {
     const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, type, message, detail }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 15000);
+    // Errors stay until dismissed; other toasts auto-clear after 15 s.
+    if (type !== 'error') {
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 15000);
+    }
   }, []);
 
   const dismissToast = useCallback((id) => {
@@ -78,6 +90,7 @@ export function useLintFormatTools({
     const code = activeOutputFile.content;
     const lang = targetLang;
 
+    // Try a fast, free native parser first.
     const nativeResult = runNativeLint(code, lang);
     if (nativeResult) {
       const status = nativeResult.valid ? 'success' : 'error';
@@ -87,8 +100,18 @@ export function useLintFormatTools({
       return;
     }
 
+    // Only send to AI for languages where it's actually useful.
+    if (!AI_LINTABLE.has(lang)) {
+      const result = { status: 'warning', valid: true, errors: [], warnings: [], summary: `Syntax checking is not supported for ${lang}.` };
+      setLintResult(result);
+      addToast('warning', 'Not supported', result.summary);
+      setLinting(false);
+      return;
+    }
+
     try {
-      const result = await convertCode('linter', JSON.stringify({ code, lang }), { lang });
+      // pass the already-parsed object; the linter prompt uses input.code / input.lang.
+      const result = await convertCode('linter', { code, lang }, { lang });
       if (!result) throw new Error('No response from linter');
 
       const status = result.valid ? 'success' : (result.errors?.length ? 'error' : 'warning');
@@ -113,10 +136,11 @@ export function useLintFormatTools({
     const targetFile = isOutput ? activeOutputFile : activeFile;
     if (!targetFile?.content?.trim()) return;
 
-    const lang   = isOutput ? targetLang : (activeFile?.language || 'plaintext');
-    const isJson = lang === 'json'
-      || targetFile.fileName?.endsWith('.json')
-      || targetFile.name?.endsWith('.json');
+    const lang = isOutput ? targetLang : (activeFile?.language || 'plaintext');
+
+    // Consolidated JSON detection: language flag OR filename extension.
+    const fileName = targetFile.fileName ?? targetFile.name ?? '';
+    const isJson   = lang === 'json' || fileName.endsWith('.json');
 
     if (isJson) {
       try {
@@ -154,8 +178,8 @@ export function useLintFormatTools({
 
   return {
     formatting, linting, lintResult, toasts,
-    setLintResult, // lets useCodeConverter reset on convert / clearAll
-    addToast,      // lets useCodeConverter emit toasts for non-lint events
+    setLintResult,
+    addToast,      
     dismissToast, runLinter, formatActiveCode,
   };
 }
@@ -163,7 +187,10 @@ export function useLintFormatTools({
 export function FormatButton({ onClick, disabled, formatting }) {
   return (
     <button className="secondary-button" onClick={onClick} disabled={disabled} title="Format Code">
-      <i className={`fa-solid ${formatting ? 'fa-spinner fa-spin' : 'fa-wand-magic'}`}></i> Format Code
+      {formatting
+        ? <span className="btn-spinner" aria-hidden="true" />
+        : <i className="fa-solid fa-wand-magic" aria-hidden="true" />}
+      {' '}Format Code
     </button>
   );
 }
@@ -172,7 +199,9 @@ export function SyntaxCheckerPanel({ runLinter, linting, lintResult }) {
   return (
     <div className="lint">
       <button className="secondary-button" onClick={runLinter} disabled={linting}>
-        <i className={`fa-solid ${linting ? 'fa-spinner fa-spin' : 'fa-stethoscope'}`}></i>
+        {linting
+          ? <span className="btn-spinner" aria-hidden="true" />
+          : <i className="fa-solid fa-stethoscope" aria-hidden="true" />}
         {' '}{linting ? 'Checking…' : 'Check Syntax'}
       </button>
 
@@ -183,7 +212,7 @@ export function SyntaxCheckerPanel({ runLinter, linting, lintResult }) {
               lintResult.status === 'success' ? 'fa-check-circle'
               : lintResult.status === 'warning' ? 'fa-triangle-exclamation'
               : 'fa-circle-xmark'
-            }`}></i>
+            }`} aria-hidden="true"></i>
             <span>{lintResult.summary}</span>
           </div>
 
@@ -220,13 +249,13 @@ export function ToastStack({ toasts, dismissToast }) {
             t.type === 'success' ? 'fa-check-circle'
             : t.type === 'warning' ? 'fa-triangle-exclamation'
             : 'fa-circle-xmark'
-          }`}></i>
+          }`} aria-hidden="true"></i>
           <div className="toast__body">
             <span className="toast__msg">{t.message}</span>
             {t.detail && <span className="toast__detail">{t.detail}</span>}
           </div>
-          <button className="toast__close" onClick={() => dismissToast(t.id)}>
-            <i className="fa-solid fa-xmark"></i>
+          <button className="toast__close" onClick={() => dismissToast(t.id)} aria-label="Dismiss">
+            <i className="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
       ))}

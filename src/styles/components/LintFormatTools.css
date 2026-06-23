@@ -34,7 +34,7 @@
   color: #fbbf24;
 }
 
-.toast>i:first-child {
+.toast > i:first-child {
   margin-top: 0.07rem;
   flex-shrink: 0;
   font-size: 0.67rem;
@@ -77,6 +77,23 @@
 
 .toast__close:hover {
   opacity: 1;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  flex-shrink: 0;
+  animation: btn-spin 0.6s linear infinite;
+  transform-origin: center center;
+  vertical-align: middle;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
 }
 
 .lint-btn {
@@ -131,17 +148,9 @@
   font-weight: 600;
 }
 
-.lint-result--success .lint-result__header {
-  color: #20b2aa;
-}
-
-.lint-result--error .lint-result__header {
-  color: #ff4d4d;
-}
-
-.lint-result--warning .lint-result__header {
-  color: #fbbf24;
-}
+.lint-result--success .lint-result__header { color: #20b2aa; }
+.lint-result--error   .lint-result__header { color: #ff4d4d; }
+.lint-result--warning .lint-result__header { color: #fbbf24; }
 
 .lint-result__list {
   list-style: none;
@@ -167,13 +176,8 @@
   border-bottom: none;
 }
 
-.lint-result__item--error {
-  background: rgba(255, 77, 77, 0.04);
-}
-
-.lint-result__item--warning {
-  background: rgba(251, 191, 36, 0.04);
-}
+.lint-result__item--error   { background: rgba(255, 77, 77, 0.04); }
+.lint-result__item--warning { background: rgba(251, 191, 36, 0.04); }
 
 .lint-result__loc {
   font-family: 'Fira Code', Consolas, monospace;
@@ -184,26 +188,14 @@
   min-width: 2rem;
 }
 
-.lint-result__item--error .lint-result__loc {
-  color: #ff4d4d;
-}
-
-.lint-result__item--warning .lint-result__loc {
-  color: #fbbf24;
-}
+.lint-result__item--error   .lint-result__loc { color: #ff4d4d; }
+.lint-result__item--warning .lint-result__loc { color: #fbbf24; }
 
 .lint__badge {
   display: none;
 }
 
 @keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
