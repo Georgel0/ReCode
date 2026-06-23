@@ -28,6 +28,7 @@ import 'prismjs/components/prism-scala';
 import 'prismjs/components/prism-elixir';
 import 'prismjs/components/prism-haskell';
 import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-css';
 
 import { useTheme } from '@/context';
 

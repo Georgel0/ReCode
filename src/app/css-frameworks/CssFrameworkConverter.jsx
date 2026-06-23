@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
 import { TARGET_FRAMEWORKS, MODES, useConverter } from './components';
 import { PreviewPane } from './PreviewPane';
-import { CopyButton } from '@/components/ui';
+import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 
@@ -90,7 +92,11 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
     }
   }, [data, activeMode, targetLang, inputs, activeInputTab, activeOutputTab, qualityMode]);
 
-
+  useEffect(() => {
+    if (data && activeOutputTab === 'code') {
+      Prism.highlightAll();
+    }
+  }, [data, activeOutputTab]);
 
   const handleInputChange = (field, value) => {
     setInputs(prev => ({ ...prev, [field]: value }));
@@ -127,6 +133,13 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
   const targetLabel = TARGET_FRAMEWORKS.find(f => f.value === targetLang)?.label || 'Framework';
 
   const copyAll = data?.conversions ? data.conversions.map(c => `/* ${c.selector} */\n${c.tailwindClasses}`).join('\n\n') : '';
+
+  // Determine the language for the active input tab
+  const getEditorLanguage = (tab) => {
+    if (tab === 'html') return 'html';
+    if (tab === 'css') return 'css';
+    return 'plaintext';
+  };
 
   return (
     <div className="module-container">
@@ -220,15 +233,27 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
 
           <div className="f-panel-content">
             <div className="f-editor-wrapper">
-              <textarea
-                className="f-code-textarea"
-                value={inputs[activeInputTab]}
-                onChange={(e) => handleInputChange(activeInputTab, e.target.value)}
-                placeholder={
-                  activeInputTab === 'css' ? "/* Paste CSS here */\n.btn { ... }" :
-                    activeInputTab === 'html' ? "\n<div class='card'>...</div>" : "Enter specific instructions (e.g., 'Use REM units', 'Primary color is blue')..."}
-                spellCheck="false"
-              />
+              {activeInputTab === 'context' ? (
+                <textarea
+                  className="f-code-textarea"
+                  value={inputs.context}
+                  onChange={(e) => handleInputChange('context', e.target.value)}
+                  placeholder="Enter specific instructions (e.g., 'Use REM units', 'Primary color is blue')..."
+                  spellCheck="false"
+                />
+              ) : (
+                <CodeEditor
+                  value={inputs[activeInputTab]}
+                  onValueChange={(value) => handleInputChange(activeInputTab, value)}
+                  language={getEditorLanguage(activeInputTab)}
+                  placeholder={
+                    activeInputTab === 'css'
+                      ? '/* Paste CSS here */\n.btn { ... }'
+                      : "<div class='card'>...</div>"
+                  }
+                  lineNumbers={true}
+                />
+              )}
             </div>
           </div>
 
@@ -325,17 +350,19 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                               <CopyButton className="f-copy-icon-btn" codeToCopy={item.tailwindClasses} iconOnly={true} />
                             </div>
 
-                            <pre className="f-result-code-block">{item.tailwindClasses}</pre>
+                            <pre className="f-result-code-block">
+                              <code className="language-css">{item.tailwindClasses}</code>
+                            </pre>
                           </div>
                         ))}
                       </>
                     ) : (
                       <div className="f-result-card">
-                        <textarea
-                          className="f-code-textarea"
-                          value={data.convertedHtml || data.convertedCode || ''}
-                          readOnly
-                        />
+                        <pre className="f-result-code-block" style={{ margin: 0 }}>
+                          <code className={`language-${data.convertedHtml ? 'html' : 'css'}`}>
+                            {data.convertedHtml || data.convertedCode || ''}
+                          </code>
+                        </pre>
                       </div>
                     )}
                   </div>
@@ -346,10 +373,10 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
 
           {activeOutputTab === 'code' && data && !Array.isArray(data.conversions) && (
             <div className="f-panel-footer">
-              <CopyButton 
-                codeToCopy={data.convertedHtml || data.convertedCode} 
+              <CopyButton
+                codeToCopy={data.convertedHtml || data.convertedCode}
                 className="secondary-button"
-                label="Copy" 
+                label="Copy"
               />
             </div>
           )}
