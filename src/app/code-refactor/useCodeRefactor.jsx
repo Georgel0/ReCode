@@ -349,7 +349,7 @@ export function useCodeRefactor() {
 
   useEffect(() => {
     setSuggestedMode(activeFile?.content?.trim()
-      ? (suggestRefactorMode(activeFile.content)?.[0] ?? null)
+      ? suggestRefactorMode(activeFile.content)
       : null);
   }, [activeTabId, activeFile?.content]);
 

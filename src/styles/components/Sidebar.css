@@ -559,13 +559,13 @@ html[data-theme='quartz'] .second-model-trigger-btn {
   margin: 0;
 }
 
-.history-title.clickable {
+.clickable {
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
-.history-title.clickable:hover {
-  color: var(--accent);
+.clickable:hover {
+  transform: scale(1.1);
 }
 
 .history-modal-overlay {

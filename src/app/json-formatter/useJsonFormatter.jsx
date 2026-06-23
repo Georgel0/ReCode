@@ -32,11 +32,6 @@ export { MAX_FILE_SIZE_BYTES } from './jsonFormatter.utils';
 
 const TREE_DEBOUNCE_MS = 150;
 
-/**
- * useJsonFormatter — all state + handlers for the JSON Formatter feature.
- * @param {{ convertCode: Function, qualityMode: string, moduleData: object|null }} deps
- * @returns {object}
- */
 export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
   const [input, setInput] = useState('');
   const [outputCode, setOutputCode] = useState('');
