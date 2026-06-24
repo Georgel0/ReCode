@@ -7,9 +7,10 @@ import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
 import { ComplexityTab, IssuesTab, TestingTab, ArchitectureTab } from './tabs';
+import { ShareButton } from './ShareButton';
 
 import './styles/CodeAnalysis.css';
-import './styles/Codeanalysis-components.css'
+import './styles/Codeanalysis-components.css';
 
 export default function CodeAnalysis() {
   const [input, setInput] = useState('');
@@ -24,7 +25,6 @@ export default function CodeAnalysis() {
   const [selectedLang, setSelectedLang] = useState('javascript');
   const [isAutoDetected, setIsAutoDetected] = useState(true);
 
-  // Derived stats for the Editor
   const lineCount = input ? input.split('\n').length : 0;
   const charCount = input.length;
 
@@ -35,16 +35,13 @@ export default function CodeAnalysis() {
 
       if (moduleData.summary && moduleData.complexity) {
         setAnalysisData(moduleData);
-        setLastResult({ type: "analysis", input: codeToAnalyze, output: moduleData });
-      }
-      else if (moduleData.fullOutput?.analysis) {
+        setLastResult({ type: 'analysis', input: codeToAnalyze, output: moduleData });
+      } else if (moduleData.fullOutput?.analysis) {
         setAnalysisData(moduleData.fullOutput.analysis);
-      }
-      else if (moduleData.fullOutput?.summary && moduleData.fullOutput?.complexity) {
+      } else if (moduleData.fullOutput?.summary && moduleData.fullOutput?.complexity) {
         setAnalysisData(moduleData.fullOutput);
-        setLastResult({ type: "analysis", input: codeToAnalyze, output: moduleData.fullOutput });
-      }
-      else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
+        setLastResult({ type: 'analysis', input: codeToAnalyze, output: moduleData.fullOutput });
+      } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
         handleAnalyze(codeToAnalyze);
       }
     }
@@ -62,17 +59,15 @@ export default function CodeAnalysis() {
   const handleAnalyze = async (codeOverride) => {
     const codeToProcess = codeOverride || input;
     if (!codeToProcess.trim()) return;
-
     setLoading(true);
-
     try {
       const result = await convertCode('analysis', codeToProcess, { qualityMode, language: selectedLang });
       if (result) {
         setAnalysisData(result);
-        setLastResult({ type: "analysis", input: codeToProcess, output: result });
+        setLastResult({ type: 'analysis', input: codeToProcess, output: result });
       }
     } catch (error) {
-      console.error("Analysis Error:", error);
+      console.error('Analysis Error:', error);
     } finally {
       setLoading(false);
     }
@@ -80,20 +75,16 @@ export default function CodeAnalysis() {
 
   const getTabContentToCopy = useMemo(() => {
     if (!analysisData) return '';
-
-    const formatIssues = (arr) => (arr || []).map(i => `[${i.severity || 'Tip'}] ${i.location ? `(${i.location}) ` : ''}${i.issue}\nFix: ${i.resolution}`).join('\n\n') || 'None found.';
+    const formatIssues = (arr) =>
+      (arr || []).map(i => `[${i.severity || 'Tip'}] ${i.location ? `(${i.location}) ` : ''}${i.issue}\nFix: ${i.resolution}`).join('\n\n') || 'None found.';
 
     switch (activeTab) {
       case 'complexity':
         return `Complexity Analysis:\n- Time: ${analysisData.complexity?.time || 'N/A'}\n- Space: ${analysisData.complexity?.space || 'N/A'}\n\nBreakdown:\n${(analysisData.complexity?.explanation || []).join('\n')}`;
-      case 'security':
-        return `Security Audit:\n${formatIssues(analysisData.security)}`;
-      case 'bugs':
-        return `Bug Report:\n${formatIssues(analysisData.bugs)}`;
-      case 'improvements':
-        return `Suggested Improvements:\n${formatIssues(analysisData.improvements)}`;
-      case 'bestPractices':
-        return `Best Practices:\n${formatIssues(analysisData.bestPractices)}`;
+      case 'security': return `Security Audit:\n${formatIssues(analysisData.security)}`;
+      case 'bugs': return `Bug Report:\n${formatIssues(analysisData.bugs)}`;
+      case 'improvements': return `Suggested Improvements:\n${formatIssues(analysisData.improvements)}`;
+      case 'bestPractices': return `Best Practices:\n${formatIssues(analysisData.bestPractices)}`;
       case 'testing':
         return `Testing:\nEdge Cases:\n${(analysisData.testing?.edgeCases || []).join('\n')}\n\nUnit Tests:\n${(analysisData.testing?.unitTests || []).join('\n')}`;
       case 'architecture':
@@ -108,7 +99,7 @@ export default function CodeAnalysis() {
     setModuleData({
       type: 'refactor',
       input: [{ id: crypto.randomUUID(), name: `audit_fix${ext}`, language: selectedLang, content: input }],
-      sourceModule: 'analysis'
+      sourceModule: 'analysis',
     });
     router.push('/code-refactor');
   };
@@ -127,7 +118,7 @@ export default function CodeAnalysis() {
     { id: 'improvements', icon: 'fa-wand-magic-sparkles', label: 'Improvements' },
     { id: 'bestPractices', icon: 'fa-award', label: 'Practices' },
     { id: 'testing', icon: 'fa-vial', label: 'Testing' },
-    { id: 'architecture', icon: 'fa-sitemap', label: 'Architecture' }
+    { id: 'architecture', icon: 'fa-sitemap', label: 'Architecture' },
   ];
 
   return (
@@ -139,11 +130,11 @@ export default function CodeAnalysis() {
       />
 
       <div className="a-analysis-layout">
-        
+
         <div className="a-code-panel">
           <div className="a-panel-header">
             <div className="a-header-title">
-              <i className="fa-solid fa-code"></i> Source Code
+              <i className="fa-solid fa-code" /> Source Code
             </div>
             <div className="a-header-actions">
               <select
@@ -154,11 +145,17 @@ export default function CodeAnalysis() {
                 {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
               </select>
               <button className="secondary-button clear-btn a-btn-sm" onClick={handleClear} title="Clear Input">
-                <i className="fa-solid fa-trash"></i>
+                <i className="fa-solid fa-trash" />
               </button>
-              <button className="primary-button a-btn-sm" onClick={() => handleAnalyze()} disabled={loading || !input.trim()}>
-                {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-play"></i>}
-                {loading ? "Analyzing" : "Audit"}
+              <button
+                className="primary-button a-btn-sm"
+                onClick={() => handleAnalyze()}
+                disabled={loading || !input.trim()}
+              >
+                {loading
+                  ? <><i className="fa-solid fa-circle-notch fa-spin" /> Analyzing</>
+                  : <><i className="fa-solid fa-play" /> Audit</>
+                }
               </button>
             </div>
           </div>
@@ -169,7 +166,7 @@ export default function CodeAnalysis() {
             </div>
             <div className="a-editor-footer">
               <span className="a-stat-item">
-                <i className={`fa-solid ${isAutoDetected ? 'fa-wand-magic-sparkles a-text-accent' : 'fa-code'}`}></i>
+                <i className={`fa-solid ${isAutoDetected ? 'fa-wand-magic-sparkles a-text-accent' : 'fa-code'}`} />
                 {isAutoDetected ? 'Auto-detected' : 'Manual Selection'}
               </span>
               <span className="a-stat-item">
@@ -182,12 +179,17 @@ export default function CodeAnalysis() {
         <div className="a-report-panel">
           <div className="a-panel-header">
             <div className="a-header-title">
-              <i className="fa-solid fa-chart-pie"></i> Audit Report
+              <i className="fa-solid fa-chart-pie" /> Audit Report
             </div>
             {analysisData && (
               <div className="a-header-actions">
+                <ShareButton
+                  analysisData={analysisData}
+                  code={input}
+                  language={selectedLang}
+                />
                 <button className="primary-button a-btn-sm a-action-btn" onClick={handleRefactorRouting}>
-                  <i className="fas fa-wand-magic-sparkles"></i> Optimize Code
+                  <i className="fas fa-wand-magic-sparkles" /> Optimize Code
                 </button>
               </div>
             )}
@@ -196,7 +198,7 @@ export default function CodeAnalysis() {
           <div className="a-report-scroll-area">
             {analysisData ? (
               <div className="a-analysis-dashboard">
-                
+
                 <div className="a-analysis-header-card">
                   <div className="a-summary-section">
                     <h3 className="a-summary-title">Executive Summary</h3>
@@ -224,7 +226,7 @@ export default function CodeAnalysis() {
                       onClick={() => setActiveTab(tab.id)}
                       title={tab.label}
                     >
-                      <i className={`fa-solid ${tab.icon}`}></i>
+                      <i className={`fa-solid ${tab.icon}`} />
                       <span>{tab.label}</span>
                     </button>
                   ))}
@@ -250,6 +252,7 @@ export default function CodeAnalysis() {
                     {activeTab === 'architecture' && <ArchitectureTab architecture={analysisData.architecture} />}
                   </div>
                 </div>
+
               </div>
             ) : (
               <div className="a-empty-wrapper">
