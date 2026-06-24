@@ -42,7 +42,7 @@ export default function CodeRefactor() {
         </div>
       )}
 
-      <div className="r-config-bar">
+      <div className="r-config-bar top-actions-bar">
         <div className="r-config-cluster">
           <div className="r-lang-pill">
             <label htmlFor="r-lang-select" className="r-lang-label">

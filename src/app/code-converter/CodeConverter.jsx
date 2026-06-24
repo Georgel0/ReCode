@@ -110,7 +110,7 @@ export default function CodeConverter() {
         resultData={lastResult}
       />
 
-      <div className="c-control-bar">
+      <div className="c-control-bar top-actions-bar">
         <div className="c-control-bar__group">
           <span className="c-control-bar__label">
             <CodeAnalysisInfoIcon />

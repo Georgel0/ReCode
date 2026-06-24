@@ -21,19 +21,6 @@
   z-index: 2;
 }
 
-.c-control-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius);
-  background: linear-gradient(90deg,
-      var(--accent) 0%,
-      transparent 50%,
-      var(--accent) 100%);
-  opacity: 0.03;
-  pointer-events: none;
-}
-
 .c-control-bar__label {
   font-size: 0.52rem;
   font-weight: 700;

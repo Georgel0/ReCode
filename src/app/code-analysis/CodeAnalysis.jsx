@@ -17,7 +17,7 @@ export default function CodeAnalysis() {
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
-  const [activeTab, setActiveTab] = useState('complexity');
+  const [activeTab, setActiveTab] = useState('security');
 
   const { moduleData, setModuleData, qualityMode } = useApp();
   const router = useRouter();
@@ -73,14 +73,17 @@ export default function CodeAnalysis() {
     }
   };
 
+  const getComplexityContentToCopy = useMemo(() => {
+    if (!analysisData?.complexity) return '';
+    return `Complexity Analysis:\n- Time: ${analysisData.complexity.time || 'N/A'}\n- Space: ${analysisData.complexity.space || 'N/A'}\n\nBreakdown:\n${(analysisData.complexity.explanation || []).join('\n')}`;
+  }, [analysisData]);
+
   const getTabContentToCopy = useMemo(() => {
     if (!analysisData) return '';
     const formatIssues = (arr) =>
       (arr || []).map(i => `[${i.severity || 'Tip'}] ${i.location ? `(${i.location}) ` : ''}${i.issue}\nFix: ${i.resolution}`).join('\n\n') || 'None found.';
 
     switch (activeTab) {
-      case 'complexity':
-        return `Complexity Analysis:\n- Time: ${analysisData.complexity?.time || 'N/A'}\n- Space: ${analysisData.complexity?.space || 'N/A'}\n\nBreakdown:\n${(analysisData.complexity?.explanation || []).join('\n')}`;
       case 'security': return `Security Audit:\n${formatIssues(analysisData.security)}`;
       case 'bugs': return `Bug Report:\n${formatIssues(analysisData.bugs)}`;
       case 'improvements': return `Suggested Improvements:\n${formatIssues(analysisData.improvements)}`;
@@ -112,7 +115,6 @@ export default function CodeAnalysis() {
   };
 
   const TABS = [
-    { id: 'complexity', icon: 'fa-chart-line', label: 'Complexity' },
     { id: 'security', icon: 'fa-shield-halved', label: 'Security' },
     { id: 'bugs', icon: 'fa-bug', label: 'Bugs' },
     { id: 'improvements', icon: 'fa-wand-magic-sparkles', label: 'Improvements' },
@@ -129,34 +131,53 @@ export default function CodeAnalysis() {
         resultData={lastResult}
       />
 
-      <div className="a-analysis-layout">
+      <div className="a-global-actions-bar top-actions-bar">
+        <div className="a-action-group">
+          <select
+            value={selectedLang}
+            onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
+            className="a-lang-selector"
+          >
+            {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
+          </select>
+          <button
+            className="primary-button a-btn-sm"
+            onClick={() => handleAnalyze()}
+            disabled={loading || !input.trim()}
+          >
+            {loading
+              ? <><i className="fa-solid fa-circle-notch fa-spin" /> Analyzing</>
+              : <><i className="fa-solid fa-play" /> Audit Code</>
+            }
+          </button>
+        </div>
 
+        <div className="a-action-group">
+          <button className="secondary-button btn-danger" onClick={handleClear} title="Clear Input">
+            <i className="fa-solid fa-trash" /> Clear
+          </button>
+
+          {analysisData && (
+            <>
+              <div className="a-action-divider"></div>
+              <ShareButton
+                analysisData={analysisData}
+                code={input}
+                language={selectedLang}
+              />
+              <button className="primary-button a-btn-sm a-action-btn" onClick={handleRefactorRouting}>
+                <i className="fas fa-wand-magic-sparkles" /> Optimize Code
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="a-analysis-layout">
         <div className="a-code-panel">
           <div className="a-panel-header">
             <div className="a-header-title">
               <i className="fa-solid fa-code" /> Source Code
-            </div>
-            <div className="a-header-actions">
-              <select
-                value={selectedLang}
-                onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
-                className="a-lang-selector"
-              >
-                {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
-              </select>
-              <button className="secondary-button clear-btn a-btn-sm" onClick={handleClear} title="Clear Input">
-                <i className="fa-solid fa-trash" />
-              </button>
-              <button
-                className="primary-button a-btn-sm"
-                onClick={() => handleAnalyze()}
-                disabled={loading || !input.trim()}
-              >
-                {loading
-                  ? <><i className="fa-solid fa-circle-notch fa-spin" /> Analyzing</>
-                  : <><i className="fa-solid fa-play" /> Audit</>
-                }
-              </button>
             </div>
           </div>
 
@@ -179,26 +200,13 @@ export default function CodeAnalysis() {
         <div className="a-report-panel">
           <div className="a-panel-header">
             <div className="a-header-title">
-              <i className="fa-solid fa-chart-pie" /> Audit Report
+              <i className="fa-solid fa-chart-line" /> Complexity & Summary
             </div>
-            {analysisData && (
-              <div className="a-header-actions">
-                <ShareButton
-                  analysisData={analysisData}
-                  code={input}
-                  language={selectedLang}
-                />
-                <button className="primary-button a-btn-sm a-action-btn" onClick={handleRefactorRouting}>
-                  <i className="fas fa-wand-magic-sparkles" /> Optimize Code
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="a-report-scroll-area">
             {analysisData ? (
               <div className="a-analysis-dashboard">
-
                 <div className="a-analysis-header-card">
                   <div className="a-summary-section">
                     <h3 className="a-summary-title">Executive Summary</h3>
@@ -218,41 +226,17 @@ export default function CodeAnalysis() {
                   </div>
                 </div>
 
-                <div className="a-tabs-container">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab.id}
-                      className={`a-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                      onClick={() => setActiveTab(tab.id)}
-                      title={tab.label}
-                    >
-                      <i className={`fa-solid ${tab.icon}`} />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="a-analysis-tab-content-wrapper">
+                <div className="a-complexity-content-wrapper">
                   <div className="a-hover-copy-container">
                     <CopyButton
-                      codeToCopy={getTabContentToCopy}
+                      codeToCopy={getComplexityContentToCopy}
                       className="primary-button a-btn-icon-only copy-btn"
                       iconOnly={true}
                       label=""
                     />
                   </div>
-
-                  <div className="a-analysis-tab-content">
-                    {activeTab === 'complexity' && <ComplexityTab complexity={analysisData.complexity} />}
-                    {activeTab === 'security' && <IssuesTab type="security" items={analysisData.security} />}
-                    {activeTab === 'bugs' && <IssuesTab type="bugs" items={analysisData.bugs} />}
-                    {activeTab === 'improvements' && <IssuesTab type="improvements" items={analysisData.improvements} />}
-                    {activeTab === 'bestPractices' && <IssuesTab type="bestPractices" items={analysisData.bestPractices} />}
-                    {activeTab === 'testing' && <TestingTab testing={analysisData.testing} />}
-                    {activeTab === 'architecture' && <ArchitectureTab architecture={analysisData.architecture} />}
-                  </div>
+                  <ComplexityTab complexity={analysisData.complexity} />
                 </div>
-
               </div>
             ) : (
               <div className="a-empty-wrapper">
@@ -261,7 +245,7 @@ export default function CodeAnalysis() {
                   condition={!analysisData}
                   icon="fas fa-search"
                   title="Awaiting Code Structure"
-                  description="Paste your source code and click 'Audit' to reveal deep architectural, complexity, and security insights."
+                  description="Paste your source code and click 'Audit Code' to reveal deep architectural, complexity, and security insights."
                   hint={<>Use <code>Optimize Code</code> after your audit finishes to automatically refactor structural warnings.</>}
                   loadingTitle="Auditing Codebase"
                   loadingDescription="Checking cognitive complexity metrics, security vulnerabilities, and design patterns..."
@@ -271,6 +255,46 @@ export default function CodeAnalysis() {
           </div>
         </div>
       </div>
+
+      {analysisData && (
+        <div className="a-detailed-reports-section">
+          <div className="a-detailed-tabs-header">
+            <div className="a-tabs-container">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={`a-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  title={tab.label}
+                >
+                  <i className={`fa-solid ${tab.icon}`} />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="a-detailed-tab-content-wrapper">
+            <div className="a-hover-copy-container">
+              <CopyButton
+                codeToCopy={getTabContentToCopy}
+                className="primary-button a-btn-icon-only copy-btn"
+                iconOnly={true}
+                label=""
+              />
+            </div>
+
+            <div className="a-analysis-tab-content">
+              {activeTab === 'security' && <IssuesTab type="security" items={analysisData.security} />}
+              {activeTab === 'bugs' && <IssuesTab type="bugs" items={analysisData.bugs} />}
+              {activeTab === 'improvements' && <IssuesTab type="improvements" items={analysisData.improvements} />}
+              {activeTab === 'bestPractices' && <IssuesTab type="bestPractices" items={analysisData.bestPractices} />}
+              {activeTab === 'testing' && <TestingTab testing={analysisData.testing} />}
+              {activeTab === 'architecture' && <ArchitectureTab architecture={analysisData.architecture} />}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

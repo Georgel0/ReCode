@@ -718,6 +718,19 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
   display: none;
 }
 
+.top-actions-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg,
+      var(--accent) 0%,
+      transparent 50%,
+      var(--accent) 100%);
+  opacity: 0.03;
+  pointer-events: none;
+}
+
 
 @keyframes spin {
   to {

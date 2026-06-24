@@ -47,19 +47,6 @@
   row-gap: 0.56rem;
 }
 
-.r-config-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius);
-  background: linear-gradient(90deg,
-      var(--accent) 0%,
-      transparent 50%,
-      var(--accent) 100%);
-  opacity: 0.03;
-  pointer-events: none;
-}
-
 .r-config-cluster {
   display: flex;
   align-items: center;
