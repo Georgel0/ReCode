@@ -2,19 +2,17 @@
 import { useState, useMemo } from 'react';
 import { EmptyPlaceholder } from '../EmptyPlaceholder';
 
-// ─── Severity config ──────────────────────────────────────────────────────────
 const SEVERITIES = ['Critical', 'High', 'Medium', 'Low'];
 
 const SEV_META = {
   Critical: { cls: 'a-sev-critical', icon: 'fa-circle-radiation' },
-  High:     { cls: 'a-sev-high',     icon: 'fa-fire'             },
-  Medium:   { cls: 'a-sev-medium',   icon: 'fa-triangle-exclamation' },
-  Low:      { cls: 'a-sev-low',      icon: 'fa-circle-info'      },
+  High: { cls: 'a-sev-high', icon: 'fa-fire' },
+  Medium: { cls: 'a-sev-medium', icon: 'fa-triangle-exclamation' },
+  Low: { cls: 'a-sev-low', icon: 'fa-circle-info' },
 };
 
 const getSeverityClass = (sev) => SEV_META[sev]?.cls ?? 'a-sev-medium';
 
-// ─── Severity pills ───────────────────────────────────────────────────────────
 function SeverityFilters({ items, active, onToggle }) {
   // Count occurrences per severity level (only levels present in items)
   const counts = useMemo(() => {
@@ -52,7 +50,6 @@ function SeverityFilters({ items, active, onToggle }) {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
 export function IssuesTab({ type, items }) {
   const [activeFilters, setActiveFilters] = useState([]); // [] = show all
 

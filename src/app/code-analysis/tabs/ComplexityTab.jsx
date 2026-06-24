@@ -6,24 +6,22 @@ import {
   ResponsiveContainer, CartesianGrid, Legend
 } from 'recharts';
 
-// ─── Ghost line configs ───────────────────────────────────────────────────────
 const GHOST_LINES = [
-  { key: 'o1',    label: 'O(1)',       color: '#22c55e', dash: '4 3' },
-  { key: 'ologn', label: 'O(log n)',   color: '#3b82f6', dash: '4 3' },
-  { key: 'on',    label: 'O(n)',       color: '#a855f7', dash: '4 3' },
-  { key: 'onlogn',label: 'O(n log n)', color: '#f59e0b', dash: '4 3' },
-  { key: 'on2',   label: 'O(n²)',      color: '#ef4444', dash: '4 3' },
+  { key: 'o1', label: 'O(1)', color: '#22c55e', dash: '4 3' },
+  { key: 'ologn', label: 'O(log n)', color: '#3b82f6', dash: '4 3' },
+  { key: 'on', label: 'O(n)', color: '#a855f7', dash: '4 3' },
+  { key: 'onlogn', label: 'O(n log n)', color: '#f59e0b', dash: '4 3' },
+  { key: 'on2', label: 'O(n²)', color: '#ef4444', dash: '4 3' },
 ];
 
 const computeGhost = (n) => ({
-  o1:     1,
-  ologn:  Math.log2(n + 1),
-  on:     n,
+  o1: 1,
+  ologn: Math.log2(n + 1),
+  on: n,
   onlogn: n * Math.log2(n + 1),
-  on2:    n * n,
+  on2: n * n,
 });
 
-// ─── Custom tooltip ───────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
 
@@ -51,7 +49,6 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-// ─── Custom legend ────────────────────────────────────────────────────────────
 const ChartLegend = ({ hoveredGhost, onHover }) => (
   <div className="a-chart-legend">
     <span className="a-chart-legend-item a-chart-legend-actual">
@@ -73,7 +70,6 @@ const ChartLegend = ({ hoveredGhost, onHover }) => (
   </div>
 );
 
-// ─── Main component ───────────────────────────────────────────────────────────
 export function ComplexityTab({ complexity }) {
   const [hoveredGhost, setHoveredGhost] = useState(null);
 
@@ -89,13 +85,13 @@ export function ComplexityTab({ complexity }) {
       const n = i + 1;
       let ops = n;
 
-      if (timeStr === '1')                                  ops = 1;
-      else if (timeStr === 'logn')                          ops = Math.log2(n + 1);
-      else if (timeStr === 'n')                             ops = n;
-      else if (timeStr === 'nlogn')                         ops = n * Math.log2(n + 1);
+      if (timeStr === '1') ops = 1;
+      else if (timeStr === 'logn') ops = Math.log2(n + 1);
+      else if (timeStr === 'n') ops = n;
+      else if (timeStr === 'nlogn') ops = n * Math.log2(n + 1);
       else if (timeStr.includes('n^2') || timeStr.includes('n²')) ops = n * n;
       else if (timeStr.includes('n^3') || timeStr.includes('n³')) ops = n * n * n;
-      else if (timeStr.includes('2^n'))                    ops = Math.pow(2, n);
+      else if (timeStr.includes('2^n')) ops = Math.pow(2, n);
       else if (timeStr.includes('n!')) {
         let fact = 1;
         for (let k = 2; k <= n; k++) fact *= k;
@@ -151,7 +147,7 @@ export function ComplexityTab({ complexity }) {
 
         {complexity?.bottleneck && (
           <div className="a-insight-box">
-            <i className="fa-solid fa-traffic-cone" />
+            <i className="fas fa-filter" />
             <div className="a-insight-content">
               <h4>Primary Bottleneck</h4>
               <p>{complexity.bottleneck}</p>
@@ -170,7 +166,6 @@ export function ComplexityTab({ complexity }) {
         )}
       </div>
 
-      {/* ── Chart ── */}
       <div className="a-complexity-chart-wrapper">
         <ChartLegend hoveredGhost={hoveredGhost} onHover={setHoveredGhost} />
         <div className="a-complexity-chart-container">
@@ -199,7 +194,6 @@ export function ComplexityTab({ complexity }) {
                 cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
 
-              {/* Ghost comparison lines — rendered first so they sit behind */}
               {GHOST_LINES.map(g => (
                 <Line
                   key={g.key}
@@ -218,7 +212,6 @@ export function ComplexityTab({ complexity }) {
                 />
               ))}
 
-              {/* Actual complexity — rendered on top */}
               <Line
                 type="monotone"
                 dataKey="operations"
@@ -236,7 +229,6 @@ export function ComplexityTab({ complexity }) {
         </div>
       </div>
 
-      {/* ── Metrics ── */}
       {complexity?.metrics && (
         <div className="a-metrics-container">
           <div className="a-metric-card">
