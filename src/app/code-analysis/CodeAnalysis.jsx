@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { convertCode, LANGUAGES, detectLanguage } from '@/lib';
+import { convertCode, LANGUAGES, detectLanguage, useDraft } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
@@ -13,14 +13,14 @@ import './styles/CodeAnalysis.css';
 import './styles/Codeanalysis-components.css';
 
 export default function CodeAnalysis() {
+  const { moduleData, setModuleData, qualityMode } = useApp();
+  const router = useRouter();
+
   const [input, setInput] = useState('');
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState(false);
   const [activeTab, setActiveTab] = useState('security');
-
-  const { moduleData, setModuleData, qualityMode } = useApp();
-  const router = useRouter();
 
   const [selectedLang, setSelectedLang] = useState('javascript');
   const [isAutoDetected, setIsAutoDetected] = useState(true);
@@ -46,6 +46,27 @@ export default function CodeAnalysis() {
       }
     }
   }, [moduleData]);
+
+  useDraft(
+    'analysis-draft-data',
+    { input, selectedLang, isAutoDetected, analysisData, activeTab },
+    (saved) => {
+      if (saved.input?.trim()) {
+        setInput(saved.input);
+        if (saved.selectedLang) setSelectedLang(saved.selectedLang);
+        if (typeof saved.isAutoDetected === 'boolean') setIsAutoDetected(saved.isAutoDetected);
+        if (saved.analysisData) {
+          setAnalysisData(saved.analysisData);
+          setLastResult({ type: 'analysis', input: saved.input, output: saved.analysisData });
+        }
+        if (saved.activeTab) setActiveTab(saved.activeTab);
+      }
+    },
+    {
+      isEmpty: (d) => !d.input.trim(),
+      skip: moduleData?.type === 'analysis' || moduleData?.sourceModule === 'converter',
+    }
+  );
 
   useEffect(() => {
     if (!isAutoDetected) return;
@@ -136,7 +157,6 @@ export default function CodeAnalysis() {
           <select
             value={selectedLang}
             onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
-            className="a-lang-selector"
           >
             {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
           </select>
