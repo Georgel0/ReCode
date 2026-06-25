@@ -1038,7 +1038,6 @@
 }
 
 .a-tab-btn--history {
-  border-left: 1px solid var(--border);
   margin-left: 0.2rem;
   padding-left: 0.9rem;
   position: relative;

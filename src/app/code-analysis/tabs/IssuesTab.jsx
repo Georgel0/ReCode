@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { EmptyPlaceholder } from '../components/EmptyPlaceholder';
 import { FixDiffModal } from '../components/FixDiffModal';
 
@@ -7,13 +7,13 @@ const SEVERITIES = ['Critical', 'High', 'Medium', 'Low'];
 
 const SEV_META = {
   Critical: { cls: 'a-sev-critical', cardCls: 'a-issue-card--critical', icon: 'fa-circle-radiation' },
-  High:     { cls: 'a-sev-high',     cardCls: 'a-issue-card--high',     icon: 'fa-fire' },
-  Medium:   { cls: 'a-sev-medium',   cardCls: 'a-issue-card--medium',   icon: 'fa-triangle-exclamation' },
-  Low:      { cls: 'a-sev-low',      cardCls: 'a-issue-card--low',      icon: 'fa-circle-info' },
+  High: { cls: 'a-sev-high', cardCls: 'a-issue-card--high', icon: 'fa-fire' },
+  Medium: { cls: 'a-sev-medium', cardCls: 'a-issue-card--medium', icon: 'fa-triangle-exclamation' },
+  Low: { cls: 'a-sev-low', cardCls: 'a-issue-card--low', icon: 'fa-circle-info' },
 };
 
 const getSeverityClass = (sev) => SEV_META[sev]?.cls ?? 'a-sev-medium';
-const getCardClass     = (sev) => SEV_META[sev]?.cardCls ?? '';
+const getCardClass = (sev) => SEV_META[sev]?.cardCls ?? '';
 
 function SeverityFilters({ items, active, onToggle }) {
   const counts = useMemo(() => {
@@ -51,9 +51,18 @@ function SeverityFilters({ items, active, onToggle }) {
   );
 }
 
+// Stable key for an issue so the cache survives filter/re-render churn.
+function issueKey(item) {
+  return `${item.location ?? ''}::${item.issue ?? ''}`;
+}
+
 export function IssuesTab({ type, items, sourceCode, language }) {
   const [activeFilters, setActiveFilters] = useState([]);
   const [diffIssue, setDiffIssue] = useState(null);
+
+  // In-memory fix cache: { [issueKey]: { before, after, explanation } }
+  // useRef keeps it stable across renders without triggering re-renders.
+  const fixCacheRef = useRef({});
 
   const handleToggle = (sev) => {
     if (sev === null) { setActiveFilters([]); return; }
@@ -142,6 +151,8 @@ export function IssuesTab({ type, items, sourceCode, language }) {
           issue={diffIssue}
           sourceCode={sourceCode || ''}
           language={language || 'javascript'}
+          cachedFix={fixCacheRef.current[issueKey(diffIssue)] ?? null}
+          onFixCached={(fix) => { fixCacheRef.current[issueKey(diffIssue)] = fix; }}
           onClose={() => setDiffIssue(null)}
         />
       )}

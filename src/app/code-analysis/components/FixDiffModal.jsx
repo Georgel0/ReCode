@@ -132,10 +132,39 @@ function DiffView({ before = '', after = '' }) {
   );
 }
 
-export function FixDiffModal({ issue, sourceCode, language, onClose }) {
+// `convertCode` can resolve in two shapes depending on the backend path:
+//   1. { before, after, explanation }             — already flat
+//   2. { convertedCode: "```json\n{ ... }\n```" } — fenced JSON string
+// This normalizes both into a flat { before, after, explanation } object (or null).
+function extractFixPayload(raw) {
+  if (!raw) return null;
+
+  if (typeof raw.before === 'string' && typeof raw.after === 'string') {
+    return raw;
+  }
+
+  if (typeof raw.convertedCode === 'string') {
+    let text = raw.convertedCode.trim();
+    const fenceMatch = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    if (fenceMatch) {
+      text = fenceMatch[1];
+    }
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      console.error('[FixDiff] failed to JSON.parse convertedCode payload', { err, text });
+      return null;
+    }
+  }
+
+  return null;
+}
+
+export function FixDiffModal({ issue, sourceCode, language, cachedFix, onFixCached, onClose }) {
   const { qualityMode } = useApp();
-  const [status, setStatus] = useState('idle');
-  const [fixData, setFixData] = useState(null);
+  // If a cached result is passed in, start in the 'done' state immediately.
+  const [status, setStatus] = useState(cachedFix ? 'done' : 'idle');
+  const [fixData, setFixData] = useState(cachedFix ?? null);
   const [copied, setCopied] = useState(false);
 
   // Tracks the "current" request so a slow/older response can never clobber
@@ -146,29 +175,43 @@ export function FixDiffModal({ issue, sourceCode, language, onClose }) {
   const generate = useCallback(async () => {
     const requestId = ++requestIdRef.current;
     setStatus('loading');
+
+    const params = {
+      qualityMode,
+      language,
+      severity: issue.severity || 'N/A',
+      location: issue.location || 'N/A',
+      issue: issue.issue,
+      resolution: issue.resolution,
+    };
+    console.log('[FixDiff] generate() called', { requestId, sourceCodeLength: sourceCode?.length, params });
+
     try {
-      const result = await convertCode('fix-diff', sourceCode, {
-        qualityMode,
-        language,
-        severity: issue.severity || 'N/A',
-        location: issue.location || 'N/A',
-        issue: issue.issue,
-        resolution: issue.resolution,
+      const result = await convertCode('fix-diff', sourceCode, params);
+
+      if (requestIdRef.current !== requestId) {
+        return; // superseded by a newer request
+      }
+
+      const payload = extractFixPayload(result);
+      console.log('[FixDiff] extracted payload', {
+        requestId,
+        payload,
+        keys: payload ? Object.keys(payload) : null,
+        beforeType: typeof payload?.before,
+        afterType: typeof payload?.after,
       });
 
-      if (requestIdRef.current !== requestId) return; // superseded by a newer request
-
-      // Validate the shape we actually need before trusting it — this is what
-      // was crashing computeDiff when `before`/`after` came back missing.
-      if (result && typeof result.before === 'string' && typeof result.after === 'string') {
-        setFixData(result);
+      if (payload && typeof payload.before === 'string' && typeof payload.after === 'string') {
+        setFixData(payload);
         setStatus('done');
+        // Persist to parent cache so re-opening skips the API call.
+        onFixCached?.(payload);
       } else {
         setStatus('error');
       }
     } catch (err) {
       if (requestIdRef.current !== requestId) return;
-      console.error('FixDiff error:', err);
       setStatus('error');
     }
     // Depend on primitive fields, not the `issue` object reference — if the
@@ -178,8 +221,10 @@ export function FixDiffModal({ issue, sourceCode, language, onClose }) {
   }, [sourceCode, language, qualityMode, issue.severity, issue.location, issue.issue, issue.resolution]);
 
   useEffect(() => {
+    // Skip the API call entirely if we already have a cached result.
+    if (cachedFix) return;
     generate();
-  }, [generate]);
+  }, [generate, cachedFix]);
 
   const handleCopyAfter = () => {
     if (!fixData?.after) return;

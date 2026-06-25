@@ -190,21 +190,17 @@ export default function CodeAnalysis() {
                 <span className="a-tab-count">{auditHistory.length}</span>
               )}
             </button>
+            {showCopyBtn && (
+              <CopyButton
+                codeToCopy={getTabContentToCopy}
+                className="primary-button copy-btn"
+                iconOnly={false}
+              />
+            )}
           </div>
         </div>
 
         <div className="a-detailed-tab-content-wrapper">
-          {showCopyBtn && (
-            <div className="a-hover-copy-container">
-              <CopyButton
-                codeToCopy={getTabContentToCopy}
-                className="primary-button a-btn-icon-only copy-btn"
-                iconOnly={true}
-                label=""
-              />
-            </div>
-          )}
-
           <div className="a-analysis-tab-content">
             {activeTab === 'history' && (
               <AuditHistoryTab
