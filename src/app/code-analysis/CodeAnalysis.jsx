@@ -111,6 +111,11 @@ export default function CodeAnalysis() {
             <div className="a-header-title">
               <i className="fa-solid fa-chart-line" /> Complexity & Summary
             </div>
+            <CopyButton
+              codeToCopy={getComplexityContentToCopy}
+              className="primary-button copy-btn"
+              iconOnly={false}
+            />
           </div>
 
           <div className="a-report-scroll-area">
@@ -136,15 +141,7 @@ export default function CodeAnalysis() {
                 </div>
 
                 <div className="a-complexity-content-wrapper">
-                  <div className="a-hover-copy-container">
-                    <CopyButton
-                      codeToCopy={getComplexityContentToCopy}
-                      className="primary-button a-btn-icon-only copy-btn"
-                      iconOnly={true}
-                      label=""
-                    />
-                  </div>
-                  <ComplexityTab complexity={analysisData.complexity} />
+                  <ComplexityTab copyContent={getComplexityContentToCopy} complexity={analysisData.complexity} />
                 </div>
               </div>
             ) : (
