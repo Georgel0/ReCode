@@ -197,7 +197,6 @@ export function FixDiffModal({ issue, sourceCode, language, cachedFix, onFixCach
                 </div>
               )}
               
-              <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
                 <DiffView 
                   sourceContent={fixData.before} 
                   targetContent={fixData.after} 
@@ -206,7 +205,6 @@ export function FixDiffModal({ issue, sourceCode, language, cachedFix, onFixCach
                   leftLabel="Original Code"
                   rightLabel="AI Resolution"
                 />
-              </div>
             </div>
           )}
         </div>
