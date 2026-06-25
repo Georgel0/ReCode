@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { convertCode, LANGUAGES, detectLanguage, useDraft } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
 import { useApp } from '@/context';
-import { ComplexityTab, IssuesTab, TestingTab, ArchitectureTab } from './tabs';
+import { ComplexityTab, TestingTab, ArchitectureTab } from './tabs';
+import { IssuesTab } from './tabs/IssuesTab';
+import { AuditHistoryTab, loadHistory, saveAuditToHistory, clearHistory } from './tabs/AuditHistoryTab';
 import { ShareButton } from './ShareButton';
 
-import './styles/CodeAnalysis.css';
-import './styles/Codeanalysis-components.css';
+import './styles/ca-layout.css';
+import './styles/ca-components.css';
+import './styles/ca-widgets.css';
 
 export default function CodeAnalysis() {
   const { moduleData, setModuleData, qualityMode } = useApp();
@@ -25,8 +28,38 @@ export default function CodeAnalysis() {
   const [selectedLang, setSelectedLang] = useState('javascript');
   const [isAutoDetected, setIsAutoDetected] = useState(true);
 
+  const [auditHistory, setAuditHistory] = useState([]);
+
   const lineCount = input ? input.split('\n').length : 0;
   const charCount = input.length;
+
+  useEffect(() => {
+    setAuditHistory(loadHistory());
+  }, []);
+
+  // Save audit to history whenever analysis completes
+  const persistAudit = useCallback((data, code, lang) => {
+    if (!data || !code) return;
+    const totalIssues = [
+      ...(data.security || []),
+      ...(data.bugs || []),
+      ...(data.improvements || []),
+      ...(data.bestPractices || []),
+    ].length;
+
+    const entry = {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      fileName: `audit_${new Date().toISOString().slice(0, 10)}`,
+      language: lang,
+      score: data.score,
+      summary: data.summary,
+      issueCount: totalIssues,
+      code: code.slice(0, 3000), // keep snapshot capped at 3 KB
+    };
+    const updated = saveAuditToHistory(entry);
+    setAuditHistory(updated);
+  }, []);
 
   useEffect(() => {
     if (moduleData?.type === 'analysis') {
@@ -86,6 +119,7 @@ export default function CodeAnalysis() {
       if (result) {
         setAnalysisData(result);
         setLastResult({ type: 'analysis', input: codeToProcess, output: result });
+        persistAudit(result, codeToProcess, selectedLang);
       }
     } catch (error) {
       console.error('Analysis Error:', error);
@@ -135,7 +169,19 @@ export default function CodeAnalysis() {
     setIsAutoDetected(true);
   };
 
-  const TABS = [
+  // Restore an audit from history
+  const handleHistoryLoad = (entry) => {
+    if (entry.code) setInput(entry.code);
+    if (entry.language) { setSelectedLang(entry.language); setIsAutoDetected(false); }
+    setActiveTab('security');
+  };
+
+  const handleClearHistory = () => {
+    clearHistory();
+    setAuditHistory([]);
+  };
+
+  const AUDIT_TABS = [
     { id: 'security', icon: 'fa-shield-halved', label: 'Security' },
     { id: 'bugs', icon: 'fa-bug', label: 'Bugs' },
     { id: 'improvements', icon: 'fa-wand-magic-sparkles', label: 'Improvements' },
@@ -143,6 +189,10 @@ export default function CodeAnalysis() {
     { id: 'testing', icon: 'fa-vial', label: 'Testing' },
     { id: 'architecture', icon: 'fa-sitemap', label: 'Architecture' },
   ];
+
+  // History tab is separate from audit tabs — always visible
+  const isHistoryTab = activeTab === 'history';
+  const showCopyBtn = !isHistoryTab && analysisData;
 
   return (
     <div className="a-module-container">
@@ -276,25 +326,39 @@ export default function CodeAnalysis() {
         </div>
       </div>
 
-      {analysisData && (
-        <div className="a-detailed-reports-section">
-          <div className="a-detailed-tabs-header">
-            <div className="a-tabs-container">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  className={`a-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
-                  title={tab.label}
-                >
-                  <i className={`fa-solid ${tab.icon}`} />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="a-detailed-reports-section">
+        <div className="a-detailed-tabs-header">
+          <div className="a-tabs-container">
+            {analysisData && AUDIT_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                className={`a-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+                title={tab.label}
+              >
+                <i className={`fa-solid ${tab.icon}`} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
 
-          <div className="a-detailed-tab-content-wrapper">
+            {analysisData && <div className="a-tabs-spacer" />}
+
+            <button
+              className={`a-tab-btn a-tab-btn--history ${activeTab === 'history' ? 'active' : ''}`}
+              onClick={() => setActiveTab('history')}
+              title="Audit History"
+            >
+              <i className="fa-solid fa-clock-rotate-left" />
+              <span>History</span>
+              {auditHistory.length > 0 && (
+                <span className="a-tab-count">{auditHistory.length}</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="a-detailed-tab-content-wrapper">
+          {showCopyBtn && (
             <div className="a-hover-copy-container">
               <CopyButton
                 codeToCopy={getTabContentToCopy}
@@ -303,18 +367,45 @@ export default function CodeAnalysis() {
                 label=""
               />
             </div>
+          )}
 
-            <div className="a-analysis-tab-content">
-              {activeTab === 'security' && <IssuesTab type="security" items={analysisData.security} />}
-              {activeTab === 'bugs' && <IssuesTab type="bugs" items={analysisData.bugs} />}
-              {activeTab === 'improvements' && <IssuesTab type="improvements" items={analysisData.improvements} />}
-              {activeTab === 'bestPractices' && <IssuesTab type="bestPractices" items={analysisData.bestPractices} />}
-              {activeTab === 'testing' && <TestingTab testing={analysisData.testing} />}
-              {activeTab === 'architecture' && <ArchitectureTab architecture={analysisData.architecture} />}
-            </div>
+          <div className="a-analysis-tab-content">
+            {activeTab === 'history' && (
+              <AuditHistoryTab
+                history={auditHistory}
+                onClear={handleClearHistory}
+                onLoad={handleHistoryLoad}
+              />
+            )}
+
+            {analysisData && activeTab === 'security' && (
+              <IssuesTab type="security" items={analysisData.security} sourceCode={input} language={selectedLang} />
+            )}
+            {analysisData && activeTab === 'bugs' && (
+              <IssuesTab type="bugs" items={analysisData.bugs} sourceCode={input} language={selectedLang} />
+            )}
+            {analysisData && activeTab === 'improvements' && (
+              <IssuesTab type="improvements" items={analysisData.improvements} sourceCode={input} language={selectedLang} />
+            )}
+            {analysisData && activeTab === 'bestPractices' && (
+              <IssuesTab type="bestPractices" items={analysisData.bestPractices} sourceCode={input} language={selectedLang} />
+            )}
+            {analysisData && activeTab === 'testing' && (
+              <TestingTab testing={analysisData.testing} />
+            )}
+            {analysisData && activeTab === 'architecture' && (
+              <ArchitectureTab architecture={analysisData.architecture} />
+            )}
+
+            {!analysisData && activeTab !== 'history' && (
+              <div className="a-tab-no-data">
+                <i className="fa-solid fa-magnifying-glass" />
+                <p>Run an audit to see results here.</p>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

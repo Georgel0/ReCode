@@ -241,6 +241,12 @@ export const OUTPUT_SCHEMAS = {
     explanation: z.string().optional()
       .describe('HTML-formatted summary describing stream topology, temporal patterns applied, and any schema anomalies resolved.'),
   }),
+
+  'fix-diff': z.object({
+    explanation: z.string().describe('One sentence: what changed and why'),
+    before: z.string().describe('Verbatim problematic snippet extracted from the source (5–20 lines)'),
+    after: z.string().describe('Corrected version of the same snippet with only the necessary fix applied'),
+  }),
 };
 
 /**

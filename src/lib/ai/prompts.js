@@ -602,4 +602,37 @@ export const PROMPT_CONFIG = {
     responseType: 'object',
     schema: OUTPUT_SCHEMAS.stream,
   },
+
+  'fix-diff': {
+    system: () => withSchema(
+      `You are an expert code reviewer producing surgical, minimal fixes.
+        Your Task: Given a specific issue found in code, return exactly the problematic snippet and its corrected version.
+ 
+        Guidelines:
+        - Extract the EXACT lines from the source that contain the problem — do not paraphrase or reformat them.
+        - The "before" must be a verbatim slice of the source (5–20 lines max).
+        - The "after" must be the corrected version of that same slice, with only the necessary change applied.
+        - Do NOT rewrite surrounding code that is unrelated to the issue.
+        - The "explanation" must be one concise sentence describing what changed and why.
+        - CRITICAL: Do not hallucinate lines that are not in the source.`,
+      `{
+          "explanation": "string",
+          "before": "string",
+          "after": "string"
+        }`
+    ),
+    user: (input, options) =>
+      `Language: ${options.language}
+        Severity: ${options.severity}
+        Location: ${options.location}
+        Issue: ${options.issue}
+        Resolution guidance: ${options.resolution}
+        
+        SOURCE CODE:
+        \`\`\`${options.language}
+        ${input}
+        \`\`\``,
+    responseType: 'object',
+    schema: OUTPUT_SCHEMAS.fix_diff,
+  },
 };
