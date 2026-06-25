@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { convertCode } from '@/lib';
 import { useApp } from '@/context';
 
 // Very lightweight diff — splits by lines, marks removed (-) vs added (+) lines
-function computeDiff(before, after) {
+function computeDiff(before = '', after = '') {
   const bLines = before.split('\n');
   const aLines = after.split('\n');
   const result = [];
@@ -67,9 +67,14 @@ function DiffLine({ line }) {
   );
 }
 
-function DiffView({ before, after }) {
+function DiffView({ before = '', after = '' }) {
   const [view, setView] = useState('unified');
-  const diff = computeDiff(before, after);
+
+  // Memoized so we don't re-run the diff / re-split on every re-render
+  // (e.g. toggling Unified/Split previously recomputed everything for no reason).
+  const diff = useMemo(() => computeDiff(before, after), [before, after]);
+  const beforeLines = useMemo(() => before.split('\n'), [before]);
+  const afterLines = useMemo(() => after.split('\n'), [after]);
 
   return (
     <div className="fdm-diff-wrapper">
@@ -100,7 +105,7 @@ function DiffView({ before, after }) {
               <i className="fa-solid fa-minus" /> Before
             </div>
             <div className="fdm-diff-block">
-              {before.split('\n').map((text, i) => (
+              {beforeLines.map((text, i) => (
                 <div key={i} className="fdm-diff-line fdm-diff-remove">
                   <span className="fdm-diff-gutter">−</span>
                   <code className="fdm-diff-code">{text || ' '}</code>
@@ -113,7 +118,7 @@ function DiffView({ before, after }) {
               <i className="fa-solid fa-plus" /> After
             </div>
             <div className="fdm-diff-block">
-              {after.split('\n').map((text, i) => (
+              {afterLines.map((text, i) => (
                 <div key={i} className="fdm-diff-line fdm-diff-add">
                   <span className="fdm-diff-gutter">+</span>
                   <code className="fdm-diff-code">{text || ' '}</code>
@@ -133,7 +138,13 @@ export function FixDiffModal({ issue, sourceCode, language, onClose }) {
   const [fixData, setFixData] = useState(null);
   const [copied, setCopied] = useState(false);
 
+  // Tracks the "current" request so a slow/older response can never clobber
+  // a newer one (e.g. user mashes Retry, or props change mid-request).
+  const requestIdRef = useRef(0);
+  const copyTimeoutRef = useRef(null);
+
   const generate = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setStatus('loading');
     try {
       const result = await convertCode('fix-diff', sourceCode, {
@@ -144,17 +155,27 @@ export function FixDiffModal({ issue, sourceCode, language, onClose }) {
         issue: issue.issue,
         resolution: issue.resolution,
       });
-      if (result) {
+
+      if (requestIdRef.current !== requestId) return; // superseded by a newer request
+
+      // Validate the shape we actually need before trusting it — this is what
+      // was crashing computeDiff when `before`/`after` came back missing.
+      if (result && typeof result.before === 'string' && typeof result.after === 'string') {
         setFixData(result);
         setStatus('done');
       } else {
         setStatus('error');
       }
     } catch (err) {
+      if (requestIdRef.current !== requestId) return;
       console.error('FixDiff error:', err);
       setStatus('error');
     }
-  }, [issue, sourceCode, language, qualityMode]);
+    // Depend on primitive fields, not the `issue` object reference — if the
+    // parent re-creates `issue` on every render (e.g. via .map()/.filter()),
+    // depending on the object itself would re-trigger generate() endlessly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceCode, language, qualityMode, issue.severity, issue.location, issue.issue, issue.resolution]);
 
   useEffect(() => {
     generate();
@@ -164,9 +185,19 @@ export function FixDiffModal({ issue, sourceCode, language, onClose }) {
     if (!fixData?.after) return;
     navigator.clipboard.writeText(fixData.after).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+    }).catch((err) => {
+      console.error('Copy to clipboard failed:', err);
     });
   };
+
+  // Clear any pending "Copied!" timeout on unmount.
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -176,14 +207,14 @@ export function FixDiffModal({ issue, sourceCode, language, onClose }) {
 
   return (
     <div className="fdm-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="fdm-modal" role="dialog" aria-modal="true">
+      <div className="fdm-modal" role="dialog" aria-modal="true" aria-labelledby="fdm-modal-heading">
         <div className="fdm-modal-header">
           <div className="fdm-modal-title">
             <div className="fdm-title-icon">
               <i className="fa-solid fa-wand-magic-sparkles" />
             </div>
             <div>
-              <h2>AI-Generated Fix</h2>
+              <h2 id="fdm-modal-heading">AI-Generated Fix</h2>
               <p className="fdm-subtitle">
                 {issue.location && <span className="fdm-location-chip"><i className="fa-regular fa-file-code" /> {issue.location}</span>}
                 {issue.severity && <span className={`fdm-sev-chip fdm-sev-${issue.severity.toLowerCase()}`}>{issue.severity}</span>}

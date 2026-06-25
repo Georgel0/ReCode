@@ -9,9 +9,9 @@ import { AuditHistoryTab } from './tabs/AuditHistoryTab';
 import { ShareButton } from './components/ShareButton';
 import { useCodeAnalysis } from './useCodeAnalysis';
 
-import './styles/ca-layout.css';
-import './styles/ca-components.css';
-import './styles/ca-widgets.css';
+import './styles/analysis-layout.css';
+import './styles/analysis-components.css';
+import './styles/analysis-widgets.css';
 
 const AUDIT_TABS = [
   { id: 'security', icon: 'fa-shield-halved', label: 'Security' },
@@ -43,14 +43,8 @@ export default function CodeAnalysis() {
 
       <div className="a-global-actions-bar top-actions-bar">
         <div className="a-action-group">
-          <select
-            value={selectedLang}
-            onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
-          >
-            {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
-          </select>
           <button
-            className="primary-button a-btn-sm"
+            className="primary-button"
             onClick={() => handleAnalyze()}
             disabled={loading || !input.trim()}
           >
@@ -59,6 +53,12 @@ export default function CodeAnalysis() {
               : <><i className="fa-solid fa-play" /> Audit Code</>
             }
           </button>
+          <select
+            value={selectedLang}
+            onChange={(e) => { setSelectedLang(e.target.value); setIsAutoDetected(false); }}
+          >
+            {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
+          </select>
         </div>
 
         <div className="a-action-group">
