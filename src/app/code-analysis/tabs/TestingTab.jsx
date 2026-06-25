@@ -1,5 +1,5 @@
 "use client";
-import { EmptyPlaceholder } from '../EmptyPlaceholder';
+import { EmptyPlaceholder } from '../components/EmptyPlaceholder';
 
 export function TestingTab({ testing }) {
   if (!testing || (!testing.edgeCases?.length && !testing.unitTests?.length)) {

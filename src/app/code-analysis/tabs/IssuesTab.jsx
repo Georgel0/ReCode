@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from 'react';
-import { EmptyPlaceholder } from '../EmptyPlaceholder';
-import { FixDiffModal } from '../FixDiffModal';
+import { EmptyPlaceholder } from '../components/EmptyPlaceholder';
+import { FixDiffModal } from '../components/FixDiffModal';
 
 const SEVERITIES = ['Critical', 'High', 'Medium', 'Low'];
 
