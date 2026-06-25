@@ -268,6 +268,112 @@
   color: inherit;
 }
 
+.diff-checks {
+  display: flex;
+  gap: 15px;
+}
+
+.diff__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.diff__view-modes {
+  display: flex;
+  background: var(--bg-secondary);
+  border: 0.75px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  gap: 2px;
+}
+
+.diff__view-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.58rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: calc(var(--radius) - 1px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.diff__view-btn:hover {
+  color: var(--text-primary);
+}
+
+.diff__view-btn.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.diff__columns--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.diff__columns--unified {
+  display: flex;
+  flex-direction: column;
+}
+
+.diff__gutter-unified {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-secondary);
+  border-right: 0.75px solid var(--border);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.diff__gutter-unified .diff__linenum-num {
+  min-width: 2.1rem;
+  padding: 0 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 9px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  line-height: 14px;
+  border-right: 0.75px solid rgba(255, 255, 255, 0.04);
+  font-family: 'Fira Code', Consolas, monospace;
+}
+
+.diff__gutter-unified .diff__linenum-num:last-of-type {
+  border-right: 0.75px solid var(--border);
+}
+
+.diff__gutter-unified .diff__linenum-sign {
+  width: 0.75rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--text-secondary);
+  line-height: 14px;
+}
+
+.diff__line--add .diff__gutter-unified .diff__linenum-sign {
+  color: #4ec94e;
+}
+
+.diff__line--remove .diff__gutter-unified .diff__linenum-sign {
+  color: #e06c75;
+}
+
+.diff__line--unified {
+  width: 100%;
+}
 
 @media (max-width: 720px) {
   .diff__columns {

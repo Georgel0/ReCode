@@ -55,7 +55,6 @@ function escapeHtml(str) {
 }
 
 // Inject <mark> wrappers into an HTML string at plain-text char ranges.
-// Uses a state-machine parser — no DOM, works in SSR.
 function injectMarksIntoHTML(html, ranges, markCls) {
   if (!ranges.length) return html;
 
@@ -91,7 +90,7 @@ function injectMarksIntoHTML(html, ranges, markCls) {
       plainOffset = tokEnd;
       continue;
     }
-    // text token — split at range boundaries
+
     let i = 0;
     const tokLen = tok.value.length;
     while (i < tokLen) {
@@ -182,51 +181,57 @@ function HighlightedLine({ text, pairText, type, lang }) {
   );
 }
 
-// buildDiffRows — pure function, exported so callers can pre-compute
+// buildDiffRows — pure function generating layouts for split and unified views
 export function buildDiffRows(sourceText, targetText) {
   const changes = diffLines(sourceText || '', targetText || '');
   const srcRows = [], tgtRows = [];
+  const unifiedRows = [];
   let added = 0, removed = 0, unchanged = 0;
   let srcLine = 1, tgtLine = 1;
 
-  for (const change of changes) {
+  for (let i = 0; i < changes.length; i++) {
+    const change = changes[i];
     const lines = change.value.split('\n');
     if (lines[lines.length - 1] === '') lines.pop();
     if (lines.length === 0) continue;
 
     if (change.added) {
       added += lines.length;
-      lines.forEach(line => {
+      const prevChange = changes[i - 1];
+      const prevLines = (prevChange && prevChange.removed) ? prevChange.value.split('\n') : [];
+      if (prevLines[prevLines.length - 1] === '') prevLines.pop();
+
+      lines.forEach((line, idx) => {
+        const pairedText = prevLines[idx] !== undefined ? prevLines[idx] : null;
         srcRows.push({ type: 'phantom' });
-        tgtRows.push({ type: 'add', text: line, lineNum: tgtLine++ });
+        tgtRows.push({ type: 'add', text: line, lineNum: tgtLine++, pairText: pairedText });
+        unifiedRows.push({ type: 'add', text: line, srcLineNum: null, tgtLineNum: tgtLine - 1, pairText: pairedText });
       });
     } else if (change.removed) {
       removed += lines.length;
-      lines.forEach(line => {
-        srcRows.push({ type: 'remove', text: line, lineNum: srcLine++ });
+      const nextChange = changes[i + 1];
+      const nextLines = (nextChange && nextChange.added) ? nextChange.value.split('\n') : [];
+      if (nextLines[nextLines.length - 1] === '') nextLines.pop();
+
+      lines.forEach((line, idx) => {
+        const pairedText = nextLines[idx] !== undefined ? nextLines[idx] : null;
+        srcRows.push({ type: 'remove', text: line, lineNum: srcLine++, pairText: pairedText });
         tgtRows.push({ type: 'phantom' });
+        unifiedRows.push({ type: 'remove', text: line, srcLineNum: srcLine - 1, tgtLineNum: null, pairText: pairedText });
       });
     } else {
       unchanged += lines.length;
       lines.forEach(line => {
         srcRows.push({ type: 'same', text: line, lineNum: srcLine++ });
         tgtRows.push({ type: 'same', text: line, lineNum: tgtLine++ });
+        unifiedRows.push({ type: 'same', text: line, srcLineNum: srcLine - 1, tgtLineNum: tgtLine - 1 });
       });
     }
   }
 
-  return { srcRows, tgtRows, stats: { added, removed, unchanged } };
+  return { srcRows, tgtRows, unifiedRows, stats: { added, removed, unchanged } };
 }
 
-// DiffView — the main exported component
-//
-// Props:
-//   sourceContent  string   left-hand (original) code
-//   targetContent  string   right-hand (converted) code
-//   sourceLang     string   language key for Prism (left column)
-//   targetLang     string   language key for Prism (right column)
-//   leftLabel      string?  column header label override  (default: "Source")
-//   rightLabel     string?  column header label override  (default: "Converted ({targetLang})")
 export function DiffView({
   sourceContent,
   targetContent,
@@ -235,27 +240,14 @@ export function DiffView({
   leftLabel,
   rightLabel,
 }) {
-  const { srcRows, tgtRows, stats } = buildDiffRows(sourceContent, targetContent);
+  const { srcRows, tgtRows, unifiedRows, stats } = buildDiffRows(sourceContent, targetContent);
+  const [viewMode, setViewMode] = useState('split'); // 'split' | 'unified'
   const [diffSyncScroll, setDiffSyncScroll] = useState(true);
+  const [showCharDiff, setShowCharDiff] = useState(true);
   const srcScrollRef = useRef(null);
   const tgtScrollRef = useRef(null);
   const isSyncingRef = useRef(false);
   const prismTheme = usePrismTheme();
-
-  // Build pair-map: adjacent remove/add lines share their text for char-diff
-  const pairMap = useRef({});
-  useEffect(() => {
-    const map = {};
-    let ri = 0, li = 0;
-    while (ri < srcRows.length && li < tgtRows.length) {
-      if (srcRows[ri].type === 'remove' && tgtRows[li].type === 'add') {
-        map[`src-${ri}`] = tgtRows[li].text;
-        map[`tgt-${li}`] = srcRows[ri].text;
-        ri++; li++;
-      } else { ri++; li++; }
-    }
-    pairMap.current = map;
-  }, [srcRows, tgtRows]);
 
   const handleColScroll = (e, otherRef) => {
     if (!diffSyncScroll || isSyncingRef.current) return;
@@ -272,11 +264,11 @@ export function DiffView({
     ((stats.added + stats.removed) / Math.max(stats.added + stats.removed + stats.unchanged, 1)) * 100,
   );
 
-  const renderRows = (rows, side, lang) =>
+  const renderSplitRows = (rows, lang) =>
     rows.map((row, i) => {
       if (row.type === 'phantom') {
         return (
-          <div key={`${side}-phantom-${i}`} className="diff__line diff__line--phantom">
+          <div key={`split-phantom-${i}`} className="diff__line diff__line--phantom">
             <span className="diff__gutter-strip" />
             <span className="diff__linenum" />
             <pre className="diff__text" />
@@ -286,10 +278,9 @@ export function DiffView({
 
       const cls = row.type === 'add' ? ' diff__line--add' : row.type === 'remove' ? ' diff__line--remove' : '';
       const sign = row.type === 'add' ? '+' : row.type === 'remove' ? '−' : '';
-      const pairText = pairMap.current[`${side}-${i}`];
 
       return (
-        <div key={`${side}-${row.type}-${row.lineNum}`} className={`diff__line${cls}`}>
+        <div key={`split-${row.type}-${row.lineNum}`} className={`diff__line${cls}`}>
           <span className="diff__gutter-strip" />
           <span className="diff__linenum">
             <span className="diff__linenum-num">{row.lineNum}</span>
@@ -298,9 +289,35 @@ export function DiffView({
           <pre className={`diff__text prism-${prismTheme}`}>
             <HighlightedLine
               text={row.text}
-              pairText={pairText}
+              pairText={showCharDiff ? row.pairText : null}
               type={row.type}
               lang={lang}
+            />
+          </pre>
+        </div>
+      );
+    });
+
+  const renderUnifiedRows = (rows) =>
+    rows.map((row, i) => {
+      const cls = row.type === 'add' ? ' diff__line--add' : row.type === 'remove' ? ' diff__line--remove' : '';
+      const sign = row.type === 'add' ? '+' : row.type === 'remove' ? '−' : '';
+      const currentLang = row.type === 'remove' ? sourceLang : targetLang;
+
+      return (
+        <div key={`unified-${row.type}-${i}`} className={`diff__line diff__line--unified${cls}`}>
+          <span className="diff__gutter-strip" />
+          <div className="diff__gutter-unified">
+            <span className="diff__linenum-num">{row.srcLineNum || ''}</span>
+            <span className="diff__linenum-num">{row.tgtLineNum || ''}</span>
+            <span className="diff__linenum-sign">{sign}</span>
+          </div>
+          <pre className={`diff__text prism-${prismTheme}`}>
+            <HighlightedLine
+              text={row.text}
+              pairText={showCharDiff ? row.pairText : null}
+              type={row.type}
+              lang={currentLang}
             />
           </pre>
         </div>
@@ -313,56 +330,104 @@ export function DiffView({
   return (
     <div className="diff">
       <div className="diff__toolbar">
-        <div className="diff__stats">
-          <span className="diff__stat diff__stat--add">+{stats.added}</span>
-          <span className="diff__stat diff__stat--remove">−{stats.removed}</span>
-          <span className="diff__stat diff__stat--unchanged">{stats.unchanged} unchanged</span>
-          <span className="diff__stat diff__stat--delta">{delta}% delta</span>
+        <div className="diff__toolbar-left">
+          <div className="diff__view-modes">
+            <button
+              type="button"
+              className={`diff__view-btn ${viewMode === 'split' ? 'active' : ''}`}
+              onClick={() => setViewMode('split')}
+            >
+              Split
+            </button>
+            <button
+              type="button"
+              className={`diff__view-btn ${viewMode === 'unified' ? 'active' : ''}`}
+              onClick={() => setViewMode('unified')}
+            >
+              Unified
+            </button>
+          </div>
+          <div className="diff__stats">
+            <span className="diff__stat diff__stat--add">+{stats.added}</span>
+            <span className="diff__stat diff__stat--remove">−{stats.removed}</span>
+            <span className="diff__stat diff__stat--unchanged">{stats.unchanged} unchanged</span>
+            <span className="diff__stat diff__stat--delta">{delta}% delta</span>
+          </div>
         </div>
-        <label className="custom-check syncheck">
-          <input
-            type="checkbox"
-            checked={diffSyncScroll}
-            onChange={e => setDiffSyncScroll(e.target.checked)}
-          />
-          <div className="box"><i className="fa-solid fa-check" /></div>
-          <span className="label-text">Sync Scroll</span>
-        </label>
+
+
+        <div className="diff-checks">
+          <label className="custom-check syncheck">
+            <input
+              type="checkbox"
+              checked={showCharDiff}
+              onChange={e => setShowCharDiff(e.target.checked)}
+            />
+            <div className="box"><i className="fa-solid fa-check" /></div>
+            <span className="label-text">Inline Diff</span>
+          </label>
+          {viewMode === 'split' && (
+            <label className="custom-check syncheck">
+              <input
+                type="checkbox"
+                checked={diffSyncScroll}
+                onChange={e => setDiffSyncScroll(e.target.checked)}
+              />
+              <div className="box"><i className="fa-solid fa-check" /></div>
+              <span className="label-text">Sync Scroll</span>
+            </label>
+          )}
+        </div>
       </div>
 
-      <div className="diff__columns">
-        <div className="diff__col">
-          <div className="diff__col-header">
-            <i className="fa-solid fa-circle diff__col-dot diff__col-dot--remove" />
-            <span className="diff__col-filename">{resolvedLeftLabel}</span>
+      {viewMode === 'split' ? (
+        <div className="diff__columns diff__columns--split">
+          <div className="diff__col">
+            <div className="diff__col-header">
+              <i className="fa-solid fa-circle diff__col-dot diff__col-dot--remove" />
+              <span className="diff__col-filename">{resolvedLeftLabel}</span>
+            </div>
+            <div
+              className="diff__lines"
+              ref={srcScrollRef}
+              onScroll={e => handleColScroll(e, tgtScrollRef)}
+            >
+              <div className="diff__lines-inner">
+                {renderSplitRows(srcRows, sourceLang)}
+              </div>
+            </div>
           </div>
-          <div
-            className="diff__lines"
-            ref={srcScrollRef}
-            onScroll={e => handleColScroll(e, tgtScrollRef)}
-          >
-            <div className="diff__lines-inner">
-              {renderRows(srcRows, 'src', sourceLang)}
+
+          <div className="diff__col">
+            <div className="diff__col-header">
+              <i className="fa-solid fa-circle diff__col-dot diff__col-dot--add" />
+              <span className="diff__col-filename">{resolvedRightLabel}</span>
+            </div>
+            <div
+              className="diff__lines"
+              ref={tgtScrollRef}
+              onScroll={e => handleColScroll(e, srcScrollRef)}
+            >
+              <div className="diff__lines-inner">
+                {renderSplitRows(tgtRows, targetLang)}
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="diff__col">
+      ) : (
+        <div className="diff__columns diff__columns--unified">
           <div className="diff__col-header">
+            <i className="fa-solid fa-circle diff__col-dot diff__col-dot--remove" style={{ marginRight: '-2px' }} />
             <i className="fa-solid fa-circle diff__col-dot diff__col-dot--add" />
-            <span className="diff__col-filename">{resolvedRightLabel}</span>
+            <span className="diff__col-filename">{resolvedLeftLabel} ➔ {resolvedRightLabel}</span>
           </div>
-          <div
-            className="diff__lines"
-            ref={tgtScrollRef}
-            onScroll={e => handleColScroll(e, srcScrollRef)}
-          >
+          <div className="diff__lines">
             <div className="diff__lines-inner">
-              {renderRows(tgtRows, 'tgt', targetLang)}
+              {renderUnifiedRows(unifiedRows)}
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
