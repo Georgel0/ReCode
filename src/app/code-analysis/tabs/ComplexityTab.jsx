@@ -49,11 +49,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-const ChartLegend = ({ hoveredGhost, onHover }) => (
+const ChartLegend = ({ hoveredGhost, onHover, timeComplexity }) => (
   <div className="a-chart-legend">
     <span className="a-chart-legend-item a-chart-legend-actual">
       <span className="a-chart-legend-line" style={{ background: 'var(--accent)' }} />
-      Your code
+      Your code {timeComplexity ? `(${timeComplexity})` : ''}
     </span>
     {GHOST_LINES.map(g => (
       <button
@@ -167,7 +167,11 @@ export function ComplexityTab({ complexity }) {
       </div>
 
       <div className="a-complexity-chart-wrapper">
-        <ChartLegend hoveredGhost={hoveredGhost} onHover={setHoveredGhost} />
+        <ChartLegend 
+          hoveredGhost={hoveredGhost} 
+          onHover={setHoveredGhost} 
+          timeComplexity={complexity?.time} 
+        />
         <div className="a-complexity-chart-container">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 16, right: 24, left: 0, bottom: 28 }}>
