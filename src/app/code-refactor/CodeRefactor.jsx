@@ -208,6 +208,7 @@ export default function CodeRefactor() {
                     targetContent={activeOutputFile?.content || ''}
                     sourceLang={activeFile?.language || 'plaintext'}
                     targetLang={targetLang}
+                    rightLabel='Refactored'
                   />
                 </div>
               </div>
