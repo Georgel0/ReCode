@@ -24,44 +24,28 @@ export const EXTENSION_MAP = {
   rb: 'ruby'
 };
 
-export const LANGUAGES = [
-  'Auto-Detect / Any', 
-  'JavaScript', 
-  'TypeScript', 
-  'Python', 
-  'Go', 
-  'Rust', 
-  'Java', 
-  'C#', 
-  'C++', 
-  'PHP', 
-  'Ruby', 
-  'Swift', 
-  'Kotlin'
-];
-
 export const FRAMEWORKS = [
-  'None (Vanilla)', 
-  'React / Next.js', 
-  'Vue / Nuxt', 
-  'Angular', 
+  'None (Vanilla)',
+  'React / Next.js',
+  'Vue / Nuxt',
+  'Angular',
   'Svelte',
-  'Django', 
-  'Flask', 
-  'FastAPI', 
-  'Spring Boot', 
+  'Django',
+  'Flask',
+  'FastAPI',
+  'Spring Boot',
   'Express / Node.js',
-  'NestJS', 
-  'Laravel', 
-  '.NET Core', 
+  'NestJS',
+  'Laravel',
+  '.NET Core',
   'Gin (Go)'
 ];
 
 export const ARCHITECTURE_PATTERNS = [
-  'Standard / Minimal', 
+  'Standard / Minimal',
   'MVC (Model-View-Controller)',
-  'Clean Architecture', 
-  'Microservices', 
+  'Clean Architecture',
+  'Microservices',
   'Event-Driven',
   'Serverless'
 ];
@@ -73,15 +57,15 @@ export const VERBOSITY_LEVELS = [
 ];
 
 const DEFAULTS = {
-  language:     'Auto-Detect / Any',
-  framework:    'None (Vanilla)',
+  language: 'Auto-Detect / Any',
+  framework: 'None (Vanilla)',
   architecture: 'Standard / Minimal',
 };
 
 const normalizeConfig = (config) => ({
   ...config,
-  language:     config.language     === DEFAULTS.language     ? null : config.language,
-  framework:    config.framework    === DEFAULTS.framework    ? null : config.framework,
+  language: config.language === DEFAULTS.language ? null : config.language,
+  framework: config.framework === DEFAULTS.framework ? null : config.framework,
   architecture: config.architecture === DEFAULTS.architecture ? null : config.architecture,
 });
 

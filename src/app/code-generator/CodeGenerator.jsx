@@ -91,8 +91,8 @@ export default function CodeGenerator() {
               />
               {error && <div className="g-error">{error}</div>}
               <div className="g-actions">
-                <button className="secondary-button" onClick={handleClearAll}>
-                  Clear
+                <button className="secondary-button btn-danger" onClick={handleClearAll}>
+                  <i className="fas fa-trash"></i> Clear
                 </button>
                 <button
                   className="primary-button"

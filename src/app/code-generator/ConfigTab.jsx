@@ -1,6 +1,7 @@
 'use client';
 
-import { LANGUAGES, FRAMEWORKS, ARCHITECTURE_PATTERNS, VERBOSITY_LEVELS } from './utils.js';
+import { FRAMEWORKS, ARCHITECTURE_PATTERNS, VERBOSITY_LEVELS } from './utils.js';
+import { LANGUAGES } from '@/lib/index.js';
 
 export default function ConfigTab({ config, setConfig }) {
   const handleChange = (key, value) => {
@@ -18,7 +19,7 @@ export default function ConfigTab({ config, setConfig }) {
         <div className="g-control">
           <span className="g-label">Language</span>
           <select value={config.language} onChange={(e) => handleChange('language', e.target.value)}>
-            {LANGUAGES.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            {LANGUAGES.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
         </div>
 

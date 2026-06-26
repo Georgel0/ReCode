@@ -780,11 +780,11 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 @media (max-width: 720px) {
   .action-row {
     flex-wrap: wrap;
-    gap: 0.5625rem;
+    gap: 0.56rem;
   }
 
   .header-content h1 {
-    font-size: 1.0875rem;
+    font-size: 1rem;
   }
 
   .module-header {
@@ -881,7 +881,7 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 
   .action-row {
     flex-direction: column;
-    width: 75%;
+    width: 100%;
   }
 
   .close-btn {
@@ -890,11 +890,6 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 
   .action-row button {
     width: 75%;
-  }
-
-  .styled-empty {
-    padding: 0;
-    padding-bottom: 2.25rem;
   }
 
   .styled-empty h3 {
@@ -910,8 +905,8 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
   .empty-state-icon-ring {
     width: 45px;
     height: 45px;
-    border-radius: 37.5%;
-    font-size: 1.125rem;
+    border-radius: 50%;
+    font-size: 1rem;
     margin-bottom: 0.75rem;
   }
 
@@ -922,6 +917,6 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
   .module-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 11.25px;
+    gap: 10px;
   }
 }

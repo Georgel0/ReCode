@@ -63,7 +63,6 @@
 
 .g-prompt-textarea {
   flex: auto;
-  height: 255px;
   min-height: 180px;
   max-height: 450px;
   resize: vertical;
@@ -120,8 +119,9 @@
 }
 
 .g-stack-textarea {
-  min-height: 54px;
-  max-height: 135px;
+  flex: auto;
+  height: 80px;
+  max-height: 150px;
   resize: vertical;
   font-size: 0.64rem;
 }
