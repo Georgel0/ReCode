@@ -3,7 +3,9 @@
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
-import { ComplexityTab, TestingTab, ArchitectureTab } from './tabs';
+import { ComplexityTab } from './tabs/ComplexityTab';
+import { TestingTab } from './tabs/TestingTab';
+import { ArchitectureTab } from './tabs/ArchitectureTab';
 import { IssuesTab } from './tabs/IssuesTab';
 import { AuditHistoryTab } from './tabs/AuditHistoryTab';
 import { ShareButton } from './components/ShareButton';

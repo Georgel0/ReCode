@@ -15,7 +15,7 @@ export function ArchitectureTab({ architecture }) {
           </h4>
           <ul className="a-simple-list">
             {architecture.smells.map((smell, i) => (
-              <li key={i}>
+              <li key={`${smell}-${i}`}>
                 <i className="fa-solid fa-circle-exclamation a-text-warning"></i> 
                 <span>{smell}</span>
               </li>
@@ -31,7 +31,7 @@ export function ArchitectureTab({ architecture }) {
           </h4>
           <ul className="a-simple-list">
             {architecture.dependencies.map((dep, i) => (
-              <li key={i}>
+              <li key={`${dep}-${i}`}>
                 <i className="fa-solid fa-link-slash a-text-danger"></i> 
                 <span>{dep}</span>
               </li>

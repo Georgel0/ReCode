@@ -70,12 +70,25 @@ const ChartLegend = ({ hoveredGhost, onHover, timeComplexity }) => (
   </div>
 );
 
+function getMetricClass(value, type) {
+  if (value == null) return 'a-score-neutral';
+  if (type === 'low-is-better') {
+    if (value <= 10) return 'a-score-good';
+    if (value <= 20) return 'a-score-warn';
+    return 'a-score-bad';
+  } else {
+    if (value >= 80) return 'a-score-good';
+    if (value >= 60) return 'a-score-warn';
+    return 'a-score-bad';
+  }
+};
+
+function parseTimeStr(time) {
+  return time.toLowerCase().replace(/[\s\(\)]/g, '').replace(/^o/, '');
+}
+
 export function ComplexityTab({ complexity }) {
   const [hoveredGhost, setHoveredGhost] = useState(null);
-
-  const parseTimeStr = useCallback((time) => {
-    return time.toLowerCase().replace(/[\s\(\)]/g, '').replace(/^o/, '');
-  }, []);
 
   const chartData = useMemo(() => {
     if (!complexity?.time) return [];
@@ -105,20 +118,7 @@ export function ComplexityTab({ complexity }) {
         ...Object.fromEntries(Object.entries(ghost).map(([k, v]) => [k, Number(v.toFixed(2))]))
       };
     });
-  }, [complexity, parseTimeStr]);
-
-  const getMetricClass = (value, type) => {
-    if (value == null) return 'a-score-neutral';
-    if (type === 'low-is-better') {
-      if (value <= 10) return 'a-score-good';
-      if (value <= 20) return 'a-score-warn';
-      return 'a-score-bad';
-    } else {
-      if (value >= 80) return 'a-score-good';
-      if (value >= 60) return 'a-score-warn';
-      return 'a-score-bad';
-    }
-  };
+  }, [complexity]);
 
   const ghostOpacity = (key) => {
     if (!hoveredGhost) return 0.18;
@@ -142,7 +142,7 @@ export function ComplexityTab({ complexity }) {
         </div>
 
         <ul className="a-complexity-explanation-list">
-          {(complexity?.explanation || []).map((item, i) => <li key={i}>{item}</li>)}
+          {(complexity?.explanation || []).map((item, i) => <li key={`${item}-${i}`}>{item}</li>)}
         </ul>
 
         {complexity?.bottleneck && (
@@ -167,10 +167,10 @@ export function ComplexityTab({ complexity }) {
       </div>
 
       <div className="a-complexity-chart-wrapper">
-        <ChartLegend 
-          hoveredGhost={hoveredGhost} 
-          onHover={setHoveredGhost} 
-          timeComplexity={complexity?.time} 
+        <ChartLegend
+          hoveredGhost={hoveredGhost}
+          onHover={setHoveredGhost}
+          timeComplexity={complexity?.time}
         />
         <div className="a-complexity-chart-container">
           <ResponsiveContainer width="100%" height="100%">

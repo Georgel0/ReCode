@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, ReferenceLine,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+
+const { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } =
+  await import('recharts');
 
 const STORAGE_KEY = 'codeaudit_history_v1';
 

@@ -15,7 +15,7 @@ export function TestingTab({ testing }) {
           </h4>
           <ul className="a-simple-list">
             {testing.edgeCases.map((caseItem, i) => (
-              <li key={i}><i className="fa-solid fa-chevron-right"></i> <span>{caseItem}</span></li>
+              <li key={`${caseItem}-${i}`}><i className="fa-solid fa-chevron-right"></i> <span>{caseItem}</span></li>
             ))}
           </ul>
         </div>
@@ -28,7 +28,7 @@ export function TestingTab({ testing }) {
           </h4>
           <ul className="a-simple-list">
             {testing.unitTests.map((test, i) => (
-              <li key={i}><i className="fa-solid fa-check"></i> <span>{test}</span></li>
+              <li key={`${test}-${i}`}><i className="fa-solid fa-check"></i> <span>{test}</span></li>
             ))}
           </ul>
         </div>

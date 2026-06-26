@@ -202,11 +202,12 @@ export function ShareButton({ analysisData, code, language = 'javascript' }) {
         improvements: analysisData.improvements?.length ?? 0,
         bestPractices: analysisData.bestPractices?.length ?? 0,
       },
-      criticalIssues: [
-        ...(analysisData.security || []),
-        ...(analysisData.bugs || []),
-      ].filter(i => i.severity === 'Critical' || i.severity === 'High')
-        .map(i => ({ severity: i.severity, location: i.location, issue: i.issue })),
+      criticalIssues: [...(analysisData.security || []), ...(analysisData.bugs || [])].reduce((acc, i) => {
+        if (i.severity === 'Critical' || i.severity === 'High') {
+          acc.push({ severity: i.severity, location: i.location, issue: i.issue });
+        }
+        return acc;
+      }, []),
       metrics: analysisData.complexity?.metrics,
     };
     await navigator.clipboard.writeText(JSON.stringify(summary, null, 2));
