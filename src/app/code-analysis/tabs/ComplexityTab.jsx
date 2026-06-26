@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend
@@ -89,6 +89,9 @@ function parseTimeStr(time) {
 
 export function ComplexityTab({ complexity }) {
   const [hoveredGhost, setHoveredGhost] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const chartData = useMemo(() => {
     if (!complexity?.time) return [];
@@ -173,62 +176,64 @@ export function ComplexityTab({ complexity }) {
           timeComplexity={complexity?.time}
         />
         <div className="a-complexity-chart-container">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 16, right: 24, left: 0, bottom: 28 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
+          {mounted && (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 16, right: 24, left: 0, bottom: 28 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
 
-              <XAxis
-                dataKey="inputElements"
-                axisLine tickLine={false}
-                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-                dy={12}
-                label={{ value: 'Input Size (Elements)', position: 'insideBottom', offset: -18, fill: 'var(--text-secondary)', fontSize: 12 }}
-              />
-              <YAxis
-                allowDecimals={false}
-                axisLine tickLine={false}
-                domain={[0, dataMax => Math.max(dataMax, 4)]}
-                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-                dx={-8}
-                label={{ value: 'Operations', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)', fontSize: 12 }}
-              />
-
-              <Tooltip
-                content={<CustomTooltip />}
-                cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }}
-              />
-
-              {GHOST_LINES.map(g => (
-                <Line
-                  key={g.key}
-                  type="monotone"
-                  dataKey={g.key}
-                  name={g.label}
-                  stroke={g.color}
-                  strokeWidth={ghostWidth(g.key)}
-                  strokeDasharray={g.dash}
-                  strokeOpacity={ghostOpacity(g.key)}
-                  dot={false}
-                  activeDot={false}
-                  legendType="none"
-                  isAnimationActive={false}
+                <XAxis
+                  dataKey="inputElements"
+                  axisLine tickLine={false}
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                  dy={12}
+                  label={{ value: 'Input Size (Elements)', position: 'insideBottom', offset: -18, fill: 'var(--text-secondary)', fontSize: 12 }}
                 />
-              ))}
+                <YAxis
+                  allowDecimals={false}
+                  axisLine tickLine={false}
+                  domain={[0, dataMax => Math.max(dataMax, 4)]}
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                  dx={-8}
+                  label={{ value: 'Operations', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)', fontSize: 12 }}
+                />
 
-              <Line
-                type="monotone"
-                dataKey="operations"
-                name="Your code"
-                stroke="var(--accent)"
-                strokeWidth={3.5}
-                dot={{ r: 4, fill: 'var(--bg-primary)', stroke: 'var(--accent)', strokeWidth: 2 }}
-                activeDot={{ r: 7, fill: 'var(--accent)', stroke: 'var(--bg-primary)', strokeWidth: 3 }}
-                animationDuration={1400}
-                animationEasing="ease-out"
-                legendType="none"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+
+                {GHOST_LINES.map(g => (
+                  <Line
+                    key={g.key}
+                    type="monotone"
+                    dataKey={g.key}
+                    name={g.label}
+                    stroke={g.color}
+                    strokeWidth={ghostWidth(g.key)}
+                    strokeDasharray={g.dash}
+                    strokeOpacity={ghostOpacity(g.key)}
+                    dot={false}
+                    activeDot={false}
+                    legendType="none"
+                    isAnimationActive={false}
+                  />
+                ))}
+
+                <Line
+                  type="monotone"
+                  dataKey="operations"
+                  name="Your code"
+                  stroke="var(--accent)"
+                  strokeWidth={3.5}
+                  dot={{ r: 4, fill: 'var(--bg-primary)', stroke: 'var(--accent)', strokeWidth: 2 }}
+                  activeDot={{ r: 7, fill: 'var(--accent)', stroke: 'var(--bg-primary)', strokeWidth: 3 }}
+                  animationDuration={1400}
+                  animationEasing="ease-out"
+                  legendType="none"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 

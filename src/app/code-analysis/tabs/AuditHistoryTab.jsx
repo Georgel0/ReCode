@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
 const { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } =
@@ -68,8 +68,11 @@ function ChartTooltip({ active, payload, label }) {
 
 export function AuditHistoryTab({ history, onClear, onLoad }) {
   const [selectedFile, setSelectedFile] = useState('__all__');
+  const [mounted, setMounted] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [confirmClear, setConfirmClear] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   // Group by fileName for file filter
   const fileNames = useMemo(() => {
@@ -148,47 +151,49 @@ export function AuditHistoryTab({ history, onClear, onLoad }) {
             Score Timeline
           </div>
           <div className="ah-chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 12, right: 20, left: 0, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false} tickLine={false}
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-                  dy={6}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  axisLine={false} tickLine={false}
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-                  dx={-6}
-                  ticks={[0, 25, 50, 75, 100]}
-                />
-                <ReferenceLine y={80} stroke="#10b981" strokeDasharray="4 3" strokeOpacity={0.4} />
-                <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="4 3" strokeOpacity={0.4} />
-                <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  stroke="var(--accent)"
-                  strokeWidth={3}
-                  dot={(props) => {
-                    const { cx, cy, payload } = props;
-                    return (
-                      <circle
-                        key={payload.id}
-                        cx={cx} cy={cy} r={5}
-                        fill={scoreColor(payload.score)}
-                        stroke="var(--bg-primary)"
-                        strokeWidth={2}
-                      />
-                    );
-                  }}
-                  activeDot={{ r: 7, fill: 'var(--accent)', stroke: 'var(--bg-primary)', strokeWidth: 2 }}
-                  animationDuration={1000}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 12, right: 20, left: 0, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false} tickLine={false}
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                    dy={6}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    axisLine={false} tickLine={false}
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                    dx={-6}
+                    ticks={[0, 25, 50, 75, 100]}
+                  />
+                  <ReferenceLine y={80} stroke="#10b981" strokeDasharray="4 3" strokeOpacity={0.4} />
+                  <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="4 3" strokeOpacity={0.4} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="var(--accent)"
+                    strokeWidth={3}
+                    dot={(props) => {
+                      const { cx, cy, payload } = props;
+                      return (
+                        <circle
+                          key={payload.id}
+                          cx={cx} cy={cy} r={5}
+                          fill={scoreColor(payload.score)}
+                          stroke="var(--bg-primary)"
+                          strokeWidth={2}
+                        />
+                      );
+                    }}
+                    activeDot={{ r: 7, fill: 'var(--accent)', stroke: 'var(--bg-primary)', strokeWidth: 2 }}
+                    animationDuration={1000}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
           <div className="ah-chart-legend">
             <span className="ah-legend-good"><span />≥80 Good</span>
