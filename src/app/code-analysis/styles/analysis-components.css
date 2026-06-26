@@ -1091,6 +1091,9 @@
 }
 
 @media (max-width: 768px) {
+  .a-module-container {
+    padding: 0;
+  }
   .a-complexity-grid {
     grid-template-columns: 1fr;
   }
@@ -1099,6 +1102,9 @@
   }
   .a-chart-legend {
     gap: 0.2rem 0.4rem;
+  }
+  .a-chart-legend-item {
+    font-size: .68rem;
   }
   .a-share-menu {
     right: auto;
