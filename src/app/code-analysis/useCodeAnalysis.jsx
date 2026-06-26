@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { convertCode, LANGUAGES, detectLanguage, useDraft } from '@/lib';
 import { useApp } from '@/context';
@@ -50,6 +50,7 @@ export function useCodeAnalysis() {
     setAuditHistory(updated);
   }, []);
 
+  const consumedModuleDataRef = useRef(null);
   useEffect(() => {
     if (moduleData?.type === 'analysis') {
       const codeToAnalyze = moduleData.input || '';
@@ -64,6 +65,11 @@ export function useCodeAnalysis() {
         setAnalysisData(moduleData.fullOutput);
         setLastResult({ type: 'analysis', input: codeToAnalyze, output: moduleData.fullOutput });
       } else if (moduleData.sourceModule === 'converter' && codeToAnalyze) {
+        // Guard: only fire once per unique moduleData object.
+        // moduleData comes from context and doesn't change reference after routing,
+        // so this correctly fires exactly once and never again for the same payload.
+        if (consumedModuleDataRef.current === moduleData) return;
+        consumedModuleDataRef.current = moduleData;
         handleAnalyze(codeToAnalyze);
       }
     }
@@ -99,7 +105,7 @@ export function useCodeAnalysis() {
     return () => clearTimeout(timer);
   }, [input, isAutoDetected]);
 
-  const handleAnalyze = async (codeOverride) => {
+  const handleAnalyze = useCallback(async (codeOverride) => {
     const codeToProcess = codeOverride || input;
     if (!codeToProcess.trim()) return;
     setLoading(true);
@@ -115,7 +121,7 @@ export function useCodeAnalysis() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [input, qualityMode, selectedLang, persistAudit]);
 
   const getComplexityContentToCopy = useMemo(() => {
     if (!analysisData?.complexity) return '';
@@ -136,6 +142,8 @@ export function useCodeAnalysis() {
         return `Testing:\nEdge Cases:\n${(analysisData.testing?.edgeCases || []).join('\n')}\n\nUnit Tests:\n${(analysisData.testing?.unitTests || []).join('\n')}`;
       case 'architecture':
         return `Architecture:\nSmells:\n${(analysisData.architecture?.smells || []).join('\n')}\n\nDependencies:\n${(analysisData.architecture?.dependencies || []).join('\n')}`;
+      case 'complexity': return getComplexityContentToCopy;
+      case 'history': return '';                            
       default:
         return JSON.stringify(analysisData[activeTab], null, 2);
     }
@@ -155,6 +163,7 @@ export function useCodeAnalysis() {
     setLoading(false);
     setInput('');
     setAnalysisData(null);
+    setLastResult(null);
     setIsAutoDetected(true);
   };
 

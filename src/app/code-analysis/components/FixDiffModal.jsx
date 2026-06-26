@@ -58,7 +58,6 @@ export function FixDiffModal({ issue, sourceCode, language, cachedFix, onFixCach
       issue: issue.issue,
       resolution: issue.resolution,
     };
-    console.log('[FixDiff] generate() called', { requestId, sourceCodeLength: sourceCode?.length, params });
 
     try {
       const result = await convertCode('fix-diff', sourceCode, params);
@@ -68,14 +67,6 @@ export function FixDiffModal({ issue, sourceCode, language, cachedFix, onFixCach
       }
 
       const payload = extractFixPayload(result);
-      console.log('[FixDiff] extracted payload', {
-        requestId,
-        payload,
-        keys: payload ? Object.keys(payload) : null,
-        beforeType: typeof payload?.before,
-        afterType: typeof payload?.after,
-      });
-
       if (payload && typeof payload.before === 'string' && typeof payload.after === 'string') {
         setFixData(payload);
         setStatus('done');

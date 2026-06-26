@@ -27,7 +27,7 @@ export function saveAuditToHistory(entry) {
 }
 
 export function clearHistory() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  try { localStorage.removeItem(STORAGE_KEY); } catch { }
 }
 
 function scoreColor(score) {
@@ -96,9 +96,10 @@ export function AuditHistoryTab({ history, onClear, onLoad }) {
 
   // Delta vs previous entry for the same file
   const getDelta = (entry, idx) => {
-    const later = filtered.slice(0, idx).find(e => e.fileName === entry.fileName);
-    if (!later) return null;
-    return entry.score - later.score;
+    // slice(idx + 1) = entries older than current (further back in history)
+    const previous = filtered.slice(idx + 1).find(e => e.fileName === entry.fileName);
+    if (!previous) return null;
+    return entry.score - previous.score;  // current minus older = correct trend
   };
 
   if (history.length === 0) {

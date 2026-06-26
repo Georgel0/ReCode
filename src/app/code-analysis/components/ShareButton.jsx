@@ -43,7 +43,7 @@ function buildAuditHTML(analysisData, code, language) {
     </div>`;
 
   const score = analysisData.score ?? 0;
-  const circ = Math.round((score / 100) * 100.53);
+  const circ = Math.round((score / 100) * 100);
 
   return `<!DOCTYPE html>
   <html lang="en">
@@ -94,7 +94,7 @@ function buildAuditHTML(analysisData, code, language) {
 
         <div class="tabs">
           ${['complexity', 'security', 'bugs', 'improvements', 'bestPractices', 'testing', 'architecture']
-            .map((t, i) => `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="showTab('${t}')">${t.charAt(0).toUpperCase() + t.slice(1)}</button>`).join('')}
+      .map((t, i) => `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="showTab('${t}')">${t.charAt(0).toUpperCase() + t.slice(1)}</button>`).join('')}
         </div>
 
         <div id="tab-complexity" class="tab-content active card">
