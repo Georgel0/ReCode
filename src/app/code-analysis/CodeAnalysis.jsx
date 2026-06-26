@@ -3,13 +3,18 @@
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
-import { ComplexityTab } from './tabs/ComplexityTab';
 import { TestingTab } from './tabs/TestingTab';
 import { ArchitectureTab } from './tabs/ArchitectureTab';
 import { IssuesTab } from './tabs/IssuesTab';
 import { AuditHistoryTab } from './tabs/AuditHistoryTab';
 import { ShareButton } from './components/ShareButton';
 import { useCodeAnalysis } from './useCodeAnalysis';
+
+import dynamic from 'next/dynamic';
+const ComplexityTab = dynamic(
+  () => import('./tabs/ComplexityTab').then(m => ({ default: m.ComplexityTab })),
+  { ssr: false }
+);
 
 import './styles/analysis-layout.css';
 import './styles/analysis-components.css';
@@ -131,8 +136,8 @@ export default function CodeAnalysis() {
                   <div className="a-score-section">
                     <div className="a-score-ring" style={{ '--score-percent': `${analysisData.score}%` }}>
                       <svg className="a-score-svg" viewBox="0 0 36 36">
-                        <path className="a-score-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path className="a-score-fill" strokeDasharray={`${analysisData.score}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path className="a-score-bg" d="M18 2.1 a 15.9 15.9 0 0 1 0 31.8 a 15.9 15.9 0 0 1 0 -31.8" />
+                        <path className="a-score-fill" strokeDasharray={`${analysisData.score}, 100`} d="M18 2.1 a 15.9 15.9 0 0 1 0 31.8 a 15.9 15.9 0 0 1 0 -31.8" />
                       </svg>
                       <div className="a-score-value">
                         <span className="a-score-number">{analysisData.score}</span>

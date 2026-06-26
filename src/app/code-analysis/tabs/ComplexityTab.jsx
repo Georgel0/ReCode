@@ -212,7 +212,6 @@ export function ComplexityTab({ complexity }) {
                   activeDot={false}
                   legendType="none"
                   isAnimationActive={false}
-                  style={{ transition: 'stroke-opacity 0.2s, stroke-width 0.2s' }}
                 />
               ))}
 

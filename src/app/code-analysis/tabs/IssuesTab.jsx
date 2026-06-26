@@ -99,8 +99,8 @@ export function IssuesTab({ type, items, sourceCode, language }) {
           </div>
         ) : (
           <div className="a-issues-container">
-            {filtered.map((item, idx) => (
-              <div key={idx} className={`a-issue-card ${getCardClass(item.severity)}`}>
+            {filtered.map((item) => (
+              <div key={issueKey(item)} className={`a-issue-card ${getCardClass(item.severity)}`}>
                 <div className="a-issue-header">
                   <div className="a-issue-header-left">
                     {item.severity ? (

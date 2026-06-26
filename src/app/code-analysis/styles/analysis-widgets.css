@@ -1016,6 +1016,10 @@
   overflow-y: auto;
 }
 
+.recharts-line-curve {
+  transition: stroke-opacity 0.2s ease, stroke-width 0.2s ease;
+}
+
 @media (max-width: 680px) {
   .fdm-split-view {
     grid-template-columns: 1fr;
