@@ -4,15 +4,23 @@ export const toolsContent = [
     slug: 'code-analysis',
     title: 'AI Code Analysis & Security Auditor',
     heading: 'Optimize Your Code with AI-Powered Static Analysis',
-    description: 'Instantly analyze source code for bugs, security vulnerabilities, and performance bottlenecks. Our AI auditor provides deep insights into code quality and algorithmic complexity.',
+    description: 'Instantly analyze source code for bugs, security vulnerabilities, and performance bottlenecks. Our AI auditor delivers a full-spectrum health report covering code quality, algorithmic complexity, architecture, and test coverage.',
     features: [
-      { title: 'Security Audit', text: 'Identify potential risks like injection vulnerabilities and unsafe data handling.' },
-      { title: 'Complexity Analysis', text: 'Understand the Big O notation and time complexity of your functions.' },
-      { title: 'Best Practices', text: 'Get suggestions based on industry-standard clean code principles.' }
+      { title: 'Security Audit', text: 'Detect injection vulnerabilities, unsafe data handling, and authentication flaws before they reach production.' },
+      { title: 'Complexity Analysis', text: 'Visualize Big O time and space complexity with a detailed breakdown per function, backed by a reference chart.' },
+      { title: 'Best Practices', text: 'Surface deviations from industry-standard clean code principles with specific, actionable fix suggestions.' },
+      { title: 'Bug Detection', text: 'Catch logical errors, off-by-one mistakes, unhandled edge cases, and null-reference risks across your codebase.' },
+      { title: 'Architecture Review', text: 'Identify code smells, tight coupling, and dependency issues that silently increase long-term maintenance cost.' },
+      { title: 'Test Coverage Hints', text: 'Get auto-generated edge case suggestions and unit test stubs so you know exactly what to cover next.' }
     ],
     faq: [
-      { question: 'What languages are supported?', answer: 'The analysis tool supports most popular languages including JavaScript, Python, Java, C++, and more.' },
-      { question: 'Does it check for security?', answer: 'Yes, it specifically looks for common security anti-patterns and vulnerabilities.' }
+      { question: 'What languages are supported?', answer: 'The auditor supports most popular languages including JavaScript, TypeScript, Python, Java, C++, Go, Rust, and more, with automatic language detection built in.' },
+      { question: 'Does it check for security vulnerabilities?', answer: 'Yes — it specifically targets common security anti-patterns such as injection risks, insecure deserialization, hardcoded credentials, and unsafe API usage.' },
+      { question: 'What does the quality score represent?', answer: 'The score (0–100) is a composite of security, bug density, complexity, and best-practice adherence. It gives you a quick signal of overall code health at a glance.' },
+      { question: 'Can I export or share my audit results?', answer: 'Yes. You can export a formatted HTML report or copy the full audit as JSON directly from the results panel, making it easy to share with teammates or attach to a PR.' },
+      { question: 'What is the Architecture tab?', answer: 'It surfaces structural issues like circular dependencies, god objects, and high coupling — problems that are easy to miss in reviews but compound over time.' },
+      { question: 'Can I run the audit on converted code?', answer: 'Absolutely. The auditor integrates directly with the Code Converter — once a conversion finishes, you can route the output straight into a full audit without repasting anything.' },
+      { question: 'Is there an audit history?', answer: 'Yes. Every audit is automatically saved to a local history log. You can browse past sessions, reload any snapshot back into the editor, and track how your score evolves over time.' }
     ]
   },
   {
@@ -180,7 +188,7 @@ export const tools = [
     path: '/code-analysis',
     icon: 'fas fa-search',
     desc: 'Deep-dive into complexity and security.',
-    info: 'Perform a full health audit on your code. This tool provides a dashboard covering Big O time/space complexity, identifies security vulnerabilities like injection risks, and detects logical edge cases that could lead to runtime crashes.'
+    info: 'Run a full health audit on your code across six dimensions: Big O time/space complexity, security vulnerabilities, bug detection, best practices, architecture smells, and test coverage hints — all scored and exportable in one pass.'
   },
   {
     name: 'Code Generator',
