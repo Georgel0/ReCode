@@ -20,8 +20,14 @@ export function useDraft(key, data, onRestore, {
   isEmpty = () => false,
   skip = false,
 } = {}) {
+  // 1. Guard flag to prevent overwriting IDB before the initial load finishes
+  const isReadyRef = useRef(false);
+
   const saveRef = useRef(
     debounce(async ({ key, data, isEmpty }) => {
+      // Guard: Never save or delete if we haven't finished loading the existing draft!
+      if (!isReadyRef.current) return; 
+      
       try {
         if (isEmpty(data)) {
           await del(key);
@@ -34,7 +40,7 @@ export function useDraft(key, data, onRestore, {
     }, debounceMs)
   );
 
-  // Load on mount — runs once, guarded by skip
+  // Load on mount
   useEffect(() => {
     if (skip) return;
     let cancelled = false;
@@ -44,18 +50,36 @@ export function useDraft(key, data, onRestore, {
         if (!cancelled && saved != null) onRestore(saved);
       } catch (e) {
         console.error(`[useDraft] load failed for "${key}":`, e);
+      } finally {
+        // Mark load as complete so saving is now allowed
+        if (!cancelled) isReadyRef.current = true; 
       }
     })();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally mount-only
+  }, []);
 
-  // Save whenever data changes, cancel debounce on unmount
+  // Save whenever data changes (debounced)
+  const dataString = JSON.stringify(data);
+  
   useEffect(() => {
     if (skip) return;
-    const save = saveRef.current;
-    save({ key, data, isEmpty });
-    return () => save.cancel();
+    saveRef.current({ key, data, isEmpty });
+    // NO cleanup here! We want the debounce to run undisturbed while typing.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, skip]);
+  }, [dataString, skip]);
+
+  // Flush ONLY on actual component unmount (changing pages)
+  useEffect(() => {
+    const save = saveRef.current;
+    return () => {
+      if (isReadyRef.current) {
+        // If they leave the page, instantly save whatever is pending
+        save.flush(); 
+      } else {
+        // If they navigate away instantly before IDB even loads, cancel to protect the old draft
+        save.cancel(); 
+      }
+    };
+  }, []);
 }

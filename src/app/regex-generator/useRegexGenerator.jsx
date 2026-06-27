@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { convertCode } from '@/lib/api';
+import { convertCode, useDraft } from '@/lib';
 import { useApp } from '@/context/AppContext';
 
 export const CHEATSHEET = {
@@ -51,23 +51,23 @@ export const CHEATSHEET = {
 
 export function useRegexGenerator() {
   const { moduleData, qualityMode } = useApp();
-  
+
   const [input, setInput] = useState('');
   const [refineMode, setRefineMode] = useState(false);
   const [flavor, setFlavor] = useState('JavaScript');
   const [flags, setFlags] = useState({ g: true, i: true, m: false, s: false });
-  
+
   const [outputCode, setOutputCode] = useState('');
   const [summary, setSummary] = useState('');
   const [breakdown, setBreakdown] = useState([]);
-  
+
   const [testCases, setTestCases] = useState([
     { id: 1, text: 'example@email.com', shouldMatch: true },
     { id: 2, text: 'invalid-email', shouldMatch: false }
   ]);
-  
+
   const [matchResults, setMatchResults] = useState({});
-  
+
   const [loading, setLoading] = useState(false);
   const [showCheatsheet, setShowCheatsheet] = useState(false);
   const [showTestInfo, setShowTestInfo] = useState(false);
@@ -92,12 +92,33 @@ export function useRegexGenerator() {
     }
   }, [moduleData]);
 
+  useDraft(
+    'regex-draft-data',
+    { input, refineMode, flavor, flags, outputCode, summary, breakdown },
+    (saved) => {
+      if (saved.input !== undefined) setInput(saved.input);
+      if (saved.refineMode !== undefined) setRefineMode(saved.refineMode);
+      if (saved.flavor) setFlavor(saved.flavor);
+      if (saved.flags) setFlags(saved.flags);
+      if (saved.outputCode !== undefined) setOutputCode(saved.outputCode);
+      if (saved.summary) setSummary(saved.summary);
+      if (saved.breakdown) setBreakdown(saved.breakdown);
+    },
+    {
+      isEmpty: (d) =>
+        !d.input.trim() &&
+        !d.outputCode &&
+        d.flavor === 'JavaScript',
+      skip: moduleData?.type === 'regex',
+    }
+  );
+
   // Debounced Regex Evaluation to prevent ReDoS UI freezes
   useEffect(() => {
     const evaluateTimer = setTimeout(() => {
       const results = {};
       const activeFlags = Object.keys(flags).filter(k => flags[k]).join('');
-      
+
       let regexObj = null;
       try {
         if (outputCode) regexObj = new RegExp(outputCode, activeFlags);
@@ -112,13 +133,13 @@ export function useRegexGenerator() {
         }
         try {
           // Reset lastIndex for global regexes before testing
-          regexObj.lastIndex = 0; 
+          regexObj.lastIndex = 0;
           results[test.id] = { isMatch: regexObj.test(test.text), error: false };
         } catch (e) {
           results[test.id] = { error: true, isMatch: false };
         }
       });
-      
+
       setMatchResults(results);
     }, 300);
 
@@ -149,7 +170,7 @@ export function useRegexGenerator() {
       const promptText = refineMode ?
         `Current Pattern: ${outputCode}\nRequest: Refine this to ${input}` :
         input;
-      
+
       const result = await convertCode('regex', promptText, { qualityMode, targetLang: flavor });
       handleResponseParsing(result);
       if (result) {

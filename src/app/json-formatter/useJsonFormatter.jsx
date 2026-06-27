@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useDraft } from '@/lib';
 import JSON5 from 'json5';
 import {
   resolveIndent,
@@ -80,6 +81,45 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
       setExplanation(info);
     }
   }, [moduleData]);
+
+  useDraft(
+    'json-formatter-draft-data',
+    {
+      input,
+      outputCode,
+      viewMode,
+      sortKeys,
+      jsonSchemaText,
+      jsonPathQuery,
+      diffInput,
+      urlInput,
+      zodOutput,
+      conversionResult
+    },
+    (saved) => {
+      if (saved.input !== undefined) setInput(saved.input);
+      if (saved.outputCode !== undefined) setOutputCode(saved.outputCode);
+      if (saved.viewMode !== undefined) setViewMode(saved.viewMode);
+      if (saved.sortKeys !== undefined) setSortKeys(saved.sortKeys);
+      if (saved.jsonSchemaText !== undefined) setJsonSchemaText(saved.jsonSchemaText);
+      if (saved.jsonPathQuery !== undefined) setJsonPathQuery(saved.jsonPathQuery);
+      if (saved.diffInput !== undefined) setDiffInput(saved.diffInput);
+      if (saved.urlInput !== undefined) setUrlInput(saved.urlInput);
+      if (saved.zodOutput !== undefined) setZodOutput(saved.zodOutput);
+      if (saved.conversionResult !== undefined) setConversionResult(saved.conversionResult);
+    },
+    {
+      isEmpty: (d) => 
+        !d.input.trim() && 
+        !d.outputCode.trim() &&
+        !d.jsonSchemaText.trim() &&
+        !d.jsonPathQuery.trim() &&
+        !d.diffInput.trim() &&
+        !d.urlInput.trim() &&
+        !d.zodOutput.trim(),
+      skip: moduleData?.type === 'json',
+    }
+  );
 
   useEffect(() => {
     setErrorMsg(null);

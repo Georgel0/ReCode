@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 import { TARGET_FRAMEWORKS, MODES, useConverter } from './components';
+import { useDraft } from '@/lib';
 import { PreviewPane } from './PreviewPane';
 import { CopyButton, CodeEditor } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
@@ -91,6 +92,34 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
       });
     }
   }, [data, activeMode, targetLang, inputs, activeInputTab, activeOutputTab, qualityMode]);
+
+  useDraft(
+    'css-framework-draft-data',
+    {
+      activeMode,
+      targetLang,
+      activeInputTab,
+      activeOutputTab,
+      inputs,
+      data
+    },
+    (saved) => {
+      if (saved.activeMode) setActiveMode(saved.activeMode);
+      if (saved.targetLang) setTargetLang(saved.targetLang);
+      if (saved.activeInputTab) setActiveInputTab(saved.activeInputTab);
+      if (saved.activeOutputTab) setActiveOutputTab(saved.activeOutputTab);
+      if (saved.inputs) setInputs(saved.inputs);
+      if (saved.data) setData(saved.data);
+    },
+    {
+      isEmpty: (d) => 
+        !d.inputs?.css?.trim() && 
+        !d.inputs?.html?.trim() && 
+        !d.inputs?.context?.trim() &&
+        !d.data,
+      skip: moduleData?.type === 'css-framework' || moduleData?.type === 'css-tailwind',
+    }
+  );
 
   useEffect(() => {
     if (data && activeOutputTab === 'code') {

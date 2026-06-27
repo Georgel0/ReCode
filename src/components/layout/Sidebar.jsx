@@ -216,7 +216,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
           {!isCollapsed && (
             <div className="theme-selector-section">
               <h3>Theme:</h3>
-              <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)} className="theme-select-dropdown">
+              <select value={currentTheme} onChange={(e) => changeTheme(e.target.value)}>
                 {Object.entries(groupedThemes).map(([group, themes]) => (
                   <optgroup key={group} label={group}>
                     {themes.map((theme) => (
