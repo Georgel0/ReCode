@@ -81,7 +81,7 @@ export function useCodeConverter() {
 
   useDraft(
     'converter-draft-data',
-    { files, outputFiles, targetLang, targetFramework, activeTabId, conversionNotes },
+    { files, outputFiles, targetLang, targetFramework, activeTabId, conversionNotes, conversionHistory },
     (saved) => {
       if (saved.files?.length > 0 && saved.files.some(f => f.content.trim())) {
         setFiles(saved.files);
@@ -90,6 +90,7 @@ export function useCodeConverter() {
         if (saved.targetLang) setTargetLang(saved.targetLang);
         if (saved.targetFramework) setTargetFramework(saved.targetFramework);
         if (saved.conversionNotes) setConversionNotes(saved.conversionNotes);
+        if (saved.conversionHistory) setConversionHistory(saved.conversionHistory);
       }
     },
     {
