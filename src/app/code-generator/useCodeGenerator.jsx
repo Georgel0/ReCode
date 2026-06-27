@@ -38,7 +38,7 @@ export function useCodeGenerator() {
         isRestoring.current = true;
         if (saved.input) setInput(saved.input);
         if (saved.files?.length > 0) setFiles(saved.files);
-        if (saved.config) setConfig(saved.config);
+        if (saved.config) setConfig({ ...DEFAULT_CONFIG, ...saved.config });
         setTimeout(() => { isRestoring.current = false; }, 100);
       }
     },

@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
 import { CodeAnalysisInfoIcon } from '@/components/widgets';
 import ConfigTab from './ConfigTab';
@@ -13,8 +11,6 @@ import { useCodeGenerator } from './useCodeGenerator';
 import './CodeGenerator.css';
 
 export default function CodeGenerator() {
-  const { moduleData } = useApp();
-
   const {
     input, setInput,
     files,
@@ -23,7 +19,6 @@ export default function CodeGenerator() {
     lastResult,
     loading,
     error,
-    pendingDraft,
     handleGenerate,
     handleClearAll,
   } = useCodeGenerator();

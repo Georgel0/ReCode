@@ -4,7 +4,7 @@ import { FRAMEWORKS, ARCHITECTURE_PATTERNS, VERBOSITY_LEVELS } from './utils.js'
 import { LANGUAGES } from '@/lib/index.js';
 
 export default function ConfigTab({ config, setConfig }) {
-  
+
   const handleChange = (key, value) => {
     if (key === 'framework') {
       // Reset sub-options whenever the framework switches
@@ -55,7 +55,7 @@ export default function ConfigTab({ config, setConfig }) {
             {activeSubOptions.map(sub => (
               <div key={sub.key} className="g-control g-sub-control">
                 <span className="g-label">
-                  <i className="fa-solid fa-turn-down-right g-sub-arrow"></i>
+                  <i className="fa-solid fa-chevron-right g-sub-arrow"></i>
                   {sub.label}
                 </span>
                 <select

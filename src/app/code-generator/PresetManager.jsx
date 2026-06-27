@@ -190,7 +190,7 @@ export default function PresetManager({ config, onApply }) {
             <button
               className={`g-preset-save-btn${saved ? ' saved' : ''}`}
               onClick={handleSave}
-              disabled={!newName.trim()}
+              disabled={!saved && !newName.trim()}
               title="Save current config as a preset"
             >
               <i className={`fa-solid ${saved ? 'fa-check' : 'fa-floppy-disk'}`}></i>
