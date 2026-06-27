@@ -2,8 +2,6 @@
 
 import { CopyButton, CodeOutput } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
 import { getLanguage } from './utils';
 
 export default function OutputPanel({
@@ -13,19 +11,6 @@ export default function OutputPanel({
   loading
 }) {
   const activeFile = files[activeFileIndex] || null;
-
-  const downloadSingleFile = (file) => {
-    if (!file) return;
-    const blob = new Blob([file.content], { type: 'text/plain' });
-    saveAs(blob, file.fileName);
-  };
-
-  const downloadZip = async () => {
-    const zip = new JSZip();
-    files.forEach(f => zip.file(f.fileName, f.content));
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'project.zip');
-  };
 
   return (
     <div className="g-panel">
@@ -53,18 +38,6 @@ export default function OutputPanel({
               />
               <CopyButton codeToCopy={activeFile?.content || ''} />
             </div>
-          </div>
-
-          <div className="g-panel-footer action-row">
-            <div className="g-spacer" />
-            <button className="secondary-button" onClick={() => downloadSingleFile(activeFile)}>
-              <i className="fa-solid fa-download"></i> File
-            </button>
-            {files.length > 1 && (
-              <button className="primary-button" onClick={downloadZip}>
-                <i className="fa-solid fa-file-zipper"></i> Download ZIP
-              </button>
-            )}
           </div>
         </>
       ) : (

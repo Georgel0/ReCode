@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
   includeDocs: false,
   includeTests: false,
   customStack: '',
+  frameworkSubOptions: {},
 };
 
 export function useCodeGenerator() {
@@ -22,7 +23,6 @@ export function useCodeGenerator() {
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [lastResult, setLastResult] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,11 +36,9 @@ export function useCodeGenerator() {
       if (historyLoaded.current) return;
       if (saved?.input?.trim() || saved?.files?.length > 0) {
         isRestoring.current = true;
-
         if (saved.input) setInput(saved.input);
         if (saved.files?.length > 0) setFiles(saved.files);
         if (saved.config) setConfig(saved.config);
-
         setTimeout(() => { isRestoring.current = false; }, 100);
       }
     },
@@ -58,15 +56,16 @@ export function useCodeGenerator() {
 
     try {
       const savedInput = typeof moduleData.input === 'string' ? moduleData.input : moduleData.input?.text || '';
-      const savedOutput = typeof moduleData.fullOutput === 'string' ? JSON.parse(moduleData.fullOutput) : moduleData.fullOutput;
+      const savedOutput = typeof moduleData.fullOutput === 'string'
+        ? JSON.parse(moduleData.fullOutput)
+        : moduleData.fullOutput;
 
       setInput(savedInput || '');
-
       if (savedOutput) {
         setFiles(Array.isArray(savedOutput) ? savedOutput : (savedOutput.files || []));
       }
       if (moduleData.config) {
-        setConfig(moduleData.config);
+        setConfig({ ...DEFAULT_CONFIG, ...moduleData.config });
       }
     } catch (e) {
       console.error('Failed to restore history', e);
@@ -77,13 +76,7 @@ export function useCodeGenerator() {
 
   useEffect(() => {
     if (files.length > 0 && !isRestoring.current) {
-      setLastResult({
-        type: 'generator',
-        input,
-        output: { files },
-        config,
-        qualityMode,
-      });
+      setLastResult({ type: 'generator', input, output: { files }, config, qualityMode });
     }
   }, [files, input, config, qualityMode]);
 
@@ -100,14 +93,7 @@ export function useCodeGenerator() {
       if (result && result.files) {
         setFiles(result.files);
         setActiveFileIndex(0);
-
-        setLastResult({
-          type: 'generator',
-          input,
-          output: result,
-          config,
-          qualityMode
-        });
+        setLastResult({ type: 'generator', input, output: result, config, qualityMode });
       } else {
         throw new Error('Invalid response format from AI.');
       }
@@ -136,7 +122,6 @@ export function useCodeGenerator() {
     lastResult,
     loading,
     error,
-
     // Actions
     handleGenerate,
     handleClearAll,

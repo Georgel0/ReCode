@@ -25,20 +25,101 @@ export const EXTENSION_MAP = {
 };
 
 export const FRAMEWORKS = [
-  'None (Vanilla)',
-  'React / Next.js',
-  'Vue / Nuxt',
-  'Angular',
-  'Svelte',
-  'Django',
-  'Flask',
-  'FastAPI',
-  'Spring Boot',
-  'Express / Node.js',
-  'NestJS',
-  'Laravel',
-  '.NET Core',
-  'Gin (Go)'
+  { value: 'None (Vanilla)', label: 'None (Vanilla)' },
+  {
+    value: 'React / Next.js', label: 'React / Next.js',
+    subOptions: [
+      { key: 'router', label: 'Router', options: ['React Router', 'Next.js App Router', 'Next.js Pages Router'] },
+      { key: 'state', label: 'State Management', options: ['Context API', 'Zustand', 'Redux Toolkit', 'Jotai', 'Recoil'] },
+      { key: 'styling', label: 'Styling', options: ['CSS Modules', 'Tailwind CSS', 'Styled Components', 'Emotion', 'Vanilla CSS'] },
+    ],
+  },
+  {
+    value: 'Vue / Nuxt', label: 'Vue / Nuxt',
+    subOptions: [
+      { key: 'router', label: 'Routing', options: ['Vue Router (SPA)', 'Nuxt Auto-routing'] },
+      { key: 'state', label: 'State Management', options: ['Pinia', 'Vuex'] },
+      { key: 'styling', label: 'Styling', options: ['Scoped CSS', 'Tailwind CSS', 'CSS Modules'] },
+    ],
+  },
+  {
+    value: 'Angular', label: 'Angular',
+    subOptions: [
+      { key: 'state', label: 'State Management', options: ['NgRx', 'Akita', 'Services'] },
+      { key: 'styling', label: 'Styling', options: ['SCSS', 'Tailwind CSS', 'Angular Material'] },
+    ],
+  },
+  {
+    value: 'Svelte', label: 'Svelte',
+    subOptions: [
+      { key: 'router', label: 'Routing', options: ['SvelteKit', 'Client-side only'] },
+      { key: 'styling', label: 'Styling', options: ['Scoped CSS', 'Tailwind CSS', 'Vanilla CSS'] },
+    ],
+  },
+  {
+    value: 'Django', label: 'Django',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['PostgreSQL', 'MySQL', 'SQLite'] },
+      { key: 'api', label: 'API Style', options: ['Django REST Framework', 'GraphQL (Strawberry)', 'Views only'] },
+      { key: 'auth', label: 'Auth', options: ['Django Auth', 'JWT (SimpleJWT)', 'OAuth2 (social-auth)'] },
+    ],
+  },
+  {
+    value: 'Flask', label: 'Flask',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['PostgreSQL (SQLAlchemy)', 'MongoDB', 'MySQL', 'SQLite'] },
+      { key: 'api', label: 'API Style', options: ['Flask-RESTful', 'Blueprint routes', 'GraphQL'] },
+    ],
+  },
+  {
+    value: 'FastAPI', label: 'FastAPI',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['PostgreSQL (SQLAlchemy)', 'MongoDB', 'Redis', 'SQLite'] },
+      { key: 'auth', label: 'Auth', options: ['JWT (OAuth2)', 'API Key', 'None'] },
+    ],
+  },
+  {
+    value: 'Spring Boot', label: 'Spring Boot',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['PostgreSQL', 'MySQL', 'MongoDB', 'H2 (In-Memory)'] },
+      { key: 'build', label: 'Build Tool', options: ['Maven', 'Gradle'] },
+    ],
+  },
+  {
+    value: 'Express / Node.js', label: 'Express / Node.js',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['MongoDB (Mongoose)', 'PostgreSQL', 'MySQL', 'SQLite'] },
+      { key: 'auth', label: 'Auth', options: ['JWT', 'Session', 'Passport.js', 'None'] },
+    ],
+  },
+  {
+    value: 'NestJS', label: 'NestJS',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['PostgreSQL (TypeORM)', 'MongoDB', 'MySQL'] },
+      { key: 'auth', label: 'Auth', options: ['JWT (Passport)', 'API Key', 'None'] },
+    ],
+  },
+  {
+    value: 'Laravel', label: 'Laravel',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['MySQL', 'PostgreSQL', 'SQLite'] },
+      { key: 'auth', label: 'Auth', options: ['Sanctum', 'Passport', 'Breeze'] },
+    ],
+  },
+  {
+    value: '.NET Core', label: '.NET Core',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['SQL Server', 'PostgreSQL', 'SQLite'] },
+      { key: 'pattern', label: 'API Pattern', options: ['Minimal API', 'MVC Controllers', 'Razor Pages'] },
+    ],
+  },
+  {
+    value: 'Gin (Go)', label: 'Gin (Go)',
+    subOptions: [
+      { key: 'database', label: 'Database', options: ['PostgreSQL (GORM)', 'MySQL (GORM)', 'MongoDB'] },
+      { key: 'auth', label: 'Auth', options: ['JWT', 'Session', 'None'] },
+    ],
+  },
 ];
 
 export const ARCHITECTURE_PATTERNS = [

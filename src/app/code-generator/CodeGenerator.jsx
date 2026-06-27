@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
 import { ConfirmModal } from '@/components/ui';
 import { CodeAnalysisInfoIcon } from '@/components/widgets';
 import ConfigTab from './ConfigTab';
 import OutputPanel from './OutputPanel';
+import PresetManager from './PresetManager';
 import { useCodeGenerator } from './useCodeGenerator';
 import './CodeGenerator.css';
 
@@ -45,10 +48,23 @@ export default function CodeGenerator() {
       pendingDraft.config?.language && pendingDraft.config.language !== 'Auto-Detect / Any'
         ? `Language: ${pendingDraft.config.language}`
         : null,
-    ]
-      .filter(Boolean)
-      .join(' · ')
+    ].filter(Boolean).join(' · ')
     : '';
+
+  const activeFile = files[activeFileIndex] || null;
+
+  const downloadSingleFile = () => {
+    if (!activeFile) return;
+    const blob = new Blob([activeFile.content], { type: 'text/plain' });
+    saveAs(blob, activeFile.fileName);
+  };
+
+  const downloadZip = async () => {
+    const zip = new JSZip();
+    files.forEach(f => zip.file(f.fileName, f.content));
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'project.zip');
+  };
 
   return (
     <div className="g-module-container">
@@ -73,6 +89,53 @@ export default function CodeGenerator() {
         onCancel={handleCancelDraft}
       />
 
+      <div className="g-top-bar top-actions-bar">
+        <button
+          className="primary-button"
+          onClick={handleGenerate}
+          disabled={loading || !input.trim()}
+        >
+          {loading ? (
+            <><span className="spinner g-btn-spinner"></span> Building...</>
+          ) : (
+            <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
+          )}
+        </button>
+
+        <PresetManager config={config} onApply={setConfig} />
+
+        <div className="g-spacer" />
+
+        {files.length > 0 && (
+          <button
+            className="secondary-button g-top-btn"
+            onClick={downloadSingleFile}
+            title={`Download ${activeFile?.fileName || 'file'}`}
+          >
+            <i className="fa-solid fa-download"></i>
+            <span className="g-top-btn-label">File</span>
+          </button>
+        )}
+        {files.length > 1 && (
+          <button
+            className="secondary-button g-top-btn"
+            onClick={downloadZip}
+            title="Download all files as ZIP"
+          >
+            <i className="fa-solid fa-file-zipper"></i>
+            <span className="g-top-btn-label">ZIP</span>
+          </button>
+        )}
+
+        <button
+          className="secondary-button btn-danger g-top-btn"
+          onClick={handleClearAll}
+          title="Clear everything"
+        >
+          <i className="fas fa-trash"></i>
+        </button>
+      </div>
+
       <div className="g-layout">
         <aside className="g-sidebar">
           <div className="g-sidebar-inner">
@@ -90,22 +153,6 @@ export default function CodeGenerator() {
                 spellCheck="true"
               />
               {error && <div className="g-error">{error}</div>}
-              <div className="g-actions">
-                <button className="secondary-button btn-danger" onClick={handleClearAll}>
-                  <i className="fas fa-trash"></i> Clear
-                </button>
-                <button
-                  className="primary-button"
-                  onClick={handleGenerate}
-                  disabled={loading || !input.trim()}
-                >
-                  {loading ? (
-                    <><span className="spinner g-btn-spinner"></span> Building...</>
-                  ) : (
-                    <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
-                  )}
-                </button>
-              </div>
             </section>
 
             <div className="g-divider" />
