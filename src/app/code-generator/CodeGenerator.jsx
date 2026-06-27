@@ -5,7 +5,6 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useApp } from '@/context';
 import { ModuleHeader } from '@/components/layout';
-import { ConfirmModal } from '@/components/ui';
 import { CodeAnalysisInfoIcon } from '@/components/widgets';
 import ConfigTab from './ConfigTab';
 import OutputPanel from './OutputPanel';
@@ -27,29 +26,7 @@ export default function CodeGenerator() {
     pendingDraft,
     handleGenerate,
     handleClearAll,
-    handleConfirmDraft,
-    handleCancelDraft,
   } = useCodeGenerator();
-
-  useEffect(() => {
-    if (moduleData && moduleData.type === 'generator') {
-      setInput(moduleData.input || '');
-    }
-  }, [moduleData]);
-
-  const draftSummary = pendingDraft
-    ? [
-      pendingDraft.input?.trim()
-        ? `Prompt: "${pendingDraft.input.trim().slice(0, 80)}${pendingDraft.input.trim().length > 80 ? '…' : ''}"`
-        : null,
-      pendingDraft.files?.length > 0
-        ? `${pendingDraft.files.length} generated file${pendingDraft.files.length !== 1 ? 's' : ''}`
-        : null,
-      pendingDraft.config?.language && pendingDraft.config.language !== 'Auto-Detect / Any'
-        ? `Language: ${pendingDraft.config.language}`
-        : null,
-    ].filter(Boolean).join(' · ')
-    : '';
 
   const activeFile = files[activeFileIndex] || null;
 
@@ -72,21 +49,6 @@ export default function CodeGenerator() {
         title="Code Generator"
         description="Scaffold multi-file solutions from a plain-English description."
         resultData={lastResult}
-      />
-
-      <ConfirmModal
-        isOpen={!!pendingDraft}
-        icon="fa-floppy-disk"
-        title="Restore Unsaved Draft?"
-        message={
-          draftSummary
-            ? `You have an unsaved session — ${draftSummary}. Would you like to pick up where you left off?`
-            : 'You have an unsaved session. Would you like to restore it?'
-        }
-        confirmText="Restore Draft"
-        cancelText="Start Fresh"
-        onConfirm={handleConfirmDraft}
-        onCancel={handleCancelDraft}
       />
 
       <div className="g-top-bar top-actions-bar">
