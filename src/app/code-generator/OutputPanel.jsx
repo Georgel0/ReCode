@@ -1,6 +1,6 @@
 'use client';
 
-import { CopyButton, CodeOutput } from '@/components/ui';
+import { CopyButton, CodeEditor } from '@/components/ui';
 import { EmptyState } from '@/components/layout';
 import { getLanguage } from './utils';
 
@@ -8,6 +8,7 @@ export default function OutputPanel({
   files,
   activeFileIndex,
   setActiveFileIndex,
+  onFileChange,
   loading
 }) {
   const activeFile = files[activeFileIndex] || null;
@@ -32,8 +33,9 @@ export default function OutputPanel({
 
           <div className="g-code-area">
             <div className="g-code-toolbar">
-              <CodeOutput
-                content={activeFile?.content || ''}
+              <CodeEditor
+                value={activeFile?.content || ''}
+                onValueChange={(newContent) => onFileChange(activeFileIndex, newContent)}
                 language={activeFile ? getLanguage(activeFile.fileName) : ''}
               />
               <CopyButton codeToCopy={activeFile?.content || ''} />

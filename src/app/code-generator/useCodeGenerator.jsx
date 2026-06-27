@@ -38,7 +38,7 @@ export function useCodeGenerator() {
         isRestoring.current = true;
         if (saved.input) setInput(saved.input);
         if (saved.files?.length > 0) setFiles(saved.files);
-        if (saved.config) setConfig({ ...DEFAULT_CONFIG, ...saved.config });
+        if (saved.config) setConfig(saved.config);
         setTimeout(() => { isRestoring.current = false; }, 100);
       }
     },
@@ -113,6 +113,12 @@ export function useCodeGenerator() {
     setConfig(DEFAULT_CONFIG);
   }, []);
 
+  // Updates a single file's content in-place; the draft auto-saves
+  // because `files` is already tracked by useDraft above.
+  const handleFileChange = useCallback((index, newContent) => {
+    setFiles(prev => prev.map((f, i) => i === index ? { ...f, content: newContent } : f));
+  }, []);
+
   return {
     // State
     input, setInput,
@@ -125,5 +131,6 @@ export function useCodeGenerator() {
     // Actions
     handleGenerate,
     handleClearAll,
+    handleFileChange,
   };
 }
