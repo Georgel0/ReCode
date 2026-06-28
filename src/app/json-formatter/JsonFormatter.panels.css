@@ -1,7 +1,7 @@
 .j-history-panel {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
   animation: slideDown 0.18s ease;
   flex-shrink: 0;
@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.35rem 0.6rem;
+  padding: 0.35rem 0.85rem;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border);
 }
@@ -40,8 +40,8 @@
 }
 
 .j-history-clear-btn:hover {
-  color: var(--danger, #ef4444);
-  border-color: var(--danger, #ef4444);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .j-history-list {
@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.6rem;
+  padding: 0.35rem 0.85rem;
   border-bottom: 1px solid var(--border);
   transition: background 0.12s;
 }
@@ -122,7 +122,7 @@
 .j-history-restore-btn:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--text-on-accent, #fff);
+  color: var(--text-on-accent);
 }
 
 .j-history-delete-btn {
@@ -142,8 +142,8 @@
 }
 
 .j-history-delete-btn:hover {
-  background: var(--danger, #ef4444);
-  border-color: var(--danger, #ef4444);
+  background: var(--danger);
+  border-color: var(--danger);
   color: #fff;
 }
 
@@ -166,7 +166,7 @@
   flex: 1;
   font-size: 0.76rem;
   font-family: 'Fira Code', monospace;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   color: var(--text-primary);
   padding: 0.3rem 0.6rem;
@@ -206,7 +206,7 @@
 }
 
 .j-jsonpath-results-panel {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid rgba(167, 139, 250, 0.22);
   border-radius: var(--radius);
   overflow: hidden;
@@ -267,9 +267,10 @@
   flex-direction: column;
   gap: 0.5rem;
   flex-shrink: 0;
+  height: 100%;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 700px) {
   .j-diff-container {
     flex-direction: row;
     gap: 0.6rem;
@@ -344,7 +345,7 @@
 }
 
 .j-diff-result-panel {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: auto;
@@ -438,7 +439,7 @@
 
 .j-zod-textarea {
   flex: 1;
-  min-height: 180px;
+  min-height: 160px;
 }
 
 .j-zod-meta-bar {
@@ -475,7 +476,7 @@
   font-size: 0.72rem;
   font-weight: 500;
   font-family: inherit;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.65rem;
   background: rgba(236, 72, 153, 0.07);
   border: 1px solid rgba(236, 72, 153, 0.22);
   color: #ec4899;
@@ -498,7 +499,7 @@
 }
 
 .j-schema-validation-panel {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -509,7 +510,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.35rem 0.6rem;
+  padding: 0.4rem 0.65rem;
   background: var(--bg-tertiary);
   border-bottom: 1px solid transparent;
   cursor: pointer;
@@ -521,7 +522,7 @@
 }
 
 .j-schema-validation-header:hover {
-  background: color-mix(in srgb, var(--bg-tertiary) 85%, var(--accent) 15%);
+  background: color-mix(in srgb, var(--bg-tertiary) 70%, var(--accent) 8%);
 }
 
 .j-schema-validation-panel:has(.j-schema-validation-body) .j-schema-validation-header {
@@ -559,7 +560,7 @@
 }
 
 .j-schema-validation-body {
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.65rem;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -569,7 +570,7 @@
   width: 100%;
   font-family: 'Fira Code', monospace;
   font-size: 0.74rem;
-  background: var(--bg-tertiary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-primary);
@@ -633,7 +634,7 @@
 
 .j-tree-view-container {
   flex: 1;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.6rem 0.8rem;
@@ -643,35 +644,17 @@
   min-height: 180px;
 }
 
-@media (max-width: 768px) {
-  .j-icon-btn-sm span,
-  .j-url-fetch-btn span,
-  .j-zod-action-btn span,
-  .j-controls-right button span,
-  .j-output-copy-row button span,
-  .j-converted-output-header button span {
-    display: none;
-  }
-  
-  .j-icon-btn-sm,
-  .j-url-fetch-btn,
-  .j-zod-action-btn,
-  .j-controls-right button,
-  .j-output-copy-row button,
-  .j-converted-output-header button {
-    padding: 0.35rem;
-    min-width: 28px;
-    justify-content: center;
-  }
-}
-
 @media (max-width: 600px) {
   .j-history-list {
     max-height: 140px;
   }
 
   .j-history-item {
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .j-history-panel-header {
+    padding: 0.3rem 0.7rem;
   }
 
   .j-diff-container {
