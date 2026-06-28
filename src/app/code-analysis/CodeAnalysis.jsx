@@ -99,7 +99,12 @@ export default function CodeAnalysis() {
 
           <div className="a-editor-wrapper">
             <div className="a-editor-scroll-area">
-              <CodeEditor value={input} onValueChange={setInput} language={selectedLang} />
+              <CodeEditor 
+                value={input} 
+                onValueChange={setInput} 
+                language={selectedLang} 
+                onSubmit={handleAnalyze} 
+              />
             </div>
             <div className="a-editor-footer">
               <span className="a-stat-item">

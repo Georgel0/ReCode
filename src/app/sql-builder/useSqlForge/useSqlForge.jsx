@@ -76,6 +76,7 @@ export function useSqlForge() {
       setWarnings(result.warnings || []);
       setRecommendedIndexes(result.recommendedIndexes || []);
       setLastResult({ type: 'sql', mode: activeMode, input, output: result });
+      
       toast.success('Query generated!');
     } catch (err) {
       toast.error(`Generation failed: ${err.message}`);

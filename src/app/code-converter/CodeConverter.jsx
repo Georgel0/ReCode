@@ -238,6 +238,7 @@ export default function CodeConverter() {
                   value={activeFile?.content || ''}
                   onValueChange={(code) => updateFile(activeTabId, code)}
                   language={activeFile?.language || 'javascript'}
+                  onSubmit={handleConvert}
                 />
               </div>
             )}

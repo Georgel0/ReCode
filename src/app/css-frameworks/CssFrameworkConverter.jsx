@@ -281,6 +281,7 @@ export default function CssFrameworkConverter({ preSetTarget = 'tailwind' }) {
                       : "<div class='card'>...</div>"
                   }
                   lineNumbers={true}
+                  onSubmit={handleConvert}
                 />
               )}
             </div>

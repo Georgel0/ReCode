@@ -74,10 +74,25 @@ function makeHighlighter(language, lineNumbers = true) {
   };
 }
 
-export function CodeEditor({ value, onValueChange, language = 'javascript', placeholder = "Paste/write your code here...", lineNumbers = true 
+export function CodeEditor({ 
+  value, 
+  onValueChange, 
+  language = 'javascript', 
+  placeholder = "Paste/write your code here...", 
+  lineNumbers = true,
+  onSubmit
 }) {
   const { currentTheme } = useTheme();
   const isDarkTheme = DARK_THEMES.includes(currentTheme);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      if (onSubmit) {
+        e.preventDefault();
+        onSubmit();
+      }
+    }
+  };
 
   return (
     <div className={`editor-container ${lineNumbers ? 'has-line-numbers' : 'no-line-numbers'}`}>
@@ -88,6 +103,7 @@ export function CodeEditor({ value, onValueChange, language = 'javascript', plac
         padding={15}
         className={`code-editor ${isDarkTheme ? 'prism-dark' : 'prism-light'}`}
         placeholder={placeholder}
+        onKeyDown={handleKeyDown}
       />
     </div>
   );

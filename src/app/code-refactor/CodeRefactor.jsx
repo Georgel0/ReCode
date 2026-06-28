@@ -138,6 +138,7 @@ export default function CodeRefactor() {
               value={activeFile?.content || ''}
               onValueChange={(code) => updateFile(activeTabId, code)}
               language={activeFile?.language || 'javascript'}
+              onSubmit={handleRefactor}
             />
           </div>
         </div>

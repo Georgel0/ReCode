@@ -135,6 +135,7 @@ export function SqlBuilderInput({
                     onValueChange={handleSchemaChange}
                     language="sql"
                     placeholder="CREATE TABLE users (id INT, name TEXT...);"
+                    onSubmit={handleGenerate}
                   />
                 </div>
 
