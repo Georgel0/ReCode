@@ -95,7 +95,7 @@ export default function RegexGenerator() {
   } = useRegexGenerator();
 
   return (
-    <div className="rg-module-container">
+    <div className="module-container">
       <ModuleHeader
         title="Regex Generator"
         description="Describe, Refine, and Battle-Test your Regular Expressions."

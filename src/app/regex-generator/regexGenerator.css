@@ -1,13 +1,3 @@
-.rg-module-container {
-  margin: 0;
-  padding-left: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.13rem;
-  animation: rgFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  margin-bottom: 3.75rem;
-}
-
 .rg-converter-grid {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(375px, 1.5fr);

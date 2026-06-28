@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { convertCode } from '@/lib';
 import { CopyButton } from '@/components/ui';
 import { ModuleHeader, EmptyState } from '@/components/layout';
@@ -16,6 +16,11 @@ import './JsonFormatter.panels.css';
 export default function JsonFormatter() {
   const { moduleData, qualityMode } = useApp();
   const fileInputRef = useRef(null);
+  const historyBtnRef = useRef(null);
+  const schemaBtnRef = useRef(null);
+  const [showSchemaPanel, setShowSchemaPanel] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const {
     input, setInput,
@@ -66,6 +71,22 @@ export default function JsonFormatter() {
     handleDeleteHistory,
   } = useJsonFormatter({ convertCode, qualityMode, moduleData });
 
+  // Close history dropdown on outside click
+  useEffect(() => {
+    if (!showHistory && !showSchemaPanel) return;
+    const handler = (e) => {
+      if (showHistory && historyBtnRef.current && !historyBtnRef.current.closest('.j-dropdown-anchor').contains(e.target)) {
+        setShowHistory(false);
+      }
+      if (showSchemaPanel && schemaBtnRef.current && !schemaBtnRef.current.closest('.j-dropdown-anchor').contains(e.target)) {
+        setShowSchemaPanel(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showHistory, showSchemaPanel]);
+
+
   const diffCounts = diffResult?.reduce(
     (acc, d) => {
       if (d.type === 'added') acc.added++;
@@ -81,7 +102,7 @@ export default function JsonFormatter() {
   };
 
   return (
-    <div className="j-module-container">
+    <div className="module-container">
       <ModuleHeader
         title="JSON Formatter & Validator"
         description="Format instantly, validate against schemas, run JSONPath, or use AI to repair structures."
@@ -90,14 +111,6 @@ export default function JsonFormatter() {
 
       <div className="j-toolbar top-actions-bar">
         <div className="j-toolbar-group j-toolbar-primary">
-          <button
-            className="secondary-button"
-            onClick={() => handleLocalFormat(input)}
-            disabled={!input.trim()}
-          >
-            <i className="fa-solid fa-bolt"></i>
-            <span>Format</span>
-          </button>
           <button
             className="primary-button j-ai-glow"
             onClick={handleAiFix}
@@ -130,13 +143,137 @@ export default function JsonFormatter() {
             <span>Sample</span>
           </button>
           <button
-            className={`j-icon-btn-sm${showHistory ? ' j-active' : ''}`}
-            onClick={() => setShowHistory(!showHistory)}
-            title="View history"
+            className="j-icon-btn-sm"
+            onClick={handleDownload}
+            disabled={!outputCode}
+            title="Download JSON"
           >
-            <i className="fa-solid fa-clock-rotate-left"></i>
-            <span>History</span>
+            <i className="fa-solid fa-download"></i>
+            <span>Download</span>
           </button>
+
+          <div className="j-dropdown-anchor" ref={schemaBtnRef} style={{ position: 'relative' }}>
+            <button
+              className={`j-icon-btn-sm${showSchemaPanel ? ' j-active' : ''}`}
+              onClick={() => setShowSchemaPanel((v) => !v)}
+              title="JSON Schema Validation"
+            >
+              <i className="fa-solid fa-shield-halved"></i>
+              <span>Schema</span>
+              {(schemaErrors.length > 0) && (
+                <span className="j-dropdown-badge j-dropdown-badge--error">{schemaErrors.length}</span>
+              )}
+              {schemaErrors.length === 0 && jsonSchemaText && outputCode && (
+                <span className="j-dropdown-badge j-dropdown-badge--ok">✓</span>
+              )}
+            </button>
+            {showSchemaPanel && (
+              <div className="j-toolbar-dropdown j-schema-dropdown">
+                <div className="j-toolbar-dropdown-header">
+                  <div className="j-header-left">
+                    <div className={`j-schema-status-dot j-${schemaErrors.length ? 'invalid' : jsonSchemaText && outputCode ? 'valid' : 'idle'}`} />
+                    JSON Schema Validation
+                  </div>
+                  <button
+                    className="j-history-clear-btn"
+                    onClick={() => { setJsonSchemaText(''); }}
+                    title="Clear schema"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="j-schema-validation-body">
+                  <textarea
+                    className="j-schema-textarea"
+                    placeholder="Paste JSON Schema here to validate your output…"
+                    value={jsonSchemaText}
+                    onChange={(e) => setJsonSchemaText(e.target.value)}
+                    onFocus={() => { if (!jsonSchemaText) setJsonSchemaText('{\n  "type": "object",\n  "properties": {}\n}'); }}
+                  />
+                  {schemaErrors.length > 0 ? (
+                    <div className="j-schema-errors-list">
+                      {schemaErrors.map((err, i) => (
+                        <div key={i} className="j-schema-error-item">
+                          <span className="j-schema-error-path">{err.path}</span>
+                          <span className="j-schema-error-msg">{err.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : jsonSchemaText && outputCode ? (
+                    <div className="j-schema-valid-msg">
+                      <i className="fa-solid fa-circle-check"></i>
+                      Passes validation
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="j-dropdown-anchor" ref={historyBtnRef} style={{ position: 'relative' }}>
+            <button
+              className={`j-icon-btn-sm${showHistory ? ' j-active' : ''}`}
+              onClick={() => setShowHistory(!showHistory)}
+              title="View history"
+            >
+              <i className="fa-solid fa-clock-rotate-left"></i>
+              <span>History</span>
+              {mounted && history.length > 0 && (
+                <span className="j-dropdown-badge">{history.length}</span>
+              )}
+            </button>
+            {showHistory && (
+              <div className="j-toolbar-dropdown j-history-dropdown">
+                <div className="j-history-panel-header">
+                  <span>
+                    <i className="fa-solid fa-clock-rotate-left"></i>
+                    Recent Sessions
+                  </span>
+                  <button
+                    className="j-history-clear-btn"
+                    onClick={handleClearAllHistory}
+                  >
+                    Clear All
+                  </button>
+                </div>
+                <div className="j-history-list">
+                  {history.length ? history.map((entry) => (
+                    <div key={entry.id} className="j-history-item">
+                      <div
+                        className="j-history-item-preview"
+                        onClick={() => { handleRestoreHistory(entry); setShowHistory(false); }}
+                        title="Click to restore"
+                      >
+                        {entry.input}
+                      </div>
+                      <div className="j-history-item-meta">
+                        <span className="j-history-item-time">
+                          {new Date(entry.timestamp).toLocaleTimeString()}
+                        </span>
+                        <div className="j-history-item-actions">
+                          <button
+                            className="j-history-restore-btn"
+                            onClick={() => { handleRestoreHistory(entry); setShowHistory(false); }}
+                          >
+                            Restore
+                          </button>
+                          <button
+                            className="j-history-delete-btn"
+                            onClick={() => handleDeleteHistory(entry.id)}
+                            title="Delete entry"
+                          >
+                            <i className="fa-solid fa-trash-can"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="j-history-empty">No history recorded yet.</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -188,57 +325,6 @@ export default function JsonFormatter() {
             </button>
           </div>
 
-          {showHistory && (
-            <div className="j-history-panel">
-              <div className="j-history-panel-header">
-                <span>
-                  <i className="fa-solid fa-clock-rotate-left"></i>
-                  Recent Sessions
-                </span>
-                <button
-                  className="j-history-clear-btn"
-                  onClick={handleClearAllHistory}
-                >
-                  Clear All
-                </button>
-              </div>
-              <div className="j-history-list">
-                {history.length ? history.map((entry) => (
-                  <div key={entry.id} className="j-history-item">
-                    <div
-                      className="j-history-item-preview"
-                      onClick={() => handleRestoreHistory(entry)}
-                      title="Click to restore"
-                    >
-                      {entry.input}
-                    </div>
-                    <div className="j-history-item-meta">
-                      <span className="j-history-item-time">
-                        {new Date(entry.timestamp).toLocaleTimeString()}
-                      </span>
-                      <div className="j-history-item-actions">
-                        <button
-                          className="j-history-restore-btn"
-                          onClick={() => handleRestoreHistory(entry)}
-                        >
-                          Restore
-                        </button>
-                        <button
-                          className="j-history-delete-btn"
-                          onClick={() => handleDeleteHistory(entry.id)}
-                          title="Delete entry"
-                        >
-                          <i className="fa-solid fa-trash-can"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="j-history-empty">No history recorded yet.</div>
-                )}
-              </div>
-            </div>
-          )}
 
           <div className="j-panel-body">
             <div
@@ -282,36 +368,58 @@ export default function JsonFormatter() {
         <div className="j-panel">
 
           <div className="j-output-tabs">
-            <button
-              className={`j-output-tab-btn${viewMode === 'code' ? ' j-active' : ''}`}
-              onClick={() => setViewMode('code')}
-            >
-              <i className="fa-solid fa-code"></i>
-              Code
-            </button>
-            <button
-              className={`j-output-tab-btn${viewMode === 'tree' ? ' j-active' : ''}`}
-              onClick={() => setViewMode('tree')}
-              disabled={!outputCode || !!errorMsg}
-            >
-              <i className="fa-solid fa-folder-tree"></i>
-              Tree
-            </button>
-            <button
-              className={`j-output-tab-btn${viewMode === 'diff' ? ' j-active' : ''}`}
-              onClick={() => setViewMode('diff')}
-            >
-              <i className="fa-solid fa-not-equal"></i>
-              Diff
-            </button>
-            <button
-              className={`j-output-tab-btn j-zod-tab${viewMode === 'zod' ? ' j-active' : ''}`}
-              onClick={() => { setViewMode('zod'); if (!zodOutput) handleGenerateZod(); }}
-              disabled={!outputCode}
-            >
-              <i className="fa-solid fa-cubes"></i>
-              Zod
-            </button>
+            <div>
+              <button
+                className={`j-output-tab-btn${viewMode === 'code' ? ' j-active' : ''}`}
+                onClick={() => setViewMode('code')}
+              >
+                <i className="fa-solid fa-code"></i>
+                Code
+              </button>
+              <button
+                className={`j-output-tab-btn${viewMode === 'tree' ? ' j-active' : ''}`}
+                onClick={() => setViewMode('tree')}
+                disabled={!outputCode || !!errorMsg}
+              >
+                <i className="fa-solid fa-folder-tree"></i>
+                Tree
+              </button>
+              <button
+                className={`j-output-tab-btn${viewMode === 'diff' ? ' j-active' : ''}`}
+                onClick={() => setViewMode('diff')}
+              >
+                <i className="fa-solid fa-not-equal"></i>
+                Diff
+              </button>
+              <button
+                className={`j-output-tab-btn j-zod-tab${viewMode === 'zod' ? ' j-active' : ''}`}
+                onClick={() => { setViewMode('zod'); if (!zodOutput) handleGenerateZod(); }}
+                disabled={!outputCode}
+              >
+                <i className="fa-solid fa-cubes"></i>
+                Zod
+              </button>
+            </div>
+            <div>
+              <button
+                className="j-output-tab-btn j-minify-btn"
+                onClick={handleMinify}
+                disabled={!outputCode}
+                title="Minify JSON"
+              >
+                <i className="fa-solid fa-compress"></i>
+                Minify
+              </button>
+              <button
+                className="j-output-tab-btn j-minify-btn"
+                onClick={() => handleLocalFormat(outputCode)}
+                disabled={!outputCode}
+                title="Prettify JSON"
+              >
+                <i className="fa-solid fa-align-left"></i>
+                Prettify
+              </button>
+            </div>
           </div>
 
           <div className="j-panel-body">
@@ -442,80 +550,10 @@ export default function JsonFormatter() {
                       />
                       <div className="j-output-copy-row">
                         <CopyButton codeToCopy={outputCode} />
-                        <button
-                          className="j-icon-btn-sm"
-                          onClick={handleMinify}
-                          title="Minify JSON"
-                          disabled={!outputCode}
-                        >
-                          <i className="fa-solid fa-compress"></i>
-                          <span>Minify</span>
-                        </button>
-                        <button
-                          className="secondary-button"
-                          onClick={handleDownload}
-                          disabled={!outputCode}
-                        >
-                          <i className="fa-solid fa-download"></i>
-                          <span>Download</span>
-                        </button>
                       </div>
                     </div>
                   )}
 
-                  <div className="j-schema-validation-panel">
-                    <div
-                      className="j-schema-validation-header"
-                      onClick={() => {
-                        if (!jsonSchemaText) {
-                          setJsonSchemaText('{\n  "type": "object",\n  "properties": {}\n}');
-                        } else {
-                          setJsonSchemaText('');
-                        }
-                      }}
-                    >
-                      <div className="j-header-left">
-                        <div
-                          className={`j-schema-status-dot j-${
-                            schemaErrors.length
-                              ? 'invalid'
-                              : jsonSchemaText && outputCode
-                              ? 'valid'
-                              : 'idle'
-                          }`}
-                        />
-                        JSON Schema Validation
-                      </div>
-                      <i
-                        className={`fa-solid fa-chevron-${jsonSchemaText ? 'down' : 'right'}`}
-                      ></i>
-                    </div>
-                    {jsonSchemaText !== '' && (
-                      <div className="j-schema-validation-body">
-                        <textarea
-                          className="j-schema-textarea"
-                          placeholder="Paste JSON Schema here to validate your output…"
-                          value={jsonSchemaText}
-                          onChange={(e) => setJsonSchemaText(e.target.value)}
-                        />
-                        {schemaErrors.length > 0 ? (
-                          <div className="j-schema-errors-list">
-                            {schemaErrors.map((err, i) => (
-                              <div key={i} className="j-schema-error-item">
-                                <span className="j-schema-error-path">{err.path}</span>
-                                <span className="j-schema-error-msg">{err.message}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : jsonSchemaText && outputCode ? (
-                          <div className="j-schema-valid-msg">
-                            <i className="fa-solid fa-circle-check"></i>
-                            Passes validation
-                          </div>
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
                 </>
               )}
 
@@ -587,8 +625,8 @@ export default function JsonFormatter() {
                               {diff.type === 'added'
                                 ? JSON.stringify(diff.b)
                                 : diff.type === 'removed'
-                                ? JSON.stringify(diff.a)
-                                : `${JSON.stringify(diff.a)} → ${JSON.stringify(diff.b)}`}
+                                  ? JSON.stringify(diff.a)
+                                  : `${JSON.stringify(diff.a)} → ${JSON.stringify(diff.b)}`}
                             </div>
                           </div>
                         )) : (

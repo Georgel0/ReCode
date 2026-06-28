@@ -1,7 +1,5 @@
 .j-history-panel {
   background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
   overflow: hidden;
   animation: slideDown 0.18s ease;
   flex-shrink: 0;
@@ -47,7 +45,7 @@
 .j-history-list {
   display: flex;
   flex-direction: column;
-  max-height: 170px;
+  max-height: 220px;
   overflow-y: auto;
 }
 

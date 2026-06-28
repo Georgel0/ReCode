@@ -103,7 +103,7 @@ export default function CodeConverter() {
   };
 
   return (
-    <div className="c-module">
+    <div className="module-container">
       <ModuleHeader
         title="Code Converter"
         description="Translate source files across languages and frameworks, with diff view, partial conversion, and syntax checking."

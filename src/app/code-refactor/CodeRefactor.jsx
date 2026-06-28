@@ -28,7 +28,7 @@ export default function CodeRefactor() {
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
 
   return (
-    <div className="r-module-container">
+    <div className="module-container">
       <ModuleHeader
         title="AI Code Refactor"
         description="Optimize, clean, or document your project files with context-aware AI."

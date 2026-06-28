@@ -41,7 +41,7 @@ export default function CodeAnalysis() {
   } = useCodeAnalysis();
 
   return (
-    <div className="a-module-container">
+    <div className="module-container">
       <ModuleHeader
         title="Code Auditor"
         description="Deep scan for vulnerabilities, complexity (Big O), architecture smells, and code quality."
