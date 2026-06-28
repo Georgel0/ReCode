@@ -201,7 +201,7 @@ export function getMethodMeta(method = '') {
 
 const MAX_HISTORY = 5;
 
-export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
+export function useApiMocksTab({ onDataUpdate } = {}) {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
@@ -269,8 +269,6 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
   }, []);
 
   useEffect(() => {
-    if (!isActive) return;
-
     if (moduleData && moduleData.type === 'api-mocks') {
       setSpecInput(moduleData.input || '');
       if (moduleData.framework) setFramework(moduleData.framework);
@@ -296,7 +294,39 @@ export function useApiMocksTab({ onDataUpdate, isActive } = {}) {
         }
       }
     }
-  }, [isActive, moduleData]);
+  }, [moduleData]);
+
+  useDraft(
+    'api-mocks-draft',
+    {
+      specInput,
+      framework,
+      endpointCount,
+      delayMs,
+      errorRate,
+      paginationStyle,
+      authStyle,
+      includeTypes,
+      includeAnalysis,
+      envPrefix,
+    },
+    (saved) => {
+      if (saved.specInput !== undefined) setSpecInput(saved.specInput);
+      if (saved.framework !== undefined) setFramework(saved.framework);
+      if (saved.endpointCount !== undefined) setEndpointCount(saved.endpointCount);
+      if (saved.delayMs !== undefined) setDelayMs(saved.delayMs);
+      if (saved.errorRate !== undefined) setErrorRate(saved.errorRate);
+      if (saved.paginationStyle !== undefined) setPaginationStyle(saved.paginationStyle);
+      if (saved.authStyle !== undefined) setAuthStyle(saved.authStyle);
+      if (saved.includeTypes !== undefined) setIncludeTypes(saved.includeTypes);
+      if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
+      if (saved.envPrefix !== undefined) setEnvPrefix(saved.envPrefix);
+    },
+    {
+      isEmpty: (d) => !d.specInput?.trim(),
+      skip: !!(moduleData && moduleData.type === 'api-mocks'),
+    }
+  );
 
   const detectedFormat = useMemo(() => detectSpecFormat(specInput), [specInput]);
 

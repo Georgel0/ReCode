@@ -21,8 +21,8 @@ export default function MockDataGenerator() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    setIsMobile(window.innerWidth < 576);
+    const handleResize = () => setIsMobile(window.innerWidth < 576);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -34,30 +34,30 @@ export default function MockDataGenerator() {
   }, [moduleData]);
 
   return (
-    <div className="module-container flex-col-container">
+    <div className="m-module-container m-flex-col-container">
       <ModuleHeader
         title="Mock Data Factory"
         description="Transform schemas into highly interconnected relational targets, API mock handlers, and event streams."
         resultData={headerResultData}
       />
 
-      <div className="paradigm-selector">
+      <div className="m-paradigm-selector">
         <button
-          className={`paradigm-btn ${activeParadigm === 'db' ? 'active' : ''}`}
+          className={`m-paradigm-btn ${activeParadigm === 'db' ? 'm-active' : ''}`}
           onClick={() => setActiveParadigm('db')}
           title="Database Seeding"
         >
           <i className="fas fa-database"></i> {isMobile ? '' : 'Database Seeding'}
         </button>
         <button
-          className={`paradigm-btn ${activeParadigm === 'api' ? 'active' : ''}`}
+          className={`m-paradigm-btn ${activeParadigm === 'api' ? 'm-active' : ''}`}
           onClick={() => setActiveParadigm('api')}
           title="API & Frontend Mocks"
         >
           <i className="fas fa-network-wired"></i> {isMobile ? '' : 'API & Frontend Mocks'}
         </button>
         <button
-          className={`paradigm-btn ${activeParadigm === 'stream' ? 'active' : ''}`}
+          className={`m-paradigm-btn ${activeParadigm === 'stream' ? 'm-active' : ''}`}
           onClick={() => setActiveParadigm('stream')}
           title="Streaming & Events"
         >
@@ -65,18 +65,16 @@ export default function MockDataGenerator() {
         </button>
       </div>
 
-      <div className="paradigm-content">
-        <div className={`paradigm-pane ${activeParadigm === 'db' ? 'active' : ''}`}>
-          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} isActive={activeParadigm === 'db'} />
-        </div>
-
-        <div className={`paradigm-pane ${activeParadigm === 'api' ? 'active' : ''}`}>
-          <ApiMocksTab onDataUpdate={setHeaderResultData} isActive={activeParadigm === 'api'} />
-        </div>
-
-        <div className={`paradigm-pane ${activeParadigm === 'stream' ? 'active' : ''}`}>
-          <StreamingEventsTab onDataUpdate={setHeaderResultData} isActive={activeParadigm === 'stream'} />
-        </div>
+      <div className="m-paradigm-content">
+        {activeParadigm === 'db' && (
+          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} />
+        )}
+        {activeParadigm === 'api' && (
+          <ApiMocksTab onDataUpdate={setHeaderResultData} />
+        )}
+        {activeParadigm === 'stream' && (
+          <StreamingEventsTab onDataUpdate={setHeaderResultData} />
+        )}
       </div>
     </div>
   );

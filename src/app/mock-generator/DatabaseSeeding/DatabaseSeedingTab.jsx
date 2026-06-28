@@ -14,24 +14,23 @@ import {
 } from './useDatabaseSeedingTab';
 
 function ColTypeBadge({ label }) {
-  let cls = 'col-type-badge';
-  if (label.startsWith('FK')) cls += ' col-type-badge--fk';
-  else if (label === 'UUID') cls += ' col-type-badge--uuid';
-  else if (label === 'TIMESTAMP' || label === 'DATE') cls += ' col-type-badge--ts';
-  else if (label === 'PK') cls += ' col-type-badge--pk';
-  else if (label === 'BOOL') cls += ' col-type-badge--bool';
-  else if (label === 'INT' || label === 'FLOAT') cls += ' col-type-badge--num';
+  let cls = 'm-col-type-badge';
+  if (label.startsWith('FK')) cls += ' m-col-type-badge--fk';
+  else if (label === 'UUID') cls += ' m-col-type-badge--uuid';
+  else if (label === 'TIMESTAMP' || label === 'DATE') cls += ' m-col-type-badge--ts';
+  else if (label === 'PK') cls += ' m-col-type-badge--pk';
+  else if (label === 'BOOL') cls += ' m-col-type-badge--bool';
+  else if (label === 'INT' || label === 'FLOAT') cls += ' m-col-type-badge--num';
   return <span className={cls}>{label}</span>;
 }
 
 function SortIndicator({ col, sortConfig }) {
-  if (sortConfig?.col !== col) return <i className="fas fa-sort sort-icon sort-icon--idle" />;
+  if (sortConfig?.col !== col) return <i className="fas fa-sort m-sort-icon m-sort-icon--idle" />;
   return sortConfig.dir === 'asc'
-    ? <i className="fas fa-sort-up   sort-icon sort-icon--active" />
-    : <i className="fas fa-sort-down sort-icon sort-icon--active" />;
+    ? <i className="fas fa-sort-up   m-sort-icon m-sort-icon--active" />
+    : <i className="fas fa-sort-down m-sort-icon m-sort-icon--active" />;
 }
 
-// Inline cell editor with a right-click context menu for copy + regen.
 function EditableCell({
   value, rowIdx, colKey,
   isEditing, editingValue,
@@ -39,7 +38,7 @@ function EditableCell({
   onStartEdit, onChange, onCommit, onCancel, onCopy, onRegen,
 }) {
   const inputRef = useRef(null);
-  const [menuPos, setMenuPos] = useState(null); // { x, y } when menu open
+  const [menuPos, setMenuPos] = useState(null); 
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -48,7 +47,6 @@ function EditableCell({
     }
   }, [isEditing]);
 
-  // Close context menu on outside click
   useEffect(() => {
     if (!menuPos) return;
     const close = () => setMenuPos(null);
@@ -62,10 +60,10 @@ function EditableCell({
 
   if (isEditing) {
     return (
-      <td className="editable-cell editing-cell">
+      <td className="m-editable-cell m-editing-cell">
         <input
           ref={inputRef}
-          className="cell-edit-input"
+          className="m-cell-edit-input"
           value={editingValue}
           onChange={e => onChange(e.target.value)}
           onBlur={onCommit}
@@ -80,15 +78,15 @@ function EditableCell({
 
   if (isRegenerating) {
     return (
-      <td className="editable-cell regen-cell">
-        <i className="fas fa-circle-notch fa-spin regen-cell-spinner" />
+      <td className="m-editable-cell m-regen-cell">
+        <i className="fas fa-circle-notch fa-spin m-regen-cell-spinner" />
       </td>
     );
   }
 
   return (
     <td
-      className="editable-cell"
+      className="m-editable-cell"
       title="Double-click to edit · Right-click for options"
       onDoubleClick={() => onStartEdit(displayVal)}
       onClick={e => { if (e.detail === 3) onCopy(value); }}
@@ -97,14 +95,14 @@ function EditableCell({
         setMenuPos({ x: e.clientX, y: e.clientY });
       }}
     >
-      <div className="cell-content-wrapper">
-        <span className="cell-value">{displayVal}</span>
-        <i className="fas fa-pencil-alt cell-edit-icon" />
+      <div className="m-cell-content-wrapper">
+        <span className="m-cell-value">{displayVal}</span>
+        <i className="fas fa-pencil-alt m-cell-edit-icon" />
       </div>
 
       {menuPos && (
         <ul
-          className="cell-context-menu"
+          className="m-cell-context-menu"
           style={{ top: menuPos.y, left: menuPos.x }}
           onClick={e => e.stopPropagation()}
         >
@@ -114,7 +112,7 @@ function EditableCell({
           <li onClick={() => { onCopy(value); setMenuPos(null); }}>
             <i className="fas fa-copy" /> Copy value
           </li>
-          <li className="context-menu-divider" />
+          <li className="m-context-menu-divider" />
           <li onClick={() => { onRegen(rowIdx, colKey); setMenuPos(null); }}>
             <i className="fas fa-sync-alt" /> Regenerate value
           </li>
@@ -136,9 +134,9 @@ function FakerAnnotationTooltip() {
   }, [open]);
 
   return (
-    <div className="faker-hint-wrap" ref={ref}>
+    <div className="m-faker-hint-wrap" ref={ref}>
       <button
-        className="faker-hint-btn"
+        className="m-faker-hint-btn"
         title="View available @faker: annotations"
         onClick={() => setOpen(o => !o)}
         type="button"
@@ -146,17 +144,17 @@ function FakerAnnotationTooltip() {
         <i className="fas fa-at" /> Annotations
       </button>
       {open && (
-        <div className="faker-hint-popover">
-          <div className="faker-hint-header">
+        <div className="m-faker-hint-popover">
+          <div className="m-faker-hint-header">
             <strong>Available Annotations</strong>
             <br />
-            <span className="faker-hint-sub">Add inline to column comments</span>
+            <span className="m-faker-hint-sub">Add inline to column comments</span>
           </div>
-          <ul className="faker-hint-list">
+          <ul className="m-faker-hint-list">
             {FAKER_ANNOTATIONS.map(a => (
-              <li key={a.annotation} className="faker-hint-item">
-                <code className="faker-hint-code">{a.annotation}</code>
-                <span className="faker-hint-desc">{a.description}</span>
+              <li key={a.annotation} className="m-faker-hint-item">
+                <code className="m-faker-hint-code">{a.annotation}</code>
+                <span className="m-faker-hint-desc">{a.description}</span>
               </li>
             ))}
           </ul>
@@ -168,9 +166,8 @@ function FakerAnnotationTooltip() {
 
 function ColFilterBar({ colKeys, colFilter, setColFilter }) {
   return (
-    <div className="col-filter-bar">
+    <div className="m-col-filter-bar">
       <select
-        className="theme-select-dropdown col-filter-select"
         value={colFilter?.col ?? ''}
         onChange={e => setColFilter(prev =>
           e.target.value ? { col: e.target.value, value: prev?.value ?? '' } : null
@@ -182,14 +179,14 @@ function ColFilterBar({ colKeys, colFilter, setColFilter }) {
       {colFilter?.col && (
         <>
           <input
-            className="text-input col-filter-value"
+            className="m-text-input m-col-filter-value"
             placeholder={`Value in ${colFilter.col}…`}
             value={colFilter.value ?? ''}
             onChange={e => setColFilter(prev => ({ ...prev, value: e.target.value }))}
             autoFocus
           />
           <button
-            className="col-filter-clear"
+            className="m-col-filter-clear"
             onClick={() => setColFilter(null)}
             title="Clear column filter"
           >
@@ -240,8 +237,8 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
   const sampleRow = activeTableData?.rows?.[0] ?? {};
 
   const getQualityLabel = (val) => {
-    if (val === 100) return 'Perfect';
-    if (val >= 80) return 'Minor Edge Cases';
+    if (val === 75) return 'Perfect';
+    if (val >= 60) return 'Minor Edge Cases';
     return 'Heavy Edge Cases';
   };
 
@@ -250,33 +247,32 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
 
   return (
     <>
-      <div className="mock-factory-container">
+      <div className="m-factory-container">
 
-        <div className="mock-sidebar">
-          <div className="mock-sidebar-content">
+        <div className="m-sidebar">
+          <div className="m-sidebar-content">
 
-            <div className="mock-section">
-              <div className="db-mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <><i className="fas fa-sitemap" /> Architecture ({detectedLanguage})</>
                 </div>
-                <div className="db-mock-section-header-actions">
+                <div className="m-section-header-actions">
                   <FakerAnnotationTooltip />
                   <button
-                    className="icon-text-btn"
+                    className="m-icon-text-btn"
                     onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}
                     disabled={savedSchemas.length === 0}
                     title={savedSchemas.length === 0 ? 'Save a schema first' : 'Toggle Saved Schemas'}
                   >
                     <i className={`fas ${schemaOptionsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
-                    {savedSchemas.length > 0 && <span className="badge-count">{savedSchemas.length}</span>}
+                    {savedSchemas.length > 0 && <span className="m-badge-count">{savedSchemas.length}</span>}
                   </button>
                 </div>
               </div>
 
-              <div className="mock-form-group">
+              <div className="m-form-group">
                 <select
-                  className="theme-select-dropdown"
                   value=""
                   onChange={e => {
                     const selected = SAMPLE_SCHEMAS.find(s => s.label === e.target.value);
@@ -291,23 +287,23 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               </div>
 
               {schemaOptionsVisible && savedSchemas.length > 0 && (
-                <div className="schema-library-panel">
+                <div className="m-schema-library-panel">
                   {savedSchemas.map((s, i) => (
-                    <div key={i} className="schema-library-item">
+                    <div key={i} className="m-schema-library-item">
                       <div
-                        className="schema-library-item-name"
+                        className="m-schema-library-item-name"
                         onClick={() => {
                           setSchemaInput(s.schema);
                           if (s.rules) setRules(s.rules);
                           setSchemaOptionsVisible(false);
                         }}
                       >
-                        <i className="fas fa-file-code schema-library-item-icon" />
+                        <i className="fas fa-file-code m-schema-library-item-icon" />
                         {s.name}
                       </div>
                       <button
                         onClick={e => { e.stopPropagation(); handleDeleteSchema(i); }}
-                        className="library-item-delete-btn"
+                        className="m-library-item-delete-btn"
                         title="Delete saved schema"
                       >
                         <i className="fas fa-trash-alt" />
@@ -317,7 +313,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 </div>
               )}
 
-              <div className="editor-wrapper-box">
+              <div className="m-editor-wrapper-box">
                 <CodeEditor
                   value={schemaInput}
                   lineNumbers={false}
@@ -327,9 +323,9 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 />
               </div>
 
-              <div className="action-row start">
+              <div className="m-action-row m-start">
                 <button
-                  className="secondary-button btn-small full-width"
+                  className="secondary-button m-btn-small m-full-width"
                   onClick={handleSaveSchema}
                   disabled={!schemaInput.trim()}
                 >
@@ -338,15 +334,14 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <><i className="fas fa-balance-scale" /> Rules &amp; Distributions</>
                 </div>
               </div>
-              <div className="mock-form-group">
+              <div className="m-form-group">
                 <select
-                  className="theme-select-dropdown"
                   value=""
                   onChange={e => {
                     if (e.target.value) setRules(prev => prev ? `${prev}\n${e.target.value}` : e.target.value);
@@ -356,13 +351,12 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   {RULE_TEMPLATES.map(t => <option key={t.label} value={t.value}>{t.label}</option>)}
                 </select>
                 <textarea
-                  className="mock-rule-input"
                   placeholder="e.g., 75% of users must have role 'Developer'."
                   value={rules}
                   onChange={e => setRules(e.target.value)}
                 />
                 {parsedRulesFeedback.length > 0 && (
-                  <div className="rules-feedback">
+                  <div className="m-rules-feedback">
                     <strong>Applied Directives:</strong>
                     <ul>
                       {parsedRulesFeedback.map((r, i) => (
@@ -374,17 +368,17 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className="fas fa-sliders-h" /> Fabrication Settings
                 </div>
               </div>
 
-              <div className="form-grid-2">
-                <div className="mock-form-group">
-                  <label className="input-label">Locale</label>
-                  <select value={locale} onChange={e => setLocale(e.target.value)} className="theme-select-dropdown">
+              <div className="m-form-grid-2">
+                <div className="m-form-group">
+                  <label className="m-input-label">Locale</label>
+                  <select value={locale} onChange={e => setLocale(e.target.value)}>
                     <option value="en-US">English (US)</option>
                     <option value="en-GB">English (UK)</option>
                     <option value="de-DE">German</option>
@@ -392,38 +386,38 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     <option value="ja-JP">Japanese</option>
                   </select>
                 </div>
-                <div className="mock-form-group">
-                  <label className="input-label">Volume</label>
-                  <select value={rowCount} onChange={e => setRowCount(e.target.value)} className="theme-select-dropdown">
-                    <option value="5">5 (Fast)</option>
-                    <option value="15">15 (Standard)</option>
-                    <option value="50">50 (Batch)</option>
-                    <option value="100">100 (Deep)</option>
+                <div className="m-form-group">
+                  <label className="m-input-label">Volume</label>
+                  <select value={rowCount} onChange={e => setRowCount(e.target.value)}>
+                    <option value="4">4 (Fast)</option>
+                    <option value="12">12 (Standard)</option>
+                    <option value="38">38 (Batch)</option>
+                    <option value="75">75 (Deep)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="mock-form-group mock-quality-group">
-                <div className="flex-between">
-                  <label className="input-label">Data Quality</label>
-                  <span className="quality-value-badge">{dataQuality}%</span>
+              <div className="m-form-group m-quality-group">
+                <div className="m-flex-between">
+                  <label className="m-input-label">Data Quality</label>
+                  <span className="m-quality-value-badge">{dataQuality}%</span>
                 </div>
                 <input
-                  type="range" min="50" max="100"
+                  type="range" min="38" max="75"
                   value={dataQuality}
                   onChange={e => setDataQuality(parseInt(e.target.value, 10))}
-                  className="slider styled-slider"
+                  className="m-slider m-styled-slider"
                 />
-                <span className="slider-hint">{getQualityLabel(dataQuality)}</span>
+                <span className="m-slider-hint">{getQualityLabel(dataQuality)}</span>
               </div>
 
-              <div className="mock-form-group">
-                <label className="input-label">Seed Lock <span className="optional-tag">Optional</span></label>
-                <div className="input-with-icon">
-                  <i className="fas fa-lock input-icon" />
+              <div className="m-form-group">
+                <label className="m-input-label">Seed Lock <span className="m-optional-tag">Optional</span></label>
+                <div className="m-input-with-icon">
+                  <i className="fas fa-lock m-input-icon" />
                   <input
                     type="text"
-                    className="text-input with-icon"
+                    className="m-text-input m-with-icon"
                     placeholder="e.g. 42 (Reproducible)"
                     value={seed}
                     onChange={e => setSeed(e.target.value)}
@@ -431,51 +425,51 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <label className="custom-check" title="Generate Data Analysis">
+              <label className="m-custom-check" title="Generate Data Analysis">
                 <input
                   type="checkbox"
                   checked={includeAnalysis}
                   onChange={e => setIncludeAnalysis(e.target.checked)}
                 />
-                <div className="box"><i className="fa-solid fa-check"></i></div>
-                <span className="label-text">Generate Data Analysis &amp; Explanations</span>
+                <div className="m-box"><i className="fa-solid fa-check"></i></div>
+                <span className="m-label-text">Generate Data Analysis &amp; Explanations</span>
               </label>
 
             </div>
           </div>
 
-          <div className="mock-sidebar-footer">
+          <div className="m-sidebar-footer">
             <button
-              className={`primary-button fabricate-action-btn ${isLoading ? 'loading' : ''}`}
+              className={`primary-button m-fabricate-action-btn ${isLoading ? 'm-loading' : ''}`}
               onClick={() => handleGenerate()}
               disabled={isLoading || !schemaInput.trim()}
             >
               {isLoading
-                ? <><div className="spinner-small" /> Synthesizing...</>
+                ? <><div className="m-spinner-small" /> Synthesizing...</>
                 : <><i className="fas fa-bolt" /> Fabricate Database</>}
             </button>
           </div>
         </div>
 
-        <div className="mock-main">
+        <div className="m-main">
 
-          <div className="mock-toolbar">
+          <div className="m-toolbar">
             {!isLoading && viewMode !== 'erd' && (
-              <div className="tabs-container">
+              <div className="m-tabs-container">
                 {generatedData?.tables.map((table, idx) => {
                   const canRegen = hasNoInboundFKs(table.tableName);
                   return (
-                    <div key={idx} className="tab-btn-wrapper">
+                    <div key={idx} className="m-tab-btn-wrapper">
                       <button
-                        className={`tab-btn ${activeTab === idx ? 'active' : ''}`}
+                        className={`m-tab-btn ${activeTab === idx ? 'm-active' : ''}`}
                         onClick={() => setActiveTab(idx)}
                       >
                         <i className="fas fa-table" /> {table.tableName}
-                        <span className="tab-count-badge">{table.rows?.length ?? 0}</span>
+                        <span className="m-tab-count-badge">{table.rows?.length ?? 0}</span>
                       </button>
                       {canRegen && (
                         <button
-                          className="regen-table-btn"
+                          className="m-regen-table-btn"
                           title={`Re-roll ${table.tableName} (no inbound FKs)`}
                           disabled={regenLoadingIdx !== null || isLoading}
                           onClick={e => { e.stopPropagation(); handleRegenerateTable(idx); }}
@@ -491,19 +485,19 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               </div>
             )}
 
-            <div className="toolbar-right">
+            <div className="m-toolbar-right">
               {generatedData && (
                 <>
-                  <div className="view-mode-toggles">
+                  <div className="m-view-mode-toggles">
                     <button
-                      className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+                      className={`m-view-toggle-btn ${viewMode === 'table' ? 'm-active' : ''}`}
                       onClick={() => setViewMode('table')}
                       title="Table view"
                     >
                       <i className="fas fa-th-list" /> Table
                     </button>
                     <button
-                      className={`view-toggle-btn ${viewMode === 'erd' ? 'active' : ''}`}
+                      className={`m-view-toggle-btn ${viewMode === 'erd' ? 'm-active' : ''}`}
                       onClick={() => setViewMode('erd')}
                       title="Entity Relationship Diagram"
                     >
@@ -512,16 +506,16 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   </div>
 
                   <button
-                    className="secondary-button icon-only tool-btn share-btn"
+                    className="secondary-button m-tool-btn m-share-btn"
                     title="Copy shareable link"
                     onClick={handleCopyShareLink}
                   >
                     <i className="fas fa-share-alt" />
                   </button>
 
-                  <div className="mock-export-group">
+                  <div className="m-export-group">
                     <button
-                      className="secondary-button icon-only tool-btn"
+                      className="secondary-button m-tool-btn"
                       title="Copy active table as JSON"
                       onClick={() =>
                         navigator.clipboard
@@ -532,7 +526,6 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                       <i className="fas fa-clipboard" />
                     </button>
                     <select
-                      className="theme-select-dropdown action-select"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                     >
@@ -549,7 +542,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
             </div>
           </div>
 
-          <div className="mock-preview-area">
+          <div className="m-preview-area">
 
             <EmptyState
               isLoading={isLoading}
@@ -570,21 +563,21 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
             )}
 
             {activeTableData && !isLoading && viewMode === 'table' && (
-              <div className="mock-table-wrapper">
+              <div className="m-table-wrapper">
 
-                <div className="table-filter-bar">
-                  <div className="table-filter-input-wrap">
-                    <i className="fas fa-search table-filter-icon" />
+                <div className="m-table-filter-bar">
+                  <div className="m-table-filter-input-wrap">
+                    <i className="fas fa-search m-table-filter-icon" />
                     <input
                       type="text"
-                      className="table-filter-input"
+                      className="m-table-filter-input"
                       placeholder={`Search all columns in ${activeTableData.tableName}…`}
                       value={filterQuery}
                       onChange={e => setFilterQuery(e.target.value)}
                     />
                     {filterQuery && (
                       <button
-                        className="table-filter-clear"
+                        className="m-table-filter-clear"
                         onClick={() => setFilterQuery('')}
                         title="Clear search"
                       >
@@ -594,14 +587,14 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   </div>
 
                   {(filterQuery || colFilter) && (
-                    <span className="table-filter-count">
+                    <span className="m-table-filter-count">
                       {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
                     </span>
                   )}
 
-                  <div className="table-controls-right">
+                  <div className="m-table-controls-right">
                     <button
-                      className="secondary-button btn-small add-row-btn"
+                      className="m-secondary-button m-btn-small m-add-row-btn"
                       onClick={handleAddRow}
                       title="Add a blank row"
                     >
@@ -616,24 +609,24 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   setColFilter={setColFilter}
                 />
 
-                <div className="table-scroll-container">
-                  <table className="mock-data-table">
+                <div className="m-table-scroll-container">
+                  <table className="m-data-table">
                     <thead>
                       <tr>
-                        <th className="row-actions-th" />
+                        <th className="m-row-actions-th" />
                         {colKeys.map(key => {
                           const badges = inferColumnBadges(key, sampleRow[key], allTableNames);
                           return (
                             <th
                               key={key}
-                              className="sortable-th"
+                              className="m-sortable-th"
                               onClick={() => handleSort(key)}
                               title={`Sort by ${key}`}
                             >
-                              <div className="th-content">
-                                <span className="th-col-name">{key}</span>
-                                <div className="th-right">
-                                  <div className="th-badges">
+                              <div className="m-th-content">
+                                <span className="m-th-col-name">{key}</span>
+                                <div className="m-th-right">
+                                  <div className="m-th-badges">
                                     {badges.map((b, i) => <ColTypeBadge key={`${b}-${i}`} label={b} />)}
                                   </div>
                                   <SortIndicator col={key} sortConfig={sortConfig} />
@@ -647,18 +640,17 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     <tbody>
                       {paginatedRows.length === 0 ? (
                         <tr>
-                          <td colSpan={colKeys.length + 1} className="table-no-results">
-                            <i className="fas fa-search-minus empty-search-icon" />
+                          <td colSpan={colKeys.length + 1} className="m-table-no-results">
+                            <i className="fas fa-search-minus m-empty-search-icon" />
                             <p>No rows match the current filters</p>
                           </td>
                         </tr>
                       ) : (
                         paginatedRows.map((row, rowIdx) => (
-                          <tr key={rowIdx} className="data-row">
-                            {/* Row delete button */}
-                            <td className="row-actions-cell">
+                          <tr key={rowIdx} className="m-data-row">
+                            <td className="m-row-actions-cell">
                               <button
-                                className="row-delete-btn"
+                                className="m-row-delete-btn"
                                 title="Delete this row"
                                 onClick={() => handleDeleteRow(rowIdx)}
                               >
@@ -695,19 +687,19 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="pagination-controls">
+                  <div className="m-pagination-controls">
                     <button
-                      className="page-btn"
+                      className="m-page-btn"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
                       <i className="fas fa-chevron-left" /> Prev
                     </button>
-                    <span className="page-indicator">
+                    <span className="m-page-indicator">
                       Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
                     </span>
                     <button
-                      className="page-btn"
+                      className="m-page-btn"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
                     >
@@ -719,8 +711,8 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
             )}
 
             {generatedData?.explanation && (
-              <div className="panel explanation-panel">
-                <h3 className="explanation-title"><i className="fas fa-robot" /> Generation Analysis</h3>
+              <div className="m-panel m-explanation-panel">
+                <h3 className="m-explanation-title"><i className="fas fa-robot" /> Generation Analysis</h3>
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedData.explanation) }} />
               </div>
             )}
@@ -736,15 +728,15 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
 
       {isSaveModalOpen && (
         <div className="modal-overlay" onClick={() => setIsSaveModalOpen(false)}>
-          <div className="modal-content save-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-content m-save-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2><i className="fas fa-cloud-upload-alt" /> Save Schema Template</h2>
             </div>
             <p className="modal-desc">
               Store this architecture in your local library for quick reuse across different mocking sessions.
             </p>
-            <div className="mock-form-group">
-              <label className="input-label">Template Name</label>
+            <div className="m-form-group">
+              <label className="m-input-label">Template Name</label>
               <input
                 type="text"
                 className="text-input full-width"
@@ -755,14 +747,14 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 onKeyDown={e => e.key === 'Enter' && executeSaveSchema()}
               />
               {saveSchemaError && (
-                <div className="error-message">
+                <div className="m-error-message">
                   <i className="fas fa-exclamation-triangle" /> {saveSchemaError}
                 </div>
               )}
             </div>
-            <div className="modal-footer split-footer">
-              <button className="secondary-button modal-btn" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
-              <button className="primary-button modal-btn" onClick={executeSaveSchema}>Save Template</button>
+            <div className="modal-footer m-split-footer">
+              <button className="secondary-button m-modal-btn" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
+              <button className="primary-button m-modal-btn" onClick={executeSaveSchema}>Save Template</button>
             </div>
           </div>
         </div>

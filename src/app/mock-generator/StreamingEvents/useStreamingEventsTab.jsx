@@ -80,7 +80,7 @@ export const SAMPLE_TEMPLATES = [
 
 export const ITEMS_PER_PAGE = 15;
 
-export function useStreamingEventsTab({ onDataUpdate, isActive }) {
+export function useStreamingEventsTab({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
 
   const [schemaInput, setSchemaInput] = useState('');
@@ -137,8 +137,6 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
   }, []);
 
   useEffect(() => {
-    if (!isActive) return;
-
     if (moduleData && moduleData.type === 'stream') {
       setSchemaInput(moduleData.input || '');
       if (moduleData.rules) setRules(moduleData.rules);
@@ -165,7 +163,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
         }
       }
     }
-  }, [isActive, moduleData]);
+  }, [moduleData]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -176,6 +174,36 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     setReplayIndex(0);
     setReplayPlaying(false);
   }, [activeStream]);
+
+  useDraft(
+    'streaming-events-draft',
+    {
+      schemaInput,
+      rules,
+      eventFormat,
+      streamParadigm,
+      eventCount,
+      seed,
+      dataQuality,
+      includeAnalysis,
+      includeStateMachine,
+    },
+    (saved) => {
+      if (saved.schemaInput !== undefined) setSchemaInput(saved.schemaInput);
+      if (saved.rules !== undefined) setRules(saved.rules);
+      if (saved.eventFormat !== undefined) setEventFormat(saved.eventFormat);
+      if (saved.streamParadigm !== undefined) setStreamParadigm(saved.streamParadigm);
+      if (saved.eventCount !== undefined) setEventCount(saved.eventCount);
+      if (saved.seed !== undefined) setSeed(saved.seed);
+      if (saved.dataQuality !== undefined) setDataQuality(saved.dataQuality);
+      if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
+      if (saved.includeStateMachine !== undefined) setIncludeStateMachine(saved.includeStateMachine);
+    },
+    {
+      isEmpty: (d) => !d.schemaInput?.trim(),
+      skip: !!(moduleData && moduleData.type === 'stream'),
+    }
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -247,7 +275,7 @@ export function useStreamingEventsTab({ onDataUpdate, isActive }) {
     } else {
       setRules('');
     }
-    
+
     if (sample.streamParadigm) setStreamParadigm(sample.streamParadigm);
     if (sample.eventFormat) setEventFormat(sample.eventFormat);
   }, []);

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context';
-import { convertCode } from '@/lib/api';
+import { convertCode, useDraft } from '@/lib';
 
 export const RULE_TEMPLATES = [
   { label: "Date Range (Last 30 Days)", value: "All created_at dates must be within the last 30 days." },
@@ -197,7 +197,7 @@ function deriveTypeScriptTypes(tables) {
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRe.test(s)) return 'string'; // UUID
     if (/^\d{4}-\d{2}-\d{2}/.test(s)) return 'string'; // ISO date
-    
+
     return 'string';
   };
 
@@ -231,7 +231,7 @@ function decodeShareState(encoded) {
   }
 }
 
-export function useDatabaseSeedingTab({ onDataUpdate, isActive }) {
+export function useDatabaseSeedingTab({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
 
   const [schemaInput, setSchemaInput] = useState('');
@@ -308,8 +308,6 @@ export function useDatabaseSeedingTab({ onDataUpdate, isActive }) {
 
   // Rehydrate from moduleData
   useEffect(() => {
-    if (!isActive) return;
-
     if (moduleData && moduleData.type === 'mock') {
       setSchemaInput(moduleData.input || '');
       if (moduleData.rules) setRules(moduleData.rules);
@@ -335,7 +333,7 @@ export function useDatabaseSeedingTab({ onDataUpdate, isActive }) {
         }
       }
     }
-  }, [isActive, moduleData]);
+  }, [moduleData]);
 
   // Reset view state on tab change
   useEffect(() => {
@@ -345,6 +343,24 @@ export function useDatabaseSeedingTab({ onDataUpdate, isActive }) {
     setSortConfig(null);
     setEditingCell(null);
   }, [activeTab]);
+
+  useDraft(
+    'db-seeding-draft',
+    { schemaInput, rules, locale, rowCount, seed, dataQuality, includeAnalysis },
+    (saved) => {
+      if (saved.schemaInput !== undefined) setSchemaInput(saved.schemaInput);
+      if (saved.rules !== undefined) setRules(saved.rules);
+      if (saved.locale !== undefined) setLocale(saved.locale);
+      if (saved.rowCount !== undefined) setRowCount(saved.rowCount);
+      if (saved.seed !== undefined) setSeed(saved.seed);
+      if (saved.dataQuality !== undefined) setDataQuality(saved.dataQuality);
+      if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
+    },
+    {
+      isEmpty: (d) => !d.schemaInput?.trim(),
+      skip: !!(moduleData && moduleData.type === 'mock'),
+    }
+  );
 
   // Reset page on filter/sort change
   useEffect(() => { setCurrentPage(1); }, [filterQuery, colFilter, sortConfig]);

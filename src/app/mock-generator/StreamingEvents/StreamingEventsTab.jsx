@@ -66,7 +66,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
   const selectedParadigmIcon = STREAM_PARADIGMS.find(p => p.value === streamParadigm)?.icon ?? 'fa-stream';
 
-  // Copy-as-code handler
   const handleCopyAsCode = (format) => {
     if (!activeStreamData?.events) return;
     const snippet = generateCodeSnippet(activeStreamData.events, activeStreamData.streamName, format);
@@ -77,32 +76,32 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
   return (
     <>
-      <div className="mock-factory-container">
+      <div className="m-mock-factory-container">
 
-        <div className="mock-sidebar">
-          <div className="mock-sidebar-content">
+        <div className="m-mock-sidebar">
+          <div className="m-mock-sidebar-content">
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-mock-section">
+              <div className="m-mock-section-header">
+                <div className="m-mock-section-title">
                   <i className="fas fa-stream" /> Event Schema
                 </div>
                 <button
-                  className="icon-text-btn"
+                  className="m-icon-text-btn"
                   onClick={() => setTemplatesVisible(!templatesVisible)}
                   disabled={savedTemplates.length === 0}
                   title={savedTemplates.length === 0 ? 'Save a template first' : 'Toggle Saved Templates'}
                 >
                   <i className={`fas ${templatesVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
                   {savedTemplates.length > 0 && (
-                    <span className="badge-count">{savedTemplates.length}</span>
+                    <span className="m-badge-count">{savedTemplates.length}</span>
                   )}
                 </button>
               </div>
 
-              <div className="mock-form-group">
+              <div className="m-mock-form-group">
                 <select
-                  className="theme-select-dropdown"
+                  className="m-theme-select-dropdown"
                   value=""
                   onChange={e => {
                     const selected = SAMPLE_TEMPLATES.find(s => s.label === e.target.value);
@@ -117,11 +116,11 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
 
               {templatesVisible && savedTemplates.length > 0 && (
-                <div className="schema-library-panel">
+                <div className="m-schema-library-panel">
                   {savedTemplates.map((t, i) => (
-                    <div key={i} className="schema-library-item">
+                    <div key={i} className="m-schema-library-item">
                       <div
-                        className="schema-library-item-name"
+                        className="m-schema-library-item-name"
                         onClick={() => {
                           setSchemaInput(t.schema);
                           if (t.rules) setRules(t.rules);
@@ -130,12 +129,12 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                           setTemplatesVisible(false);
                         }}
                       >
-                        <i className="fas fa-file-code schema-library-item-icon" />
+                        <i className="fas fa-file-code m-schema-library-item-icon" />
                         {t.name}
                       </div>
                       <button
                         onClick={e => { e.stopPropagation(); handleDeleteTemplate(i); }}
-                        className="library-item-delete-btn"
+                        className="m-library-item-delete-btn"
                         title="Delete template"
                       >
                         <i className="fas fa-trash-alt" />
@@ -157,7 +156,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
               <div className="action-row start">
                 <button
-                  className="secondary-button btn-small full-width"
+                  className="secondary-button m-btn-small m-full-width"
                   onClick={handleSaveTemplate}
                   disabled={!schemaInput.trim()}
                 >
@@ -166,15 +165,15 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-mock-section">
+              <div className="m-mock-section-header">
+                <div className="m-mock-section-title">
                   <i className={`fas ${selectedParadigmIcon}`} /> Stream Paradigm
                 </div>
               </div>
-              <div className="mock-form-group">
+              <div className="m-mock-form-group">
                 <select
-                  className="theme-select-dropdown"
+                  className="m-theme-select-dropdown"
                   value={streamParadigm}
                   onChange={e => setStreamParadigm(e.target.value)}
                 >
@@ -185,15 +184,15 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-mock-section">
+              <div className="m-mock-section-header">
+                <div className="m-mock-section-title">
                   <><i className="fas fa-balance-scale" /> Rules &amp; Distributions</>
                 </div>
               </div>
-              <div className="mock-form-group">
+              <div className="m-mock-form-group">
                 <select
-                  className="theme-select-dropdown"
+                  className="m-theme-select-dropdown"
                   value=""
                   onChange={e => {
                     if (e.target.value)
@@ -206,13 +205,13 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   ))}
                 </select>
                 <textarea
-                  className="mock-rule-input"
+                  className="m-mock-rule-input"
                   placeholder="e.g., Timestamps must be monotonically increasing in 1–5 second increments."
                   value={rules}
                   onChange={e => setRules(e.target.value)}
                 />
                 {parsedRulesFeedback.length > 0 && (
-                  <div className="rules-feedback">
+                  <div className="m-rules-feedback">
                     <strong><i className="fas fa-robot" /> Rules Applied</strong>
                     <ul>
                       {parsedRulesFeedback.map((r, i) => (
@@ -228,15 +227,15 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               )}
             </div>
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-mock-section">
+              <div className="m-mock-section-header">
+                <div className="m-mock-section-title">
                   <i className="fas fa-plug" /> Output Format
                 </div>
               </div>
-              <div className="mock-form-group">
+              <div className="m-mock-form-group">
                 <select
-                  className="theme-select-dropdown"
+                  className="m-theme-select-dropdown"
                   value={eventFormat}
                   onChange={e => setEventFormat(e.target.value)}
                 >
@@ -247,36 +246,36 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="mock-section">
-              <div className="mock-section-header">
-                <div className="mock-section-title">
+            <div className="m-mock-section">
+              <div className="m-mock-section-header">
+                <div className="m-mock-section-title">
                   <i className="fas fa-sliders-h" /> Parameters
                 </div>
               </div>
 
-              <div className="mock-form-group" style={{ marginBottom: '0.75rem' }}>
-                <label className="input-label">
-                  Event Count <span className="quality-value-badge">{eventCount}</span>
+              <div className="m-mock-form-group" style={{ marginBottom: '0.57rem' }}>
+                <label className="m-input-label">
+                  Event Count <span className="m-quality-value-badge">{eventCount}</span>
                 </label>
                 <input
                   type="range"
-                  className="styled-slider"
+                  className="m-styled-slider"
                   min={5} max={200} step={5}
                   value={parseInt(eventCount, 10) || 25}
                   onChange={e => setEventCount(e.target.value)}
                 />
-                <div className="slider-hint">5 – 200 events per stream</div>
+                <div className="m-slider-hint">5 – 200 events per stream</div>
               </div>
 
-              <div className="mock-form-group" style={{ marginBottom: '0.75rem' }}>
-                <label className="input-label">
-                  Seed <span className="optional-tag">optional</span>
+              <div className="m-mock-form-group" style={{ marginBottom: '0.57rem' }}>
+                <label className="m-input-label">
+                  Seed <span className="m-optional-tag">optional</span>
                 </label>
-                <div className="input-with-icon">
+                <div className="m-input-with-icon">
                   <i className="fas fa-dice input-icon" />
                   <input
                     type="text"
-                    className="text-input with-icon"
+                    className="m-text-input m-with-icon"
                     placeholder="e.g. replay-42"
                     value={seed}
                     onChange={e => setSeed(e.target.value)}
@@ -284,42 +283,42 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <div className="mock-form-group" style={{ marginBottom: '0.75rem' }}>
-                <label className="input-label">
+              <div className="m-mock-form-group" style={{ marginBottom: '0.57rem' }}>
+                <label className="m-input-label">
                   Data Quality{' '}
-                  <span className="quality-value-badge">{getQualityLabel(dataQuality)}</span>
+                  <span className="m-quality-value-badge">{getQualityLabel(dataQuality)}</span>
                 </label>
                 <input
                   type="range"
-                  className="styled-slider"
+                  className="m-styled-slider"
                   min={60} max={100} step={10}
                   value={dataQuality}
                   onChange={e => setDataQuality(Number(e.target.value))}
                 />
-                <div className="slider-hint">60 = heavy edge cases · 100 = clean data</div>
+                <div className="m-slider-hint">60 = heavy edge cases · 100 = clean data</div>
               </div>
 
-              <div className="mock-form-group">
-                <label className="custom-check" title="Generate State Machine">
+              <div className="m-mock-form-group">
+                <label className="m-custom-check" title="Generate State Machine">
                   <input
                     type="checkbox"
                     checked={includeStateMachine}
                     onChange={e => setIncludeStateMachine(e.target.checked)}
                   />
-                  <div className="box"><i className="fa-solid fa-check"></i></div>
-                  <span className="label-text">
+                  <div className="m-box"><i className="fa-solid fa-check"></i></div>
+                  <span className="m-label-text">
                     <i className="fas fa-project-diagram" /> Generate State Machine
                   </span>
                 </label>
                 <br />
-                <label className="custom-check" title="Include Generation Analysis">
+                <label className="m-custom-check" title="Include Generation Analysis">
                   <input
                     type="checkbox"
                     checked={includeAnalysis}
                     onChange={e => setIncludeAnalysis(e.target.checked)}
                   />
-                  <div className="box"><i className="fa-solid fa-check"></i></div>
-                  <span className="label-text">
+                  <div className="m-box"><i className="fa-solid fa-check"></i></div>
+                  <span className="m-label-text">
                     <i className="fas fa-robot" /> Include Generation Analysis
                   </span>
                 </label>
@@ -329,9 +328,9 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
           </div>
 
-          <div className="mock-sidebar-footer">
+          <div className="m-mock-sidebar-footer">
             <button
-              className={`primary-button fabricate-action-btn ${isLoading ? 'loading' : ''}`}
+              className={`primary-button m-fabricate-action-btn ${isLoading ? 'm-loading' : ''}`}
               onClick={handleGenerate}
               disabled={isLoading || !schemaInput.trim()}
             >
@@ -342,46 +341,46 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
           </div>
         </div>
 
-        <div className="mock-preview-area">
+        <div className="m-mock-preview-area">
 
           {generatedData && !isLoading && (
-            <div className="mock-toolbar flex-row">
+            <div className="m-mock-toolbar m-flex-row">
 
-              <div className="tab-list" style={{ flex: 1, overflowX: 'auto', display: 'flex' }}>
+              <div className="m-tab-list" style={{ flex: 1, overflowX: 'auto', display: 'flex' }}>
                 {generatedData.streams.map((s, idx) => (
                   <button
                     key={idx}
-                    className={`tab-btn ${activeStream === idx ? 'active' : ''}`}
+                    className={`m-tab-btn ${activeStream === idx ? 'm-active' : ''}`}
                     onClick={() => setActiveStream(idx)}
                   >
-                    <i className="fas fa-stream" style={{ marginRight: '0.4rem', fontSize: '0.75rem' }} />
+                    <i className="fas fa-stream" style={{ marginRight: '0.3rem', fontSize: '0.57rem' }} />
                     {s.streamName}
-                    <span className="tab-count-badge">{s.events.length}</span>
+                    <span className="m-tab-count-badge">{s.events.length}</span>
                   </button>
                 ))}
               </div>
 
-              <div className="toolbar-right flex-row">
-                <div className="view-mode-toggles">
+              <div className="m-toolbar-right m-flex-row">
+                <div className="m-view-mode-toggles">
                   <button
-                    className={`view-toggle-btn ${viewMode === 'events' ? 'active' : ''}`}
+                    className={`m-view-toggle-btn ${viewMode === 'events' ? 'm-active' : ''}`}
                     onClick={() => setViewMode('events')}
                     title="Table view"
                   >
                     <i className="fas fa-table" /> Table
                     {activeFieldFilterCount > 0 && (
-                      <span className="tab-count-badge" style={{ marginLeft: '0.3rem' }}>{activeFieldFilterCount}</span>
+                      <span className="m-tab-count-badge" style={{ marginLeft: '0.23rem' }}>{activeFieldFilterCount}</span>
                     )}
                   </button>
                   <button
-                    className={`view-toggle-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+                    className={`m-view-toggle-btn ${viewMode === 'timeline' ? 'm-active' : ''}`}
                     onClick={() => setViewMode('timeline')}
                     title="Timeline view"
                   >
                     <i className="fas fa-align-left" /> Timeline
                   </button>
                   <button
-                    className={`view-toggle-btn ${viewMode === 'replay' ? 'active' : ''}`}
+                    className={`m-view-toggle-btn ${viewMode === 'replay' ? 'm-active' : ''}`}
                     onClick={() => setViewMode('replay')}
                     title="Replay mode"
                   >
@@ -389,7 +388,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   </button>
                   {hasMultipleStreams && (
                     <button
-                      className={`view-toggle-btn ${viewMode === 'correlated' ? 'active' : ''}`}
+                      className={`m-view-toggle-btn ${viewMode === 'correlated' ? 'm-active' : ''}`}
                       onClick={() => setViewMode('correlated')}
                       title="Multi-stream correlation view"
                     >
@@ -397,14 +396,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     </button>
                   )}
                   <button
-                    className={`view-toggle-btn ${viewMode === 'distribution' ? 'active' : ''}`}
+                    className={`m-view-toggle-btn ${viewMode === 'distribution' ? 'm-active' : ''}`}
                     onClick={() => setViewMode('distribution')}
                     title="Column distributions"
                   >
                     <i className="fas fa-chart-bar" /> Dist
                   </button>
                   <button
-                    className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
+                    className={`m-view-toggle-btn ${viewMode === 'raw' ? 'm-active' : ''}`}
                     onClick={() => setViewMode('raw')}
                     title="Raw NDJSON"
                   >
@@ -413,7 +412,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </div>
 
                 <select
-                  className="theme-select-dropdown action-select"
                   disabled={!generatedData}
                   value=""
                   onChange={e => {
@@ -452,24 +450,24 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             loadingDescription="Modeling state transitions and generating temporally coherent event sequences..."
           />
 
-          <div className="stream-view-scroll-area">
+          <div className="m-stream-view-scroll-area">
 
             {activeStreamData && !isLoading && viewMode === 'events' && (
-              <div className="mock-table-wrapper">
+              <div className="m-mock-table-wrapper">
 
-                <div className="table-filter-bar">
-                  <div className="table-filter-input-wrap">
-                    <i className="fas fa-search table-filter-icon" />
+                <div className="m-table-filter-bar">
+                  <div className="m-table-filter-input-wrap">
+                    <i className="fas fa-search m-table-filter-icon" />
                     <input
                       type="text"
-                      className="table-filter-input"
+                      className="m-table-filter-input"
                       placeholder={`Search ${activeStreamData.streamName}…`}
                       value={filterQuery}
                       onChange={e => setFilterQuery(e.target.value)}
                     />
                     {filterQuery && (
                       <button
-                        className="table-filter-clear"
+                        className="m-table-filter-clear"
                         onClick={() => setFilterQuery('')}
                         title="Clear filter"
                       >
@@ -481,7 +479,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   {Object.entries(colUniqueValues).slice(0, 3).map(([col, vals]) => (
                     <select
                       key={col}
-                      className="theme-select-dropdown action-select field-filter-select"
                       value={fieldFilters[col] || ''}
                       onChange={e => setFieldFilters(prev => ({ ...prev, [col]: e.target.value }))}
                       title={`Filter by ${col}`}
@@ -493,7 +490,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
                   {activeFieldFilterCount > 0 && (
                     <button
-                      className="icon-text-btn"
+                      className="m-icon-text-btn"
                       onClick={() => setFieldFilters({})}
                       title="Clear all field filters"
                     >
@@ -502,32 +499,32 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   )}
 
                   {(filterQuery || activeFieldFilterCount > 0) && (
-                    <span className="table-filter-count">
+                    <span className="m-table-filter-count">
                       {filteredEvents.length} match{filteredEvents.length !== 1 ? 'es' : ''}
                     </span>
                   )}
-                  <div className="table-controls-right">
-                    <span className="table-meta-tag">
+                  <div className="m-table-controls-right">
+                    <span className="m-table-meta-tag">
                       <i className="fas fa-info-circle" /> Triple-click cell to copy
                     </span>
                   </div>
                 </div>
 
-                <div className="table-scroll-container">
-                  <table className="mock-data-table">
+                <div className="m-table-scroll-container">
+                  <table className="m-mock-data-table">
                     <thead>
                       <tr>
                         {colKeys.map(key => {
                           const badges = inferEventBadges(key, sampleEvent[key]);
                           return (
                             <th key={key}>
-                              <div className="th-content">
-                                <span className="th-col-name">{key}</span>
-                                <div className="th-badges">
+                              <div className="m-th-content">
+                                <span className="m-th-col-name">{key}</span>
+                                <div className="m-th-badges">
                                   {badges.map(b => <EventColBadge key={b} label={b} />)}
                                 </div>
                                 <button
-                                  className="col-dist-btn"
+                                  className="m-col-dist-btn"
                                   title={`View distribution for ${key}`}
                                   onClick={() => {
                                     setDistColumn(prev => prev === key ? null : key);
@@ -545,8 +542,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     <tbody>
                       {paginatedEvents.length === 0 ? (
                         <tr>
-                          <td colSpan={colKeys.length} className="table-no-results">
-                            <i className="fas fa-search-minus empty-search-icon" />
+                          <td colSpan={colKeys.length} className="m-table-no-results">
+                            <i className="fas fa-search-minus m-empty-search-icon" />
                             <p>No events match &ldquo;{filterQuery}&rdquo;</p>
                           </td>
                         </tr>
@@ -579,19 +576,19 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="pagination-controls">
+                  <div className="m-pagination-controls">
                     <button
-                      className="page-btn"
+                      className="m-page-btn"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
                       <i className="fas fa-chevron-left" /> Prev
                     </button>
-                    <span className="page-indicator">
+                    <span className="m-page-indicator">
                       Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
                     </span>
                     <button
-                      className="page-btn"
+                      className="m-page-btn"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
                     >
@@ -603,28 +600,28 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {activeStreamData && !isLoading && viewMode === 'timeline' && (
-              <div className="stream-timeline-wrapper">
-                <div className="stream-timeline-inner">
+              <div className="m-stream-timeline-wrapper">
+                <div className="m-stream-timeline-inner">
                   {activeStreamData.events.map((evt, i) => {
                     const ts = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
                     const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
                     const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
                     return (
-                      <div key={`${evt.timestamp ?? ''}-${i}`} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
-                        <div className="timeline-dot" />
-                        <div className="timeline-body">
-                          <div className="timeline-header-row">
-                            <span className="timeline-event-type">{type}</span>
-                            {ts && <span className="timeline-ts">{ts}</span>}
+                      <div key={`${evt.timestamp ?? ''}-${i}`} className={`m-timeline-event ${isErr ? 'm-timeline-event--error' : ''}`}>
+                        <div className="m-timeline-dot" />
+                        <div className="m-timeline-body">
+                          <div className="m-timeline-header-row">
+                            <span className="m-timeline-event-type">{type}</span>
+                            {ts && <span className="m-timeline-ts">{ts}</span>}
                           </div>
-                          <div className="timeline-payload">
+                          <div className="m-timeline-payload">
                             {Object.entries(evt)
                               .filter(([k]) => k !== 'event_type' && k !== 'type' && k !== 'name' && k !== 'timestamp' && k !== 'ts' && k !== 'event_time' && k !== 'created_at')
                               .slice(0, 4)
                               .map(([k, v]) => (
-                                <span key={k} className="timeline-kv">
-                                  <span className="timeline-key">{k}</span>
-                                  <span className="timeline-val">
+                                <span key={k} className="m-timeline-kv">
+                                  <span className="m-timeline-key">{k}</span>
+                                  <span className="m-timeline-val">
                                     {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}
                                   </span>
                                 </span>
@@ -657,21 +654,21 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {generatedData && !isLoading && viewMode === 'correlated' && !correlatedView && (
-              <div className="mock-empty-state" style={{ padding: '3rem', flex: 1 }}>
-                <i className="fas fa-random" style={{ fontSize: '2rem', color: 'var(--text-secondary)', marginBottom: '1rem' }} />
+              <div className="m-mock-empty-state" style={{ padding: '2.25rem', flex: 1 }}>
+                <i className="fas fa-random" style={{ fontSize: '1.5rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }} />
                 <p style={{ color: 'var(--text-secondary)' }}>Generate multiple streams to see the correlation view.</p>
               </div>
             )}
 
             {activeStreamData && !isLoading && viewMode === 'distribution' && (
-              <div className="dist-view-wrapper">
-                <div className="dist-col-picker">
-                  <span className="dist-picker-label"><i className="fas fa-chart-bar" /> Choose a column to analyse:</span>
-                  <div className="dist-col-chips">
+              <div className="m-dist-view-wrapper">
+                <div className="m-dist-col-picker">
+                  <span className="m-dist-picker-label"><i className="fas fa-chart-bar" /> Choose a column to analyse:</span>
+                  <div className="m-dist-col-chips">
                     {colKeys.map(k => (
                       <button
                         key={k}
-                        className={`dist-col-chip ${distColumn === k ? 'active' : ''}`}
+                        className={`m-dist-col-chip ${distColumn === k ? 'm-active' : ''}`}
                         onClick={() => setDistColumn(k)}
                       >
                         {k}
@@ -687,7 +684,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     onClose={() => setDistColumn(null)}
                   />
                 ) : (
-                  <div className="dist-empty">
+                  <div className="m-dist-empty">
                     <i className="fas fa-hand-pointer" />
                     <p>Select a column above to see its distribution</p>
                   </div>
@@ -696,12 +693,12 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {activeStreamData && !isLoading && viewMode === 'raw' && (
-              <div className="stream-raw-wrapper">
-                <div className="stream-raw-toolbar">
-                  <span className="table-meta-tag">
+              <div className="m-stream-raw-wrapper">
+                <div className="m-stream-raw-toolbar">
+                  <span className="m-table-meta-tag">
                     <i className="fas fa-file-alt" /> Newline-delimited JSON ({activeStreamData.events.length} events)
                   </span>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.38rem' }}>
                     <button
                       className="secondary-button btn-small"
                       onClick={() => navigator.clipboard.writeText(rawJsonContent)}
@@ -724,19 +721,19 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
                 </div>
-                <pre className="stream-raw-pre">{rawJsonContent}</pre>
+                <pre className="m-stream-raw-pre">{rawJsonContent}</pre>
               </div>
             )}
           </div>
 
           {!isLoading && (generatedData?.stateMachine || generatedData?.explanation) && (
-            <div className="stream-analysis-panels">
+            <div className="m-stream-analysis-panels">
               {generatedData.stateMachine && (
-                <div className="panel explanation-panel">
-                  <h3 className="explanation-title">
+                <div className="m-panel m-explanation-panel">
+                  <h3 className="m-explanation-title">
                     <i className="fas fa-project-diagram" /> State Machine
                   </h3>
-                  <pre className="stream-state-machine">
+                  <pre className="m-stream-state-machine">
                     {typeof generatedData.stateMachine === 'string'
                       ? generatedData.stateMachine
                       : JSON.stringify(generatedData.stateMachine, null, 2)}
@@ -745,12 +742,12 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               )}
 
               {generatedData.explanation && (
-                <div className="panel explanation-panel">
-                  <h3 className="explanation-title">
+                <div className="m-panel m-explanation-panel">
+                  <h3 className="m-explanation-title">
                     <i className="fas fa-robot" /> Generation Analysis
                   </h3>
                   <div
-                    className="explanation-body"
+                    className="m-explanation-body"
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(generatedData.explanation)
                     }} />
@@ -768,15 +765,15 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
       {isSaveModalOpen && (
         <div className="modal-overlay" onClick={() => setIsSaveModalOpen(false)}>
-          <div className="modal-content save-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-content m-save-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2><i className="fas fa-cloud-upload-alt" /> Save Stream Template</h2>
             </div>
             <p className="modal-desc">
               Store this event schema in your local library for quick reuse across different streaming sessions.
             </p>
-            <div className="mock-form-group">
-              <label className="input-label">Template Name</label>
+            <div className="m-mock-form-group">
+              <label className="m-input-label">Template Name</label>
               <input
                 type="text"
                 className="text-input full-width"
@@ -793,10 +790,10 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               )}
             </div>
             <div className="modal-footer split-footer">
-              <button className="secondary-button modal-btn" onClick={() => setIsSaveModalOpen(false)}>
+              <button className="secondary-button m-modal-btn" onClick={() => setIsSaveModalOpen(false)}>
                 Cancel
               </button>
-              <button className="primary-button modal-btn" onClick={executeSaveTemplate}>
+              <button className="primary-button m-modal-btn" onClick={executeSaveTemplate}>
                 Save Template
               </button>
             </div>
