@@ -3,7 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { saveHistory } from '@/lib/firebase';
 
-export function ModuleHeader({ title, description, resultData }) {
+export function ModuleHeader({
+  title,
+  description,
+  resultData,
+  onShare,
+  shareCopied = false,
+  shareDisabled = false,
+  showShare = true,
+}) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);
@@ -31,8 +39,8 @@ export function ModuleHeader({ title, description, resultData }) {
         setSaved(false);
       }, 3000);
     } catch (error) {
-      console.error("Manual save failed:", error);
-      alert("Error saving to history.");
+      console.error('Manual save failed:', error);
+      alert('Error saving to history.');
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -45,6 +53,8 @@ export function ModuleHeader({ title, description, resultData }) {
     }
   }, [resultData, isAutoSaveEnabled]);
 
+  const showShareButton = showShare && !!onShare;
+
   return (
     <header className="module-header">
       <div className="header-content">
@@ -52,17 +62,38 @@ export function ModuleHeader({ title, description, resultData }) {
         <p>{description}</p>
       </div>
 
-      {resultData && !isAutoSaveEnabled && (
-        <button className={`save-btn ${saved ? 'success' : ''}`} onClick={handleSave} disabled={saving || saved}>
-          {saving ? (
-            <><i className="fas fa-spinner fa-spin"></i> Saving...</>
-          ) : saved ? (
-            <><i className="fas fa-check"></i> Saved</>
-          ) : (
-            <><i className="fas fa-save"></i> Save Result</>
-          )}
-        </button>
-      )}
+      <div className="header-actions">
+        {showShareButton && (
+          <button
+            className={`share-btn${shareCopied ? ' copied' : ''}`}
+            onClick={onShare}
+            disabled={shareDisabled || shareCopied}
+            title="Copy a shareable link with this prompt & config"
+          >
+            {shareCopied ? (
+              <><i className="fas fa-check"></i> Copied!</>
+            ) : (
+              <><i className="fas fa-link"></i> Share</>
+            )}
+          </button>
+        )}
+
+        {resultData && !isAutoSaveEnabled && (
+          <button
+            className={`save-btn${saved ? ' success' : ''}`}
+            onClick={handleSave}
+            disabled={saving || saved}
+          >
+            {saving ? (
+              <><i className="fas fa-spinner fa-spin"></i> Saving...</>
+            ) : saved ? (
+              <><i className="fas fa-check"></i> Saved</>
+            ) : (
+              <><i className="fas fa-save"></i> Save Result</>
+            )}
+          </button>
+        )}
+      </div>
     </header>
   );
 }

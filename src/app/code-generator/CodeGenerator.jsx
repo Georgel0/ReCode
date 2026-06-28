@@ -22,6 +22,8 @@ export default function CodeGenerator() {
     handleGenerate,
     handleClearAll,
     handleFileChange,
+    share,
+    shareCopied,
   } = useCodeGenerator();
 
   const activeFile = files[activeFileIndex] || null;
@@ -45,6 +47,9 @@ export default function CodeGenerator() {
         title="Code Generator"
         description="Scaffold multi-file solutions from a plain-English description."
         resultData={lastResult}
+        onShare={share}
+        shareCopied={shareCopied}
+        shareDisabled={!input.trim()}
       />
 
       <div className="g-top-bar top-actions-bar">

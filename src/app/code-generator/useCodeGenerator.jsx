@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
-import { useDraft } from '@/lib';
+import { useDraft, useShareState } from '@/lib';
 import { generateProjectFiles } from './utils';
 
 const DEFAULT_CONFIG = {
@@ -29,6 +29,23 @@ export function useCodeGenerator() {
   const isRestoring = useRef(false);
   const historyLoaded = useRef(false);
 
+  const { share, readSharedState, shareCopied } = useShareState({
+    toolId: 'code-generator',
+    input,
+    config,
+  });
+
+  useEffect(() => {
+    const shared = readSharedState();
+    if (!shared) return;
+
+    isRestoring.current = true;
+    historyLoaded.current = true;
+    if (shared.input) setInput(shared.input);
+    if (shared.config) setConfig({ ...DEFAULT_CONFIG, ...shared.config });
+    setTimeout(() => { isRestoring.current = false; }, 100);
+  }, []);
+
   useDraft(
     'generator-draft-data',
     { input, files, config },
@@ -38,7 +55,7 @@ export function useCodeGenerator() {
         isRestoring.current = true;
         if (saved.input) setInput(saved.input);
         if (saved.files?.length > 0) setFiles(saved.files);
-        if (saved.config) setConfig(saved.config);
+        if (saved.config) setConfig({ ...DEFAULT_CONFIG, ...saved.config });
         setTimeout(() => { isRestoring.current = false; }, 100);
       }
     },
@@ -55,7 +72,9 @@ export function useCodeGenerator() {
     historyLoaded.current = true;
 
     try {
-      const savedInput = typeof moduleData.input === 'string' ? moduleData.input : moduleData.input?.text || '';
+      const savedInput = typeof moduleData.input === 'string'
+        ? moduleData.input
+        : moduleData.input?.text || '';
       const savedOutput = typeof moduleData.fullOutput === 'string'
         ? JSON.parse(moduleData.fullOutput)
         : moduleData.fullOutput;
@@ -113,8 +132,6 @@ export function useCodeGenerator() {
     setConfig(DEFAULT_CONFIG);
   }, []);
 
-  // Updates a single file's content in-place; the draft auto-saves
-  // because `files` is already tracked by useDraft above.
   const handleFileChange = useCallback((index, newContent) => {
     setFiles(prev => prev.map((f, i) => i === index ? { ...f, content: newContent } : f));
   }, []);
@@ -132,5 +149,8 @@ export function useCodeGenerator() {
     handleGenerate,
     handleClearAll,
     handleFileChange,
+    // Share
+    share,
+    shareCopied,
   };
 }
