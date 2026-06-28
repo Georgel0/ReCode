@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
-import { convertCode } from '@/lib/api';
+import { convertCode, useDraft } from '@/lib';
 import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from './useStreamingEventsComponents';
 
 export const STREAM_RULE_TEMPLATES = [

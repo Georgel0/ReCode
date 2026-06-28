@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context';
-import { convertCode } from '@/lib/api';
+import { convertCode, useDraft } from '@/lib';
 
 export const FRAMEWORK_OPTIONS = [
   { value: 'msw', label: 'MSW v2 (Mock Service Worker)', icon: 'fa-shield-halved' },

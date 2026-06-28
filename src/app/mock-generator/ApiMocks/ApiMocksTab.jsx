@@ -95,13 +95,13 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
   return (
     <>
-      <div className="m-mock-factory-container">
-        <div className="m-mock-sidebar">
-          <div className="m-mock-sidebar-content">
+      <div className="m-factory-container">
+        <div className="m-sidebar">
+          <div className="m-sidebar-content">
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className={`fas ${FORMAT_ICONS[detectedFormat]}`} />
                   Specification
                   {detectedFormat !== 'auto' && (
@@ -150,7 +150,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </div>
               )}
 
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <select
                   className="m-theme-select-dropdown"
                   value=""
@@ -205,14 +205,14 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className="fas fa-sliders-h" /> Handler Config
                 </div>
               </div>
 
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <label className="m-input-label">Output Framework</label>
                 <div className="m-framework-card-grid">
                   {FRAMEWORK_OPTIONS.map(opt => (
@@ -230,7 +230,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               </div>
 
               <div className="m-form-grid-2">
-                <div className="m-mock-form-group">
+                <div className="m-form-group">
                   <label className="m-input-label">Endpoints</label>
                   <div className="m-slider-row">
                     <input
@@ -246,7 +246,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   </span>
                 </div>
 
-                <div className="m-mock-form-group">
+                <div className="m-form-group">
                   <label className="m-input-label">Pagination</label>
                   <select
                     className="m-theme-select-dropdown"
@@ -260,7 +260,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <label className="m-input-label">Auth Simulation</label>
                 <select
                   className="m-theme-select-dropdown"
@@ -273,13 +273,12 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </select>
               </div>
 
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <label className="m-input-label">
                   Env Var Prefix
                   <span className="m-optional-tag">base URLs &amp; auth tokens</span>
                 </label>
                 <select
-                  className="m-theme-select-dropdown"
                   value={envPrefix}
                   onChange={e => setEnvPrefix(e.target.value)}
                 >
@@ -290,15 +289,15 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className="fas fa-flask" /> Response Behaviour
                 </div>
               </div>
 
               <div className="m-form-grid-2">
-                <div className="m-mock-form-group">
+                <div className="m-form-group">
                   <label className="m-input-label">Delay</label>
                   <div className="m-slider-row">
                     <input
@@ -314,7 +313,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   </span>
                 </div>
 
-                <div className="m-mock-form-group">
+                <div className="m-form-group">
                   <label className="m-input-label">Error Rate</label>
                   <div className="m-slider-row">
                     <input
@@ -365,7 +364,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
           </div>
 
-          <div className="m-mock-sidebar-footer">
+          <div className="m-sidebar-footer">
             <button
               className={`primary-button m-fabricate-action-btn ${isLoading ? 'loading' : ''}`}
               onClick={handleGenerate}
@@ -378,8 +377,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
           </div>
         </div>
 
-        <div className="m-mock-main">
-          <div className="m-mock-toolbar">
+        <div className="m-main">
+          <div className="m-toolbar">
 
             <div className="m-tabs-navigation-row">
               <div className="m-tabs-scroll-wrapper">
@@ -517,7 +516,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     )}
                   </div>
 
-                  <div className="m-mock-export-group">
+                  <div className="m-export-group">
                     <button
                       className="secondary-button m-icon-only m-tool-btn"
                       title={copyFlash === 'handler' ? 'Copied!' : 'Copy active handler'}
@@ -555,7 +554,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
             </div>
           </div>
 
-          <div className="m-mock-preview-area">
+          <div className="m-preview-area">
 
             <EmptyState
               isLoading={isLoading}
@@ -581,7 +580,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <p className="modal-desc">
                     Describe a new route — it will be generated and appended to the existing handler set.
                   </p>
-                  <div className="m-mock-form-group">
+                  <div className="m-form-group">
                     <label className="input-label">Endpoint Description</label>
                     <input
                       type="text"
@@ -747,7 +746,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
             <p className="modal-desc">
               Store this API specification in your local library for quick reuse across mocking sessions.
             </p>
-            <div className="m-mock-form-group">
+            <div className="m-form-group">
               <label className="m-input-label">Template Name</label>
               <input
                 type="text"

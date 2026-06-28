@@ -76,14 +76,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
   return (
     <>
-      <div className="m-mock-factory-container">
+      <div className="m-factory-container">
 
-        <div className="m-mock-sidebar">
-          <div className="m-mock-sidebar-content">
+        <div className="m-sidebar">
+          <div className="m-sidebar-content">
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className="fas fa-stream" /> Event Schema
                 </div>
                 <button
@@ -99,7 +99,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </button>
               </div>
 
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <select
                   className="m-theme-select-dropdown"
                   value=""
@@ -165,13 +165,13 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className={`fas ${selectedParadigmIcon}`} /> Stream Paradigm
                 </div>
               </div>
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <select
                   className="m-theme-select-dropdown"
                   value={streamParadigm}
@@ -184,13 +184,13 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <><i className="fas fa-balance-scale" /> Rules &amp; Distributions</>
                 </div>
               </div>
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <select
                   className="m-theme-select-dropdown"
                   value=""
@@ -205,7 +205,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   ))}
                 </select>
                 <textarea
-                  className="m-mock-rule-input"
+                  className="m-rule-input"
                   placeholder="e.g., Timestamps must be monotonically increasing in 1–5 second increments."
                   value={rules}
                   onChange={e => setRules(e.target.value)}
@@ -227,13 +227,13 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               )}
             </div>
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className="fas fa-plug" /> Output Format
                 </div>
               </div>
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <select
                   className="m-theme-select-dropdown"
                   value={eventFormat}
@@ -246,14 +246,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="m-mock-section">
-              <div className="m-mock-section-header">
-                <div className="m-mock-section-title">
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
                   <i className="fas fa-sliders-h" /> Parameters
                 </div>
               </div>
 
-              <div className="m-mock-form-group" style={{ marginBottom: '0.57rem' }}>
+              <div className="m-form-group" style={{ marginBottom: '0.57rem' }}>
                 <label className="m-input-label">
                   Event Count <span className="m-quality-value-badge">{eventCount}</span>
                 </label>
@@ -267,7 +267,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <div className="m-slider-hint">5 – 200 events per stream</div>
               </div>
 
-              <div className="m-mock-form-group" style={{ marginBottom: '0.57rem' }}>
+              <div className="m-form-group" style={{ marginBottom: '0.57rem' }}>
                 <label className="m-input-label">
                   Seed <span className="m-optional-tag">optional</span>
                 </label>
@@ -283,7 +283,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <div className="m-mock-form-group" style={{ marginBottom: '0.57rem' }}>
+              <div className="m-form-group" style={{ marginBottom: '0.57rem' }}>
                 <label className="m-input-label">
                   Data Quality{' '}
                   <span className="m-quality-value-badge">{getQualityLabel(dataQuality)}</span>
@@ -298,7 +298,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <div className="m-slider-hint">60 = heavy edge cases · 100 = clean data</div>
               </div>
 
-              <div className="m-mock-form-group">
+              <div className="m-form-group">
                 <label className="m-custom-check" title="Generate State Machine">
                   <input
                     type="checkbox"
@@ -328,7 +328,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
           </div>
 
-          <div className="m-mock-sidebar-footer">
+          <div className="m-sidebar-footer">
             <button
               className={`primary-button m-fabricate-action-btn ${isLoading ? 'm-loading' : ''}`}
               onClick={handleGenerate}
@@ -341,10 +341,10 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
           </div>
         </div>
 
-        <div className="m-mock-preview-area">
+        <div className="m-preview-area">
 
           {generatedData && !isLoading && (
-            <div className="m-mock-toolbar m-flex-row">
+            <div className="m-toolbar m-flex-row">
 
               <div className="m-tab-list" style={{ flex: 1, overflowX: 'auto', display: 'flex' }}>
                 {generatedData.streams.map((s, idx) => (
@@ -453,7 +453,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
           <div className="m-stream-view-scroll-area">
 
             {activeStreamData && !isLoading && viewMode === 'events' && (
-              <div className="m-mock-table-wrapper">
+              <div className="m-table-wrapper">
 
                 <div className="m-table-filter-bar">
                   <div className="m-table-filter-input-wrap">
@@ -511,7 +511,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </div>
 
                 <div className="m-table-scroll-container">
-                  <table className="m-mock-data-table">
+                  <table className="m-data-table">
                     <thead>
                       <tr>
                         {colKeys.map(key => {
@@ -654,7 +654,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {generatedData && !isLoading && viewMode === 'correlated' && !correlatedView && (
-              <div className="m-mock-empty-state" style={{ padding: '2.25rem', flex: 1 }}>
+              <div className="m-empty-state" style={{ padding: '2.25rem', flex: 1 }}>
                 <i className="fas fa-random" style={{ fontSize: '1.5rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }} />
                 <p style={{ color: 'var(--text-secondary)' }}>Generate multiple streams to see the correlation view.</p>
               </div>
@@ -772,7 +772,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             <p className="modal-desc">
               Store this event schema in your local library for quick reuse across different streaming sessions.
             </p>
-            <div className="m-mock-form-group">
+            <div className="m-form-group">
               <label className="m-input-label">Template Name</label>
               <input
                 type="text"
