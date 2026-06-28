@@ -8,12 +8,12 @@ import {
   CorrelatedView, ReplayView,
   inferEventBadges, RuleValidationPanel, DistributionChart,
   EditableCell, EventColBadge
-} from '../components/StreamingEventsComponents';
+} from './StreamingEventsComponents';
 import {
   useStreamingEventsTab,
   STREAM_RULE_TEMPLATES, EVENT_FORMATS,
   STREAM_PARADIGMS, ITEMS_PER_PAGE, SAMPLE_TEMPLATES,
-} from '../hooks/useStreamingEventsTab';
+} from './useStreamingEventsTab';
 
 export default function StreamingEventsTab({ onDataUpdate, isActive }) {
   const st = useStreamingEventsTab({ onDataUpdate, isActive });

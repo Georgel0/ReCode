@@ -11,7 +11,7 @@ import {
   RULE_TEMPLATES,
   SAMPLE_SCHEMAS,
   FAKER_ANNOTATIONS,
-} from '../hooks/useDatabaseSeedingTab';
+} from './useDatabaseSeedingTab';
 
 function ColTypeBadge({ label }) {
   let cls = 'col-type-badge';

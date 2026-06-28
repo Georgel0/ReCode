@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
 import { convertCode } from '@/lib/api';
-import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from '../components/useStreamingEventsComponents';
+import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from './useStreamingEventsComponents';
 
 export const STREAM_RULE_TEMPLATES = [
   { label: "Burst Pattern", value: "Events should arrive in bursts: 10–20 events within 5 seconds, followed by a 30–60s quiet period." },

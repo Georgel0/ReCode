@@ -202,6 +202,7 @@
   font-size: 0.78rem;
   white-space: nowrap;
   max-width: 200px;
+  background: var(--bg-primary);
 }
 
 .handler-tab-method {

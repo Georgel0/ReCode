@@ -7,11 +7,11 @@ import { EmptyState } from '@/components/layout';
 import {
   useApiMocksTab, getMethodMeta,
   FRAMEWORK_OPTIONS, PAGINATION_OPTIONS, AUTH_OPTIONS, ENV_PREFIX_OPTIONS, SPEC_TEMPLATES, FORMAT_LABELS, FORMAT_ICONS,
-} from '../hooks/useApiMocksTab';
+} from './useApiMocksTab';
 import {
   MethodBadge, StatusBadge, CodeDisplay, FixtureDisplay, MethodSummaryPills,
   HistoryDropdown, ErrorVariantPanel, FixtureShapeWarning
-} from '../components/ApiMocksTabComponents';
+} from './ApiMocksTabComponents';
 
 export default function ApiMocksTab({ onDataUpdate, isActive }) {
   const api = useApiMocksTab({ onDataUpdate, isActive });
@@ -538,7 +538,6 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     </button>
 
                     <select
-                      className="theme-select-dropdown action-select"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                       disabled={!generatedData}

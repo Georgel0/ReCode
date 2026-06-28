@@ -71,7 +71,7 @@ export function ModuleHeader({
             title="Copy a shareable link with this prompt & config"
           >
             {shareCopied ? (
-              <><i className="fas fa-check"></i> Copied!</>
+              <><i className="fas fa-check"></i> Link Copied!</>
             ) : (
               <><i className="fas fa-link"></i> Share</>
             )}

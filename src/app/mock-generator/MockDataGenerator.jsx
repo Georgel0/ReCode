@@ -4,14 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { ModuleHeader } from '@/components/layout';
 import { useApp } from '@/context';
 
-import DatabaseSeedingTab from './tabs/DatabaseSeedingTab';
-import ApiMocksTab from './tabs/ApiMocksTab';
-import StreamingEventsTab from './tabs/StreamingEventsTab';
+import DatabaseSeedingTab from './DatabaseSeeding/DatabaseSeedingTab';
+import ApiMocksTab from './ApiMocks/ApiMocksTab';
+import StreamingEventsTab from './StreamingEvents/StreamingEventsTab';
 
-import './styles/MockDataGenerator.css';
-import './styles/DatabaseSeedingTab.css';
-import './styles/ApiMocksTab.css'
-import './styles/StreamingEventsTab.css';
+import './MockDataGenerator.css';
+import './ApiMocks/ApiMocksTab.css';
+import './DatabaseSeeding/DatabaseSeedingTab.css'
+import './StreamingEvents/StreamingEventsTab.css';
 
 export default function MockDataGenerator() {
   const { moduleData } = useApp();
