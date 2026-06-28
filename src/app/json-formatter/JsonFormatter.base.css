@@ -527,6 +527,7 @@
   flex: 1;
   min-height: 0;
   gap: 0.4rem;
+  position: relative;
 }
 
 .j-json-output-box .j-output-textarea {

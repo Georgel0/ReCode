@@ -86,7 +86,6 @@ export default function JsonFormatter() {
     return () => document.removeEventListener('mousedown', handler);
   }, [showHistory, showSchemaPanel]);
 
-
   const diffCounts = diffResult?.reduce(
     (acc, d) => {
       if (d.type === 'added') acc.added++;
@@ -520,13 +519,13 @@ export default function JsonFormatter() {
                           <span>Back to JSON</span>
                         </button>
                       </div>
+                      <CopyButton codeToCopy={conversionResult?.content} />
                       <textarea
                         value={conversionResult.content}
                         readOnly
                         className="j-json-textarea j-output-textarea"
                       />
                       <div className="j-output-copy-row">
-                        <CopyButton codeToCopy={conversionResult.content} />
                         <button
                           className="secondary-button"
                           onClick={() => downloadFile(
@@ -557,21 +556,31 @@ export default function JsonFormatter() {
                 </>
               )}
 
-              {viewMode === 'tree' && (
-                <div className="j-tree-view-container">
-                  <JsonView
-                    src={getJsonForTree()}
-                    theme={isDarkTheme ? 'ocean' : 'rjv-default'}
-                    iconStyle="triangle"
-                    displayDataTypes={false}
-                    enableClipboard={true}
-                    editable={true}
-                    onChange={handleTreeEdit}
-                    onAdd={handleTreeEdit}
-                    onDelete={handleTreeEdit}
-                  />
-                </div>
-              )}
+              {viewMode === 'tree' && (() => {
+                const treeData = getJsonForTree();
+                const hasData = treeData !== null && treeData !== undefined;
+                return (
+                  <div className="j-tree-view-container">
+                    {hasData ? (
+                      <JsonView
+                        src={treeData}
+                        theme={isDarkTheme ? 'ocean' : 'rjv-default'}
+                        iconStyle="triangle"
+                        displayDataTypes={false}
+                        enableClipboard={true}
+                        editable={true}
+                        onChange={handleTreeEdit}
+                        onAdd={handleTreeEdit}
+                        onDelete={handleTreeEdit}
+                      />
+                    ) : (
+                      <div className="j-history-empty">
+                        Tree is empty — paste JSON in the input and format it first.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {viewMode === 'diff' && (
                 <>
