@@ -3,7 +3,7 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { ModuleHeader } from '@/components/layout';
-import { CodeAnalysisInfoIcon } from '@/components/widgets';
+import { CodeAnalysisInfoIcon, CodeHighlightAnalyzer } from '@/components/widgets';
 import ConfigTab from './ConfigTab';
 import OutputPanel from './OutputPanel';
 import PresetManager from './PresetManager';
@@ -42,100 +42,104 @@ export default function CodeGenerator() {
   };
 
   return (
-    <div className="module-container">
-      <ModuleHeader
-        title="Code Generator"
-        description="Scaffold multi-file solutions from a plain-English description."
-        resultData={lastResult}
-        onShare={share}
-        shareCopied={shareCopied}
-        shareDisabled={!input.trim()}
-      />
+    <>
+      <div className="module-container">
+        <ModuleHeader
+          title="Code Generator"
+          description="Scaffold multi-file solutions from a plain-English description."
+          resultData={lastResult}
+          onShare={share}
+          shareCopied={shareCopied}
+          shareDisabled={!input.trim()}
+        />
 
-      <div className="g-top-bar top-actions-bar">
-        <button
-          className="primary-button"
-          onClick={handleGenerate}
-          disabled={loading || !input.trim()}
-        >
-          {loading ? (
-            <><span className="spinner g-btn-spinner"></span> Building...</>
-          ) : (
-            <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
+        <div className="g-top-bar top-actions-bar">
+          <button
+            className="primary-button"
+            onClick={handleGenerate}
+            disabled={loading || !input.trim()}
+          >
+            {loading ? (
+              <><span className="spinner g-btn-spinner"></span> Building...</>
+            ) : (
+              <><i className="fa-solid fa-wand-magic-sparkles"></i> Generate</>
+            )}
+          </button>
+
+          <PresetManager config={config} onApply={setConfig} />
+
+          <div className="g-spacer" />
+
+          {files.length > 0 && (
+            <button
+              className="secondary-button g-top-btn"
+              onClick={downloadSingleFile}
+              title={`Download ${activeFile?.fileName || 'file'}`}
+            >
+              <i className="fa-solid fa-download"></i>
+              <span className="g-top-btn-label">File</span>
+            </button>
           )}
-        </button>
+          {files.length > 1 && (
+            <button
+              className="secondary-button g-top-btn"
+              onClick={downloadZip}
+              title="Download all files as ZIP"
+            >
+              <i className="fa-solid fa-file-zipper"></i>
+              <span className="g-top-btn-label">ZIP</span>
+            </button>
+          )}
 
-        <PresetManager config={config} onApply={setConfig} />
-
-        <div className="g-spacer" />
-
-        {files.length > 0 && (
           <button
-            className="secondary-button g-top-btn"
-            onClick={downloadSingleFile}
-            title={`Download ${activeFile?.fileName || 'file'}`}
+            className="secondary-button btn-danger g-top-btn"
+            onClick={handleClearAll}
+            title="Clear everything"
           >
-            <i className="fa-solid fa-download"></i>
-            <span className="g-top-btn-label">File</span>
+            <i className="fas fa-trash"></i>
           </button>
-        )}
-        {files.length > 1 && (
-          <button
-            className="secondary-button g-top-btn"
-            onClick={downloadZip}
-            title="Download all files as ZIP"
-          >
-            <i className="fa-solid fa-file-zipper"></i>
-            <span className="g-top-btn-label">ZIP</span>
-          </button>
-        )}
+        </div>
 
-        <button
-          className="secondary-button btn-danger g-top-btn"
-          onClick={handleClearAll}
-          title="Clear everything"
-        >
-          <i className="fas fa-trash"></i>
-        </button>
+        <div className="g-layout">
+          <aside className="g-sidebar">
+            <div className="g-sidebar-inner">
+              <section className="g-section">
+                <h3 className="g-heading">
+                  <CodeAnalysisInfoIcon />
+                  <i className="fa-solid fa-layer-group"></i>
+                  Requirements
+                </h3>
+                <textarea
+                  className="g-prompt-textarea"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="E.g., Create a React button component and a CSS file for styling..."
+                  spellCheck="true"
+                />
+                {error && <div className="g-error">{error}</div>}
+              </section>
+
+              <div className="g-divider" />
+
+              <section className="g-section">
+                <ConfigTab config={config} setConfig={setConfig} />
+              </section>
+            </div>
+          </aside>
+
+          <main className="g-output">
+            <OutputPanel
+              files={files}
+              activeFileIndex={activeFileIndex}
+              setActiveFileIndex={setActiveFileIndex}
+              onFileChange={handleFileChange}
+              loading={loading}
+            />
+          </main>
+        </div>
       </div>
 
-      <div className="g-layout">
-        <aside className="g-sidebar">
-          <div className="g-sidebar-inner">
-            <section className="g-section">
-              <h3 className="g-heading">
-                <CodeAnalysisInfoIcon />
-                <i className="fa-solid fa-layer-group"></i>
-                Requirements
-              </h3>
-              <textarea
-                className="g-prompt-textarea"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="E.g., Create a React button component and a CSS file for styling..."
-                spellCheck="true"
-              />
-              {error && <div className="g-error">{error}</div>}
-            </section>
-
-            <div className="g-divider" />
-
-            <section className="g-section">
-              <ConfigTab config={config} setConfig={setConfig} />
-            </section>
-          </div>
-        </aside>
-
-        <main className="g-output">
-          <OutputPanel
-            files={files}
-            activeFileIndex={activeFileIndex}
-            setActiveFileIndex={setActiveFileIndex}
-            onFileChange={handleFileChange}
-            loading={loading}
-          />
-        </main>
-      </div>
-    </div>
+      <CodeHighlightAnalyzer />
+    </>
   );
 }

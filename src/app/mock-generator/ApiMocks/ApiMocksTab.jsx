@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
+import { CodeHighlightAnalyzer } from '@/components/widgets';
 import { EmptyState } from '@/components/layout';
 import {
   useApiMocksTab, getMethodMeta,
@@ -780,6 +781,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
           </div>
         </div>
       )}
+
+      <CodeHighlightAnalyzer />
     </>
   );
 }

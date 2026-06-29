@@ -38,7 +38,7 @@ function EditableCell({
   onStartEdit, onChange, onCommit, onCancel, onCopy, onRegen,
 }) {
   const inputRef = useRef(null);
-  const [menuPos, setMenuPos] = useState(null); 
+  const [menuPos, setMenuPos] = useState(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -122,49 +122,7 @@ function EditableCell({
   );
 }
 
-function FakerAnnotationTooltip() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
-    window.addEventListener('mousedown', close);
-    return () => window.removeEventListener('mousedown', close);
-  }, [open]);
-
-  return (
-    <div className="m-faker-hint-wrap" ref={ref}>
-      <button
-        className="m-faker-hint-btn"
-        title="View available @faker: annotations"
-        onClick={() => setOpen(o => !o)}
-        type="button"
-      >
-        <i className="fas fa-at" /> Annotations
-      </button>
-      {open && (
-        <div className="m-faker-hint-popover">
-          <div className="m-faker-hint-header">
-            <strong>Available Annotations</strong>
-            <br />
-            <span className="m-faker-hint-sub">Add inline to column comments</span>
-          </div>
-          <ul className="m-faker-hint-list">
-            {FAKER_ANNOTATIONS.map(a => (
-              <li key={a.annotation} className="m-faker-hint-item">
-                <code className="m-faker-hint-code">{a.annotation}</code>
-                <span className="m-faker-hint-desc">{a.description}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ColFilterBar({ colKeys, colFilter, setColFilter }) {
+function ColFilterBar({ colKeys, colFilter, setColFilter, filterQuery, filteredRows }) {
   return (
     <div className="m-col-filter-bar">
       <select
@@ -192,6 +150,12 @@ function ColFilterBar({ colKeys, colFilter, setColFilter }) {
           >
             <i className="fas fa-times" />
           </button>
+
+          {(filterQuery || colFilter) && (
+            <span className="m-table-filter-count">
+              {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
+            </span>
+          )}
         </>
       )}
     </div>
@@ -202,9 +166,10 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
   const db = useDatabaseSeedingTab({ onDataUpdate, isActive });
 
   const {
-    schemaInput, setSchemaInput, rules, setRules, locale, setLocale,
-    rowCount, setRowCount, seed, setSeed, dataQuality, setDataQuality,
-    detectedLanguage, includeAnalysis, setIncludeAnalysis,
+    schemaInput, setSchemaInput,
+    rules, setRules,
+    config, setConfig,
+    detectedLanguage,
 
     isLoading, generatedData, activeTab, setActiveTab,
     parsedRulesFeedback, regenLoadingIdx, regenCellTarget,
@@ -255,10 +220,9 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
             <div className="m-section">
               <div className="m-section-header">
                 <div className="m-section-title">
-                  <><i className="fas fa-sitemap" /> Architecture ({detectedLanguage})</>
+                  <i className="fas fa-sitemap" /> Architecture ({detectedLanguage})
                 </div>
                 <div className="m-section-header-actions">
-                  <FakerAnnotationTooltip />
                   <button
                     className="m-icon-text-btn"
                     onClick={() => setSchemaOptionsVisible(!schemaOptionsVisible)}
@@ -273,6 +237,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
 
               <div className="m-form-group">
                 <select
+                  className="m-theme-select-dropdown"
                   value=""
                   onChange={e => {
                     const selected = SAMPLE_SCHEMAS.find(s => s.label === e.target.value);
@@ -282,6 +247,25 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   <option value="" disabled>⚡ Load Starter Sample Architecture...</option>
                   {SAMPLE_SCHEMAS.map(s => (
                     <option key={s.label} value={s.label}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="m-form-group">
+                <select
+                  className="m-theme-select-dropdown m-faker-hint-select"
+                  value=""
+                  onChange={e => {
+                    if (e.target.value) {
+                      navigator.clipboard.writeText(e.target.value);
+                    }
+                  }}
+                >
+                  <option value="" disabled>📋 View &amp; Copy Annotations...</option>
+                  {FAKER_ANNOTATIONS.map(a => (
+                    <option key={a.annotation} value={a.annotation}>
+                      {a.annotation} ({a.description})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -323,9 +307,9 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 />
               </div>
 
-              <div className="m-action-row m-start">
+              <div className="action-row start">
                 <button
-                  className="secondary-button m-btn-small m-full-width"
+                  className="secondary-button"
                   onClick={handleSaveSchema}
                   disabled={!schemaInput.trim()}
                 >
@@ -334,13 +318,13 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               </div>
             </div>
 
-            <div className="m-section">
+            <div className="m-section m-section-expanded">
               <div className="m-section-header">
                 <div className="m-section-title">
                   <><i className="fas fa-balance-scale" /> Rules &amp; Distributions</>
                 </div>
               </div>
-              <div className="m-form-group">
+              <div className="m-form-group m-form-group-expanded">
                 <select
                   value=""
                   onChange={e => {
@@ -351,6 +335,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   {RULE_TEMPLATES.map(t => <option key={t.label} value={t.value}>{t.label}</option>)}
                 </select>
                 <textarea
+                  className="m-text-input m-rule-input"
                   placeholder="e.g., 75% of users must have role 'Developer'."
                   value={rules}
                   onChange={e => setRules(e.target.value)}
@@ -378,7 +363,11 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               <div className="m-form-grid-2">
                 <div className="m-form-group">
                   <label className="m-input-label">Locale</label>
-                  <select value={locale} onChange={e => setLocale(e.target.value)}>
+                  <select
+                    className="m-theme-select-dropdown"
+                    value={config.locale}
+                    onChange={e => setConfig(prev => ({ ...prev, locale: e.target.value }))}
+                  >
                     <option value="en-US">English (US)</option>
                     <option value="en-GB">English (UK)</option>
                     <option value="de-DE">German</option>
@@ -388,7 +377,11 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 </div>
                 <div className="m-form-group">
                   <label className="m-input-label">Volume</label>
-                  <select value={rowCount} onChange={e => setRowCount(e.target.value)}>
+                  <select
+                    className="m-theme-select-dropdown"
+                    value={config.rowCount}
+                    onChange={e => setConfig(prev => ({ ...prev, rowCount: e.target.value }))}
+                  >
                     <option value="4">4 (Fast)</option>
                     <option value="12">12 (Standard)</option>
                     <option value="38">38 (Batch)</option>
@@ -398,17 +391,17 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               </div>
 
               <div className="m-form-group m-quality-group">
-                <div className="m-flex-between">
+                <div className="action-row between center-y">
                   <label className="m-input-label">Data Quality</label>
-                  <span className="m-quality-value-badge">{dataQuality}%</span>
+                  <span className="m-quality-value-badge">{config.dataQuality}%</span>
                 </div>
                 <input
                   type="range" min="38" max="75"
-                  value={dataQuality}
-                  onChange={e => setDataQuality(parseInt(e.target.value, 10))}
+                  value={config.dataQuality}
+                  onChange={e => setConfig(prev => ({ ...prev, dataQuality: parseInt(e.target.value, 10) }))}
                   className="m-slider m-styled-slider"
                 />
-                <span className="m-slider-hint">{getQualityLabel(dataQuality)}</span>
+                <span className="m-slider-hint">{getQualityLabel(config.dataQuality)}</span>
               </div>
 
               <div className="m-form-group">
@@ -419,20 +412,20 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     type="text"
                     className="m-text-input m-with-icon"
                     placeholder="e.g. 42 (Reproducible)"
-                    value={seed}
-                    onChange={e => setSeed(e.target.value)}
+                    value={config.seed}
+                    onChange={e => setConfig(prev => ({ ...prev, seed: e.target.value }))}
                   />
                 </div>
               </div>
 
-              <label className="m-custom-check" title="Generate Data Analysis">
+              <label className="custom-check" title="Generate Data Analysis">
                 <input
                   type="checkbox"
-                  checked={includeAnalysis}
-                  onChange={e => setIncludeAnalysis(e.target.checked)}
+                  checked={config.includeAnalysis}
+                  onChange={e => setConfig(prev => ({ ...prev, includeAnalysis: e.target.checked }))}
                 />
-                <div className="m-box"><i className="fa-solid fa-check"></i></div>
-                <span className="m-label-text">Generate Data Analysis &amp; Explanations</span>
+                <div className="box"><i className="fa-solid fa-check"></i></div>
+                <span className="label-text">Generate Data Analysis &amp; Explanations</span>
               </label>
 
             </div>
@@ -454,7 +447,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
         <div className="m-main">
 
           <div className="m-toolbar">
-            {!isLoading && viewMode !== 'erd' && (
+            {!isLoading && viewMode !== 'erd' ? (
               <div className="m-tabs-container">
                 {generatedData?.tables.map((table, idx) => {
                   const canRegen = hasNoInboundFKs(table.tableName);
@@ -483,6 +476,8 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                   );
                 })}
               </div>
+            ) : (
+              <div></div>
             )}
 
             <div className="m-toolbar-right">
@@ -526,6 +521,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                       <i className="fas fa-clipboard" />
                     </button>
                     <select
+                      className="m-theme-select-dropdown m-action-select"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                     >
@@ -550,7 +546,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               icon="fas fa-database"
               title="Awaiting Architecture"
               description="Input your schema definitions in the sidebar to generate a highly interconnected relational database."
-              hint={<>Use <code>@faker:creditCard</code> for specific column formatting. Click <strong>Annotations</strong> in the sidebar for the full list.</>}
+              hint={<>Use <code>@faker:creditCard</code> for specific column formatting. Choose an option from the <strong>Annotations</strong> dropdown in the sidebar to view references.</>}
               loadingTitle="Synthesizing Reality"
               loadingDescription="Analyzing schema relationships and generating localized datasets..."
             />
@@ -586,15 +582,17 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     )}
                   </div>
 
-                  {(filterQuery || colFilter) && (
-                    <span className="m-table-filter-count">
-                      {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
-                    </span>
-                  )}
+                  <ColFilterBar
+                    colKeys={colKeys}
+                    colFilter={colFilter}
+                    setColFilter={setColFilter}
+                    filterQuery={filterQuery}
+                    filteredRows={filteredRows}
+                  />
 
                   <div className="m-table-controls-right">
                     <button
-                      className="m-secondary-button m-btn-small m-add-row-btn"
+                      className="secondary-button"
                       onClick={handleAddRow}
                       title="Add a blank row"
                     >
@@ -602,12 +600,6 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
                 </div>
-
-                <ColFilterBar
-                  colKeys={colKeys}
-                  colFilter={colFilter}
-                  setColFilter={setColFilter}
-                />
 
                 <div className="m-table-scroll-container">
                   <table className="m-data-table">
@@ -739,7 +731,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               <label className="m-input-label">Template Name</label>
               <input
                 type="text"
-                className="text-input full-width"
+                className="m-text-input"
                 placeholder="e.g., E-commerce Core v2"
                 value={newSchemaName}
                 onChange={e => { setNewSchemaName(e.target.value); setSaveSchemaError(''); }}
@@ -753,8 +745,8 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               )}
             </div>
             <div className="modal-footer m-split-footer">
-              <button className="secondary-button m-modal-btn" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
-              <button className="primary-button m-modal-btn" onClick={executeSaveSchema}>Save Template</button>
+              <button className="secondary-button" onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
+              <button className="primary-button" onClick={executeSaveSchema}>Save Template</button>
             </div>
           </div>
         </div>

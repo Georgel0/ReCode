@@ -309,6 +309,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       includeTypes,
       includeAnalysis,
       envPrefix,
+      generatedData
     },
     (saved) => {
       if (saved.specInput !== undefined) setSpecInput(saved.specInput);
@@ -321,6 +322,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       if (saved.includeTypes !== undefined) setIncludeTypes(saved.includeTypes);
       if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
       if (saved.envPrefix !== undefined) setEnvPrefix(saved.envPrefix);
+      if (saved.generatedata !== undefined) setGeneratedData(saved.generatedData);
     },
     {
       isEmpty: (d) => !d.specInput?.trim(),
