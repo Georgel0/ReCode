@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { CodeHighlightAnalyzer } from '@/components/widgets';
@@ -106,7 +106,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <i className={`fas ${FORMAT_ICONS[detectedFormat]}`} />
                   Specification
                   {detectedFormat !== 'auto' && (
-                    <span className="m-detected-format-tag">
+                    <span className="detected-format-tag">
                       {FORMAT_LABELS[detectedFormat]}
                     </span>
                   )}
@@ -167,7 +167,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               </div>
 
               <div
-                className={`m-spec-dropzone ${isDragOver ? 'm-dragover' : ''}`}
+                className={`spec-dropzone ${isDragOver ? 'dragover' : ''}`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -185,7 +185,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 />
               </div>
 
-              <div className="m-editor-wrapper-box">
+              <div className="editor-container">
                 <CodeEditor
                   value={specInput}
                   lineNumbers={false}
@@ -215,32 +215,27 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
               <div className="m-form-group">
                 <label className="m-input-label">Output Framework</label>
-                <div className="m-framework-card-grid">
+                <select
+                  value={framework}
+                  onChange={e => setFramework(e.target.value)}
+                >
                   {FRAMEWORK_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      className={`m-framework-card ${framework === opt.value ? 'm-active' : ''}`}
-                      onClick={() => setFramework(opt.value)}
-                      title={opt.label}
-                    >
-                      <i className={`fas ${opt.icon}`} />
-                      <span className="m-framework-card-label">{opt.label}</span>
-                    </button>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div className="m-form-grid-2">
                 <div className="m-form-group">
                   <label className="m-input-label">Endpoints</label>
-                  <div className="m-slider-row">
+                  <div className="slider-row">
                     <input
                       type="range" min="1" max="15"
                       className="m-styled-slider"
                       value={endpointCount}
                       onChange={e => setEndpointCount(parseInt(e.target.value, 10))}
                     />
-                    <div className="m-slider-value-display">{endpointCount}</div>
+                    <div className="slider-value-display">{endpointCount}</div>
                   </div>
                   <span className="m-slider-hint">
                     {endpointCount <= 3 ? 'Minimal' : endpointCount <= 6 ? 'Standard' : 'Full Coverage'}
@@ -280,6 +275,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <span className="m-optional-tag">base URLs &amp; auth tokens</span>
                 </label>
                 <select
+                  className="m-theme-select-dropdown"
                   value={envPrefix}
                   onChange={e => setEnvPrefix(e.target.value)}
                 >
@@ -300,14 +296,14 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <div className="m-form-grid-2">
                 <div className="m-form-group">
                   <label className="m-input-label">Delay</label>
-                  <div className="m-slider-row">
+                  <div className="slider-row">
                     <input
                       type="range" min="0" max="2250" step="38"
                       className="m-styled-slider"
                       value={delayMs}
                       onChange={e => setDelayMs(parseInt(e.target.value, 10))}
                     />
-                    <div className="m-slider-value-display">{delayMs}ms</div>
+                    <div className="slider-value-display">{delayMs}ms</div>
                   </div>
                   <span className="m-slider-hint">
                     {delayMs === 0 ? 'Instant' : delayMs < 375 ? 'Fast' : delayMs < 1125 ? 'Realistic' : 'Slow'}
@@ -316,14 +312,14 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
                 <div className="m-form-group">
                   <label className="m-input-label">Error Rate</label>
-                  <div className="m-slider-row">
+                  <div className="slider-row">
                     <input
                       type="range" min="0" max="38" step="4"
                       className="m-styled-slider"
                       value={errorRate}
                       onChange={e => setErrorRate(parseInt(e.target.value, 10))}
                     />
-                    <div className="m-slider-value-display">{errorRate}%</div>
+                    <div className="slider-value-display">{errorRate}%</div>
                   </div>
                   <span className="m-slider-hint">
                     {errorRate === 0 ? 'No Errors' : errorRate < 15 ? 'Low Failure Rate' : 'Chaos Mode'}
@@ -331,24 +327,24 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <label className="m-custom-check">
+              <label className="custom-check">
                 <input
                   type="checkbox"
                   checked={includeTypes}
                   onChange={e => setIncludeTypes(e.target.checked)}
                 />
-                <div className="m-box"><i className="fas fa-check" /></div>
-                <span className="m-label-text">Include TypeScript Type Definitions</span>
+                <div className="box"><i className="fas fa-check" /></div>
+                <span className="label-text">Include TypeScript Type Definitions</span>
               </label>
 
-              <label className="m-custom-check">
+              <label className="custom-check">
                 <input
                   type="checkbox"
                   checked={includeAnalysis}
                   onChange={e => setIncludeAnalysis(e.target.checked)}
                 />
-                <div className="m-box"><i className="fas fa-check" /></div>
-                <span className="m-label-text">Generate Explanation &amp; Coverage Analysis</span>
+                <div className="box"><i className="fas fa-check" /></div>
+                <span className="label-text">Generate Explanation &amp; Coverage Analysis</span>
               </label>
 
               {parsedSpecFeedback.length > 0 && (
@@ -381,25 +377,25 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
         <div className="m-main">
           <div className="m-toolbar">
 
-            <div className="m-tabs-navigation-row">
-              <div className="m-tabs-scroll-wrapper">
-                <div className="m-api-tabs-container">
+            <div className="tabs-navigation-row">
+              <div className="tabs-scroll-wrapper">
+                <div className="api-tabs-container">
                   {filteredHandlers.map((handler, idx) => {
                     const { cls } = getMethodMeta(handler.method);
                     const globalIdx = generatedData?.handlers?.indexOf(handler);
                     return (
                       <button
                         key={handler.name ?? `${handler.method}-${handler.path}`}
-                        className={`m-tab-btn m-handler-tab ${activeHandlerIdx === idx ? 'm-active' : ''}`}
+                        className={`handler-tab ${activeHandlerIdx === idx ? 'active' : ''}`}
                         onClick={() => setActiveHandlerIdx(idx)}
                         title={handler.description}
                       >
-                        <span className={`m-handler-tab-method m-${cls}`}>
+                        <span className={`handler-tab-method ${cls}`}>
                           {handler.method?.toUpperCase()}
                         </span>
-                        <span className="m-handler-tab-path">{handler.path}</span>
+                        <span className="handler-tab-path">{handler.path}</span>
                         {handlerDirty[globalIdx] && (
-                          <span className="m-handler-dirty-dot" title="Edited locally" />
+                          <span className="handler-dirty-dot" title="Edited locally" />
                         )}
                       </button>
                     );
@@ -409,18 +405,18 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
               {generatedData && (
                 <button
-                  className="m-tab-btn m-add-endpoint-tab-btn"
+                  className="add-endpoint-tab-btn"
                   onClick={() => setIsAddEndpointOpen(true)}
                   title="Add a new endpoint"
                 >
-                  <i className="fas fa-plus" style={{ marginRight: 0 }} />
+                  <i className="fas fa-plus" />
                 </button>
               )}
 
-              <div className="m-tabs-dropdown-wrapper">
+              <div className="tabs-dropdown-wrapper">
                 {generatedData && (
                   <button
-                    className={`m-tab-dropdown-toggle ${isDropdownOpen ? 'm-active' : ''}`}
+                    className={`tab-dropdown-toggle ${isDropdownOpen ? 'active' : ''}`}
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     title="Show all endpoints"
                   >
@@ -431,25 +427,25 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 {isDropdownOpen && (
                   <>
                     <div
-                      className="m-dropdown-backdrop"
+                      className="dropdown-backdrop"
                       onClick={() => setIsDropdownOpen(false)}
                     />
-                    <div className="m-tabs-dropdown-menu">
+                    <div className="tabs-dropdown-menu">
                       {filteredHandlers.map((handler, idx) => {
                         const { cls } = getMethodMeta(handler.method);
                         return (
                           <button
                             key={`drop-${idx}`}
-                            className={`m-dropdown-item ${activeHandlerIdx === idx ? 'm-active' : ''}`}
+                            className={`dropdown-item ${activeHandlerIdx === idx ? 'active' : ''}`}
                             onClick={() => {
                               setActiveHandlerIdx(idx);
                               setIsDropdownOpen(false);
                             }}
                           >
-                            <span className={`m-handler-tab-method m-${cls}`}>
+                            <span className={`handler-tab-method ${cls}`}>
                               {handler.method?.toUpperCase()}
                             </span>
-                            <span className="m-handler-tab-path">{handler.path}</span>
+                            <span className="handler-tab-path">{handler.path}</span>
                           </button>
                         );
                       })}
@@ -462,18 +458,18 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
             <div className="m-toolbar-right">
               {generatedData && (
                 <>
-                  <div className="m-toolbar-filter-wrap">
-                    <i className="fas fa-search m-toolbar-filter-icon" />
+                  <div className="toolbar-filter-wrap">
+                    <i className="fas fa-search toolbar-filter-icon" />
                     <input
                       type="text"
-                      className="m-toolbar-filter-input"
+                      className="toolbar-filter-input"
                       placeholder="Filter endpoints..."
                       value={filterQuery}
                       onChange={e => { setFilterQuery(e.target.value); setActiveHandlerIdx(0); }}
                     />
                     {filterQuery && (
                       <button
-                        className="m-toolbar-filter-clear"
+                        className="toolbar-filter-clear"
                         onClick={() => setFilterQuery('')}
                         title="Clear filter"
                       >
@@ -499,9 +495,9 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
 
-                  <div className="m-tabs-dropdown-wrapper">
+                  <div className="tabs-dropdown-wrapper">
                     <button
-                      className={`m-tab-dropdown-toggle ${historyOpen ? 'm-active' : ''}`}
+                      className={`tab-dropdown-toggle ${historyOpen ? 'active' : ''}`}
                       onClick={() => setHistoryOpen(!historyOpen)}
                       title="Generation history"
                       disabled={generationHistory.length === 0}
@@ -537,6 +533,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     </button>
 
                     <select
+                      className="m-theme-select-dropdown"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                       disabled={!generatedData}
@@ -582,10 +579,10 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     Describe a new route — it will be generated and appended to the existing handler set.
                   </p>
                   <div className="m-form-group">
-                    <label className="input-label">Endpoint Description</label>
+                    <label className="m-input-label">Endpoint Description</label>
                     <input
                       type="text"
-                      className="text-input full-width"
+                      className="m-text-input"
                       placeholder="e.g. POST /api/products — create a new product"
                       value={addEndpointInput}
                       onChange={e => setAddEndpointInput(e.target.value)}
@@ -613,33 +610,39 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
             )}
 
             {activeHandler && !isLoading && (
-              <div className="m-handler-detail-container">
-                <div className="m-handler-header-card">
-                  <div className="m-handler-header-left">
+              <div className="handler-detail-container">
+                <div className="handler-header-card">
+                  <div className="handler-header-left">
                     <MethodBadge method={activeHandler.method} />
-                    <span className="m-handler-path-display">{activeHandler.path}</span>
+                    <span className="handler-path-display">{activeHandler.path}</span>
                     <StatusBadge code={activeHandler.statusCode ?? 200} />
                     {activeHandler.delayMs > 0 && (
-                      <span className="m-fixture-delay-tag">
+                      <span className="fixture-delay-tag">
                         <i className="fas fa-hourglass-half" /> {activeHandler.delayMs}ms
                       </span>
                     )}
                     <FixtureShapeWarning handler={activeHandler} />
                     {handlerDirty[globalHandlerIdx] && (
-                      <span className="m-handler-dirty-tag">
+                      <span className="handler-dirty-tag">
                         <i className="fas fa-pencil" /> Edited
                       </span>
                     )}
                   </div>
-                  <div className="m-handler-header-right">
+                  <div className="handler-header-right">
                     {generatedData && <MethodSummaryPills methodCounts={methodCounts} />}
-                    <span className="m-handler-name-tag">
+                    <span className="handler-name-tag">
                       <i className="fas fa-tag" /> {activeHandler.name}
                     </span>
 
+                    <ErrorVariantPanel
+                      handler={activeHandler}
+                      activeVariant={activeErrorVariant[globalHandlerIdx]}
+                      onSelectVariant={(idx) => setErrorVariantForHandler(globalHandlerIdx, idx)}
+                    />
+
                     {!isEditing && (
                       <button
-                        className="secondary-button m-btn-small"
+                        className="secondary-button"
                         onClick={() => startEdit(globalHandlerIdx, viewMode === 'fixture' ? 'fixtureData' : 'code')}
                         title={viewMode === 'fixture' ? 'Edit fixture data' : 'Edit handler code'}
                       >
@@ -648,17 +651,17 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     )}
                     {isEditing && (
                       <>
-                        <button className="primary-button m-btn-small" onClick={commitEdit}>
+                        <button className="primary-button" onClick={commitEdit}>
                           <i className="fas fa-check" /> Save
                         </button>
-                        <button className="secondary-button m-btn-small" onClick={cancelEdit}>
+                        <button className="secondary-button" onClick={cancelEdit}>
                           <i className="fas fa-xmark" /> Cancel
                         </button>
                       </>
                     )}
 
                     <button
-                      className="secondary-button m-btn-small"
+                      className="secondary-button"
                       onClick={() => handleRegenerateHandler(globalHandlerIdx)}
                       disabled={regeneratingIdx === globalHandlerIdx}
                       title="Regenerate just this handler"
@@ -671,29 +674,23 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </div>
 
                 {activeHandler.description && (
-                  <p className="m-handler-description">{activeHandler.description}</p>
+                  <p className="handler-description">{activeHandler.description}</p>
                 )}
 
-                <ErrorVariantPanel
-                  handler={activeHandler}
-                  activeVariant={activeErrorVariant[globalHandlerIdx]}
-                  onSelectVariant={(idx) => setErrorVariantForHandler(globalHandlerIdx, idx)}
-                />
-
-                <div className="m-handler-code-pane">
+                <div className="handler-code-pane">
                   {isEditing ? (
-                    <div className="m-api-code-display m-handler-edit-pane">
-                      <div className="m-handler-edit-header">
-                        <span className="m-handler-edit-title">
+                    <div className="api-code-display">
+                      <div className="handler-edit-header">
+                        <span className="handler-edit-title">
                           <i className="fas fa-pencil" />
                           Editing {editingField === 'fixtureData' ? 'Fixture Data' : 'Handler Code'}
                         </span>
-                        <span className="m-handler-edit-hint">
+                        <span className="handler-edit-hint">
                           {editingField === 'fixtureData' ? 'Must be valid JSON' : 'TypeScript / JS'}
                         </span>
                       </div>
                       <textarea
-                        className="m-handler-edit-textarea"
+                        className="handler-edit-textarea"
                         value={editDraft}
                         onChange={e => setEditDraft(e.target.value)}
                         spellCheck={false}
@@ -751,7 +748,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <label className="m-input-label">Template Name</label>
               <input
                 type="text"
-                className="text-input full-width"
+                className="m-text-input"
                 placeholder="e.g., Users REST CRUD v2"
                 value={newSpecName}
                 onChange={e => { setNewSpecName(e.target.value); setSaveSpecError(''); }}

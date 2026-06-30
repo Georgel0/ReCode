@@ -17,7 +17,6 @@ export function StatusBadge({ code }) {
   return <span className={cls}>{code}</span>;
 }
 
-// Read-only syntax-highlighted code block.
 export function CodeDisplay({ code, language = 'typescript' }) {
   const preRef = useRef(null);
 
@@ -39,7 +38,6 @@ export function CodeDisplay({ code, language = 'typescript' }) {
   );
 }
 
-// Fixture JSON preview panel
 export function FixtureDisplay({ handler }) {
   if (!handler?.fixtureData) {
     return (
@@ -71,7 +69,6 @@ export function FixtureDisplay({ handler }) {
   );
 }
 
-// Summary pill strip shown when data is available.
 export function MethodSummaryPills({ methodCounts }) {
   return (
     <div className="method-summary-pills">
@@ -120,34 +117,26 @@ export function ErrorVariantPanel({ handler, activeVariant, onSelectVariant }) {
   if (!variants?.length) return null;
 
   return (
-    <div className="error-variant-bar">
-      <span className="error-variant-label">
-        <i className="fas fa-triangle-exclamation" /> Error Variants:
-      </span>
-      <button
-        className={`error-variant-btn ${activeVariant == null ? 'active' : ''}`}
-        onClick={() => onSelectVariant(null)}
-      >
-        <StatusBadge code={handler.statusCode ?? 200} />
-        <span>Success</span>
-      </button>
+    <select
+      className="m-theme-select-dropdown"
+      style={{ width: 'auto', minWidth: '140px' }}
+      value={activeVariant == null ? "null" : activeVariant.toString()}
+      onChange={(e) => {
+        const val = e.target.value;
+        onSelectVariant(val === "null" ? null : parseInt(val, 10));
+      }}
+    >
+      <option value="null">Success ({handler.statusCode ?? 200})</option>
       {variants.map((v, i) => (
-        <button
-          key={i}
-          className={`error-variant-btn ${activeVariant === i ? 'active' : ''}`}
-          onClick={() => onSelectVariant(i)}
-        >
-          <StatusBadge code={v.statusCode} />
-          <span>{v.statusCode >= 500 ? 'Server Error' : v.statusCode >= 400 ? 'Client Error' : `${v.statusCode}`}</span>
-        </button>
+        <option key={i} value={i.toString()}>
+          {v.statusCode >= 500 ? 'Server Error' : v.statusCode >= 400 ? 'Client Error' : 'Variant'} ({v.statusCode})
+        </option>
       ))}
-    </div>
+    </select>
   );
 }
 
 export function FixtureShapeWarning({ handler }) {
-  // Lightweight heuristic: check if the handler code mentions array/list patterns
-  // but the fixtureData is a single object (not an array), and vice versa.
   if (!handler?.code || !handler?.fixtureData) return null;
 
   const code = handler.code;
@@ -159,9 +148,9 @@ export function FixtureShapeWarning({ handler }) {
   const fixtureIsArray = Array.isArray(fixture);
   const fixtureIsObject = fixture && typeof fixture === 'object' && !fixtureIsArray;
 
-  // Warn if code implies array but fixture is single object
   const ENVELOPE_KEYS = ['data', 'items', 'results', 'records', 'payload', 'list', 'rows', 'users', 'posts', 'entries'];
   const hasEnvelope = ENVELOPE_KEYS.some(k => Array.isArray(fixture[k]));
+  
   if (codeImpliesList && fixtureIsObject && !hasEnvelope) {
     return (
       <span className="fixture-shape-warning" title="Fixture shape may not match handler types: code implies a list but fixture is a single object">
