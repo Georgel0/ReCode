@@ -205,15 +205,22 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
-  const [framework, setFramework] = useState('msw');
-  const [endpointCount, setEndpointCount] = useState(5);
-  const [delayMs, setDelayMs] = useState(0);
-  const [errorRate, setErrorRate] = useState(0);
-  const [paginationStyle, setPaginationStyle] = useState('none');
-  const [authStyle, setAuthStyle] = useState('none');
-  const [includeTypes, setIncludeTypes] = useState(true);
-  const [includeAnalysis, setIncludeAnalysis] = useState(false);
-  const [envPrefix, setEnvPrefix] = useState('none');
+  
+  const [outputConfig, setOutputConfig] = useState({
+    framework: 'msw',
+    endpointCount: 5,
+    delayMs: 0,
+    errorRate: 0,
+    paginationStyle: 'none',
+    authStyle: 'none',
+    includeTypes: true,
+    includeAnalysis: false,
+    envPrefix: 'none',
+  });
+  const updateOutputConfig = useCallback((key, value) => {
+    setOutputConfig(prev => ({ ...prev, [key]: value }));
+  }, []);
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -271,15 +278,18 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   useEffect(() => {
     if (moduleData && moduleData.type === 'api-mocks') {
       setSpecInput(moduleData.input || '');
-      if (moduleData.framework) setFramework(moduleData.framework);
-      if (moduleData.endpointCount) setEndpointCount(moduleData.endpointCount);
-      if (moduleData.delayMs != null) setDelayMs(moduleData.delayMs);
-      if (moduleData.errorRate != null) setErrorRate(moduleData.errorRate);
-      if (moduleData.paginationStyle) setPaginationStyle(moduleData.paginationStyle);
-      if (moduleData.authStyle) setAuthStyle(moduleData.authStyle);
-      if (moduleData.includeTypes != null) setIncludeTypes(moduleData.includeTypes);
-      if (moduleData.includeAnalysis != null) setIncludeAnalysis(moduleData.includeAnalysis);
-      if (moduleData.envPrefix) setEnvPrefix(moduleData.envPrefix);
+      setOutputConfig(prev => ({
+        ...prev,
+        ...(moduleData.framework && { framework: moduleData.framework }),
+        ...(moduleData.endpointCount && { endpointCount: moduleData.endpointCount }),
+        ...(moduleData.delayMs != null && { delayMs: moduleData.delayMs }),
+        ...(moduleData.errorRate != null && { errorRate: moduleData.errorRate }),
+        ...(moduleData.paginationStyle && { paginationStyle: moduleData.paginationStyle }),
+        ...(moduleData.authStyle && { authStyle: moduleData.authStyle }),
+        ...(moduleData.includeTypes != null && { includeTypes: moduleData.includeTypes }),
+        ...(moduleData.includeAnalysis != null && { includeAnalysis: moduleData.includeAnalysis }),
+        ...(moduleData.envPrefix && { envPrefix: moduleData.envPrefix }),
+      }));
 
       const rawOutput = moduleData.output || moduleData.fullOutput;
       if (rawOutput) {
@@ -300,29 +310,24 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     'api-mocks-draft',
     {
       specInput,
-      framework,
-      endpointCount,
-      delayMs,
-      errorRate,
-      paginationStyle,
-      authStyle,
-      includeTypes,
-      includeAnalysis,
-      envPrefix,
+      ...outputConfig,
       generatedData
     },
     (saved) => {
       if (saved.specInput !== undefined) setSpecInput(saved.specInput);
-      if (saved.framework !== undefined) setFramework(saved.framework);
-      if (saved.endpointCount !== undefined) setEndpointCount(saved.endpointCount);
-      if (saved.delayMs !== undefined) setDelayMs(saved.delayMs);
-      if (saved.errorRate !== undefined) setErrorRate(saved.errorRate);
-      if (saved.paginationStyle !== undefined) setPaginationStyle(saved.paginationStyle);
-      if (saved.authStyle !== undefined) setAuthStyle(saved.authStyle);
-      if (saved.includeTypes !== undefined) setIncludeTypes(saved.includeTypes);
-      if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
-      if (saved.envPrefix !== undefined) setEnvPrefix(saved.envPrefix);
-      if (saved.generatedata !== undefined) setGeneratedData(saved.generatedData);
+      setOutputConfig(prev => ({
+        ...prev,
+        ...(saved.framework !== undefined && { framework: saved.framework }),
+        ...(saved.endpointCount !== undefined && { endpointCount: saved.endpointCount }),
+        ...(saved.delayMs !== undefined && { delayMs: saved.delayMs }),
+        ...(saved.errorRate !== undefined && { errorRate: saved.errorRate }),
+        ...(saved.paginationStyle !== undefined && { paginationStyle: saved.paginationStyle }),
+        ...(saved.authStyle !== undefined && { authStyle: saved.authStyle }),
+        ...(saved.includeTypes !== undefined && { includeTypes: saved.includeTypes }),
+        ...(saved.includeAnalysis !== undefined && { includeAnalysis: saved.includeAnalysis }),
+        ...(saved.envPrefix !== undefined && { envPrefix: saved.envPrefix }),
+      }));
+      if (saved.generatedData !== undefined) setGeneratedData(saved.generatedData);
     },
     {
       isEmpty: (d) => !d.specInput?.trim(),
@@ -381,15 +386,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
 
     try {
       const data = await convertCode('api-mocks', specInput, {
-        framework,
-        endpointCount,
-        delayMs,
-        errorRate,
-        paginationStyle,
-        authStyle,
-        includeTypes,
-        includeAnalysis,
-        envPrefix,
+        ...outputConfig,
         qualityMode,
         detectedFormat,
       });
@@ -406,8 +403,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
           type: 'api-mocks',
           input: specInput,
           output: JSON.stringify(data),
-          framework, endpointCount, delayMs, errorRate,
-          paginationStyle, authStyle, includeTypes, includeAnalysis, envPrefix,
+          ...outputConfig,
         });
       }
     } catch (error) {
@@ -416,11 +412,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    specInput, framework, endpointCount, delayMs, errorRate,
-    paginationStyle, authStyle, includeTypes, includeAnalysis, envPrefix,
-    qualityMode, detectedFormat, onDataUpdate, pushHistory,
-  ]);
+  }, [specInput, outputConfig, qualityMode, detectedFormat, onDataUpdate, pushHistory]);
 
   // Regenerate a single handler
   const handleRegenerateHandler = useCallback(async (idx) => {
@@ -432,15 +424,9 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       // Narrow prompt: target just this one endpoint
       const singleSpec = `${handler.method} ${handler.path}\n${handler.description || ''}`;
       const data = await convertCode('api-mocks', singleSpec, {
-        framework,
+        ...outputConfig,
         endpointCount: 1,
-        delayMs,
-        errorRate,
-        paginationStyle,
-        authStyle,
-        includeTypes,
         includeAnalysis: false,
-        envPrefix,
         qualityMode,
         detectedFormat: 'rest',
       });
@@ -464,7 +450,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     } finally {
       setRegeneratingIdx(null);
     }
-  }, [generatedData, framework, delayMs, errorRate, paginationStyle, authStyle, includeTypes, envPrefix, qualityMode, pushHistory]);
+  }, [generatedData, outputConfig, qualityMode, pushHistory]);
 
   // Add endpoint via mini-input
   const handleAddEndpoint = useCallback(async () => {
@@ -472,15 +458,10 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setIsLoading(true);
     try {
       const data = await convertCode('api-mocks', addEndpointInput.trim(), {
-        framework,
+        ...outputConfig,
         endpointCount: 1,
-        delayMs,
         errorRate: 0,
-        paginationStyle,
-        authStyle,
-        includeTypes,
         includeAnalysis: false,
-        envPrefix,
         qualityMode,
         detectedFormat: 'rest',
       });
@@ -508,7 +489,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [addEndpointInput, generatedData, framework, delayMs, paginationStyle, authStyle, includeTypes, envPrefix, qualityMode, pushHistory]);
+  }, [addEndpointInput, generatedData, outputConfig, qualityMode, pushHistory]);
 
   // File upload handler
   const handleFileUpload = useCallback((file) => {
@@ -654,7 +635,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         const filename = `${group}.ts`;
         const content = [
           `// ${group} handlers – generated by Mock Data Factory`,
-          framework === 'msw' ? `import { http, HttpResponse } from 'msw';` : '',
+          outputConfig.framework === 'msw' ? `import { http, HttpResponse } from 'msw';` : '',
           '',
           ...handlers.map(h => h.code),
           '',
@@ -680,7 +661,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       srcMocks.file('index.ts', barrel);
 
       // Browser entry (MSW only)
-      if (framework === 'msw') {
+      if (outputConfig.framework === 'msw') {
         zip.folder('src/mocks').file('browser.ts',
           `import { setupWorker } from 'msw/browser';\nimport { handlers } from './handlers';\nexport const worker = setupWorker(...handlers);\n`
         );
@@ -700,7 +681,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       alert('Zip export requires the jszip package. Run: npm install jszip');
     }
     setModalConfig(prev => ({ ...prev, isOpen: false }));
-  }, [generatedData, framework]);
+  }, [generatedData, outputConfig]);
 
   // VS Code snippets export
   const exportAsVSCodeSnippets = useCallback(() => {
@@ -731,10 +712,10 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     if (!generatedData?.handlers) return;
 
     if (exportType === 'all-ts') {
-      const ext = framework === 'json' ? 'json' : 'ts';
-      const fileHeader = framework === 'msw'
+      const ext = outputConfig.framework === 'json' ? 'json' : 'ts';
+      const fileHeader = outputConfig.framework === 'msw'
         ? `// MSW v2 Handlers – generated by Mock Data Factory\nimport { http, HttpResponse } from 'msw';\n\nexport const handlers = [\n`
-        : framework === 'nextjs'
+        : outputConfig.framework === 'nextjs'
           ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
           : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
 
@@ -742,7 +723,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         ? generatedData.handlers.map(h =>
           JSON.stringify(h.fixtureData, null, 2)).join('\n\n')
         : generatedData.handlers.map(h => h.code).join('\n\n// ─────\n\n');
-      const fileFooter = framework === 'msw' ? '\n];\n' : '';
+      const fileFooter = outputConfig.framework === 'msw' ? '\n];\n' : '';
 
       downloadFile(fileHeader + allCode + fileFooter, `mock-handlers.${ext}`, 'text/typescript');
     }
@@ -797,7 +778,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     }
 
     setModalConfig(prev => ({ ...prev, isOpen: false }));
-  }, [generatedData, activeHandler, framework, viewMode]);
+  }, [generatedData, activeHandler, outputConfig, viewMode]);
 
   const triggerExportModal = useCallback((type) => {
     const labels = {
@@ -835,7 +816,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       setSaveSpecError('A spec with this name already exists.'); return;
     }
 
-    const newSaved = [...savedSpecs, { name: trimmed, spec: specInput, framework }];
+    const newSaved = [...savedSpecs, { name: trimmed, spec: specInput, framework: outputConfig.framework }];
 
     try {
       localStorage.setItem('mockApiSpecs', JSON.stringify(newSaved));
@@ -844,7 +825,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     } catch (e) {
       setSaveSpecError('Storage quota exceeded. Delete some saved specs first.');
     }
-  }, [newSpecName, savedSpecs, specInput, framework]);
+  }, [newSpecName, savedSpecs, specInput, outputConfig]);
 
   const handleDeleteSpec = useCallback((idx) => {
     const newSaved = savedSpecs.filter((_, i) => i !== idx);
@@ -860,15 +841,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   return {
     // Form
     specInput, setSpecInput,
-    framework, setFramework,
-    endpointCount, setEndpointCount,
-    delayMs, setDelayMs,
-    errorRate, setErrorRate,
-    paginationStyle, setPaginationStyle,
-    authStyle, setAuthStyle,
-    includeTypes, setIncludeTypes,
-    includeAnalysis, setIncludeAnalysis,
-    envPrefix, setEnvPrefix,
+    outputConfig, updateOutputConfig,
     isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 

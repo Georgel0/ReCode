@@ -166,6 +166,7 @@
 
 .m-export-group {
   display: flex;
+  align-items: center;
   gap: 0.38rem;
 }
 

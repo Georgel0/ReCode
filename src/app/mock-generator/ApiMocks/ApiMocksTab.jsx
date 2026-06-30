@@ -19,15 +19,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
   const {
     specInput, setSpecInput,
-    framework, setFramework,
-    endpointCount, setEndpointCount,
-    delayMs, setDelayMs,
-    errorRate, setErrorRate,
-    paginationStyle, setPaginationStyle,
-    authStyle, setAuthStyle,
-    includeTypes, setIncludeTypes,
-    includeAnalysis, setIncludeAnalysis,
-    envPrefix, setEnvPrefix,
+    outputConfig, updateOutputConfig,
     isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 
@@ -79,7 +71,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
     handleDeleteSpec,
   } = api;
 
-  const selectedFramework = FRAMEWORK_OPTIONS.find(f => f.value === framework);
+  const selectedFramework = FRAMEWORK_OPTIONS.find(f => f.value === outputConfig.framework);
   const fileInputRef = useRef(null);
 
   const globalHandlerIdx = activeHandler
@@ -132,7 +124,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                         className="m-schema-library-item-name"
                         onClick={() => {
                           setSpecInput(s.spec);
-                          if (s.framework) setFramework(s.framework);
+                          if (s.framework) updateOutputConfig('framework', s.framework);
                           setSpecsVisible(false);
                         }}
                       >
@@ -216,8 +208,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <div className="m-form-group">
                 <label className="m-input-label">Output Framework</label>
                 <select
-                  value={framework}
-                  onChange={e => setFramework(e.target.value)}
+                  value={outputConfig.framework}
+                  onChange={e => updateOutputConfig('framework', e.target.value)}
                 >
                   {FRAMEWORK_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -232,13 +224,13 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     <input
                       type="range" min="1" max="15"
                       className="m-styled-slider"
-                      value={endpointCount}
-                      onChange={e => setEndpointCount(parseInt(e.target.value, 10))}
+                      value={outputConfig.endpointCount}
+                      onChange={e => updateOutputConfig('endpointCount', parseInt(e.target.value, 10))}
                     />
-                    <div className="slider-value-display">{endpointCount}</div>
+                    <div className="slider-value-display">{outputConfig.endpointCount}</div>
                   </div>
                   <span className="m-slider-hint">
-                    {endpointCount <= 3 ? 'Minimal' : endpointCount <= 6 ? 'Standard' : 'Full Coverage'}
+                    {outputConfig.endpointCount <= 3 ? 'Minimal' : outputConfig.endpointCount <= 6 ? 'Standard' : 'Full Coverage'}
                   </span>
                 </div>
 
@@ -246,8 +238,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <label className="m-input-label">Pagination</label>
                   <select
                     className="m-theme-select-dropdown"
-                    value={paginationStyle}
-                    onChange={e => setPaginationStyle(e.target.value)}
+                    value={outputConfig.paginationStyle}
+                    onChange={e => updateOutputConfig('paginationStyle', e.target.value)}
                   >
                     {PAGINATION_OPTIONS.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -260,8 +252,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 <label className="m-input-label">Auth Simulation</label>
                 <select
                   className="m-theme-select-dropdown"
-                  value={authStyle}
-                  onChange={e => setAuthStyle(e.target.value)}
+                  value={outputConfig.authStyle}
+                  onChange={e => updateOutputConfig('authStyle', e.target.value)}
                 >
                   {AUTH_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -276,8 +268,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </label>
                 <select
                   className="m-theme-select-dropdown"
-                  value={envPrefix}
-                  onChange={e => setEnvPrefix(e.target.value)}
+                  value={outputConfig.envPrefix}
+                  onChange={e => updateOutputConfig('envPrefix', e.target.value)}
                 >
                   {ENV_PREFIX_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -300,13 +292,13 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     <input
                       type="range" min="0" max="2250" step="38"
                       className="m-styled-slider"
-                      value={delayMs}
-                      onChange={e => setDelayMs(parseInt(e.target.value, 10))}
+                      value={outputConfig.delayMs}
+                      onChange={e => updateOutputConfig('delayMs', parseInt(e.target.value, 10))}
                     />
-                    <div className="slider-value-display">{delayMs}ms</div>
+                    <div className="slider-value-display">{outputConfig.delayMs}ms</div>
                   </div>
                   <span className="m-slider-hint">
-                    {delayMs === 0 ? 'Instant' : delayMs < 375 ? 'Fast' : delayMs < 1125 ? 'Realistic' : 'Slow'}
+                    {outputConfig.delayMs === 0 ? 'Instant' : outputConfig.delayMs < 375 ? 'Fast' : outputConfig.delayMs < 1125 ? 'Realistic' : 'Slow'}
                   </span>
                 </div>
 
@@ -316,13 +308,13 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     <input
                       type="range" min="0" max="38" step="4"
                       className="m-styled-slider"
-                      value={errorRate}
-                      onChange={e => setErrorRate(parseInt(e.target.value, 10))}
+                      value={outputConfig.errorRate}
+                      onChange={e => updateOutputConfig('errorRate', parseInt(e.target.value, 10))}
                     />
-                    <div className="slider-value-display">{errorRate}%</div>
+                    <div className="slider-value-display">{outputConfig.errorRate}%</div>
                   </div>
                   <span className="m-slider-hint">
-                    {errorRate === 0 ? 'No Errors' : errorRate < 15 ? 'Low Failure Rate' : 'Chaos Mode'}
+                    {outputConfig.errorRate === 0 ? 'No Errors' : outputConfig.errorRate < 15 ? 'Low Failure Rate' : 'Chaos Mode'}
                   </span>
                 </div>
               </div>
@@ -330,8 +322,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <label className="custom-check">
                 <input
                   type="checkbox"
-                  checked={includeTypes}
-                  onChange={e => setIncludeTypes(e.target.checked)}
+                  checked={outputConfig.includeTypes}
+                  onChange={e => updateOutputConfig('includeTypes', e.target.checked)}
                 />
                 <div className="box"><i className="fas fa-check" /></div>
                 <span className="label-text">Include TypeScript Type Definitions</span>
@@ -340,8 +332,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <label className="custom-check">
                 <input
                   type="checkbox"
-                  checked={includeAnalysis}
-                  onChange={e => setIncludeAnalysis(e.target.checked)}
+                  checked={outputConfig.includeAnalysis}
+                  onChange={e => updateOutputConfig('includeAnalysis', e.target.checked)}
                 />
                 <div className="box"><i className="fas fa-check" /></div>
                 <span className="label-text">Generate Explanation &amp; Coverage Analysis</span>
