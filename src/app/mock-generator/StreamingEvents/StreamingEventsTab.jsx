@@ -129,7 +129,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                           setTemplatesVisible(false);
                         }}
                       >
-                        <i className="fas fa-file-code m-schema-library-item-icon" />
+                        <i className="fas fa-file-code" />
                         {t.name}
                       </div>
                       <button
@@ -150,13 +150,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   lineNumbers={false}
                   onValueChange={setSchemaInput}
                   language="json"
-                  placeholder={`// Describe your event shape, state machine, or entity\n{\n  "event_type": "page_view | click | purchase",\n  "user_id": "UUID",\n  "session_id": "string",\n  "timestamp": "ISO8601"\n}`}
+                  placeholder={`// Describe your event shape\n{\n  "event_type": "page_view | click",\n  "user_id": "UUID",\n  "timestamp": "ISO8601"\n}`}
                 />
               </div>
 
               <div className="action-row start">
                 <button
-                  className="secondary-button m-btn-small m-full-width"
+                  className="secondary-button"
+                  style={{ width: '100%', justifyContent: 'center' }}
                   onClick={handleSaveTemplate}
                   disabled={!schemaInput.trim()}
                 >
@@ -187,7 +188,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             <div className="m-section">
               <div className="m-section-header">
                 <div className="m-section-title">
-                  <><i className="fas fa-balance-scale" /> Rules &amp; Distributions</>
+                  <i className="fas fa-balance-scale" /> Rules &amp; Distributions
                 </div>
               </div>
               <div className="m-form-group">
@@ -206,7 +207,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </select>
                 <textarea
                   className="m-rule-input"
-                  placeholder="e.g., Timestamps must be monotonically increasing in 1–5 second increments."
+                  placeholder="e.g., Timestamps must be monotonically increasing."
                   value={rules}
                   onChange={e => setRules(e.target.value)}
                 />
@@ -272,7 +273,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   Seed <span className="m-optional-tag">optional</span>
                 </label>
                 <div className="m-input-with-icon">
-                  <i className="fas fa-dice input-icon" />
+                  <i className="fas fa-dice m-input-icon" />
                   <input
                     type="text"
                     className="m-text-input m-with-icon"
@@ -342,77 +343,38 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
         </div>
 
         <div className="m-preview-area">
-
           {generatedData && !isLoading && (
-            <div className="m-toolbar m-flex-row">
-
-              <div className="m-tab-list" style={{ flex: 1, overflowX: 'auto', display: 'flex' }}>
+            <div className="stream-toolbar">
+              <div className="stream-tabs">
                 {generatedData.streams.map((s, idx) => (
                   <button
                     key={idx}
-                    className={`m-tab-btn ${activeStream === idx ? 'm-active' : ''}`}
+                    className={`stream-tab-btn ${activeStream === idx ? 'active' : ''}`}
                     onClick={() => setActiveStream(idx)}
                   >
-                    <i className="fas fa-stream" style={{ marginRight: '0.3rem', fontSize: '0.57rem' }} />
+                    <i className="fas fa-stream" />
                     {s.streamName}
                     <span className="m-tab-count-badge">{s.events.length}</span>
                   </button>
                 ))}
               </div>
 
-              <div className="m-toolbar-right m-flex-row">
-                <div className="m-view-mode-toggles">
-                  <button
-                    className={`m-view-toggle-btn ${viewMode === 'events' ? 'm-active' : ''}`}
-                    onClick={() => setViewMode('events')}
-                    title="Table view"
-                  >
-                    <i className="fas fa-table" /> Table
-                    {activeFieldFilterCount > 0 && (
-                      <span className="m-tab-count-badge" style={{ marginLeft: '0.23rem' }}>{activeFieldFilterCount}</span>
-                    )}
-                  </button>
-                  <button
-                    className={`m-view-toggle-btn ${viewMode === 'timeline' ? 'm-active' : ''}`}
-                    onClick={() => setViewMode('timeline')}
-                    title="Timeline view"
-                  >
-                    <i className="fas fa-align-left" /> Timeline
-                  </button>
-                  <button
-                    className={`m-view-toggle-btn ${viewMode === 'replay' ? 'm-active' : ''}`}
-                    onClick={() => setViewMode('replay')}
-                    title="Replay mode"
-                  >
-                    <i className="fas fa-play-circle" /> Replay
-                  </button>
-                  {hasMultipleStreams && (
-                    <button
-                      className={`m-view-toggle-btn ${viewMode === 'correlated' ? 'm-active' : ''}`}
-                      onClick={() => setViewMode('correlated')}
-                      title="Multi-stream correlation view"
-                    >
-                      <i className="fas fa-random" /> Correlated
-                    </button>
-                  )}
-                  <button
-                    className={`m-view-toggle-btn ${viewMode === 'distribution' ? 'm-active' : ''}`}
-                    onClick={() => setViewMode('distribution')}
-                    title="Column distributions"
-                  >
-                    <i className="fas fa-chart-bar" /> Dist
-                  </button>
-                  <button
-                    className={`m-view-toggle-btn ${viewMode === 'raw' ? 'm-active' : ''}`}
-                    onClick={() => setViewMode('raw')}
-                    title="Raw NDJSON"
-                  >
-                    <i className="fas fa-code" /> Raw
-                  </button>
-                </div>
+              <div className="stream-actions">
+                <select
+                  className="m-theme-select-dropdown view-mode-select"
+                  value={viewMode}
+                  onChange={e => setViewMode(e.target.value)}
+                >
+                  <option value="events">Table View {activeFieldFilterCount > 0 ? `(${activeFieldFilterCount})` : ''}</option>
+                  <option value="timeline">Timeline View</option>
+                  <option value="replay">Replay Mode</option>
+                  {hasMultipleStreams && <option value="correlated">Correlated View</option>}
+                  <option value="distribution">Distributions</option>
+                  <option value="raw">Raw NDJSON</option>
+                </select>
 
                 <select
-                  disabled={!generatedData}
+                  className="m-theme-select-dropdown view-mode-select"
                   value=""
                   onChange={e => {
                     if (e.target.value) {
@@ -450,7 +412,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             loadingDescription="Modeling state transitions and generating temporally coherent event sequences..."
           />
 
-          <div className="m-stream-view-scroll-area">
+          <div className="stream-view-scroll-area">
 
             {activeStreamData && !isLoading && viewMode === 'events' && (
               <div className="m-table-wrapper">
@@ -479,6 +441,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   {Object.entries(colUniqueValues).slice(0, 3).map(([col, vals]) => (
                     <select
                       key={col}
+                      className="m-theme-select-dropdown field-filter-select"
                       value={fieldFilters[col] || ''}
                       onChange={e => setFieldFilters(prev => ({ ...prev, [col]: e.target.value }))}
                       title={`Filter by ${col}`}
@@ -494,7 +457,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                       onClick={() => setFieldFilters({})}
                       title="Clear all field filters"
                     >
-                      <i className="fas fa-filter-circle-xmark" /> Clear filters
+                      <i className="fas fa-filter-circle-xmark" /> Clear
                     </button>
                   )}
 
@@ -600,28 +563,28 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {activeStreamData && !isLoading && viewMode === 'timeline' && (
-              <div className="m-stream-timeline-wrapper">
-                <div className="m-stream-timeline-inner">
+              <div className="stream-timeline-wrapper">
+                <div className="stream-timeline-inner">
                   {activeStreamData.events.map((evt, i) => {
                     const ts = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
                     const type = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
                     const isErr = String(type).toLowerCase().includes('error') || String(type).toLowerCase().includes('fail');
                     return (
-                      <div key={`${evt.timestamp ?? ''}-${i}`} className={`m-timeline-event ${isErr ? 'm-timeline-event--error' : ''}`}>
-                        <div className="m-timeline-dot" />
-                        <div className="m-timeline-body">
-                          <div className="m-timeline-header-row">
-                            <span className="m-timeline-event-type">{type}</span>
-                            {ts && <span className="m-timeline-ts">{ts}</span>}
+                      <div key={`${evt.timestamp ?? ''}-${i}`} className={`timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
+                        <div className="timeline-dot" />
+                        <div className="timeline-body">
+                          <div className="timeline-header-row">
+                            <span className="timeline-event-type">{type}</span>
+                            {ts && <span className="timeline-ts">{ts}</span>}
                           </div>
-                          <div className="m-timeline-payload">
+                          <div className="timeline-payload">
                             {Object.entries(evt)
                               .filter(([k]) => k !== 'event_type' && k !== 'type' && k !== 'name' && k !== 'timestamp' && k !== 'ts' && k !== 'event_time' && k !== 'created_at')
                               .slice(0, 4)
                               .map(([k, v]) => (
-                                <span key={k} className="m-timeline-kv">
-                                  <span className="m-timeline-key">{k}</span>
-                                  <span className="m-timeline-val">
+                                <span key={k} className="timeline-kv">
+                                  <span className="timeline-key">{k}</span>
+                                  <span className="timeline-val">
                                     {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}
                                   </span>
                                 </span>
@@ -661,14 +624,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {activeStreamData && !isLoading && viewMode === 'distribution' && (
-              <div className="m-dist-view-wrapper">
-                <div className="m-dist-col-picker">
-                  <span className="m-dist-picker-label"><i className="fas fa-chart-bar" /> Choose a column to analyse:</span>
-                  <div className="m-dist-col-chips">
+              <div className="dist-view-wrapper">
+                <div className="dist-col-picker">
+                  <span className="dist-picker-label"><i className="fas fa-chart-bar" /> Choose a column to analyse:</span>
+                  <div className="dist-col-chips">
                     {colKeys.map(k => (
                       <button
                         key={k}
-                        className={`m-dist-col-chip ${distColumn === k ? 'm-active' : ''}`}
+                        className={`dist-col-chip ${distColumn === k ? 'active' : ''}`}
                         onClick={() => setDistColumn(k)}
                       >
                         {k}
@@ -684,7 +647,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     onClose={() => setDistColumn(null)}
                   />
                 ) : (
-                  <div className="m-dist-empty">
+                  <div className="dist-empty">
                     <i className="fas fa-hand-pointer" />
                     <p>Select a column above to see its distribution</p>
                   </div>
@@ -693,27 +656,27 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             )}
 
             {activeStreamData && !isLoading && viewMode === 'raw' && (
-              <div className="m-stream-raw-wrapper">
-                <div className="m-stream-raw-toolbar">
+              <div className="stream-raw-wrapper">
+                <div className="stream-raw-toolbar">
                   <span className="m-table-meta-tag">
                     <i className="fas fa-file-alt" /> Newline-delimited JSON ({activeStreamData.events.length} events)
                   </span>
                   <div style={{ display: 'flex', gap: '0.38rem' }}>
                     <button
-                      className="secondary-button btn-small"
+                      className="secondary-button"
                       onClick={() => navigator.clipboard.writeText(rawJsonContent)}
                     >
                       <i className="fas fa-copy" /> Copy NDJSON
                     </button>
                     <button
-                      className="secondary-button btn-small"
+                      className="secondary-button"
                       onClick={() => handleCopyAsCode('python_kafka')}
                       title="Copy as Python Kafka producer"
                     >
                       <i className="fab fa-python" /> Python
                     </button>
                     <button
-                      className="secondary-button btn-small"
+                      className="secondary-button"
                       onClick={() => handleCopyAsCode('js_fetch')}
                       title="Copy as JS fetch"
                     >
@@ -721,19 +684,19 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
                 </div>
-                <pre className="m-stream-raw-pre">{rawJsonContent}</pre>
+                <pre className="stream-raw-pre">{rawJsonContent}</pre>
               </div>
             )}
           </div>
 
           {!isLoading && (generatedData?.stateMachine || generatedData?.explanation) && (
-            <div className="m-stream-analysis-panels">
+            <div className="stream-analysis-panels">
               {generatedData.stateMachine && (
-                <div className="m-panel m-explanation-panel">
-                  <h3 className="m-explanation-title">
+                <div className="m-explanation-panel" style={{ borderRadius: 'var(--radius)' }}>
+                  <h3 className="m-explanation-title" style={{ padding: '0.75rem 0.75rem 0' }}>
                     <i className="fas fa-project-diagram" /> State Machine
                   </h3>
-                  <pre className="m-stream-state-machine">
+                  <pre className="stream-state-machine">
                     {typeof generatedData.stateMachine === 'string'
                       ? generatedData.stateMachine
                       : JSON.stringify(generatedData.stateMachine, null, 2)}
@@ -742,7 +705,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               )}
 
               {generatedData.explanation && (
-                <div className="m-panel m-explanation-panel">
+                <div className="m-explanation-panel" style={{ padding: '0.75rem', borderRadius: 'var(--radius)' }}>
                   <h3 className="m-explanation-title">
                     <i className="fas fa-robot" /> Generation Analysis
                   </h3>
@@ -765,7 +728,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
       {isSaveModalOpen && (
         <div className="modal-overlay" onClick={() => setIsSaveModalOpen(false)}>
-          <div className="modal-content m-save-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '338px', width: '100%' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2><i className="fas fa-cloud-upload-alt" /> Save Stream Template</h2>
             </div>
@@ -776,7 +739,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               <label className="m-input-label">Template Name</label>
               <input
                 type="text"
-                className="text-input full-width"
+                className="m-text-input"
+                style={{ width: '100%' }}
                 placeholder="e.g., E-commerce Checkout Journey"
                 value={newTemplateName}
                 onChange={e => { setNewTemplateName(e.target.value); setSaveTemplateError(''); }}
@@ -784,16 +748,16 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 onKeyDown={e => e.key === 'Enter' && executeSaveTemplate()}
               />
               {saveTemplateError && (
-                <div className="error-message">
+                <div className="error-message" style={{ color: 'var(--danger)', fontSize: '0.64rem', marginTop: '0.38rem' }}>
                   <i className="fas fa-exclamation-triangle" /> {saveTemplateError}
                 </div>
               )}
             </div>
-            <div className="modal-footer split-footer">
-              <button className="secondary-button m-modal-btn" onClick={() => setIsSaveModalOpen(false)}>
+            <div className="modal-footer m-split-footer">
+              <button className="secondary-button" style={{ justifyContent: 'center' }} onClick={() => setIsSaveModalOpen(false)}>
                 Cancel
               </button>
-              <button className="primary-button m-modal-btn" onClick={executeSaveTemplate}>
+              <button className="primary-button" style={{ justifyContent: 'center' }} onClick={executeSaveTemplate}>
                 Save Template
               </button>
             </div>

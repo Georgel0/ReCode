@@ -187,6 +187,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
       dataQuality,
       includeAnalysis,
       includeStateMachine,
+      generatedData
     },
     (saved) => {
       if (saved.schemaInput !== undefined) setSchemaInput(saved.schemaInput);
@@ -198,6 +199,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
       if (saved.dataQuality !== undefined) setDataQuality(saved.dataQuality);
       if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
       if (saved.includeStateMachine !== undefined) setIncludeStateMachine(saved.includeStateMachine);
+      if (saved.generatedData !== undefined) setGeneratedData(saved.generatedData);
     },
     {
       isEmpty: (d) => !d.schemaInput?.trim(),

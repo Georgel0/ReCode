@@ -133,13 +133,13 @@ export function inferEventBadges(colName, sampleValue) {
 }
 
 export function EventColBadge({ label }) {
-  let cls = 'col-type-badge';
-  if (label === 'UUID') cls += ' col-type-badge--uuid';
-  if (label === 'TIMESTAMP') cls += ' col-type-badge--ts';
-  if (label === 'EVENT') cls += ' col-type-badge--pk';
-  if (label === 'CORR') cls += ' col-type-badge--fk';
-  if (label === 'BOOL') cls += ' col-type-badge--bool';
-  if (label === 'INT' || label === 'FLOAT') cls += ' col-type-badge--num';
+  let cls = 'm-col-type-badge';
+  if (label === 'UUID') cls += ' m-col-type-badge--uuid';
+  if (label === 'TIMESTAMP') cls += ' m-col-type-badge--ts';
+  if (label === 'EVENT') cls += ' m-col-type-badge--pk';
+  if (label === 'CORR') cls += ' m-col-type-badge--fk';
+  if (label === 'BOOL') cls += ' m-col-type-badge--bool';
+  if (label === 'INT' || label === 'FLOAT') cls += ' m-col-type-badge--num';
   return <span className={cls}>{label}</span>;
 }
 
@@ -160,21 +160,20 @@ export function EditableCell({ value, isEditing, editingValue, onStartEdit, onCh
 
   if (isEditing) {
     return (
-      <td className="editable-cell editing-cell">
+      <td className="m-editable-cell editing-cell">
         <input
           ref={inputRef}
-          className="cell-edit-input"
+          className="m-cell-edit-input"
           value={editingValue}
           onChange={e => onChange(e.target.value)}
           onBlur={() => {
-            // Only commit on blur if Escape was NOT the trigger
             if (!cancelledRef.current) onCommit();
             cancelledRef.current = false;
           }}
           onKeyDown={e => {
             if (e.key === 'Enter') onCommit();
             if (e.key === 'Escape') {
-              cancelledRef.current = true; // suppress the upcoming onBlur commit
+              cancelledRef.current = true;
               onCancel();
             }
           }}
@@ -185,14 +184,14 @@ export function EditableCell({ value, isEditing, editingValue, onStartEdit, onCh
 
   return (
     <td
-      className="editable-cell"
+      className="m-editable-cell"
       title="Double-click to edit · Triple-click to copy"
       onDoubleClick={() => onStartEdit(displayVal)}
       onClick={e => { if (e.detail === 3) onCopy(value); }}
     >
-      <div className="cell-content-wrapper">
-        <span className="cell-value">{displayVal}</span>
-        <i className="fas fa-pencil-alt cell-edit-icon" />
+      <div className="m-cell-content-wrapper">
+        <span className="m-cell-value">{displayVal}</span>
+        <i className="fas fa-pencil-alt m-cell-edit-icon" />
       </div>
     </td>
   );
@@ -218,7 +217,7 @@ export function DistributionChart({ distData, colKey, onClose }) {
             </span>
           )}
         </span>
-        <button className="icon-text-btn" onClick={onClose} title="Close">
+        <button className="m-icon-text-btn" onClick={onClose} title="Close">
           <i className="fas fa-times" />
         </button>
       </div>
@@ -343,7 +342,7 @@ export function ReplayView({
         <div className="replay-speed-wrap">
           <span className="replay-speed-label">{speedLabel}</span>
           <select
-            className="theme-select-dropdown action-select"
+            className="m-theme-select-dropdown action-select"
             value={replaySpeed}
             onChange={e => setReplaySpeed(Number(e.target.value))}
           >
@@ -375,11 +374,13 @@ export function ReplayView({
 
       <div className="replay-stream-area">
         <div className="stream-timeline-inner">
+          
           {visibleEvents.map((evt, i) => {
             const evtType = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
             const evtTs = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
             const isErr = String(evtType).toLowerCase().includes('error') || String(evtType).toLowerCase().includes('fail');
             const isCurrent = i === replayIndex;
+
             return (
               <div
                 key={i}
