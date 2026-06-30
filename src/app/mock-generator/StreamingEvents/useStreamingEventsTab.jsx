@@ -35,43 +35,21 @@ export const STREAM_PARADIGMS = [
 export const SAMPLE_TEMPLATES = [
   {
     label: "E-Commerce Checkout Journey (Funnel)",
-    schema: `{
-  "event_type": "page_view | add_to_cart | begin_checkout | purchase",
-  "user_id": "UUID",
-  "session_id": "string",
-  "product_id": "string?",
-  "cart_value": "float?",
-  "timestamp": "ISO8601"
-}`,
+    schema: `{\n  "event_type": "page_view | add_to_cart | begin_checkout | purchase",\n  "user_id": "UUID",\n  "session_id": "string",\n  "product_id": "string?",\n  "cart_value": "float?",\n  "timestamp": "ISO8601"\n}`,
     rules: "Events within a session must strictly follow the funnel: page_view -> add_to_cart -> begin_checkout -> purchase.\nNot all sessions reach purchase (simulate realistic drop-offs).\nTimestamps within a session must be monotonic, separated by 5-60 seconds.",
     streamParadigm: "journey",
     eventFormat: "json"
   },
   {
     label: "IoT Thermostat Telemetry",
-    schema: `{
-  "device_id": "UUID",
-  "event_type": "telemetry",
-  "temperature": "float",
-  "humidity": "float",
-  "hvac_status": "cooling | heating | idle",
-  "timestamp": "ISO8601"
-}`,
+    schema: `{\n  "device_id": "UUID",\n  "event_type": "telemetry",\n  "temperature": "float",\n  "humidity": "float",\n  "hvac_status": "cooling | heating | idle",\n  "timestamp": "ISO8601"\n}`,
     rules: "Temperature should fluctuate realistically between 68.0 and 74.0.\nHVAC status triggers 'cooling' when temp > 73.0, and goes 'idle' when temp drops below 69.0.\nEvents arrive in exact 1-minute increments.",
     streamParadigm: "iot",
     eventFormat: "kafka"
   },
   {
     label: "Server Access Logs (Audit)",
-    schema: `{
-  "request_id": "UUID",
-  "ip_address": "string",
-  "method": "GET | POST | PUT | DELETE",
-  "path": "string",
-  "status_code": "integer",
-  "latency_ms": "integer",
-  "timestamp": "ISO8601"
-}`,
+    schema: `{\n  "request_id": "UUID",\n  "ip_address": "string",\n  "method": "GET | POST | PUT | DELETE",\n  "path": "string",\n  "status_code": "integer",\n  "latency_ms": "integer",\n  "timestamp": "ISO8601"\n}`,
     rules: "90% of requests should be GET requests with status 200.\n5% should be POST requests.\n5% should simulate errors (status 400, 401, 404, or 500).\nLatency for errors should be significantly higher.",
     streamParadigm: "access_log",
     eventFormat: "json"
@@ -83,34 +61,39 @@ export const ITEMS_PER_PAGE = 15;
 export function useStreamingEventsTab({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
 
-  const [schemaInput, setSchemaInput] = useState('');
-  const [rules, setRules] = useState('');
-  const [eventFormat, setEventFormat] = useState('json');
-  const [streamParadigm, setStreamParadigm] = useState('telemetry');
-  const [eventCount, setEventCount] = useState('25');
-  const [seed, setSeed] = useState('');
-  const [dataQuality, setDataQuality] = useState(100);
-  const [includeAnalysis, setIncludeAnalysis] = useState(false);
-  const [includeStateMachine, setIncludeStateMachine] = useState(false);
+  const [config, setConfig] = useState({
+    schemaInput: '',
+    rules: '',
+    eventFormat: 'json',
+    streamParadigm: 'telemetry',
+    eventCount: '25',
+    seed: '',
+    dataQuality: 100,
+    includeAnalysis: false,
+    includeStateMachine: false,
+  });
+
+  const updateConfig = useCallback((key, value) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
   const [activeStream, setActiveStreamRaw] = useState(0);
   const [parsedRulesFeedback, setParsedRulesFeedback] = useState([]);
 
-  const [viewMode, setViewMode] = useState('events'); // 'events' | 'raw' | 'timeline' | 'replay' | 'correlated' | 'distribution'
+  const [viewMode, setViewMode] = useState('events'); 
   const [filterQuery, setFilterQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [fieldFilters, setFieldFilters] = useState({}); // { colKey: value }
+  const [fieldFilters, setFieldFilters] = useState({});
 
   const [replayIndex, setReplayIndex] = useState(0);
   const [replayPlaying, setReplayPlaying] = useState(false);
-  const [replaySpeed, setReplaySpeed] = useState(500); // ms per event
+  const [replaySpeed, setReplaySpeed] = useState(500); 
   const replayTimerRef = useRef(null);
 
   const [distColumn, setDistColumn] = useState(null);
-
   const [ruleValidation, setRuleValidation] = useState([]);
 
   const [editingCell, setEditingCell] = useState(null);
@@ -138,15 +121,18 @@ export function useStreamingEventsTab({ onDataUpdate }) {
 
   useEffect(() => {
     if (moduleData && moduleData.type === 'stream') {
-      setSchemaInput(moduleData.input || '');
-      if (moduleData.rules) setRules(moduleData.rules);
-      if (moduleData.eventFormat) setEventFormat(moduleData.eventFormat);
-      if (moduleData.streamParadigm) setStreamParadigm(moduleData.streamParadigm);
-      if (moduleData.eventCount) setEventCount(String(moduleData.eventCount));
-      if (moduleData.seed) setSeed(moduleData.seed);
-      if (moduleData.dataQuality != null) setDataQuality(moduleData.dataQuality);
-      if (moduleData.includeAnalysis !== undefined) setIncludeAnalysis(moduleData.includeAnalysis);
-      if (moduleData.includeStateMachine !== undefined) setIncludeStateMachine(moduleData.includeStateMachine);
+      setConfig(prev => ({
+        ...prev,
+        schemaInput: moduleData.input || prev.schemaInput,
+        rules: moduleData.rules !== undefined ? moduleData.rules : prev.rules,
+        eventFormat: moduleData.eventFormat || prev.eventFormat,
+        streamParadigm: moduleData.streamParadigm || prev.streamParadigm,
+        eventCount: moduleData.eventCount ? String(moduleData.eventCount) : prev.eventCount,
+        seed: moduleData.seed !== undefined ? moduleData.seed : prev.seed,
+        dataQuality: moduleData.dataQuality != null ? moduleData.dataQuality : prev.dataQuality,
+        includeAnalysis: moduleData.includeAnalysis !== undefined ? moduleData.includeAnalysis : prev.includeAnalysis,
+        includeStateMachine: moduleData.includeStateMachine !== undefined ? moduleData.includeStateMachine : prev.includeStateMachine,
+      }));
 
       const rawOutput = moduleData.output || moduleData.fullOutput;
       if (rawOutput) {
@@ -177,32 +163,15 @@ export function useStreamingEventsTab({ onDataUpdate }) {
 
   useDraft(
     'streaming-events-draft',
-    {
-      schemaInput,
-      rules,
-      eventFormat,
-      streamParadigm,
-      eventCount,
-      seed,
-      dataQuality,
-      includeAnalysis,
-      includeStateMachine,
-      generatedData
-    },
+    { config, generatedData },
     (saved) => {
-      if (saved.schemaInput !== undefined) setSchemaInput(saved.schemaInput);
-      if (saved.rules !== undefined) setRules(saved.rules);
-      if (saved.eventFormat !== undefined) setEventFormat(saved.eventFormat);
-      if (saved.streamParadigm !== undefined) setStreamParadigm(saved.streamParadigm);
-      if (saved.eventCount !== undefined) setEventCount(saved.eventCount);
-      if (saved.seed !== undefined) setSeed(saved.seed);
-      if (saved.dataQuality !== undefined) setDataQuality(saved.dataQuality);
-      if (saved.includeAnalysis !== undefined) setIncludeAnalysis(saved.includeAnalysis);
-      if (saved.includeStateMachine !== undefined) setIncludeStateMachine(saved.includeStateMachine);
+      if (saved.config) {
+        setConfig(prev => ({ ...prev, ...saved.config }));
+      }
       if (saved.generatedData !== undefined) setGeneratedData(saved.generatedData);
     },
     {
-      isEmpty: (d) => !d.schemaInput?.trim(),
+      isEmpty: (d) => !d.config?.schemaInput?.trim(),
       skip: !!(moduleData && moduleData.type === 'stream'),
     }
   );
@@ -216,7 +185,6 @@ export function useStreamingEventsTab({ onDataUpdate }) {
 
   const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
-  // Replay engine
   useEffect(() => {
     if (!replayPlaying) {
       clearInterval(replayTimerRef.current);
@@ -246,23 +214,20 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     [generatedData]
   );
 
-  // Correlated view
   const correlatedView = useMemo(() => {
     if (!generatedData?.streams || generatedData.streams.length < 2) return null;
     return buildCorrelatedView(generatedData.streams);
   }, [generatedData]);
 
-  // Rule validation — runs automatically when data or rules change
   useEffect(() => {
-    if (!generatedData?.streams || !rules?.trim()) {
+    if (!generatedData?.streams || !config.rules?.trim()) {
       setRuleValidation([]);
       return;
     }
-    const results = runRuleValidation(generatedData.streams, rules);
+    const results = runRuleValidation(generatedData.streams, config.rules);
     setRuleValidation(results);
-  }, [generatedData, rules]);
+  }, [generatedData, config.rules]);
 
-  // Distribution computation
   const distData = useMemo(() => {
     if (!distColumn || !activeStreamData?.events) return null;
     return computeColumnDistribution(activeStreamData.events, distColumn);
@@ -270,24 +235,19 @@ export function useStreamingEventsTab({ onDataUpdate }) {
 
   const handleLoadSample = useCallback((sample) => {
     if (!sample) return;
-    setSchemaInput(sample.schema);
-
-    if (sample.rules) {
-      setRules(sample.rules);
-    } else {
-      setRules('');
-    }
-
-    if (sample.streamParadigm) setStreamParadigm(sample.streamParadigm);
-    if (sample.eventFormat) setEventFormat(sample.eventFormat);
+    setConfig(prev => ({
+      ...prev,
+      schemaInput: sample.schema,
+      rules: sample.rules || '',
+      streamParadigm: sample.streamParadigm || prev.streamParadigm,
+      eventFormat: sample.eventFormat || prev.eventFormat
+    }));
   }, []);
 
-  // Filter events with both text search and field filters
   const filteredEvents = useMemo(() => {
     if (!activeStreamData?.events) return [];
     let evts = activeStreamData.events;
 
-    // Field filters
     const activeFieldFilters = Object.entries(fieldFilters).filter(([, v]) => v !== '' && v !== null && v !== undefined);
 
     if (activeFieldFilters.length > 0) {
@@ -295,13 +255,11 @@ export function useStreamingEventsTab({ onDataUpdate }) {
         activeFieldFilters.every(([k, v]) => {
           const val = evt[k];
           if (val === null || val === undefined) return false;
-
           return String(val).toLowerCase().includes(String(v).toLowerCase());
         })
       );
     }
 
-    // Text search
     if (filterQuery.trim()) {
       const q = filterQuery.toLowerCase();
       evts = evts.filter(evt => {
@@ -331,7 +289,6 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     return Array.from(allKeys);
   }, [activeStreamData]);
 
-  // Unique values per column for field filter dropdowns
   const colUniqueValues = useMemo(() => {
     if (!activeStreamData?.events?.length) return {};
     const result = {};
@@ -342,8 +299,6 @@ export function useStreamingEventsTab({ onDataUpdate }) {
         return (v === null || v === undefined) ? '' : String(v);
       }));
       if (vals.size <= 20 && vals.size > 1) {
-        // Use `v !== ''` so that a genuine empty-string value
-        // is not silently dropped from the filter dropdown options.
         result[k] = Array.from(vals).filter(v => v !== '').sort();
       }
     });
@@ -361,7 +316,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
   }, [generatedData]);
 
   const handleGenerate = useCallback(async () => {
-    if (!schemaInput.trim()) return;
+    if (!config.schemaInput.trim()) return;
     setIsLoading(true);
     setParsedRulesFeedback([]);
     setGeneratedData(null);
@@ -372,24 +327,24 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     setReplayPlaying(false);
 
     try {
-      const count = parseInt(eventCount, 10) || 25;
-      const data = await convertCode('stream', schemaInput, {
+      const count = parseInt(config.eventCount, 10) || 25;
+      const data = await convertCode('stream', config.schemaInput, {
         mode: 'builder',
         qualityMode,
-        rules,
-        eventFormat,
-        streamParadigm,
+        rules: config.rules,
+        eventFormat: config.eventFormat,
+        streamParadigm: config.streamParadigm,
         eventCount: count,
-        seed: seed || undefined,
-        dataQuality,
-        includeAnalysis,
-        includeStateMachine,
+        seed: config.seed || undefined,
+        dataQuality: config.dataQuality,
+        includeAnalysis: config.includeAnalysis,
+        includeStateMachine: config.includeStateMachine,
       });
 
-      if (includeStateMachine && !data.stateMachine) {
+      if (config.includeStateMachine && !data.stateMachine) {
         console.warn('[StreamingEventsTab] includeStateMachine was true but AI response omitted stateMachine field.');
       }
-      if (includeAnalysis && !data.explanation) {
+      if (config.includeAnalysis && !data.explanation) {
         console.warn('[StreamingEventsTab] includeAnalysis was true but AI response omitted explanation field.');
       }
 
@@ -403,10 +358,16 @@ export function useStreamingEventsTab({ onDataUpdate }) {
       if (onDataUpdate) {
         onDataUpdate({
           type: 'stream',
-          input: schemaInput,
+          input: config.schemaInput,
           output: JSON.stringify(data),
-          rules, eventFormat, streamParadigm, eventCount, seed, dataQuality,
-          includeAnalysis, includeStateMachine,
+          rules: config.rules,
+          eventFormat: config.eventFormat,
+          streamParadigm: config.streamParadigm,
+          eventCount: config.eventCount,
+          seed: config.seed,
+          dataQuality: config.dataQuality,
+          includeAnalysis: config.includeAnalysis,
+          includeStateMachine: config.includeStateMachine,
         });
       }
     } catch (error) {
@@ -415,7 +376,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     } finally {
       setIsLoading(false);
     }
-  }, [schemaInput, qualityMode, rules, eventFormat, streamParadigm, eventCount, seed, dataQuality, includeAnalysis, includeStateMachine, onDataUpdate]);
+  }, [config, qualityMode, onDataUpdate]);
 
   const handleStartEdit = useCallback((rowIdx, colKey, currentVal) => {
     const rawVal = typeof currentVal === 'object' && currentVal !== null
@@ -456,7 +417,7 @@ export function useStreamingEventsTab({ onDataUpdate }) {
 
     setEditingCell(null);
     setEditingValue('');
-  }, [editingCell, editingValue, currentPage, activeStream, generatedData, filteredEvents, paginatedEvents]);
+  }, [editingCell, editingValue, activeStream, generatedData, paginatedEvents]);
 
   const handleCancelEdit = useCallback(() => {
     setEditingCell(null);
@@ -549,12 +510,21 @@ export function useStreamingEventsTab({ onDataUpdate }) {
       setSaveTemplateError('A template with this name already exists.');
       return;
     }
-    const updated = [...savedTemplates, { name: trimmed, schema: schemaInput, rules, eventFormat, streamParadigm }];
+    const updated = [
+      ...savedTemplates, 
+      { 
+        name: trimmed, 
+        schema: config.schemaInput, 
+        rules: config.rules, 
+        eventFormat: config.eventFormat, 
+        streamParadigm: config.streamParadigm 
+      }
+    ];
     setSavedTemplates(updated);
 
     localStorage.setItem('streamTemplates', JSON.stringify(updated));
     setIsSaveModalOpen(false);
-  }, [newTemplateName, savedTemplates, schemaInput, rules, eventFormat, streamParadigm]);
+  }, [newTemplateName, savedTemplates, config]);
 
   const handleDeleteTemplate = useCallback((idx) => {
     const updated = savedTemplates.filter((_, i) => i !== idx);
@@ -568,7 +538,6 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     setActiveStreamRaw(idx);
   }, []);
 
-  // Replay controls
   const handleReplayPlay = useCallback(() => {
     if (replayIndex >= (activeStreamData?.events?.length ?? 0) - 1) {
       setReplayIndex(0);
@@ -584,27 +553,15 @@ export function useStreamingEventsTab({ onDataUpdate }) {
   }, [activeStreamData]);
 
   return {
-    // Inputs
-    schemaInput, setSchemaInput,
-    rules, setRules,
-    eventFormat, setEventFormat,
-    streamParadigm, setStreamParadigm,
-    eventCount, setEventCount,
-    seed, setSeed,
-    dataQuality, setDataQuality,
-    includeAnalysis, setIncludeAnalysis,
-    includeStateMachine, setIncludeStateMachine,
+    config, setConfig, updateConfig,
 
-    // Output
     isLoading,
     generatedData,
-    activeStream,
-    setActiveStream,
+    activeStream, setActiveStream,
     parsedRulesFeedback,
     allStreamNames,
     activeStreamData,
 
-    // View
     viewMode, setViewMode,
     filterQuery, setFilterQuery,
     fieldFilters, setFieldFilters,
@@ -617,15 +574,12 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     rawJsonContent,
     rawFullContent,
 
-    // Cell editing
     editingCell, editingValue, setEditingValue,
     handleStartEdit, handleCommitEdit, handleCancelEdit, handleCopyCell,
 
-    // Actions
     handleGenerate,
     triggerExportModal,
 
-    // Template library
     savedTemplates,
     templatesVisible, setTemplatesVisible,
     isSaveModalOpen, setIsSaveModalOpen,
@@ -633,28 +587,20 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     saveTemplateError, setSaveTemplateError,
     handleSaveTemplate, executeSaveTemplate, handleDeleteTemplate,
 
-    // Modal
     modalConfig, setModalConfig,
 
-    // Sample
     handleLoadSample,
 
-    // Replay
     replayIndex, setReplayIndex,
     replayPlaying,
     replaySpeed, setReplaySpeed,
     handleReplayPlay, handleReplayPause, handleReplayReset, handleReplayStep,
 
-    // Distribution
     distColumn, setDistColumn,
     distData,
 
-    // Rule validation
     ruleValidation,
-
-    // Correlated view
     correlatedView,
-
     generateCodeSnippet
   };
 }

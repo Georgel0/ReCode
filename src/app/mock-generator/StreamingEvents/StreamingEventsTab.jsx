@@ -19,11 +19,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
   const st = useStreamingEventsTab({ onDataUpdate, isActive });
 
   const {
-    schemaInput, setSchemaInput, rules, setRules,
-    eventFormat, setEventFormat, streamParadigm, setStreamParadigm,
-    eventCount, setEventCount, seed, setSeed,
-    dataQuality, setDataQuality, includeAnalysis, setIncludeAnalysis,
-    includeStateMachine, setIncludeStateMachine,
+    config, setConfig, updateConfig,
     isLoading, generatedData,
     activeStream, setActiveStream,
     parsedRulesFeedback, activeStreamData,
@@ -108,10 +104,13 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                       <div
                         className="m-schema-library-item-name"
                         onClick={() => {
-                          setSchemaInput(t.schema);
-                          if (t.rules) setRules(t.rules);
-                          if (t.eventFormat) setEventFormat(t.eventFormat);
-                          if (t.streamParadigm) setStreamParadigm(t.streamParadigm);
+                          setConfig(prev => ({
+                            ...prev,
+                            schemaInput: t.schema,
+                            rules: t.rules || prev.rules,
+                            eventFormat: t.eventFormat || prev.eventFormat,
+                            streamParadigm: t.streamParadigm || prev.streamParadigm
+                          }));
                           setTemplatesVisible(false);
                         }}
                       >
@@ -131,9 +130,9 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
               <div className="editor-wrapper-box param-group">
                 <CodeEditor
-                  value={schemaInput}
+                  value={config.schemaInput}
                   lineNumbers={false}
-                  onValueChange={setSchemaInput}
+                  onValueChange={v => updateConfig('schemaInput', v)}
                   language="json"
                   placeholder={`{\n  "event_type": "page_view | click | purchase",\n  "user_id": "UUID",\n  "session_id": "string",\n  "timestamp": "ISO8601"\n}`}
                 />
@@ -143,7 +142,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <button
                   className="secondary-button full-width-btn"
                   onClick={handleSaveTemplate}
-                  disabled={!schemaInput.trim()}
+                  disabled={!config.schemaInput.trim()}
                 >
                   <i className="fas fa-save" /> Save to Library
                 </button>
@@ -161,8 +160,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <label className="m-input-label">Paradigm</label>
                 <select
                   className="m-theme-select-dropdown"
-                  value={streamParadigm}
-                  onChange={e => setStreamParadigm(e.target.value)}
+                  value={config.streamParadigm}
+                  onChange={e => updateConfig('streamParadigm', e.target.value)}
                 >
                   {STREAM_PARADIGMS.map(p => (
                     <option key={p.value} value={p.value}>{p.label}</option>
@@ -174,8 +173,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <label className="m-input-label">Output Format</label>
                 <select
                   className="m-theme-select-dropdown"
-                  value={eventFormat}
-                  onChange={e => setEventFormat(e.target.value)}
+                  value={config.eventFormat}
+                  onChange={e => updateConfig('eventFormat', e.target.value)}
                 >
                   {EVENT_FORMATS.map(f => (
                     <option key={f.value} value={f.value}>{f.label}</option>
@@ -193,14 +192,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
               <div className="m-form-group param-group">
                 <label className="m-input-label">
-                  Event Count <span className="m-quality-value-badge">{eventCount}</span>
+                  Event Count <span className="m-quality-value-badge">{config.eventCount}</span>
                 </label>
                 <input
                   type="range"
                   className="m-styled-slider"
                   min={5} max={200} step={5}
-                  value={parseInt(eventCount, 10) || 25}
-                  onChange={e => setEventCount(e.target.value)}
+                  value={parseInt(config.eventCount, 10) || 25}
+                  onChange={e => updateConfig('eventCount', e.target.value)}
                 />
                 <div className="m-slider-hint">5 – 200 events per stream</div>
               </div>
@@ -215,8 +214,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     type="text"
                     className="m-text-input m-with-icon"
                     placeholder="e.g. replay-42"
-                    value={seed}
-                    onChange={e => setSeed(e.target.value)}
+                    value={config.seed}
+                    onChange={e => updateConfig('seed', e.target.value)}
                   />
                 </div>
               </div>
@@ -224,14 +223,14 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               <div className="m-form-group param-group">
                 <label className="m-input-label">
                   Data Quality{' '}
-                  <span className="m-quality-value-badge">{getQualityLabel(dataQuality)}</span>
+                  <span className="m-quality-value-badge">{getQualityLabel(config.dataQuality)}</span>
                 </label>
                 <input
                   type="range"
                   className="m-styled-slider"
                   min={60} max={100} step={10}
-                  value={dataQuality}
-                  onChange={e => setDataQuality(Number(e.target.value))}
+                  value={config.dataQuality}
+                  onChange={e => updateConfig('dataQuality', Number(e.target.value))}
                 />
                 <div className="m-slider-hint">60 = heavy edge cases · 100 = clean data</div>
               </div>
@@ -240,8 +239,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <label className="custom-check">
                   <input
                     type="checkbox"
-                    checked={includeStateMachine}
-                    onChange={e => setIncludeStateMachine(e.target.checked)}
+                    checked={config.includeStateMachine}
+                    onChange={e => updateConfig('includeStateMachine', e.target.checked)}
                   />
                   <div className="box"><i className="fa-solid fa-check"></i></div>
                   <span className="label-text">
@@ -251,8 +250,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <label className="custom-check">
                   <input
                     type="checkbox"
-                    checked={includeAnalysis}
-                    onChange={e => setIncludeAnalysis(e.target.checked)}
+                    checked={config.includeAnalysis}
+                    onChange={e => updateConfig('includeAnalysis', e.target.checked)}
                   />
                   <div className="box"><i className="fa-solid fa-check"></i></div>
                   <span className="label-text">
@@ -273,8 +272,10 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   className="m-theme-select-dropdown param-group"
                   value=""
                   onChange={e => {
-                    if (e.target.value)
-                      setRules(prev => prev ? `${prev}\n${e.target.value}` : e.target.value);
+                    if (e.target.value) {
+                      const newRule = config.rules ? `${config.rules}\n${e.target.value}` : e.target.value;
+                      updateConfig('rules', newRule);
+                    }
                   }}
                 >
                   <option value="" disabled>+ Insert Template Rule...</option>
@@ -285,8 +286,8 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 <textarea
                   className="m-rule-input"
                   placeholder="e.g., Timestamps must be monotonically increasing."
-                  value={rules}
-                  onChange={e => setRules(e.target.value)}
+                  value={config.rules}
+                  onChange={e => updateConfig('rules', e.target.value)}
                 />
                 {parsedRulesFeedback.length > 0 && (
                   <div className="m-rules-feedback">
@@ -310,7 +311,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
             <button
               className={`primary-button m-fabricate-action-btn ${isLoading ? 'm-loading' : ''}`}
               onClick={handleGenerate}
-              disabled={isLoading || !schemaInput.trim()}
+              disabled={isLoading || !config.schemaInput.trim()}
             >
               {isLoading
                 ? <><i className="fas fa-spinner fa-spin" /> Synthesizing…</>
