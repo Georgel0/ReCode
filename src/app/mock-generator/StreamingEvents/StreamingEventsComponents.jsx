@@ -2,23 +2,9 @@
 
 import React, { useEffect, useRef, useMemo } from "react";
 
-const STREAM_COLORS = [
-  { bg: 'rgba(56,189,248,0.10)', border: 'rgba(56,189,248,0.45)', text: '#38bdf8' },
-  { bg: 'rgba(168,85,247,0.10)', border: 'rgba(168,85,247,0.45)', text: '#a855f7' },
-  { bg: 'rgba(34,197,94,0.10)', border: 'rgba(34,197,94,0.45)', text: '#22c55e' },
-  { bg: 'rgba(249,115,22,0.10)', border: 'rgba(249,115,22,0.45)', text: '#f97316' },
-  { bg: 'rgba(236,72,153,0.10)', border: 'rgba(236,72,153,0.45)', text: '#ec4899' },
-];
-
 export function CorrelatedView({ correlatedView, streams }) {
   const { combined, corrKey, tsKey } = correlatedView;
   const streamNames = streams.map(s => s.streamName);
-
-  const streamColorMap = useMemo(() => {
-    const map = {};
-    streamNames.forEach((name, i) => { map[name] = STREAM_COLORS[i % STREAM_COLORS.length]; });
-    return map;
-  }, [streamNames]);
 
   const groupBoundarySet = useMemo(() => {
     const set = new Set();
@@ -37,11 +23,10 @@ export function CorrelatedView({ correlatedView, streams }) {
     <div className="correlated-wrapper">
       <div className="correlated-legend">
         {streamNames.map((name, i) => {
-          const c = STREAM_COLORS[i % STREAM_COLORS.length];
           return (
-            <div key={name} className="corr-legend-item">
-              <div className="corr-legend-dot" style={{ background: c.text }} />
-              <span style={{ color: c.text, fontWeight: 600 }}>{name}</span>
+            <div key={name} className={`corr-legend-item stream-color-${i % 5}`}>
+              <div className="corr-legend-dot" />
+              <span className="corr-text-color">{name}</span>
             </div>
           );
         })}
@@ -56,11 +41,11 @@ export function CorrelatedView({ correlatedView, streams }) {
         <div className="stream-timeline-inner">
           {combined.map((evt, i) => {
             const streamName = evt.__streamName;
-            const color = streamColorMap[streamName] || STREAM_COLORS[0];
+            const streamIndex = streamNames.indexOf(streamName);
+            const colorClass = `stream-color-${streamIndex % 5}`;
             const evtType = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
             const evtTs = tsKey ? evt[tsKey] : null;
             const isErr = String(evtType).toLowerCase().includes('error') || String(evtType).toLowerCase().includes('fail');
-
             const isNewGroup = groupBoundarySet.has(i);
             const corrVal = corrKey ? evt[corrKey] : null;
 
@@ -73,18 +58,12 @@ export function CorrelatedView({ correlatedView, streams }) {
                     </span>
                   </div>
                 )}
-                <div className={`timeline-event corr-timeline-event ${isErr ? 'timeline-event--error' : ''}`}>
-                  <div
-                    className="timeline-dot corr-dot"
-                    style={{ background: color.text, boxShadow: `0 0 0 2px ${color.text}` }}
-                  />
-                  <div
-                    className="timeline-body corr-event-body"
-                    style={{ borderColor: color.border, background: color.bg }}
-                  >
+                <div className={`timeline-event corr-timeline-event ${isErr ? 'timeline-event--error' : ''} ${colorClass}`}>
+                  <div className="timeline-dot corr-dot" />
+                  <div className="timeline-body corr-event-body">
                     <div className="timeline-header-row">
-                      <span className="timeline-event-type" style={{ color: color.text }}>{evtType}</span>
-                      <span className="corr-stream-chip" style={{ color: color.text, borderColor: color.border, background: color.bg }}>
+                      <span className="timeline-event-type corr-text-color">{evtType}</span>
+                      <span className="corr-stream-chip">
                         {streamName}
                       </span>
                       {evtTs && <span className="timeline-ts">{evtTs}</span>}
@@ -160,7 +139,7 @@ export function EditableCell({ value, isEditing, editingValue, onStartEdit, onCh
 
   if (isEditing) {
     return (
-      <td className="m-editable-cell editing-cell">
+      <td className="m-editable-cell">
         <input
           ref={inputRef}
           className="m-cell-edit-input"
@@ -342,7 +321,7 @@ export function ReplayView({
         <div className="replay-speed-wrap">
           <span className="replay-speed-label">{speedLabel}</span>
           <select
-            className="m-theme-select-dropdown action-select"
+            className="m-theme-select-dropdown m-action-select"
             value={replaySpeed}
             onChange={e => setReplaySpeed(Number(e.target.value))}
           >

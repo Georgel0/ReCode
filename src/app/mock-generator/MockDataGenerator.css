@@ -204,13 +204,11 @@
 
 .m-explanation-panel {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
 }
 
 .m-explanation-title {
   color: var(--text-primary) !important;
   font-size: 0.75rem !important;
-  margin-bottom: 0.75rem !important;
   display: flex;
   align-items: center;
   gap: 0.38rem;
@@ -225,6 +223,10 @@
   font-size: 0.68rem;
   line-height: 1.2;
   color: var(--text-secondary);
+}
+
+.m-explanation-body h1 {
+  margin-top: 0;
 }
 
 .m-explanation-body strong {
