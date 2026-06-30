@@ -446,7 +446,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
 
         <div className="m-main">
 
-          <div className="m-toolbar">
+          <div className="mb-toolbar">
             {!isLoading && viewMode !== 'erd' ? (
               <div className="m-tabs-container">
                 {generatedData?.tables.map((table, idx) => {

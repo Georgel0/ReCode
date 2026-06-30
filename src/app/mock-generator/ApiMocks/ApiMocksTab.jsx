@@ -98,7 +98,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <i className={`fas ${FORMAT_ICONS[detectedFormat]}`} />
                   Specification
                   {detectedFormat !== 'auto' && (
-                    <span className="detected-format-tag">
+                    <span className="ma-detected-format-tag">
                       {FORMAT_LABELS[detectedFormat]}
                     </span>
                   )}
@@ -159,7 +159,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               </div>
 
               <div
-                className={`spec-dropzone ${isDragOver ? 'dragover' : ''}`}
+                className={`ma-spec-dropzone ${isDragOver ? 'ma-dragover' : ''}`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -220,14 +220,14 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <div className="m-form-grid-2">
                 <div className="m-form-group">
                   <label className="m-input-label">Endpoints</label>
-                  <div className="slider-row">
+                  <div className="ma-slider-row">
                     <input
                       type="range" min="1" max="15"
                       className="m-styled-slider"
                       value={outputConfig.endpointCount}
                       onChange={e => updateOutputConfig('endpointCount', parseInt(e.target.value, 10))}
                     />
-                    <div className="slider-value-display">{outputConfig.endpointCount}</div>
+                    <div className="ma-slider-value-display">{outputConfig.endpointCount}</div>
                   </div>
                   <span className="m-slider-hint">
                     {outputConfig.endpointCount <= 3 ? 'Minimal' : outputConfig.endpointCount <= 6 ? 'Standard' : 'Full Coverage'}
@@ -288,14 +288,14 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <div className="m-form-grid-2">
                 <div className="m-form-group">
                   <label className="m-input-label">Delay</label>
-                  <div className="slider-row">
+                  <div className="ma-slider-row">
                     <input
                       type="range" min="0" max="2250" step="38"
                       className="m-styled-slider"
                       value={outputConfig.delayMs}
                       onChange={e => updateOutputConfig('delayMs', parseInt(e.target.value, 10))}
                     />
-                    <div className="slider-value-display">{outputConfig.delayMs}ms</div>
+                    <div className="ma-slider-value-display">{outputConfig.delayMs}ms</div>
                   </div>
                   <span className="m-slider-hint">
                     {outputConfig.delayMs === 0 ? 'Instant' : outputConfig.delayMs < 375 ? 'Fast' : outputConfig.delayMs < 1125 ? 'Realistic' : 'Slow'}
@@ -304,14 +304,14 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
                 <div className="m-form-group">
                   <label className="m-input-label">Error Rate</label>
-                  <div className="slider-row">
+                  <div className="ma-slider-row">
                     <input
                       type="range" min="0" max="38" step="4"
                       className="m-styled-slider"
                       value={outputConfig.errorRate}
                       onChange={e => updateOutputConfig('errorRate', parseInt(e.target.value, 10))}
                     />
-                    <div className="slider-value-display">{outputConfig.errorRate}%</div>
+                    <div className="ma-slider-value-display">{outputConfig.errorRate}%</div>
                   </div>
                   <span className="m-slider-hint">
                     {outputConfig.errorRate === 0 ? 'No Errors' : outputConfig.errorRate < 15 ? 'Low Failure Rate' : 'Chaos Mode'}
@@ -369,25 +369,25 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
         <div className="m-main">
           <div className="m-toolbar">
 
-            <div className="tabs-navigation-row">
-              <div className="tabs-scroll-wrapper">
-                <div className="api-tabs-container">
+            <div className="ma-tabs-navigation-row">
+              <div className="ma-tabs-scroll-wrapper">
+                <div className="ma-api-tabs-container">
                   {filteredHandlers.map((handler, idx) => {
                     const { cls } = getMethodMeta(handler.method);
                     const globalIdx = generatedData?.handlers?.indexOf(handler);
                     return (
                       <button
                         key={handler.name ?? `${handler.method}-${handler.path}`}
-                        className={`handler-tab ${activeHandlerIdx === idx ? 'active' : ''}`}
+                        className={`ma-handler-tab ${activeHandlerIdx === idx ? 'ma-active' : ''}`}
                         onClick={() => setActiveHandlerIdx(idx)}
                         title={handler.description}
                       >
-                        <span className={`handler-tab-method ${cls}`}>
+                        <span className={`ma-handler-tab-method ${cls}`}>
                           {handler.method?.toUpperCase()}
                         </span>
-                        <span className="handler-tab-path">{handler.path}</span>
+                        <span className="ma-handler-tab-path">{handler.path}</span>
                         {handlerDirty[globalIdx] && (
-                          <span className="handler-dirty-dot" title="Edited locally" />
+                          <span className="ma-handler-dirty-dot" title="Edited locally" />
                         )}
                       </button>
                     );
@@ -397,7 +397,7 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
               {generatedData && (
                 <button
-                  className="add-endpoint-tab-btn"
+                  className="ma-add-endpoint-tab-btn"
                   onClick={() => setIsAddEndpointOpen(true)}
                   title="Add a new endpoint"
                 >
@@ -405,10 +405,10 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </button>
               )}
 
-              <div className="tabs-dropdown-wrapper">
+              <div className="ma-tabs-dropdown-wrapper">
                 {generatedData && (
                   <button
-                    className={`tab-dropdown-toggle ${isDropdownOpen ? 'active' : ''}`}
+                    className={`ma-tab-dropdown-toggle ${isDropdownOpen ? 'ma-active' : ''}`}
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     title="Show all endpoints"
                   >
@@ -419,25 +419,25 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 {isDropdownOpen && (
                   <>
                     <div
-                      className="dropdown-backdrop"
+                      className="ma-dropdown-backdrop"
                       onClick={() => setIsDropdownOpen(false)}
                     />
-                    <div className="tabs-dropdown-menu">
+                    <div className="ma-tabs-dropdown-menu">
                       {filteredHandlers.map((handler, idx) => {
                         const { cls } = getMethodMeta(handler.method);
                         return (
                           <button
                             key={`drop-${idx}`}
-                            className={`dropdown-item ${activeHandlerIdx === idx ? 'active' : ''}`}
+                            className={`ma-dropdown-item ${activeHandlerIdx === idx ? 'ma-active' : ''}`}
                             onClick={() => {
                               setActiveHandlerIdx(idx);
                               setIsDropdownOpen(false);
                             }}
                           >
-                            <span className={`handler-tab-method ${cls}`}>
+                            <span className={`ma-handler-tab-method ${cls}`}>
                               {handler.method?.toUpperCase()}
                             </span>
-                            <span className="handler-tab-path">{handler.path}</span>
+                            <span className="ma-handler-tab-path">{handler.path}</span>
                           </button>
                         );
                       })}
@@ -450,18 +450,18 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
             <div className="m-toolbar-right">
               {generatedData && (
                 <>
-                  <div className="toolbar-filter-wrap">
-                    <i className="fas fa-search toolbar-filter-icon" />
+                  <div className="ma-toolbar-filter-wrap">
+                    <i className="fas fa-search ma-toolbar-filter-icon" />
                     <input
                       type="text"
-                      className="toolbar-filter-input"
+                      className="ma-toolbar-filter-input"
                       placeholder="Filter endpoints..."
                       value={filterQuery}
                       onChange={e => { setFilterQuery(e.target.value); setActiveHandlerIdx(0); }}
                     />
                     {filterQuery && (
                       <button
-                        className="toolbar-filter-clear"
+                        className="ma-toolbar-filter-clear"
                         onClick={() => setFilterQuery('')}
                         title="Clear filter"
                       >
@@ -487,9 +487,9 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     </button>
                   </div>
 
-                  <div className="tabs-dropdown-wrapper">
+                  <div className="ma-tabs-dropdown-wrapper">
                     <button
-                      className={`tab-dropdown-toggle ${historyOpen ? 'active' : ''}`}
+                      className={`ma-tab-dropdown-toggle ${historyOpen ? 'ma-active' : ''}`}
                       onClick={() => setHistoryOpen(!historyOpen)}
                       title="Generation history"
                       disabled={generationHistory.length === 0}
@@ -602,27 +602,27 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
             )}
 
             {activeHandler && !isLoading && (
-              <div className="handler-detail-container">
-                <div className="handler-header-card">
-                  <div className="handler-header-left">
+              <div className="ma-handler-detail-container">
+                <div className="ma-handler-header-card">
+                  <div className="ma-handler-header-left">
                     <MethodBadge method={activeHandler.method} />
-                    <span className="handler-path-display">{activeHandler.path}</span>
+                    <span className="ma-handler-path-display">{activeHandler.path}</span>
                     <StatusBadge code={activeHandler.statusCode ?? 200} />
                     {activeHandler.delayMs > 0 && (
-                      <span className="fixture-delay-tag">
+                      <span className="ma-fixture-delay-tag">
                         <i className="fas fa-hourglass-half" /> {activeHandler.delayMs}ms
                       </span>
                     )}
                     <FixtureShapeWarning handler={activeHandler} />
                     {handlerDirty[globalHandlerIdx] && (
-                      <span className="handler-dirty-tag">
+                      <span className="ma-handler-dirty-tag">
                         <i className="fas fa-pencil" /> Edited
                       </span>
                     )}
                   </div>
-                  <div className="handler-header-right">
+                  <div className="ma-handler-header-right">
                     {generatedData && <MethodSummaryPills methodCounts={methodCounts} />}
-                    <span className="handler-name-tag">
+                    <span className="ma-handler-name-tag">
                       <i className="fas fa-tag" /> {activeHandler.name}
                     </span>
 
@@ -666,23 +666,23 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </div>
 
                 {activeHandler.description && (
-                  <p className="handler-description">{activeHandler.description}</p>
+                  <p className="ma-handler-description">{activeHandler.description}</p>
                 )}
 
-                <div className="handler-code-pane">
+                <div className="ma-handler-code-pane">
                   {isEditing ? (
-                    <div className="api-code-display">
-                      <div className="handler-edit-header">
-                        <span className="handler-edit-title">
+                    <div className="ma-api-code-display">
+                      <div className="ma-handler-edit-header">
+                        <span className="ma-handler-edit-title">
                           <i className="fas fa-pencil" />
                           Editing {editingField === 'fixtureData' ? 'Fixture Data' : 'Handler Code'}
                         </span>
-                        <span className="handler-edit-hint">
+                        <span className="ma-handler-edit-hint">
                           {editingField === 'fixtureData' ? 'Must be valid JSON' : 'TypeScript / JS'}
                         </span>
                       </div>
                       <textarea
-                        className="handler-edit-textarea"
+                        className="ma-handler-edit-textarea"
                         value={editDraft}
                         onChange={e => setEditDraft(e.target.value)}
                         spellCheck={false}
