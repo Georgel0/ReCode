@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { LANGUAGES } from '@/lib';
 import { CopyButton, CodeEditor, CodeOutput } from '@/components/ui';
@@ -29,78 +29,56 @@ export default function CodeConverter() {
   const { setModuleData } = useApp();
   const router = useRouter();
 
-  const {
-    // file state
-    files, setFiles, outputFiles, activeTabId, setActiveTabId, activeFile, activeOutputFile,
-    // conversion settings
-    targetLang, setTargetLang, targetFramework, setTargetFramework,
-    isPartialMode, setIsPartialMode, selectedRange, setSelectedRange,
-    // async flags
-    loading, formatting, linting,
-    // lint / toast state
-    lintResult, toasts, dismissToast,
-    // refs
-    fileInputRef,
-    // ui toggles
-    diffMode, setDiffMode,
-    conversionNotes, notesOpen, setNotesOpen,
-    feedbackText, setFeedbackText,
-    conversionHistory, historyPanelOpen, setHistoryPanelOpen,
-    // file actions
-    handleFileUpload, updateFile, renameFile, handleAddFile, handleClearAll, removeFile,
-    // conversion actions
-    handleConvert, handleReconvert,
-    // lint / format actions
-    runLinter, formatActiveCode,
-    // history actions
-    restoreHistoryEntry, removeHistoryEntry,
-    // download actions
-    downloadZip, downloadSingleFile,
-  } = useCodeConverter();
+  const convert = useCodeConverter();
 
   const { sourceScrollRef, targetScrollRef, syncScroll, setSyncScroll } =
-    useSyncScroll({ deps: [outputFiles, activeTabId] });
+    useSyncScroll({ deps: [convert.outputFiles, convert.activeTabId] });
 
   const [selectionMode, setSelectionMode] = useState(false);
-  const hasOutput = outputFiles.length > 0;
+  const hasOutput = convert.outputFiles.length > 0;
 
   const lastResult = useMemo(() => hasOutput
     ? {
       type: 'converter',
-      input: files,
-      sourceLang: activeFile?.language || null,
-      targetLang,
-      output: { outputFiles, targetLang, targetFramework, conversionNotes },
+      input: convert.files,
+      sourceLang: convert.activeFile?.language || null,
+      targetLang: convert.targetLang,
+      output: { 
+        outputFiles: convert.outputFiles, 
+        targetLang: convert.targetLang, 
+        targetFramework: convert.targetFramework, 
+        conversionNotes: convert.conversionNotes 
+      },
     }
     : null,
-    [hasOutput, files, activeFile?.language, targetLang, outputFiles, targetFramework, conversionNotes]
+    [hasOutput, convert.files, convert.activeFile?.language, convert.targetLang, convert.outputFiles, convert.targetFramework, convert.conversionNotes]
   );
 
-  const handleSendToAnalysis = () => {
-    if (!activeFile?.content) return;
+  const handleSendToAnalysis = useCallback(() => {
+    if (!convert.activeFile?.content) return;
     setModuleData({
       type: 'analysis',
-      input: activeOutputFile?.content || activeFile.content,
+      input: convert.activeOutputFile?.content || convert.activeFile.content,
       sourceModule: 'converter',
     });
     router.push('/code-analysis');
-  };
+  }, [convert.activeFile, convert.activeOutputFile, setModuleData, router]);
 
-  const handleSendToRefactor = () => {
-    if (!activeOutputFile?.content) return;
-    const ext = LANGUAGES.find(l => l.value === targetLang)?.ext || '.txt';
+  const handleSendToRefactor = useCallback(() => {
+    if (!convert.activeOutputFile?.content) return;
+    const ext = LANGUAGES.find(l => l.value === convert.targetLang)?.ext || '.txt';
     setModuleData({
       type: 'refactor',
-      input: outputFiles.map(f => ({
+      input: convert.outputFiles.map(f => ({
         id: f.sourceId,
         name: f.fileName || `converted${ext}`,
-        language: targetLang,
+        language: convert.targetLang,
         content: f.content,
       })),
       sourceModule: 'converter',
     });
     router.push('/code-refactor');
-  };
+  }, [convert.activeOutputFile, convert.targetLang, convert.outputFiles, setModuleData, router]);
 
   return (
     <>
@@ -118,9 +96,9 @@ export default function CodeConverter() {
               <i className="fa-solid fa-file-code"></i> Source
             </span>
             <select
-              value={activeFile?.language || 'javascript'}
+              value={convert.activeFile?.language || 'javascript'}
               onChange={(e) =>
-                setFiles(prev => prev.map(f => f.id === activeTabId ? { ...f, language: e.target.value } : f))
+                convert.setFiles(prev => prev.map(f => f.id === convert.activeTabId ? { ...f, language: e.target.value } : f))
               }
             >
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
@@ -131,10 +109,10 @@ export default function CodeConverter() {
             <label className="custom-check" title="Convert only highlighted lines">
               <input
                 type="checkbox"
-                checked={isPartialMode}
+                checked={convert.isPartialMode}
                 onChange={(e) => {
-                  setIsPartialMode(e.target.checked);
-                  if (!e.target.checked) { setSelectedRange(null); setSelectionMode(false); }
+                  convert.setIsPartialMode(e.target.checked);
+                  if (!e.target.checked) { convert.setSelectedRange(null); setSelectionMode(false); }
                   else setSelectionMode(true);
                 }}
               />
@@ -144,10 +122,10 @@ export default function CodeConverter() {
 
             <button
               className="primary-button c-convert-btn"
-              onClick={() => handleConvert()}
-              disabled={loading || files.every(f => !f.content.trim())}
+              onClick={() => convert.handleConvert()}
+              disabled={convert.loading || convert.files.every(f => !f.content.trim())}
             >
-              {loading
+              {convert.loading
                 ? <><i className="fa-solid fa-spinner fa-spin"></i> Converting…</>
                 : <><i className="fa-solid fa-wand-magic-sparkles"></i> Convert <i className="fa-solid fa-arrow-right c-convert-btn__arrow"></i></>
               }
@@ -158,17 +136,17 @@ export default function CodeConverter() {
             <span className="c-control-bar__label">
               <i className="fa-solid fa-code-compare"></i> Target
             </span>
-            <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+            <select value={convert.targetLang} onChange={(e) => convert.setTargetLang(e.target.value)}>
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
-            <select value={targetFramework} onChange={(e) => setTargetFramework(e.target.value)}>
+            <select value={convert.targetFramework} onChange={(e) => convert.setTargetFramework(e.target.value)}>
               {FRAMEWORKS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
             </select>
 
             {hasOutput && (
               <button
-                className={`secondary-button c-btn-icon${diffMode ? ' btn-active' : ''}`}
-                onClick={() => setDiffMode(d => !d)}
+                className={`secondary-button c-btn-icon${convert.diffMode ? ' btn-active' : ''}`}
+                onClick={() => convert.setDiffMode(d => !d)}
                 title="Toggle diff view"
               >
                 <i className="fa-solid fa-code-branch"></i>
@@ -192,54 +170,54 @@ export default function CodeConverter() {
             <div className="c-panel__header">
               <h3 className="c-panel__title"><i className="fas fa-file-code"></i> Source Files</h3>
               <div className="c-panel__actions">
-                <button className="secondary-button btn-danger" onClick={handleClearAll} title="Clear Workspace">
+                <button className="secondary-button btn-danger" onClick={convert.handleClearAll} title="Clear Workspace">
                   <i className="fa-solid fa-trash-can"></i>
                 </button>
-                <button className="secondary-button" onClick={() => fileInputRef.current.click()} title="Upload File">
+                <button className="secondary-button" onClick={() => convert.fileInputRef.current.click()} title="Upload File">
                   <i className="fa-solid fa-cloud-arrow-up"></i> <span className="c-text-to-hide">Upload</span>
                 </button>
-                <button className="secondary-button" onClick={handleAddFile} title="Add File Tab">
+                <button className="secondary-button" onClick={convert.handleAddFile} title="Add File Tab">
                   <i className="fa-solid fa-plus"></i> <span className="c-text-to-hide">Add</span>
                 </button>
               </div>
-              <input type="file" ref={fileInputRef} className="c-file-input-hidden" onChange={handleFileUpload} multiple />
+              <input type="file" ref={convert.fileInputRef} className="c-file-input-hidden" onChange={convert.handleFileUpload} multiple />
             </div>
 
             <ConverterTabs
-              files={files}
-              activeTabId={activeTabId}
-              setActiveTabId={setActiveTabId}
-              removeFile={removeFile}
-              renameFile={renameFile}
+              files={convert.files}
+              activeTabId={convert.activeTabId}
+              setActiveTabId={convert.setActiveTabId}
+              removeFile={convert.removeFile}
+              renameFile={convert.renameFile}
             />
 
             <div className="c-panel__body">
-              {isPartialMode && selectionMode ? (
+              {convert.isPartialMode && selectionMode ? (
                 <div className="c-scroll c-scroll--selection">
                   <div className="c-selection-hint">
                     <i className="fa-solid fa-hand-pointer"></i> Drag to select lines for partial conversion
-                    {selectedRange && (
+                    {convert.selectedRange && (
                       <span className="c-selection-badge">
-                        Lines {selectedRange.start + 1}–{selectedRange.end + 1}
-                        <button className="c-selection-clear" onClick={() => setSelectedRange(null)}>
+                        Lines {convert.selectedRange.start + 1}–{convert.selectedRange.end + 1}
+                        <button className="c-selection-clear" onClick={() => convert.setSelectedRange(null)}>
                           <i className="fa-solid fa-xmark"></i>
                         </button>
                       </span>
                     )}
                   </div>
                   <LineSelector
-                    content={activeFile?.content || ''}
-                    selectedRange={selectedRange}
-                    onRangeChange={setSelectedRange}
+                    content={convert.activeFile?.content || ''}
+                    selectedRange={convert.selectedRange}
+                    onRangeChange={convert.setSelectedRange}
                   />
                 </div>
               ) : (
                 <div className="c-scroll" ref={sourceScrollRef}>
                   <CodeEditor
-                    value={activeFile?.content || ''}
-                    onValueChange={(code) => updateFile(activeTabId, code)}
-                    language={activeFile?.language || 'javascript'}
-                    onSubmit={handleConvert}
+                    value={convert.activeFile?.content || ''}
+                    onValueChange={(code) => convert.updateFile(convert.activeTabId, code)}
+                    language={convert.activeFile?.language || 'javascript'}
+                    onSubmit={convert.handleConvert}
                   />
                 </div>
               )}
@@ -266,10 +244,10 @@ export default function CodeConverter() {
                     >
                       <i className="fa-solid fa-wand-magic-sparkles"></i> <span className="c-text-to-hide">Refactor</span>
                     </button>
-                    <button className="secondary-button" onClick={downloadSingleFile} title="Download File">
+                    <button className="secondary-button" onClick={convert.downloadSingleFile} title="Download File">
                       <i className="fa-solid fa-file-arrow-down"></i> <span className="c-text-to-hide">File</span>
                     </button>
-                    <button className="secondary-button" onClick={downloadZip} title="Download ZIP">
+                    <button className="secondary-button" onClick={convert.downloadZip} title="Download ZIP">
                       <i className="fa-solid fa-file-zipper"></i> <span className="c-text-to-hide">ZIP</span>
                     </button>
                   </>
@@ -281,26 +259,26 @@ export default function CodeConverter() {
               {hasOutput ? (
                 <div className="c-output">
                   <ConverterTabs
-                    files={outputFiles.map(f => ({ id: f.sourceId, name: f.fileName }))}
-                    activeTabId={activeTabId}
-                    setActiveTabId={setActiveTabId}
+                    files={convert.outputFiles.map(f => ({ id: f.sourceId, name: f.fileName }))}
+                    activeTabId={convert.activeTabId}
+                    setActiveTabId={convert.setActiveTabId}
                     removeFile={() => { }}
                     readOnly={true}
                   />
                   <div className="c-output__inner">
                     <div className="c-output__scroll" ref={targetScrollRef}>
                       <CodeOutput
-                        language={targetLang}
-                        content={activeOutputFile?.content || '// File not found'}
+                        language={convert.targetLang}
+                        content={convert.activeOutputFile?.content || '// File not found'}
                       />
                     </div>
-                    <CopyButton codeToCopy={activeOutputFile?.content || ''} />
+                    <CopyButton codeToCopy={convert.activeOutputFile?.content || ''} />
                   </div>
                 </div>
               ) : (
                 <div className="c-output-empty">
                   <EmptyState
-                    isLoading={loading}
+                    isLoading={convert.loading}
                     condition={!hasOutput}
                     icon="fas fa-sync-alt"
                     title="Awaiting Code Translation"
@@ -315,39 +293,39 @@ export default function CodeConverter() {
           </div>
         </div>
 
-        <ToastStack toasts={toasts} dismissToast={dismissToast} />
+        <ToastStack toasts={convert.toasts} dismissToast={convert.dismissToast} />
 
         {hasOutput && (
           <div className="c-module-footer">
             <div className="c-module-footer__top-row">
               <FormatButton
-                onClick={() => formatActiveCode(false)}
-                disabled={formatting || !activeFile?.content?.trim()}
-                formatting={formatting}
+                onClick={() => convert.formatActiveCode(false)}
+                disabled={convert.formatting || !convert.activeFile?.content?.trim()}
+                formatting={convert.formatting}
               />
 
               <SyntaxCheckerPanel
-                runLinter={runLinter}
-                linting={linting}
-                lintResult={lintResult}
+                runLinter={convert.runLinter}
+                linting={convert.linting}
+                lintResult={convert.lintResult}
               />
             </div>
 
             <div className="c-module-footer__bottom-row">
               <div className="footer__sub-bottom-row">
                 <HistoryPanel
-                  history={conversionHistory}
-                  activeTabId={activeTabId}
-                  open={historyPanelOpen}
-                  onToggle={() => setHistoryPanelOpen(o => !o)}
-                  onRestore={restoreHistoryEntry}
-                  onRemove={removeHistoryEntry}
+                  history={convert.conversionHistory}
+                  activeTabId={convert.activeTabId}
+                  open={convert.historyPanelOpen}
+                  onToggle={() => convert.setHistoryPanelOpen(o => !o)}
+                  onRestore={convert.restoreHistoryEntry}
+                  onRemove={convert.removeHistoryEntry}
                 />
                 <ConversionNotesPanel
-                  notes={conversionNotes}
-                  activeTabId={activeTabId}
-                  open={notesOpen}
-                  onToggle={() => setNotesOpen(o => !o)}
+                  notes={convert.conversionNotes}
+                  activeTabId={convert.activeTabId}
+                  open={convert.notesOpen}
+                  onToggle={() => convert.setNotesOpen(o => !o)}
                 />
               </div>
 
@@ -361,16 +339,16 @@ export default function CodeConverter() {
                     className="c-reconvert__input"
                     type="text"
                     placeholder='e.g. "Use aiofiles instead of sync IO" or "rename snake_case to camelCase"'
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleReconvert()}
+                    value={convert.feedbackText}
+                    onChange={(e) => convert.setFeedbackText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && convert.handleReconvert()}
                   />
                   <button
                     className="primary-button c-reconvert__btn"
-                    onClick={handleReconvert}
-                    disabled={loading || !feedbackText.trim()}
+                    onClick={convert.handleReconvert}
+                    disabled={convert.loading || !convert.feedbackText.trim()}
                   >
-                    {loading
+                    {convert.loading
                       ? <i className="fa-solid fa-spinner fa-spin"></i>
                       : <><i className="fa-solid fa-rotate"></i> Retry</>
                     }
@@ -381,21 +359,21 @@ export default function CodeConverter() {
           </div>
         )}
 
-        {diffMode && hasOutput && (
+        {convert.diffMode && hasOutput && (
           <div className="c-diff-panel">
             <div className="c-diff-panel__header">
               <span>
-                <i className="fa-solid fa-code-branch"></i> Diff View — {activeFile?.name} → {activeOutputFile?.fileName || 'output'}
+                <i className="fa-solid fa-code-branch"></i> Diff View — {convert.activeFile?.name} → {convert.activeOutputFile?.fileName || 'output'}
               </span>
-              <button className="secondary-button c-btn-icon" onClick={() => setDiffMode(false)} title="Close diff">
+              <button className="secondary-button c-btn-icon" onClick={() => convert.setDiffMode(false)} title="Close diff">
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
             <DiffView
-              sourceContent={activeFile?.content || ''}
-              targetContent={activeOutputFile?.content || ''}
-              sourceLang={activeFile?.language || 'plaintext'}
-              targetLang={targetLang}
+              sourceContent={convert.activeFile?.content || ''}
+              targetContent={convert.activeOutputFile?.content || ''}
+              sourceLang={convert.activeFile?.language || 'plaintext'}
+              targetLang={convert.targetLang}
             />
           </div>
         )}

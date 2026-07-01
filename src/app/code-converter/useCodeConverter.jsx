@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+'use client';
+
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { convertCode, LANGUAGES, detectLanguage, useDraft } from '@/lib';
 import { useApp } from '@/context';
 import { set } from 'idb-keyval';
@@ -48,8 +50,10 @@ export function useCodeConverter() {
   const [files, setFiles] = useState([{ id: crypto.randomUUID(), name: 'main.js', language: 'javascript', content: '', size: 0 }]);
   const [outputFiles, setOutputFiles] = useState([]);
   const [activeTabId, setActiveTabId] = useState(files[0].id);
-  const activeFile = files.find(f => f.id === activeTabId);
-  const activeOutputFile = outputFiles.find(f => f.sourceId === activeTabId);
+  
+  // Memoize derived file states to preserve referential equality when mapping files
+  const activeFile = useMemo(() => files.find(f => f.id === activeTabId), [files, activeTabId]);
+  const activeOutputFile = useMemo(() => outputFiles.find(f => f.sourceId === activeTabId), [outputFiles, activeTabId]);
 
   const [targetLang, setTargetLang] = useState('python');
   const [targetFramework, setTargetFramework] = useState('none');
@@ -108,7 +112,7 @@ export function useCodeConverter() {
 
   useEffect(() => {
     return () => saveHistoryToIdb.cancel();
-  }, []);
+  }, [saveHistoryToIdb]);
 
   useEffect(() => {
     if (!moduleData || moduleData.type !== 'converter') return;
@@ -153,10 +157,9 @@ export function useCodeConverter() {
     if (out.targetFramework) setTargetFramework(out.targetFramework);
 
     setModuleData(null);
-  }, [moduleData]);
+  }, [moduleData, saveHistoryToIdb, setModuleData]);
 
-
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = useCallback(async (e) => {
     const uploadedFiles = Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
 
@@ -191,19 +194,19 @@ export function useCodeConverter() {
       setActiveTabId(newFiles[0].id);
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+  }, []);
 
-  const renameFile = (id, newName) => {
+  const renameFile = useCallback((id, newName) => {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, name: newName } : f));
-  };
+  }, []);
 
-  const handleAddFile = () => {
+  const handleAddFile = useCallback(() => {
     const newId = crypto.randomUUID();
     setFiles(prev => [...prev, { id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
     setActiveTabId(newId);
-  };
+  }, []);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     const newId = crypto.randomUUID();
     setFiles([{ id: newId, name: 'untitled.js', language: 'javascript', content: '', size: 0 }]);
     setOutputFiles([]);
@@ -215,9 +218,9 @@ export function useCodeConverter() {
     setHistoryPanelOpen(false);
     setNotesOpen(false);
     setDiffMode(false);
-  };
+  }, [setLintResult]);
 
-  const removeFile = (idToRemove) => {
+  const removeFile = useCallback((idToRemove) => {
     const newFiles = files.filter(f => f.id !== idToRemove);
     setOutputFiles(prev => prev.filter(f => f.sourceId !== idToRemove));
 
@@ -227,10 +230,9 @@ export function useCodeConverter() {
       setFiles(newFiles);
       if (activeTabId === idToRemove) setActiveTabId(newFiles[0].id);
     }
-  };
+  }, [files, activeTabId, handleClearAll]);
 
-
-  const handleConvert = async (feedbackOverride = null) => {
+  const handleConvert = useCallback(async (feedbackOverride = null) => {
     if (files.every(f => !f.content.trim())) return;
     setLoading(true);
     setLintResult(null);
@@ -262,7 +264,7 @@ export function useCodeConverter() {
         : inputPayload;
 
       const result = await convertCode('converter', contextPayload, {
-        sourceLang: activeFile.language,
+        sourceLang: activeFile?.language || 'plaintext',
         targetLang,
         framework: targetFramework,
         isPartial: isPartialMode,
@@ -313,23 +315,26 @@ export function useCodeConverter() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    files, isPartialMode, selectedRange, activeTabId, activeFile, 
+    targetLang, targetFramework, qualityMode, setModuleData, 
+    saveHistoryToIdb, setLintResult
+  ]);
 
-  const handleReconvert = () => {
+  const handleReconvert = useCallback(() => {
     if (!feedbackText.trim()) return;
     handleConvert(feedbackText.trim());
-  };
+  }, [feedbackText, handleConvert]);
 
-
-  const restoreHistoryEntry = (sourceId, entryIndex) => {
+  const restoreHistoryEntry = useCallback((sourceId, entryIndex) => {
     const entry = conversionHistory[sourceId]?.[entryIndex];
     if (!entry) return;
     setOutputFiles(prev => [...prev.filter(f => f.sourceId !== sourceId), entry.outputFile]);
     if (entry.notes) setConversionNotes(prev => ({ ...prev, [sourceId]: entry.notes }));
     setHistoryPanelOpen(false);
-  };
+  }, [conversionHistory]);
 
-  const removeHistoryEntry = (sourceId, entryIndex) => {
+  const removeHistoryEntry = useCallback((sourceId, entryIndex) => {
     setConversionHistory(prev => {
       const updated = { ...prev };
       if (updated[sourceId]) {
@@ -339,23 +344,22 @@ export function useCodeConverter() {
       saveHistoryToIdb(updated);
       return updated;
     });
-  };
+  }, [saveHistoryToIdb]);
 
-
-  const downloadZip = async () => {
+  const downloadZip = useCallback(async () => {
     const zip = new JSZip();
     outputFiles.forEach(file => zip.file(file.fileName || 'file.txt', file.content));
     const content = await zip.generateAsync({ type: 'blob' });
     saveAs(content, 'converted_project.zip');
-  };
+  }, [outputFiles]);
 
-  const downloadSingleFile = () => {
+  const downloadSingleFile = useCallback(() => {
     if (!activeOutputFile) return;
     const blob = new Blob([activeOutputFile.content], { type: 'text/plain;charset=utf-8' });
     const ext = LANGUAGES.find(l => l.value === targetLang)?.ext ?? '.txt';
     const fallback = `converted_${activeFile?.name?.replace(/\.[^.]+$/, '') ?? 'file'}${ext}`;
     saveAs(blob, activeOutputFile.fileName || fallback);
-  };
+  }, [activeOutputFile, activeFile, targetLang]);
 
 
   return {
