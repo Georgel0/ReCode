@@ -31,6 +31,18 @@ export const ENV_PREFIX_OPTIONS = [
   { value: 'import.meta.env', label: 'import.meta.env' },
 ];
 
+export const DEFAULT_OUTPUT_CONFIG = {
+  framework: 'msw',
+  endpointCount: 5,
+  delayMs: 0,
+  errorRate: 0,
+  paginationStyle: 'none',
+  authStyle: 'none',
+  includeTypes: true,
+  includeAnalysis: false,
+  envPrefix: 'none',
+};
+
 export const SPEC_TEMPLATES = [
   {
     label: 'Users REST CRUD',
@@ -205,18 +217,8 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
-  
-  const [outputConfig, setOutputConfig] = useState({
-    framework: 'msw',
-    endpointCount: 5,
-    delayMs: 0,
-    errorRate: 0,
-    paginationStyle: 'none',
-    authStyle: 'none',
-    includeTypes: true,
-    includeAnalysis: false,
-    envPrefix: 'none',
-  });
+
+  const [outputConfig, setOutputConfig] = useState(DEFAULT_OUTPUT_CONFIG);
   const updateOutputConfig = useCallback((key, value) => {
     setOutputConfig(prev => ({ ...prev, [key]: value }));
   }, []);
@@ -308,25 +310,10 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
 
   useDraft(
     'api-mocks-draft',
-    {
-      specInput,
-      ...outputConfig,
-      generatedData
-    },
+    { specInput, outputConfig, generatedData },
     (saved) => {
       if (saved.specInput !== undefined) setSpecInput(saved.specInput);
-      setOutputConfig(prev => ({
-        ...prev,
-        ...(saved.framework !== undefined && { framework: saved.framework }),
-        ...(saved.endpointCount !== undefined && { endpointCount: saved.endpointCount }),
-        ...(saved.delayMs !== undefined && { delayMs: saved.delayMs }),
-        ...(saved.errorRate !== undefined && { errorRate: saved.errorRate }),
-        ...(saved.paginationStyle !== undefined && { paginationStyle: saved.paginationStyle }),
-        ...(saved.authStyle !== undefined && { authStyle: saved.authStyle }),
-        ...(saved.includeTypes !== undefined && { includeTypes: saved.includeTypes }),
-        ...(saved.includeAnalysis !== undefined && { includeAnalysis: saved.includeAnalysis }),
-        ...(saved.envPrefix !== undefined && { envPrefix: saved.envPrefix }),
-      }));
+      if (saved.outputConfig) setOutputConfig(prev => ({ ...prev, ...saved.outputConfig }));
       if (saved.generatedData !== undefined) setGeneratedData(saved.generatedData);
     },
     {
