@@ -170,6 +170,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
     rules, setRules,
     config, setConfig,
     detectedLanguage,
+    clearWorkspace, resetConfig,
 
     isLoading, generatedData, activeTab, setActiveTab,
     parsedRulesFeedback, regenLoadingIdx, regenCellTarget,
@@ -235,9 +236,8 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 </div>
               </div>
 
-              <div className="m-form-group">
+              <div className="m-form-group reset-btn">
                 <select
-                  className="m-theme-select-dropdown"
                   value=""
                   onChange={e => {
                     const selected = SAMPLE_SCHEMAS.find(s => s.label === e.target.value);
@@ -249,11 +249,14 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                     <option key={s.label} value={s.label}>{s.label}</option>
                   ))}
                 </select>
+
+                <button className="secondary-button btn-danger" onClick={resetConfig} title="Reset Output Config">
+                  <i className="fas fa-rotate-right"></i>
+                </button>
               </div>
 
               <div className="m-form-group">
                 <select
-                  className="m-theme-select-dropdown m-faker-hint-select"
                   value=""
                   onChange={e => {
                     if (e.target.value) {
@@ -364,7 +367,6 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 <div className="m-form-group">
                   <label className="m-input-label">Locale</label>
                   <select
-                    className="m-theme-select-dropdown"
                     value={config.locale}
                     onChange={e => setConfig(prev => ({ ...prev, locale: e.target.value }))}
                   >
@@ -378,7 +380,6 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                 <div className="m-form-group">
                   <label className="m-input-label">Volume</label>
                   <select
-                    className="m-theme-select-dropdown"
                     value={config.rowCount}
                     onChange={e => setConfig(prev => ({ ...prev, rowCount: e.target.value }))}
                   >
@@ -440,6 +441,10 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
               {isLoading
                 ? <><div className="m-spinner-small" /> Synthesizing...</>
                 : <><i className="fas fa-bolt" /> Fabricate Database</>}
+            </button>
+
+            <button className="secondary-button btn-danger" onClick={clearWorkspace} title="Clear Workspace">
+              <i className="fas fa-trash"></i>
             </button>
           </div>
         </div>
@@ -521,7 +526,6 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                       <i className="fas fa-clipboard" />
                     </button>
                     <select
-                      className="m-theme-select-dropdown m-action-select"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                     >

@@ -83,7 +83,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
               <div className="m-form-group param-group">
                 <select
-                  className="m-theme-select-dropdown"
                   value=""
                   onChange={e => {
                     const selected = SAMPLE_TEMPLATES.find(s => s.label === e.target.value);
@@ -159,7 +158,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               <div className="m-form-group param-group">
                 <label className="m-input-label">Paradigm</label>
                 <select
-                  className="m-theme-select-dropdown"
                   value={config.streamParadigm}
                   onChange={e => updateConfig('streamParadigm', e.target.value)}
                 >
@@ -172,7 +170,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               <div className="m-form-group param-group">
                 <label className="m-input-label">Output Format</label>
                 <select
-                  className="m-theme-select-dropdown"
                   value={config.eventFormat}
                   onChange={e => updateConfig('eventFormat', e.target.value)}
                 >
@@ -269,7 +266,6 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               </div>
               <div className="m-form-group m-form-group-expanded">
                 <select
-                  className="m-theme-select-dropdown param-group"
                   value=""
                   onChange={e => {
                     if (e.target.value) {

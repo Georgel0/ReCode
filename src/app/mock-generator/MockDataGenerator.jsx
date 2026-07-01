@@ -16,7 +16,7 @@ import './StreamingEvents/StreamingEventsTab.css';
 export default function MockDataGenerator() {
   const { moduleData } = useApp();
 
-  const [activeParadigm, setActiveParadigm] = useState('db');
+  const [activeParadigm, setActiveParadigm] = useState('api');
   const [headerResultData, setHeaderResultData] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 

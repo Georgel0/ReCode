@@ -118,7 +118,6 @@ export function ErrorVariantPanel({ handler, activeVariant, onSelectVariant }) {
 
   return (
     <select
-      className="m-theme-select-dropdown"
       style={{ width: 'auto', minWidth: '140px' }}
       value={activeVariant == null ? "null" : activeVariant.toString()}
       onChange={(e) => {

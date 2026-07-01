@@ -51,6 +51,14 @@ model Member {
 
 export const ITEMS_PER_PAGE = 15;
 
+export const DEFAULT_CONFIG = {
+  locale: 'en-US',
+  rowCount: '15',
+  seed: '',
+  dataQuality: 100,
+  includeAnalysis: false
+};
+
 export const FAKER_ANNOTATIONS = [
   { annotation: '@faker:uuid', description: 'UUID v4' },
   { annotation: '@faker:email', description: 'Realistic email address' },
@@ -211,13 +219,10 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
   const [rules, setRules] = useState('');
   
   // Grouped configuration state for the sidebar
-  const [config, setConfig] = useState({
-    locale: 'en-US',
-    rowCount: '15',
-    seed: '',
-    dataQuality: 100,
-    includeAnalysis: false
-  });
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const updateConfig = useCallback((key, value) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
@@ -803,10 +808,32 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     });
   }, [savedSchemas]);
 
+  const clearWorkspace = useCallback(() => {
+    setSchemaInput('');
+    setRules('');
+    setGeneratedData(null);
+    setParsedRulesFeedback([]);
+    setActiveTab(0);
+    setViewMode('table');
+    setFilterQuery('');
+    setColFilter(null);
+    setSortConfig(null);
+    setEditingCell(null);
+    setEditingValue('');
+    setCurrentPage(1);
+    setRegenLoadingIdx(null);
+    setRegenCellTarget(null);
+  }, []);
+
+  const resetConfig = useCallback(() => {
+    setConfig(DEFAULT_CONFIG);
+  }, []);
+
   return {
     schemaInput, setSchemaInput,
     rules, setRules,
-    config, setConfig,
+    config, setConfig, updateConfig,
+    clearWorkspace, resetConfig,
     detectedLanguage,
     isLoading,
     generatedData,

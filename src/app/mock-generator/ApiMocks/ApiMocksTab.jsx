@@ -62,9 +62,9 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
 
     modalConfig, setModalConfig,
 
-    handleGenerate,
+    handleGenerate, clearWorkspace,
     handleCopyActiveHandler,
-    handleCopyAll,
+    handleCopyAll, resetConfig,
     triggerExportModal,
     handleSaveSpec,
     executeSaveSpec,
@@ -143,9 +143,8 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 </div>
               )}
 
-              <div className="m-form-group">
+              <div className="m-form-group reset-btn">
                 <select
-                  className="m-theme-select-dropdown"
                   value=""
                   onChange={e => {
                     if (e.target.value) setSpecInput(e.target.value);
@@ -156,6 +155,10 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     <option key={t.label} value={t.value}>{t.label}</option>
                   ))}
                 </select>
+
+                <button className="secondary-button btn-danger" onClick={resetConfig} title="Reset Output Config">
+                  <i className="fas fa-rotate-right"></i>
+                </button>
               </div>
 
               <div
@@ -237,7 +240,6 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                 <div className="m-form-group">
                   <label className="m-input-label">Pagination</label>
                   <select
-                    className="m-theme-select-dropdown"
                     value={outputConfig.paginationStyle}
                     onChange={e => updateOutputConfig('paginationStyle', e.target.value)}
                   >
@@ -251,7 +253,6 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               <div className="m-form-group">
                 <label className="m-input-label">Auth Simulation</label>
                 <select
-                  className="m-theme-select-dropdown"
                   value={outputConfig.authStyle}
                   onChange={e => updateOutputConfig('authStyle', e.target.value)}
                 >
@@ -267,7 +268,6 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                   <span className="m-optional-tag">base URLs &amp; auth tokens</span>
                 </label>
                 <select
-                  className="m-theme-select-dropdown"
                   value={outputConfig.envPrefix}
                   onChange={e => updateOutputConfig('envPrefix', e.target.value)}
                 >
@@ -360,8 +360,12 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
               disabled={isLoading || !specInput.trim()}
             >
               {isLoading
-                ? <><div className="m-spinner-small" /> Generating Handlers…</>
-                : <><i className="fas fa-wand-magic-sparkles" /> Generate Mock Handlers</>}
+                ? <><div className="m-spinner-small" /> Generating…</>
+                : <><i className="fas fa-wand-magic-sparkles" /> Generate Mock</>}
+            </button>
+
+            <button className="secondary-button btn-danger" onClick={clearWorkspace} title="Clear Workspace">
+              <i className="fas fa-trash"></i>
             </button>
           </div>
         </div>
@@ -525,7 +529,6 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
                     </button>
 
                     <select
-                      className="m-theme-select-dropdown"
                       value=""
                       onChange={e => { if (e.target.value) triggerExportModal(e.target.value); }}
                       disabled={!generatedData}

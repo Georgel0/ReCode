@@ -106,11 +106,20 @@
 }
 
 .m-sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 5px;
   padding: 0.75rem 0.94rem;
   background-color: var(--bg-secondary);
   border-top: 1px solid var(--border);
   z-index: 10;
   box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.m-sidebar-footer button {
+  height: 100%;
 }
 
 .m-preview-area {
@@ -296,7 +305,7 @@
 }
 
 .m-fabricate-action-btn {
-  width: 100%;
+  width: 80%;
   padding: 0.64rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -321,6 +330,11 @@
   gap: 0.3rem;
 }
 
+.m-form-group.reset-btn {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 .m-optional-tag {
   font-size: 0.53rem;
   font-weight: 400;
@@ -330,8 +344,7 @@
   color: var(--text-secondary);
 }
 
-.m-text-input,
-.m-theme-select-dropdown {
+.m-text-input {
   width: 100%;
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -343,8 +356,7 @@
   transition: all 0.15s;
 }
 
-.m-text-input:focus,
-.m-theme-select-dropdown:focus {
+.m-text-input:focus {
   border-color: var(--accent);
   outline: none;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
@@ -365,13 +377,6 @@
 
 .m-text-input.m-with-icon {
   padding-left: 1.65rem;
-}
-
-.m-section .m-form-group {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 0.3rem;
 }
 
 .m-section .m-form-group .m-rules-feedback {

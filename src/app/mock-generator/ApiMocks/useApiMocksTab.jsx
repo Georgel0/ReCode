@@ -825,6 +825,28 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     if (newSaved.length === 0) setSpecsVisible(false);
   }, [savedSpecs]);
 
+  const clearWorkspace = useCallback(() => {
+    setSpecInput('');
+    setGeneratedData(null);
+    setParsedSpecFeedback([]);
+    setActiveHandlerIdx(0);
+    setFilterQuery('');
+    setViewMode('code');
+    setEditingHandlerIdx(null);
+    setEditingField(null);
+    setEditDraft('');
+    setHandlerDirty({});
+    setRegeneratingIdx(null);
+    setActiveErrorVariant({});
+    setCopyFlash(null);
+    setIsAddEndpointOpen(false);
+    setAddEndpointInput('');
+  }, []);
+
+  const resetConfig = useCallback(() => {
+    setOutputConfig(DEFAULT_OUTPUT_CONFIG);
+  }, []);
+
   return {
     // Form
     specInput, setSpecInput,
@@ -888,5 +910,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     handleSaveSpec,
     executeSaveSpec,
     handleDeleteSpec,
+    clearWorkspace,
+    resetConfig
   };
 }

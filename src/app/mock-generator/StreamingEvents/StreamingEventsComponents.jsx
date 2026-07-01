@@ -321,7 +321,6 @@ export function ReplayView({
         <div className="replay-speed-wrap">
           <span className="replay-speed-label">{speedLabel}</span>
           <select
-            className="m-theme-select-dropdown m-action-select"
             value={replaySpeed}
             onChange={e => setReplaySpeed(Number(e.target.value))}
           >

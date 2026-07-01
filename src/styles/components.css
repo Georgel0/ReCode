@@ -46,9 +46,7 @@
   box-shadow: none;
 }
 
-.primary-button i {
-  margin-right: 7.5px;
-}
+
 
 html[data-theme='midnight-gold'] .primary-button:hover {
   position: relative;
