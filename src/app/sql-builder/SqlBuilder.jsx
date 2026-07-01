@@ -16,123 +16,6 @@ import './styles/testRunner.css';
 import './styles/schema.css';
 import './styles/sandbox.css';
 
-function splitByTopLevelCommas(str) {
-  const result = [];
-  let current = '';
-  let depth = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    if (char === '(') depth++;
-    else if (char === ')') depth--;
-
-    if (char === ',' && depth === 0) {
-      result.push(current);
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  if (current) result.push(current);
-  return result;
-}
-
-function parseSchemaToErd(schemaSql) {
-  if (!schemaSql) return { tables: [], relationships: [] };
-  const tables = [];
-  const relationships = [];
-
-  try {
-    // Strip out standard SQL comments
-    const noComments = schemaSql.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-
-    // Chunk statements by "CREATE TABLE"
-    const tableChunks = noComments.split(/(?=CREATE\s+TABLE)/i).filter(c => /CREATE\s+TABLE/i.test(c));
-
-    tableChunks.forEach(chunk => {
-      // Extract the table name and the body inside the parentheses
-      const headerMatch = chunk.match(
-        /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_".]+)\s*\(/i
-      );
-      if (!headerMatch) return;
-
-      const tableName = headerMatch[1].replace(/["']/g, '').split('.').pop();
-      const startIdx = headerMatch.index + headerMatch[0].length;
-      let depth = 1, i = startIdx;
-      
-      while (i < chunk.length && depth > 0) {
-        if (chunk[i] === '(') depth++;
-        else if (chunk[i] === ')') depth--;
-        i++;
-      }
-      const body = chunk.slice(startIdx, i - 1);
-
-      const lines = splitByTopLevelCommas(body);
-      const rowsObj = {};
-
-      lines.forEach(line => {
-        const l = line.trim();
-        if (!l) return;
-
-        // Extract Explicit Table-Level Foreign Keys
-        const fkMatch = l.match(/FOREIGN\s+KEY\s*\(([a-zA-Z0-9_"]+)\)\s*REFERENCES\s*([a-zA-Z0-9_".]+)/i);
-        if (fkMatch) {
-          relationships.push({
-            fromTable: tableName,
-            fromCol: fkMatch[1].replace(/["']/g, ''),
-            toTable: fkMatch[2].replace(/["']/g, '').split('.').pop()
-          });
-          return;
-        }
-
-        // Ignore generic constraints/indexes logic
-        if (/^(PRIMARY\s+KEY|UNIQUE|CONSTRAINT|INDEX|KEY)/i.test(l)) {
-          const constraintFkMatch = l.match(/FOREIGN\s+KEY\s*\(([a-zA-Z0-9_"]+)\)\s*REFERENCES\s*([a-zA-Z0-9_".]+)/i);
-          if (constraintFkMatch) {
-            relationships.push({
-              fromTable: tableName,
-              fromCol: constraintFkMatch[1].replace(/["']/g, ''),
-              toTable: constraintFkMatch[2].replace(/["']/g, '').split('.').pop()
-            });
-          }
-          return;
-        }
-
-        // Extract Inline Column-Level Foreign Keys (Don't return, let it parse column details below!)
-        const inlineFkMatch = l.match(/^([a-zA-Z0-9_"]+)\s+[\s\S]*?\s+REFERENCES\s+([a-zA-Z0-9_".]+)/i);
-        if (inlineFkMatch) {
-          relationships.push({
-            fromTable: tableName,
-            fromCol: inlineFkMatch[1].replace(/["']/g, ''),
-            toTable: inlineFkMatch[2].replace(/["']/g, '').split('.').pop()
-          });
-        }
-
-        // Standard column definition handling
-        const parts = l.split(/\s+/);
-        if (parts.length >= 2) {
-          const colName = parts[0].replace(/["']/g, '');
-          const colType = parts[1].toUpperCase();
-
-          let sampleVal = 'text';
-          if (colType.includes('INT') || colType.includes('SERIAL')) sampleVal = 1;
-          else if (colType.includes('FLOAT') || colType.includes('DECIMAL') || colType.includes('NUMERIC')) sampleVal = 1.1;
-          else if (colType.includes('BOOL')) sampleVal = 'true';
-          else if (colType.includes('DATE') || colType.includes('TIME') || colType.includes('TIMESTAMP')) sampleVal = '2023-01-01';
-          else if (colType.includes('UUID')) sampleVal = '123e4567-e89b-12d3-a456-426614174000';
-
-          rowsObj[colName] = sampleVal;
-        }
-      });
-
-      tables.push({ tableName, rows: [rowsObj] });
-    });
-  } catch (e) {
-    console.error("Schema parse error:", e);
-  }
-
-  return { tables, relationships };
-}
-
 export default function SqlBuilder() {
   const { currentTheme } = useTheme();
   const isDarkTheme = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
@@ -142,7 +25,7 @@ export default function SqlBuilder() {
 
   const [viewMode, setViewMode] = useState('query');
 
-  const erdData = useMemo(() => parseSchemaToErd(forge.schema), [forge.schema]);
+  const erdData = useMemo(() => forge.parseSchemaToErd(forge.schema), [forge.schema]);
   const hasSchema = !!(forge.schema && forge.schema.trim().length > 0);
 
   useEffect(() => {
