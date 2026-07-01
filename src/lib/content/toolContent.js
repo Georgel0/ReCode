@@ -228,7 +228,7 @@ export const tools = [
   {
     name: 'Mock Data Factory',
     path: '/mock-generator',
-    icon: 'fas fa-table-cells',
+    icon: 'fas fa-flask',
     desc: 'Generate relational, high-fidelity mock data.',
     info: 'Turn schemas into realistic, interconnected mock data with complex behavioral rules, geographical localization, and structural integrity.'
   }];

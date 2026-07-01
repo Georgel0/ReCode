@@ -17,7 +17,7 @@ const modules = [
   { id: 'regex', label: 'Regex Generator', icon: 'fas fa-asterisk', path: '/regex-generator' },
   { id: 'sql', label: 'SQL Builder', icon: 'fas fa-database', path: '/sql-builder' },
   { id: 'json', label: 'JSON Formatter', icon: 'fas fa-list-alt', path: '/json-formatter' },
-  { id: 'mock', label: 'Mock Data Factory', icon: 'fas fa-table-cells', path: '/mock-generator' },
+  { id: 'mock', label: 'Mock Data Factory', icon: 'fas fa-flask', path: '/mock-generator' },
 ];
 
 const qualityConfig = {

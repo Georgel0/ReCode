@@ -58,20 +58,22 @@ export const SAMPLE_TEMPLATES = [
 
 export const ITEMS_PER_PAGE = 15;
 
+export const DEFAULT_CONFIG = {
+  schemaInput: '',
+  rules: '',
+  eventFormat: 'json',
+  streamParadigm: 'telemetry',
+  eventCount: '25',
+  seed: '',
+  dataQuality: 100,
+  includeAnalysis: false,
+  includeStateMachine: false,
+};
+
 export function useStreamingEventsTab({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
 
-  const [config, setConfig] = useState({
-    schemaInput: '',
-    rules: '',
-    eventFormat: 'json',
-    streamParadigm: 'telemetry',
-    eventCount: '25',
-    seed: '',
-    dataQuality: 100,
-    includeAnalysis: false,
-    includeStateMachine: false,
-  });
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
 
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -552,8 +554,39 @@ export function useStreamingEventsTab({ onDataUpdate }) {
     setReplayIndex(prev => Math.min(prev + 1, max));
   }, [activeStreamData]);
 
+  const clearWorkspace = useCallback(() => {
+    setConfig(prev => ({ ...prev, schemaInput: '', rules: '' }));
+    setGeneratedData(null);
+    setParsedRulesFeedback([]);
+    setActiveStreamRaw(0);
+    setViewMode('events');
+    setFilterQuery('');
+    setFieldFilters({});
+    setCurrentPage(1);
+    setEditingCell(null);
+    setEditingValue('');
+    setDistColumn(null);
+    setRuleValidation([]);
+    setReplayIndex(0);
+    setReplayPlaying(false);
+  }, []);
+
+  const resetConfig = useCallback(() => {
+    setConfig(prev => ({
+      ...prev,
+      eventFormat: DEFAULT_CONFIG.eventFormat,
+      streamParadigm: DEFAULT_CONFIG.streamParadigm,
+      eventCount: DEFAULT_CONFIG.eventCount,
+      seed: DEFAULT_CONFIG.seed,
+      dataQuality: DEFAULT_CONFIG.dataQuality,
+      includeAnalysis: DEFAULT_CONFIG.includeAnalysis,
+      includeStateMachine: DEFAULT_CONFIG.includeStateMachine,
+    }));
+  }, []);
+
   return {
     config, setConfig, updateConfig,
+    clearWorkspace, resetConfig,
 
     isLoading,
     generatedData,

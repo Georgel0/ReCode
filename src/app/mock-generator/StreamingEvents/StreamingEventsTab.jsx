@@ -20,6 +20,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
 
   const {
     config, setConfig, updateConfig,
+    clearWorkspace, resetConfig,
     isLoading, generatedData,
     activeStream, setActiveStream,
     parsedRulesFeedback, activeStreamData,
@@ -81,7 +82,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                 </button>
               </div>
 
-              <div className="m-form-group param-group">
+              <div className="m-form-group param-group reset-btn">
                 <select
                   value=""
                   onChange={e => {
@@ -89,11 +90,15 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                     if (selected) handleLoadSample(selected);
                   }}
                 >
-                  <option value="" disabled>⚡ Load Starter Sample Stream...</option>
+                  <option value="" disabled>⚡ Load Starter Sample...</option>
                   {SAMPLE_TEMPLATES.map(s => (
                     <option key={s.label} value={s.label}>{s.label}</option>
                   ))}
                 </select>
+
+                <button className="secondary-button btn-danger" onClick={resetConfig} title="Reset Output Config">
+                  <i className="fas fa-rotate-right"></i>
+                </button>
               </div>
 
               {templatesVisible && savedTemplates.length > 0 && (
@@ -154,7 +159,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   <i className="fas fa-cogs" /> Stream Config
                 </div>
               </div>
-              
+
               <div className="m-form-group param-group">
                 <label className="m-input-label">Paradigm</label>
                 <select
@@ -166,7 +171,7 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
                   ))}
                 </select>
               </div>
-              
+
               <div className="m-form-group param-group">
                 <label className="m-input-label">Output Format</label>
                 <select
@@ -312,6 +317,10 @@ export default function StreamingEventsTab({ onDataUpdate, isActive }) {
               {isLoading
                 ? <><i className="fas fa-spinner fa-spin" /> Synthesizing…</>
                 : <><i className="fas fa-bolt" /> Generate Stream</>}
+            </button>
+
+            <button className="secondary-button btn-danger" onClick={clearWorkspace} title="Clear Workspace">
+              <i className="fas fa-trash"></i>
             </button>
           </div>
         </div>
