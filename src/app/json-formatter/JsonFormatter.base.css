@@ -111,7 +111,6 @@
   resize: none;
   margin: 0;
   background: var(--bg-primary);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-primary);
   padding: 0.5rem 0.7rem;
