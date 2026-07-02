@@ -1,3 +1,5 @@
+'use client';
+
 export const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024; // 3 MB
 const HISTORY_KEY = 'jf_history_v1';
 const INDENT_KEY = 'jf_indent_v1';

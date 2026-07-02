@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useDraft } from '@/lib';
 import JSON5 from 'json5';
 import {
@@ -45,8 +45,8 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [sortKeys, setSortKeys] = useState(false);
 
-  const [indentSize, setIndentSizeState] = useState(() => loadIndentSetting());
-  const [autoFormat, setAutoFormatState] = useState(() => loadAutoFormatSetting());
+  const [indentSize, setIndentSizeState] = useState('2');
+  const [autoFormat, setAutoFormatState] = useState(true);
   const [jsonSchemaText, setJsonSchemaText] = useState('');
   const [schemaErrors, setSchemaErrors] = useState([]);
   const [jsonPathQuery, setJsonPathQuery] = useState('');
@@ -63,6 +63,11 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
   const [convertLoading, setConvertLoading] = useState(false);
 
   const treeDebounceRef = useRef(null);
+
+  useEffect(() => {
+    loadIndentSetting();
+    loadAutoFormatSetting();
+  }, []) 
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -109,8 +114,8 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
       if (saved.conversionResult !== undefined) setConversionResult(saved.conversionResult);
     },
     {
-      isEmpty: (d) => 
-        !d.input.trim() && 
+      isEmpty: (d) =>
+        !d.input.trim() &&
         !d.outputCode.trim() &&
         !d.jsonSchemaText.trim() &&
         !d.jsonPathQuery.trim() &&
@@ -406,6 +411,15 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     setHistory(loadHistory());
   }, []);
 
+  const handleFileUpload = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    readFile(file);
+    e.target.value = '';
+  }, [readFile]);
+
+  const outputCounts = useMemo(() => getCounts(outputCode), [outputCode]);
+
   return {
     // State
     input, setInput,
@@ -434,7 +448,7 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     showHistory, setShowHistory,
     conversionResult, setConversionResult,
     convertLoading,
-    outputCounts: getCounts(outputCode),
+    outputCounts,
 
     // Handlers
     handleLocalFormat,
@@ -442,12 +456,7 @@ export const useJsonFormatter = ({ convertCode, qualityMode, moduleData }) => {
     handleAiFix,
     handlePaste,
     handleDownload,
-    handleFileUpload: (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      readFile(file);
-      e.target.value = '';
-    },
+    handleFileUpload,
     onDragOver,
     onDragLeave,
     onDrop,

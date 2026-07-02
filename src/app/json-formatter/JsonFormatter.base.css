@@ -199,6 +199,10 @@
   z-index: 5;
 }
 
+.j-clear-input-btn i {
+  margin-top: 2px;
+}
+
 .j-clear-input-btn:hover {
   background: var(--danger);
   border-color: var(--danger);
@@ -641,9 +645,148 @@
 .j-icon-btn-sm:focus-visible,
 .j-output-tab-btn:focus-visible,
 .j-indent-btn:focus-visible,
-.j-convert-btn:focus-visible {
+.j-convert-btn:focus-visible,
+.j-download-menu-item:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.j-download-dropdown {
+  width: 230px;
+}
+
+.j-download-menu-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem;
+  gap: 2px;
+}
+
+.j-download-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-family: inherit;
+  padding: 0.45rem 0.6rem;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.14s, color 0.14s;
+}
+
+.j-download-menu-item i {
+  width: 14px;
+  text-align: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.j-download-menu-item:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.j-download-menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.j-highlight-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 140px;
+}
+
+.j-highlight-pre,
+.j-highlight-textarea {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.j-highlight-wrapper .j-highlight-pre,
+.j-highlight-wrapper .j-highlight-textarea {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+}
+
+.j-highlight-pre {
+  pointer-events: none;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.j-highlight-pre code {
+  font-family: inherit;
+  white-space: inherit;
+}
+
+.j-highlight-textarea {
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text-primary);
+  resize: none;
+  z-index: 1;
+}
+
+.j-highlight-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.j-highlight-textarea::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.j-highlight-textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.j-highlight-pre.j-highlight-static {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  min-height: 140px;
+  height: 100%;
+  overflow: auto;
+  background: var(--bg-primary);
+}
+
+.j-highlight-empty {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.token.property { color: #0969da; }
+.token.string { color: #1a7f37; }
+.token.number { color: #d4380d; }
+.token.boolean { color: #8250df; }
+.token.null { color: #8250df; }
+.token.punctuation { color: var(--text-secondary); }
+.token.operator { color: var(--text-secondary); }
+
+@media (prefers-color-scheme: dark) {
+  .token.property { color: #79c0ff; }
+  .token.string { color: #7ee787; }
+  .token.number { color: #ff9492; }
+  .token.boolean { color: #d2a8ff; }
+  .token.null { color: #d2a8ff; }
 }
 
 .j-dropdown-anchor {
