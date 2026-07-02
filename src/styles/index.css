@@ -151,6 +151,12 @@ body {
   .main-content::-webkit-scrollbar {
     display: none;
   }
+
+  .module-container {
+    padding: 0 0.56rem 0.56rem;
+    padding-bottom: 15rem;
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 576px) {

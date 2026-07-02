@@ -144,7 +144,7 @@ export function LineSelector({ content, selectedRange, onRangeChange }) {
         const inRange = selectedRange && i >= selectedRange.start && i <= selectedRange.end;
         return (
           <div
-            key={`line-${i}`}
+            key={line}
             data-index={i}
             className={`c-line-selector__row${inRange ? ' c-line-selector__row--selected' : ''}`}
             onMouseDown={() => startSelection(i)}
