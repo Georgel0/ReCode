@@ -14,8 +14,8 @@ const highlight = (code, language) => {
 };
 
 // Read-only, Prism-highlighted code block.
-export function HighlightedCode({ code, language = 'json', className = '', placeholder = '' }) {
-  if (!code) {
+export function HighlightedCode({ value, language = 'json', className = '', placeholder = '' }) {
+  if (!value) {
     return (
       <div className={`j-highlight-pre j-highlight-static j-highlight-empty ${className}`}>
         {placeholder}
@@ -26,7 +26,7 @@ export function HighlightedCode({ code, language = 'json', className = '', place
     <pre className={`j-highlight-pre j-highlight-static ${className}`}>
       <code
         className={`language-${language}`}
-        dangerouslySetInnerHTML={{ __html: highlight(code, language) }}
+        dangerouslySetInnerHTML={{ __html: highlight(value, language) }}
       />
     </pre>
   );

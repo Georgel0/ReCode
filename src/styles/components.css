@@ -505,6 +505,7 @@ html[data-theme='quartz'] .copy-btn {
 }
 
 .copy-btn-absolute {
+  gap: 3px;
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;

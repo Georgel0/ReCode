@@ -450,9 +450,18 @@ export default function JsonFormatter() {
 
                     <div className="j-conversion-bar">
                       <button
+                        className="j-convert-btn j-json-btn"
+                        onClick={() => json.setConversionResult(null)}
+                        disabled={!json.outputCode || json.convertLoading}
+                        title="JSON View"
+                      >
+                        JSON
+                      </button>
+                      <button
                         className="j-convert-btn j-yaml-btn"
                         onClick={() => json.handleConvert('yaml')}
                         disabled={!json.outputCode || json.convertLoading}
+                        title="YAML View"
                       >
                         YAML
                       </button>
@@ -460,6 +469,7 @@ export default function JsonFormatter() {
                         className="j-convert-btn j-toml-btn"
                         onClick={() => json.handleConvert('toml')}
                         disabled={!json.outputCode || json.convertLoading}
+                        title="TOML View"
                       >
                         TOML
                       </button>
@@ -467,6 +477,7 @@ export default function JsonFormatter() {
                         className="j-convert-btn j-csv-btn"
                         onClick={() => json.handleConvert('csv')}
                         disabled={!json.outputCode || json.convertLoading}
+                        title="CSV View"
                       >
                         CSV
                       </button>
@@ -515,18 +526,6 @@ export default function JsonFormatter() {
 
                   {json.conversionResult ? (
                     <div className="j-converted-output-panel">
-                      <div className="j-converted-output-header">
-                        <span className={`j-converted-format-badge j-${json.conversionResult.format}`}>
-                          {json.conversionResult.format.toUpperCase()} Output
-                        </span>
-                        <button
-                          className="j-icon-btn-sm"
-                          onClick={() => json.setConversionResult(null)}
-                        >
-                          <i className="fa-solid fa-arrow-left"></i>
-                          <span>Back to JSON</span>
-                        </button>
-                      </div>
                       <CopyButton codeToCopy={json.conversionResult?.content} />
                       <HighlightedCode
                         value={json.conversionResult.content}
@@ -668,7 +667,7 @@ export default function JsonFormatter() {
                     </button>
                     {json.zodOutput && (
                       <div className="j-zod-actions-right">
-                        <CopyButton codeToCopy={json.zodOutput} />
+                        <CopyButton codeToCopy={json.zodOutput}/>
                       </div>
                     )}
                   </div>

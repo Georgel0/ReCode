@@ -107,7 +107,7 @@ export async function POST(request) {
 
     // Route: Turbo (Groq)
     if (qualityMode === 'turbo') {
-      const modelInstance = groq('llama-3.3-70b-versatile');
+      const modelInstance = groq('openai/gpt-oss-120b');
       const maxTokens = type === 'mock' ? GROQ_MAX_TOKENS_MOCK : GROQ_MAX_TOKENS_DEFAULT;
 
       if (config.schema) {

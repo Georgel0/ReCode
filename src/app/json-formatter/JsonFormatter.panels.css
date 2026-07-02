@@ -453,6 +453,7 @@
   align-items: center;
   gap: 0.3rem;
   margin-left: auto;
+  position: relative;
 }
 
 .j-zod-meta-badge {
