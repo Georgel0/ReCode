@@ -90,7 +90,8 @@ export default function LandingPage() {
             <span className="text-blue">Modern Engineers.</span>
           </h1>
           <p className="lp-description">
-            ReCode is a high-leverage development ecosystem designed to bridge the gap between complex logic and rapid deployment. Automate technical overhead and focus on high-level innovation.
+            ReCode is a digital sweatshop designed to absorb your most tedious coding chores and repetitive setups. 
+            Dump the boring technical overhead here, and finally close those fifty AI chat tabs.
           </p>
           <div className="hero-actions">
             <Link

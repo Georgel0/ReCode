@@ -170,6 +170,20 @@ export const getToolContent = (slug) => {
 // Landingpage info
 export const tools = [
   {
+    name: 'Mock Data Factory',
+    path: '/mock-generator',
+    icon: 'fas fa-flask',
+    desc: 'Generate relational, high-fidelity mock data.',
+    info: 'Turn schemas into realistic, interconnected mock data with complex behavioral rules, geographical localization, and structural integrity.'
+  },
+  {
+    name: 'Code Analysis',
+    path: '/code-analysis',
+    icon: 'fas fa-search',
+    desc: 'Deep-dive into complexity and security.',
+    info: 'Run a full health audit on your code across six dimensions: Big O time/space complexity, security vulnerabilities, bug detection, best practices, architecture smells, and test coverage hints — all scored and exportable in one pass.'
+  },
+  {
     name: 'Code Converter',
     path: '/code-converter',
     icon: 'fas fa-rotate',
@@ -182,13 +196,6 @@ export const tools = [
     icon: 'fas fa-wand-magic-sparkles',
     desc: 'Clean, optimize, and modernize your snippets.',
     info: 'Transform tangled, hard-to-maintain code into clean, professional source. The AI eliminates redundant loops, flattens nested conditionals, enforces modern syntax (ES6+, async/await), and applies established design patterns to cut technical debt and keep your codebase easy to extend.'
-  },
-  {
-    name: 'Code Analysis',
-    path: '/code-analysis',
-    icon: 'fas fa-search',
-    desc: 'Deep-dive into complexity and security.',
-    info: 'Run a full health audit on your code across six dimensions: Big O time/space complexity, security vulnerabilities, bug detection, best practices, architecture smells, and test coverage hints — all scored and exportable in one pass.'
   },
   {
     name: 'Code Generator',
@@ -224,13 +231,6 @@ export const tools = [
     icon: 'fas fa-list-alt',
     desc: 'Fix and beautify messy data structures.',
     info: 'A utility for sanitizing data. Beyond simple indentation, this tool detects and fixes common syntax errors—like missing commas or unquoted keys—ensuring your JSON is valid and readable for APIs and config files.'
-  },
-  {
-    name: 'Mock Data Factory',
-    path: '/mock-generator',
-    icon: 'fas fa-flask',
-    desc: 'Generate relational, high-fidelity mock data.',
-    info: 'Turn schemas into realistic, interconnected mock data with complex behavioral rules, geographical localization, and structural integrity.'
   }];
 
 

@@ -27,7 +27,7 @@ export function MainLayout({ children }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('recode_sidebar_collapsed');
-    if (saved !== null) setSidebarCollapsed(saved === 'true');
+    if (saved !== null) setSidebarCollapsed(saved === 'false');
   }, []);
 
   useEffect(() => {
