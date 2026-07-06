@@ -139,6 +139,10 @@ html[data-theme='quartz'] .primary-button:hover::after {
   white-space: nowrap;
 }
 
+.save-btn i {
+  margin-top: 3px;
+}
+
 .save-btn:hover:not(:disabled) {
   background: var(--accent-hover);
   transform: translateY(-1.5px);

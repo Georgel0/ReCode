@@ -13,11 +13,14 @@ import './ApiMocks/ApiMocksTab.css';
 import './DatabaseSeeding/DatabaseSeedingTab.css'
 import './StreamingEvents/StreamingEventsTab.css';
 
+const EMPTY_SHARE_STATE = { share: undefined, shareCopied: false, resultData: null, shareDisabled: true };
+
 export default function MockDataGenerator() {
   const { moduleData } = useApp();
 
   const [activeParadigm, setActiveParadigm] = useState('api');
   const [headerResultData, setHeaderResultData] = useState(null);
+  const [shareState, setShareState] = useState(EMPTY_SHARE_STATE);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -33,12 +36,26 @@ export default function MockDataGenerator() {
     else if (moduleData?.type === 'stream') setActiveParadigm('stream');
   }, [moduleData]);
 
+  // Clear stale share state immediately on switch so the header doesn't
+  // briefly show the previous tool's share link/copied state while the
+  // newly-active tab mounts and reports its own.
+  useEffect(() => {
+    setShareState(EMPTY_SHARE_STATE);
+  }, [activeParadigm]);
+
+  // Only ApiMocksTab reports live share state today; db/stream fall back to
+  // the old post-generate snapshot via onDataUpdate until they're upgraded.
+  const isShareAware = activeParadigm === 'api';
+
   return (
     <div className="m-module-container m-flex-col-container">
       <ModuleHeader
         title="Mock Data Factory"
         description="Transform schemas into highly interconnected relational targets, API mock handlers, and event streams."
-        resultData={headerResultData}
+        resultData={isShareAware ? shareState.resultData : headerResultData}
+        onShare={isShareAware ? shareState.share : undefined}
+        shareCopied={shareState.shareCopied}
+        shareDisabled={shareState.shareDisabled}
       />
 
       <div className="m-paradigm-selector">
@@ -67,7 +84,7 @@ export default function MockDataGenerator() {
 
       <div className="m-paradigm-content">
         {activeParadigm === 'api' && (
-          <ApiMocksTab onDataUpdate={setHeaderResultData} />
+          <ApiMocksTab onDataUpdate={setHeaderResultData} onShareStateChange={setShareState} />
         )}
         {activeParadigm === 'db' && (
           <DatabaseSeedingTab onDataUpdate={setHeaderResultData} />

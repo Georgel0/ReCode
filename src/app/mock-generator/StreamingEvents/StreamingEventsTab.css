@@ -6,11 +6,9 @@
 }
 
 .stream-view-scroll-area {
-  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  min-height: 69vh;
 }
 
 .stream-analysis-panels {

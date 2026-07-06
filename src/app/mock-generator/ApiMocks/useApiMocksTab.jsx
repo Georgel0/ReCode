@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context';
-import { convertCode, useDraft } from '@/lib';
+import { convertCode, useDraft, useShareState } from '@/lib';
 
 export const FRAMEWORK_OPTIONS = [
   { value: 'msw', label: 'MSW v2 (Mock Service Worker)', icon: 'fa-shield-halved' },
@@ -223,6 +223,28 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setOutputConfig(prev => ({ ...prev, [key]: value }));
   }, []);
 
+  // Presence check only (doesn't consume the param, safe to read every
+  // render). Used purely to make the moduleData/draft restores below defer
+  // to a share link on the very first render — before either restore effect
+  // has a chance to run.
+  const hasShareParam = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).has('share');
+
+  const { share, readSharedState, shareCopied } = useShareState({
+    toolId: 'api-mocks',
+    input: specInput,
+    config: outputConfig,
+  });
+
+  // Hydrate from a shared link. Runs once on mount and takes priority over
+  // both the moduleData (history) restore and the local draft restore below.
+  useEffect(() => {
+    const shared = readSharedState();
+    if (!shared) return;
+    if (shared.input) setSpecInput(shared.input);
+    if (shared.config) setOutputConfig(prev => ({ ...prev, ...shared.config }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -278,6 +300,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   }, []);
 
   useEffect(() => {
+    if (hasShareParam) return; // a share link takes priority over saved module data
     if (moduleData && moduleData.type === 'api-mocks') {
       setSpecInput(moduleData.input || '');
       setOutputConfig(prev => ({
@@ -318,7 +341,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     },
     {
       isEmpty: (d) => !d.specInput?.trim(),
-      skip: !!(moduleData && moduleData.type === 'api-mocks'),
+      skip: hasShareParam || !!(moduleData && moduleData.type === 'api-mocks'),
     }
   );
 
@@ -847,7 +870,23 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setOutputConfig(DEFAULT_OUTPUT_CONFIG);
   }, []);
 
+  // Mirrors the payload shape already sent via onDataUpdate in handleGenerate,
+  // kept in sync automatically since it's derived rather than duplicated.
+  const resultData = useMemo(() => {
+    if (!generatedData) return null;
+    return {
+      type: 'api-mocks',
+      input: specInput,
+      output: JSON.stringify(generatedData),
+      ...outputConfig,
+    };
+  }, [generatedData, specInput, outputConfig]);
+
   return {
+    // Share
+    share, shareCopied, resultData,
+    shareDisabled: !specInput.trim(),
+
     // Form
     specInput, setSpecInput,
     outputConfig, updateOutputConfig,

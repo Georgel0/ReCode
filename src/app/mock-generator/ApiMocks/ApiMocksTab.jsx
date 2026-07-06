@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { CodeHighlightAnalyzer } from '@/components/widgets';
@@ -14,10 +14,12 @@ import {
   HistoryDropdown, ErrorVariantPanel, FixtureShapeWarning
 } from './ApiMocksTabComponents';
 
-export default function ApiMocksTab({ onDataUpdate, isActive }) {
+export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive }) {
   const api = useApiMocksTab({ onDataUpdate, isActive });
 
   const {
+    share, shareCopied, resultData, shareDisabled,
+
     specInput, setSpecInput,
     outputConfig, updateOutputConfig,
     isDropdownOpen, setIsDropdownOpen,
@@ -85,6 +87,10 @@ export default function ApiMocksTab({ onDataUpdate, isActive }) {
     : activeHandler;
 
   const isEditing = editingHandlerIdx === globalHandlerIdx;
+
+  useEffect(() => {
+    onShareStateChange?.({ share, shareCopied, resultData, shareDisabled });
+  }, [share, shareCopied, resultData, shareDisabled, onShareStateChange]);
 
   return (
     <>

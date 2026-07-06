@@ -83,13 +83,14 @@ export function ModuleHeader({
             className={`save-btn${saved ? ' success' : ''}`}
             onClick={handleSave}
             disabled={saving || saved}
+            title="Save Result To Sidebar"
           >
             {saving ? (
               <><i className="fas fa-spinner fa-spin"></i> Saving...</>
             ) : saved ? (
               <><i className="fas fa-check"></i> Saved</>
             ) : (
-              <><i className="fas fa-save"></i> Save Result</>
+              <><i className="fas fa-save"></i> Save</>
             )}
           </button>
         )}
