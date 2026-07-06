@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useRef, useMemo } from "react";
 
 export function CorrelatedView({ correlatedView, streams }) {
@@ -87,92 +86,6 @@ export function CorrelatedView({ correlatedView, streams }) {
         </div>
       </div>
     </div>
-  );
-}
-
-export function inferEventBadges(colName, sampleValue) {
-  const badges = [];
-  const lower = colName.toLowerCase();
-  const strVal = sampleValue !== null && sampleValue !== undefined ? String(sampleValue) : '';
-
-  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (uuidRe.test(strVal)) badges.push('UUID');
-
-  const tsKeys = ['timestamp', 'ts', 'time', 'created_at', 'occurred_at', 'event_time', 'datetime'];
-  if (tsKeys.some(k => lower.includes(k))) badges.push('TIMESTAMP');
-  else if (!badges.includes('UUID') && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) badges.push('TIMESTAMP');
-
-  if (lower === 'event_type' || lower === 'type' || lower === 'name' || lower === 'event_name') badges.push('EVENT');
-  if (lower.includes('session') || lower.includes('trace') || lower.includes('correlation')) badges.push('CORR');
-  if (strVal === 'true' || strVal === 'false') badges.push('BOOL');
-  if (!badges.length && /^-?\d+$/.test(strVal) && strVal.length < 12) badges.push('INT');
-  if (!badges.length && /^-?\d+\.\d+$/.test(strVal)) badges.push('FLOAT');
-
-  return badges;
-}
-
-export function EventColBadge({ label }) {
-  let cls = 'm-col-type-badge';
-  if (label === 'UUID') cls += ' m-col-type-badge--uuid';
-  if (label === 'TIMESTAMP') cls += ' m-col-type-badge--ts';
-  if (label === 'EVENT') cls += ' m-col-type-badge--pk';
-  if (label === 'CORR') cls += ' m-col-type-badge--fk';
-  if (label === 'BOOL') cls += ' m-col-type-badge--bool';
-  if (label === 'INT' || label === 'FLOAT') cls += ' m-col-type-badge--num';
-  return <span className={cls}>{label}</span>;
-}
-
-export function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, onCommit, onCancel, onCopy }) {
-  const inputRef = useRef(null);
-  const cancelledRef = useRef(false);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
-
-  const displayVal = typeof value === 'object' && value !== null
-    ? JSON.stringify(value)
-    : String(value ?? '');
-
-  if (isEditing) {
-    return (
-      <td className="m-editable-cell">
-        <input
-          ref={inputRef}
-          className="m-cell-edit-input"
-          value={editingValue}
-          onChange={e => onChange(e.target.value)}
-          onBlur={() => {
-            if (!cancelledRef.current) onCommit();
-            cancelledRef.current = false;
-          }}
-          onKeyDown={e => {
-            if (e.key === 'Enter') onCommit();
-            if (e.key === 'Escape') {
-              cancelledRef.current = true;
-              onCancel();
-            }
-          }}
-        />
-      </td>
-    );
-  }
-
-  return (
-    <td
-      className="m-editable-cell"
-      title="Double-click to edit · Triple-click to copy"
-      onDoubleClick={() => onStartEdit(displayVal)}
-      onClick={e => { if (e.detail === 3) onCopy(value); }}
-    >
-      <div className="m-cell-content-wrapper">
-        <span className="m-cell-value">{displayVal}</span>
-        <i className="fas fa-pencil-alt m-cell-edit-icon" />
-      </div>
-    </td>
   );
 }
 

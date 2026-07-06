@@ -479,17 +479,14 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       const newHandler = data.handlers?.[0];
       if (!newHandler) throw new Error('No handler returned');
 
+      const newIndex = generatedData.handlers.length;
       setGeneratedData(prev => {
         const handlers = [...prev.handlers, newHandler];
         const next = { ...prev, handlers };
         pushHistory(next);
         return next;
       });
-      setActiveHandlerIdx(prev => generatedData.handlers.length);
-      const newCount = generatedData.handlers.length + 1;
-      setGeneratedData(prev => ({ ...prev, handlers: [...prev.handlers, newHandler] }));
-      pushHistory({ ...generatedData, handlers: [...generatedData.handlers, newHandler] });
-      setActiveHandlerIdx(newCount - 1);
+      setActiveHandlerIdx(newIndex);
 
       setAddEndpointInput('');
       setIsAddEndpointOpen(false);

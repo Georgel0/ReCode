@@ -55,7 +55,7 @@ export function runRuleValidation(streams, rules) {
         // Use != null (covers null and undefined) so a status_code of 0 is NOT treated as absent
         const statusVal = Number(
           e.status_code != null ? e.status_code :
-          e.status      != null ? e.status      : 0
+            e.status != null ? e.status : 0
         );
         return typeVal.includes('error') || typeVal.includes('fail') || statusVal >= 400;
       }).length;
@@ -338,4 +338,25 @@ export function buildCorrelatedView(streams) {
   }
 
   return { combined, corrKey, tsKey };
+}
+
+export function inferEventBadges(colName, sampleValue) {
+  const badges = [];
+  const lower = colName.toLowerCase();
+  const strVal = sampleValue !== null && sampleValue !== undefined ? String(sampleValue) : '';
+
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRe.test(strVal)) badges.push('UUID');
+
+  const tsKeys = ['timestamp', 'ts', 'time', 'created_at', 'occurred_at', 'event_time', 'datetime'];
+  if (tsKeys.some(k => lower.includes(k))) badges.push('TIMESTAMP');
+  else if (!badges.includes('UUID') && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) badges.push('TIMESTAMP');
+
+  if (lower === 'event_type' || lower === 'type' || lower === 'name' || lower === 'event_name') badges.push('EVENT');
+  if (lower.includes('session') || lower.includes('trace') || lower.includes('correlation')) badges.push('CORR');
+  if (strVal === 'true' || strVal === 'false') badges.push('BOOL');
+  if (!badges.length && /^-?\d+$/.test(strVal) && strVal.length < 12) badges.push('INT');
+  if (!badges.length && /^-?\d+\.\d+$/.test(strVal)) badges.push('FLOAT');
+
+  return badges;
 }
