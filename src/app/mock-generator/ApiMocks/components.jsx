@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from "react";
-import { getMethodMeta } from "../ApiMocks/useApiMocksTab";
+import { getMethodMeta } from "./constants";
 
 export function MethodBadge({ method }) {
   const { cls, label } = getMethodMeta(method);

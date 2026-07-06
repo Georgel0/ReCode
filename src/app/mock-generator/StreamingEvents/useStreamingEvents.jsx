@@ -6,7 +6,7 @@ import { convertCode, useDraft } from '@/lib';
 import { DEFAULT_CONFIG, ITEMS_PER_PAGE } from './constants';
 import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from './utils';
 
-export function useStreamingEventsTab({ onDataUpdate }) {
+export function useStreamingEvents({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);

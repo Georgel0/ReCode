@@ -3,217 +3,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context';
 import { convertCode, useDraft, useShareState } from '@/lib';
-
-export const FRAMEWORK_OPTIONS = [
-  { value: 'msw', label: 'MSW v2 (Mock Service Worker)', icon: 'fa-shield-halved' },
-  { value: 'nextjs', label: 'Next.js App Router Routes', icon: 'fa-route' },
-  { value: 'axios', label: 'Axios Mock Adapter', icon: 'fa-circle-nodes' },
-  { value: 'json', label: 'JSON Fixtures Only', icon: 'fa-file-code' },
-];
-
-export const PAGINATION_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'offset', label: 'Offset / Limit' },
-  { value: 'cursor', label: 'Cursor-based' },
-  { value: 'page', label: 'Page / Per Page' },
-];
-
-export const AUTH_OPTIONS = [
-  { value: 'none', label: 'None' },
-  { value: 'bearer', label: 'Bearer / JWT' },
-  { value: 'apikey', label: 'API Key Header' },
-  { value: 'session', label: 'Session Cookie' },
-];
-
-export const ENV_PREFIX_OPTIONS = [
-  { value: 'none', label: 'None (hardcoded)' },
-  { value: 'process.env', label: 'process.env' },
-  { value: 'import.meta.env', label: 'import.meta.env' },
-];
-
-export const DEFAULT_OUTPUT_CONFIG = {
-  framework: 'msw',
-  endpointCount: 5,
-  delayMs: 0,
-  errorRate: 0,
-  paginationStyle: 'none',
-  authStyle: 'none',
-  includeTypes: true,
-  includeAnalysis: false,
-  envPrefix: 'none',
-};
-
-export const SPEC_TEMPLATES = [
-  {
-    label: 'Users REST CRUD',
-    value: `type User {
-  id: ID!
-  name: String!
-  email: String!
-  role: String!  # admin | member | viewer
-  avatarUrl: String
-  createdAt: String!
-  updatedAt: String!
-}
-
-type Query {
-  users(page: Int, limit: Int): [User!]!
-  user(id: ID!): User
-}
-
-type Mutation {
-  createUser(name: String!, email: String!, role: String!): User!
-  updateUser(id: ID!, name: String, role: String): User!
-  deleteUser(id: ID!): Boolean!
-}`,
-  },
-  {
-    label: 'E-Commerce Products',
-    value: `type Product {
-  id: ID!
-  sku: String!
-  name: String!
-  price: Float!
-  stock: Int!
-  category: String!
-  imageUrl: String
-  rating: Float
-  tags: [String!]!
-}
-
-type Cart {
-  id: ID!
-  userId: ID!
-  items: [CartItem!]!
-  total: Float!
-}
-
-type CartItem {
-  productId: ID!
-  quantity: Int!
-  unitPrice: Float!
-}`,
-  },
-  {
-    label: 'Auth Endpoints',
-    value: `POST /api/auth/register
-  Body: { email: string, password: string, name: string }
-  Response: { user: User, token: string }
-
-POST /api/auth/login
-  Body: { email: string, password: string }
-  Response: { user: User, accessToken: string, refreshToken: string }
-
-POST /api/auth/refresh
-  Body: { refreshToken: string }
-  Response: { accessToken: string }
-
-POST /api/auth/logout
-  Headers: Authorization: Bearer <token>
-  Response: { success: boolean }
-
-GET /api/auth/me
-  Headers: Authorization: Bearer <token>
-  Response: { user: User }`,
-  },
-  {
-    label: 'Blog / CMS API',
-    value: `interface Post {
-  id: string;
-  title: string;
-  slug: string;
-  body: string;
-  excerpt: string;
-  author: Author;
-  tags: string[];
-  status: 'draft' | 'published' | 'archived';
-  publishedAt: string | null;
-  viewCount: number;
-}
-
-interface Author {
-  id: string;
-  name: string;
-  bio: string;
-  avatarUrl: string;
-}
-
-interface Comment {
-  id: string;
-  postId: string;
-  author: string;
-  body: string;
-  createdAt: string;
-  likes: number;
-}`,
-  },
-];
-
-/**
- * Auto-detects input spec format from content.
- * Returns one of: 'graphql' | 'openapi' | 'typescript' | 'json' | 'rest' | 'auto'
- */
-export function detectSpecFormat(input) {
-  if (!input?.trim()) return 'auto';
-  const t = input.trim();
-
-  if (
-    (t.includes('type ') && (t.includes('Query {') || t.includes('Mutation {') || t.includes('!}'))) ||
-    t.startsWith('type ') || t.startsWith('input ') || t.startsWith('enum ')
-  ) return 'graphql';
-
-  if (t.includes('openapi:') || t.includes('"openapi"') || t.includes('swagger:') || t.includes('"swagger"'))
-    return 'openapi';
-
-  if (t.startsWith('{') || t.startsWith('[')) return 'json';
-
-  if (
-    t.includes(': string') || t.includes(': number') || t.includes(': boolean') ||
-    /^(interface|type)\s+\w+/m.test(t)
-  ) return 'typescript';
-
-  if (/^(GET|POST|PUT|PATCH|DELETE)\s+\//m.test(t) || t.includes('/api/'))
-    return 'rest';
-
-  return 'auto';
-}
-
-const FORMAT_LABELS = {
-  graphql: 'GraphQL SDL',
-  openapi: 'OpenAPI / Swagger',
-  typescript: 'TypeScript',
-  json: 'JSON Sample',
-  rest: 'REST Spec',
-  auto: 'Auto-Detect',
-};
-
-const FORMAT_ICONS = {
-  graphql: 'fa-bezier-curve',
-  openapi: 'fa-file-contract',
-  typescript: 'fa-code',
-  json: 'fa-brackets-curly',
-  rest: 'fa-list-ul',
-  auto: 'fa-wand-magic-sparkles',
-};
-
-export { FORMAT_LABELS, FORMAT_ICONS };
-
-// Returns CSS modifier class and label for an HTTP method badge.
-export function getMethodMeta(method = '') {
-  const m = (method ?? '').toUpperCase();
-  const map = {
-    GET: { cls: 'method-badge--get', label: 'GET' },
-    POST: { cls: 'method-badge--post', label: 'POST' },
-    PUT: { cls: 'method-badge--put', label: 'PUT' },
-    PATCH: { cls: 'method-badge--patch', label: 'PATCH' },
-    DELETE: { cls: 'method-badge--delete', label: 'DELETE' },
-  };
-  return map[m] ?? { cls: 'method-badge--get', label: m };
-}
+import { DEFAULT_OUTPUT_CONFIG, detectSpecFormat } from './constants';
 
 const MAX_HISTORY = 5;
 
-export function useApiMocksTab({ onDataUpdate } = {}) {
+export function useApiMocks({ onDataUpdate } = {}) {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
@@ -223,10 +17,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setOutputConfig(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Presence check only (doesn't consume the param, safe to read every
-  // render). Used purely to make the moduleData/draft restores below defer
-  // to a share link on the very first render — before either restore effect
-  // has a chance to run.
   const hasShareParam = typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).has('share');
 
@@ -236,8 +26,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     config: outputConfig,
   });
 
-  // Hydrate from a shared link. Runs once on mount and takes priority over
-  // both the moduleData (history) restore and the local draft restore below.
   useEffect(() => {
     const shared = readSharedState();
     if (!shared) return;
@@ -250,11 +38,11 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
   const [activeHandlerIdx, setActiveHandlerIdx] = useState(0);
-  const [viewMode, setViewMode] = useState('code');   // 'code' | 'fixture'
+  const [viewMode, setViewMode] = useState('code'); 
   const [filterQuery, setFilterQuery] = useState('');
   const [parsedSpecFeedback, setParsedSpecFeedback] = useState([]);
 
-  const [copyFlash, setCopyFlash] = useState(null); // null | 'handler' | 'all'
+  const [copyFlash, setCopyFlash] = useState(null); 
 
   const [savedSpecs, setSavedSpecs] = useState([]);
   const [specsVisible, setSpecsVisible] = useState(false);
@@ -263,9 +51,9 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   const [saveSpecError, setSaveSpecError] = useState('');
 
   const [editingHandlerIdx, setEditingHandlerIdx] = useState(null);
-  const [editingField, setEditingField] = useState(null); // 'code' | 'fixtureData'
+  const [editingField, setEditingField] = useState(null); 
   const [editDraft, setEditDraft] = useState('');
-  const [handlerDirty, setHandlerDirty] = useState({}); // { [idx]: true }
+  const [handlerDirty, setHandlerDirty] = useState({}); 
 
   const [regeneratingIdx, setRegeneratingIdx] = useState(null);
   const [isAddEndpointOpen, setIsAddEndpointOpen] = useState(false);
@@ -300,7 +88,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   }, []);
 
   useEffect(() => {
-    if (hasShareParam) return; // a share link takes priority over saved module data
+    if (hasShareParam) return;
     if (moduleData && moduleData.type === 'api-mocks') {
       setSpecInput(moduleData.input || '');
       setOutputConfig(prev => ({
@@ -371,7 +159,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     }, {});
   }, [generatedData]);
 
-  // Push a snapshot into generation history (localStorage + state)
   const pushHistory = useCallback((data) => {
     const entry = {
       timestamp: new Date().toISOString(),
@@ -424,14 +211,12 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     }
   }, [specInput, outputConfig, qualityMode, detectedFormat, onDataUpdate, pushHistory]);
 
-  // Regenerate a single handler
   const handleRegenerateHandler = useCallback(async (idx) => {
     if (!generatedData?.handlers?.[idx]) return;
     const handler = generatedData.handlers[idx];
     setRegeneratingIdx(idx);
 
     try {
-      // Narrow prompt: target just this one endpoint
       const singleSpec = `${handler.method} ${handler.path}\n${handler.description || ''}`;
       const data = await convertCode('api-mocks', singleSpec, {
         ...outputConfig,
@@ -451,7 +236,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         pushHistory(next);
         return next;
       });
-      // Clear dirty state for this handler since it's freshly regenerated
       setHandlerDirty(prev => { const n = { ...prev }; delete n[idx]; return n; });
       setActiveErrorVariant(prev => { const n = { ...prev }; delete n[idx]; return n; });
     } catch (error) {
@@ -462,7 +246,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     }
   }, [generatedData, outputConfig, qualityMode, pushHistory]);
 
-  // Add endpoint via mini-input
   const handleAddEndpoint = useCallback(async () => {
     if (!addEndpointInput.trim() || !generatedData) return;
     setIsLoading(true);
@@ -498,7 +281,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     }
   }, [addEndpointInput, generatedData, outputConfig, qualityMode, pushHistory]);
 
-  // File upload handler
   const handleFileUpload = useCallback((file) => {
     if (!file) return;
     const reader = new FileReader();
@@ -544,7 +326,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       .catch(() => { });
   }, [generatedData, flashCopy]);
 
-  // Inline editing: start editing a handler field
   const startEdit = useCallback((idx, field) => {
     if (!generatedData?.handlers?.[idx]) return;
 
@@ -563,7 +344,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setEditDraft('');
   }, []);
 
-  // Restore from history
   const handleRestoreHistory = useCallback((entry) => {
     setGeneratedData(entry.data);
     setParsedSpecFeedback(entry.data.parsedSpec || []);
@@ -602,7 +382,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setEditDraft('');
   }, [editingHandlerIdx, editingField, editDraft]);
 
-  // Error variant switcher
   const setErrorVariantForHandler = useCallback((handlerIdx, variantIdx) => {
     setActiveErrorVariant(prev => ({ ...prev, [handlerIdx]: variantIdx }));
   }, []);
@@ -619,7 +398,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
-  // Zip export: group handlers by path prefix into directory structure
   const exportAsZip = useCallback(async () => {
     if (!generatedData?.handlers) return;
     try {
@@ -627,7 +405,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       const zip = new JSZip();
       const srcMocks = zip.folder('src/mocks/handlers');
 
-      // Group by first path segment
       const groups = {};
       generatedData.handlers.forEach(h => {
         const segments = h.path.replace(/^\//, '').split('/').filter(Boolean);
@@ -654,7 +431,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         barrelImports.push({ group, filename });
       });
 
-      // Barrel file
       const barrel = [
         `// Auto-generated barrel – re-exports all handler arrays`,
         ...barrelImports.map(({ group, filename }) =>
@@ -662,12 +438,13 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         ),
         '',
         `// Combined handlers array for setupWorker / setupServer`,
-        `import { ${barrelImports.map(b => `${b.group}Handlers`).join(', ')} } from '.';`,
+        ...barrelImports.map(({ group, filename }) =>
+          `import { ${group}Handlers } from './${filename.replace('.ts', '')}';`
+        ),
         `export const handlers = [${barrelImports.map(b => `...${b.group}Handlers`).join(', ')}];`,
       ].join('\n');
       srcMocks.file('index.ts', barrel);
 
-      // Browser entry (MSW only)
       if (outputConfig.framework === 'msw') {
         zip.folder('src/mocks').file('browser.ts',
           `import { setupWorker } from 'msw/browser';\nimport { handlers } from './handlers';\nexport const worker = setupWorker(...handlers);\n`
@@ -690,14 +467,12 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   }, [generatedData, outputConfig]);
 
-  // VS Code snippets export
   const exportAsVSCodeSnippets = useCallback(() => {
     if (!generatedData?.handlers) return;
     const snippets = {};
 
     generatedData.handlers.forEach(h => {
       const key = h.name;
-      // camelCase → trigger prefix
       const prefix = h.name;
       snippets[key] = {
         scope: 'typescript,javascript',
@@ -719,12 +494,15 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     if (!generatedData?.handlers) return;
 
     if (exportType === 'all-ts') {
-      const ext = outputConfig.framework === 'json' ? 'json' : 'ts';
-      const fileHeader = outputConfig.framework === 'msw'
-        ? `// MSW v2 Handlers – generated by Mock Data Factory\nimport { http, HttpResponse } from 'msw';\n\nexport const handlers = [\n`
-        : outputConfig.framework === 'nextjs'
-          ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
-          : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
+      const isJson = outputConfig.framework === 'json';
+      const ext = isJson ? 'json' : 'ts';
+      const fileHeader = isJson
+        ? ''
+        : outputConfig.framework === 'msw'
+          ? `// MSW v2 Handlers – generated by Mock Data Factory\nimport { http, HttpResponse } from 'msw';\n\nexport const handlers = [\n`
+          : outputConfig.framework === 'nextjs'
+            ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
+            : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
 
       const allCode = viewMode === 'fixture'
         ? generatedData.handlers.map(h =>
@@ -732,7 +510,7 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
         : generatedData.handlers.map(h => h.code).join('\n\n// ─────\n\n');
       const fileFooter = outputConfig.framework === 'msw' ? '\n];\n' : '';
 
-      downloadFile(fileHeader + allCode + fileFooter, `mock-handlers.${ext}`, 'text/typescript');
+      downloadFile(fileHeader + allCode + fileFooter, `mock-handlers.${ext}`, isJson ? 'application/json' : 'text/typescript');
     }
 
     else if (exportType === 'fixtures-json') {
@@ -772,20 +550,18 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
       downloadFile(JSON.stringify(collection, null, 2), 'mock-collection.postman_collection.json', 'application/json');
     }
 
-    // Project structure zip export
     else if (exportType === 'zip') {
       exportAsZip();
       return;
     }
 
-    // Code snippets export
     else if (exportType === 'vscode-snippets') {
       exportAsVSCodeSnippets();
       return;
     }
 
     setModalConfig(prev => ({ ...prev, isOpen: false }));
-  }, [generatedData, activeHandler, outputConfig, viewMode]);
+  }, [generatedData, activeHandler, outputConfig, viewMode, exportAsZip, exportAsVSCodeSnippets]);
 
   const triggerExportModal = useCallback((type) => {
     const labels = {
@@ -867,8 +643,6 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     setOutputConfig(DEFAULT_OUTPUT_CONFIG);
   }, []);
 
-  // Mirrors the payload shape already sent via onDataUpdate in handleGenerate,
-  // kept in sync automatically since it's derived rather than duplicated.
   const resultData = useMemo(() => {
     if (!generatedData) return null;
     return {
@@ -880,17 +654,14 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
   }, [generatedData, specInput, outputConfig]);
 
   return {
-    // Share
     share, shareCopied, resultData,
     shareDisabled: !specInput.trim(),
 
-    // Form
     specInput, setSpecInput,
     outputConfig, updateOutputConfig,
     isDropdownOpen, setIsDropdownOpen,
     detectedFormat,
 
-    // Output
     isLoading,
     generatedData, setGeneratedData,
     activeHandlerIdx,
@@ -903,42 +674,34 @@ export function useApiMocksTab({ onDataUpdate } = {}) {
     methodCounts,
     copyFlash,
 
-    // Inline editing
     editingHandlerIdx, editingField, editDraft, setEditDraft,
     handlerDirty,
     startEdit, cancelEdit, commitEdit,
 
-    // Single-handler regen & add endpoint
     regeneratingIdx,
     isAddEndpointOpen, setIsAddEndpointOpen,
     addEndpointInput, setAddEndpointInput,
     handleRegenerateHandler,
     handleAddEndpoint,
 
-    // File upload
     isDragOver,
     handleDrop, handleDragOver, handleDragLeave,
     handleFileUpload,
 
-    // Generation history
     generationHistory,
     historyOpen, setHistoryOpen,
     handleRestoreHistory,
 
-    // Error variant
     activeErrorVariant,
     setErrorVariantForHandler,
 
-    // Library
     savedSpecs, specsVisible, setSpecsVisible,
     isSaveModalOpen, setIsSaveModalOpen,
     newSpecName, setNewSpecName,
     saveSpecError, setSaveSpecError,
 
-    // Modals
     modalConfig, setModalConfig,
 
-    // Actions
     handleGenerate,
     handleCopyActiveHandler,
     handleCopyAll,

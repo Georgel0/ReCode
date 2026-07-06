@@ -11,7 +11,7 @@ import { STREAM_RULE_TEMPLATES, EVENT_FORMATS, STREAM_PARADIGMS, SAMPLE_TEMPLATE
 import { useStreamingEvents } from './useStreamingEvents';
 
 export default function StreamingEventsTab({ onDataUpdate, isActive }) {
-  const stream = useStreamingEventsTab({ onDataUpdate, isActive });
+  const stream = useStreamingEvents({ onDataUpdate, isActive });
 
   const sampleEvent = stream.activeStreamData?.events?.[0] ?? {};
   const hasMultipleStreams = (stream.generatedData?.streams?.length ?? 0) > 1;
