@@ -38,11 +38,11 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
   const [activeHandlerIdx, setActiveHandlerIdx] = useState(0);
-  const [viewMode, setViewMode] = useState('code'); 
+  const [viewMode, setViewMode] = useState('code');
   const [filterQuery, setFilterQuery] = useState('');
   const [parsedSpecFeedback, setParsedSpecFeedback] = useState([]);
 
-  const [copyFlash, setCopyFlash] = useState(null); 
+  const [copyFlash, setCopyFlash] = useState(null);
 
   const [savedSpecs, setSavedSpecs] = useState([]);
   const [specsVisible, setSpecsVisible] = useState(false);
@@ -51,9 +51,9 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const [saveSpecError, setSaveSpecError] = useState('');
 
   const [editingHandlerIdx, setEditingHandlerIdx] = useState(null);
-  const [editingField, setEditingField] = useState(null); 
+  const [editingField, setEditingField] = useState(null);
   const [editDraft, setEditDraft] = useState('');
-  const [handlerDirty, setHandlerDirty] = useState({}); 
+  const [handlerDirty, setHandlerDirty] = useState({});
 
   const [regeneratingIdx, setRegeneratingIdx] = useState(null);
   const [isAddEndpointOpen, setIsAddEndpointOpen] = useState(false);
@@ -269,6 +269,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
         pushHistory(next);
         return next;
       });
+      setFilterQuery('');
       setActiveHandlerIdx(newIndex);
 
       setAddEndpointInput('');
@@ -335,12 +336,11 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
   const handleCopyAll = useCallback(() => {
     if (!generatedData?.handlers) return;
-
-    const allCode = generatedData.handlers.map(h => h.code).join('\n\n// ────────────────────────────\n\n');
-    navigator.clipboard.writeText(allCode)
-      .then(() => flashCopy('all'))
-      .catch(() => { });
-  }, [generatedData, flashCopy]);
+    const allCode = viewMode === 'fixture'
+      ? generatedData.handlers.map(h => JSON.stringify(h.fixtureData, null, 2)).join('\n\n// ────────────────────────────\n\n')
+      : generatedData.handlers.map(h => h.code).join('\n\n// ────────────────────────────\n\n');
+    navigator.clipboard.writeText(allCode).then(() => flashCopy('all')).catch(() => { });
+  }, [generatedData, viewMode, flashCopy]);
 
   const startEdit = useCallback((idx, field) => {
     if (!generatedData?.handlers?.[idx]) return;

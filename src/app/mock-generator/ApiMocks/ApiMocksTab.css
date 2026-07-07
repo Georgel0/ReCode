@@ -438,6 +438,11 @@
   color: var(--accent);
 }
 
+.ma-editor-dropzone.ma-dragover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+}
+
 @keyframes ma-drop-overlay-in {
   from { opacity: 0; }
   to { opacity: 1; }

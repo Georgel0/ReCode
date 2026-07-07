@@ -142,7 +142,7 @@ export function FixtureShapeWarning({ handler }) {
   const fixture = handler.fixtureData;
 
   const codeImpliesList =
-    /\[\s*\w/i.test(code) || /Array\b/.test(code) || /\blist\b/i.test(code) ||
+    /\[\s*[{"'[]/.test(code) || /Array\b/.test(code) || /\blist\b/i.test(code) ||
     /\[\]/.test(code) || /\.map\(/.test(code);
   const fixtureIsArray = Array.isArray(fixture);
   const fixtureIsObject = fixture && typeof fixture === 'object' && !fixtureIsArray;
