@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import admin from "firebase-admin";
+import { createClient } from 'redis';
+import { nanoid } from 'nanoid';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
@@ -154,6 +156,23 @@ export async function POST(request) {
           model: modelInstance, system: systemPrompt, prompt: userPrompt, maxTokens: 8000
         });
         finalData = { convertedCode: text.trim() };
+      }
+    }
+
+    if (type === 'api-mocks' && finalData) {
+      try {
+        const mockId = nanoid(8);
+        const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
+
+        const redis = createClient({ url: process.env.KV_REDIS_URL });
+        await redis.connect();
+
+        await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: SEVEN_DAYS_IN_SECONDS });
+        await redis.disconnect();
+
+        finalData.mockId = mockId; // Attach ID so frontend can see it
+      } catch (redisError) {
+        console.error("Failed to save mock to Redis:", redisError);
       }
     }
 

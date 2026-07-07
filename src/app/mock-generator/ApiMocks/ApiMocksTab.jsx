@@ -6,9 +6,9 @@ import { CodeEditor, ConfirmModal } from '@/components/ui';
 import { CodeHighlightAnalyzer } from '@/components/widgets';
 import { EmptyState } from '@/components/layout';
 import { useApiMocks } from './useApiMocks';
-import { 
-  FRAMEWORK_OPTIONS, PAGINATION_OPTIONS, AUTH_OPTIONS, 
-  ENV_PREFIX_OPTIONS, SPEC_TEMPLATES, FORMAT_LABELS, 
+import {
+  FRAMEWORK_OPTIONS, PAGINATION_OPTIONS, AUTH_OPTIONS,
+  ENV_PREFIX_OPTIONS, SPEC_TEMPLATES, FORMAT_LABELS,
   FORMAT_ICONS, getMethodMeta
 } from './constants';
 import {
@@ -27,7 +27,7 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
       h => h.name === api.activeHandler.name && h.path === api.activeHandler.path
     ) ?? -1
     : -1;
-    
+
   const variantIdx = api.activeErrorVariant[globalHandlerIdx];
   const displayHandler = variantIdx != null
     ? { ...api.activeHandler, ...(api.activeHandler?.errorVariants?.[variantIdx] ?? {}) }
@@ -36,11 +36,11 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
   const isEditing = api.editingHandlerIdx === globalHandlerIdx;
 
   useEffect(() => {
-    onShareStateChange?.({ 
-      share: api.share, 
-      shareCopied: api.shareCopied, 
-      resultData: api.resultData, 
-      shareDisabled: api.shareDisabled 
+    onShareStateChange?.({
+      share: api.share,
+      shareCopied: api.shareCopied,
+      resultData: api.resultData,
+      shareDisabled: api.shareDisabled
     });
   }, [api.share, api.shareCopied, api.resultData, api.shareDisabled, onShareStateChange]);
 
@@ -520,6 +520,50 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
           </div>
 
           <div className="m-preview-area">
+
+            {api.generatedData?.mockId && (
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                borderRadius: '8px',
+                padding: '1rem',
+                marginBottom: '1rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '1rem'
+              }}>
+                <div>
+                  <h4 style={{ color: '#10b981', margin: 0, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <i className="fas fa-bolt" /> Live Server Active!
+                  </h4>
+                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    Copy this base URL into Postman or your code to fetch your API for real:
+                  </p>
+                  <code style={{
+                    display: 'inline-block',
+                    marginTop: '0.5rem',
+                    background: 'var(--bg-primary)',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border)'
+                  }}>
+                    {typeof window !== 'undefined' ? `${window.location.origin}/m/${api.generatedData.mockId}` : ''}
+                  </code>
+                </div>
+                <button
+                  className="secondary-button"
+                  style={{ flexShrink: 0 }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/m/${api.generatedData.mockId}`);
+                  }}
+                >
+                  <i className="far fa-copy" /> Copy
+                </button>
+              </div>
+            )}
 
             <EmptyState
               isLoading={api.isLoading}
