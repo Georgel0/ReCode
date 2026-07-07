@@ -57,12 +57,10 @@ const GROQ_MAX_TOKENS_DEFAULT = 8000;
 const GROQ_MAX_TOKENS_MOCK = 24000;
 
 export async function POST(request) {
-  // Verify Firebase token before processing anything
   const authHeader = request.headers.get('Authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
-  if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  
   try {
     await admin.auth().verifyIdToken(token);
   } catch {
@@ -71,7 +69,26 @@ export async function POST(request) {
 
   try {
     const payload = await request.json();
-    const { type, input, qualityMode = 'fast' } = payload;
+    const { 
+      type, input, qualityMode = 'fast', 
+      action, existingMockId, expiresIn = 3600, wakeData 
+    } = payload;
+
+    // WAKE UP SHORTCUT
+    // Rehydrates Redis using local draft data without spending AI tokens
+    if (action === 'wake') {
+      if (!existingMockId || !wakeData) {
+        return NextResponse.json({ error: 'Missing data for wake up' }, { status: 400 });
+      }
+      const redis = createClient({ url: process.env.KV_REDIS_URL });
+      await redis.connect();
+      await redis.set(`mock:${existingMockId}`, JSON.stringify(wakeData), { EX: parseInt(expiresIn, 10) });
+      await redis.disconnect();
+
+      wakeData.mockId = existingMockId;
+      wakeData.expiresAt = Date.now() + (parseInt(expiresIn, 10) * 1000);
+      return NextResponse.json(wakeData);
+    }
 
     if (!input || !PROMPT_CONFIG[type]) {
       return NextResponse.json({ error: 'Invalid input or missing configuration type' }, { status: 400 });
@@ -79,8 +96,6 @@ export async function POST(request) {
 
     const config = PROMPT_CONFIG[type];
 
-    // Truncation Safeguard for Schemas
-    // Only strip INSERT statements for non-simulate types
     if (payload.schema && type !== 'sql-simulate') {
       payload.schema = payload.schema.replace(/INSERT\s+INTO[\s\S]*?;/gi, '');
       if (payload.schema.length > 20000) {
@@ -88,15 +103,12 @@ export async function POST(request) {
       }
     }
 
-    // Cap row counts safely
-    // Only normalise rowCount for the types that use it
     if (type === 'mock' || type === 'sql') {
       payload.rowCount = (type === 'mock' && qualityMode === 'turbo')
         ? Math.min(Number(payload.rowCount) || 15, 25)
         : Number(payload.rowCount) || 15;
     }
 
-    // Generate Prompts
     let systemPrompt = config.system(payload);
     const userPrompt = config.user(input, payload);
 
@@ -161,16 +173,17 @@ export async function POST(request) {
 
     if (type === 'api-mocks' && finalData) {
       try {
-        const mockId = nanoid(8);
-        const SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7;
+        const mockId = existingMockId || nanoid(8);
+        const ttl = parseInt(expiresIn, 10) || 3600;
 
         const redis = createClient({ url: process.env.KV_REDIS_URL });
         await redis.connect();
 
-        await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: SEVEN_DAYS_IN_SECONDS });
+        await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: ttl });
         await redis.disconnect();
 
-        finalData.mockId = mockId; // Attach ID so frontend can see it
+        finalData.mockId = mockId;
+        finalData.expiresAt = Date.now() + (ttl * 1000);
       } catch (redisError) {
         console.error("Failed to save mock to Redis:", redisError);
       }

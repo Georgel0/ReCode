@@ -9,7 +9,7 @@ import { useApiMocks } from './useApiMocks';
 import {
   FRAMEWORK_OPTIONS, PAGINATION_OPTIONS, AUTH_OPTIONS,
   ENV_PREFIX_OPTIONS, SPEC_TEMPLATES, FORMAT_LABELS,
-  FORMAT_ICONS, getMethodMeta
+  FORMAT_ICONS, getMethodMeta, MOCK_DURATION_OPTIONS
 } from './constants';
 import {
   MethodBadge, StatusBadge, CodeDisplay, FixtureDisplay, MethodSummaryPills,
@@ -220,6 +220,18 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="m-form-group">
+                <label className="m-input-label">Live Server Duration</label>
+                <select
+                  value={api.outputConfig.mockDuration}
+                  onChange={e => api.updateOutputConfig('mockDuration', parseInt(e.target.value, 10))}
+                >
+                  {MOCK_DURATION_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="m-form-group">
@@ -522,40 +534,45 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
           <div className="m-preview-area">
 
             {api.generatedData?.mockId && (
-              <div style={{
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
-                borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '1rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '1rem',
-                position: 'relative'
-              }}>
-                <div>
-                  <h4 style={{ color: '#10b981', margin: 0, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <i className="fas fa-bolt" /> Live Server Active!
-                  </h4>
-                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    Copy this base URL into Postman or your code to fetch your API for real:
+              <div className={`ma-live-banner ${api.isHibernating ? 'ma-hibernating' : 'ma-live'}`}>
+                <div className="ma-live-banner-content">
+                  <div className="ma-live-banner-header">
+                    <h4 className="ma-live-banner-title">
+                      <i className="fas fa-server" /> Mock Server URL
+                    </h4>
+                    <span className={`ma-live-status-badge ${api.isHibernating ? 'ma-status-hibernating' : 'ma-status-live'}`}>
+                      {api.isHibernating ? (
+                        <><i className="fas fa-moon" /> Hibernating (Click to Wake Up)</>
+                      ) : (
+                        <><i className="fas fa-satellite-dish" /> Live (Expires in {api.formattedTimeRemaining})</>
+                      )}
+                    </span>
+                  </div>
+                  <p className="ma-live-banner-desc">
+                    {api.isHibernating
+                      ? 'This server cache expired. Wake it up to continue using the exact same URL!'
+                      : 'Copy this base URL into Postman or your code to fetch your API for real:'}
                   </p>
-                  <code style={{
-                    display: 'inline-block',
-                    marginTop: '0.5rem',
-                    background: 'var(--bg-primary)',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border)'
-                  }}>
-                    {typeof window !== 'undefined' ? `${window.location.origin}/m/${api.generatedData.mockId}` : ''}
-                  </code>
+                  {!api.isHibernating && (
+                    <code className="ma-live-url">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/m/${api.generatedData.mockId}` : ''}
+                    </code>
+                  )}
                 </div>
 
-                <CopyButton codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
+                <div className="ma-live-banner-actions">
+                  {api.isHibernating ? (
+                    <button
+                      className="primary-button"
+                      onClick={api.handleWakeUp}
+                      disabled={api.isLoading}
+                    >
+                      {api.isLoading ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-bolt" />} Wake Up
+                    </button>
+                  ) : (
+                    <CopyButton codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
+                  )}
+                </div>
               </div>
             )}
 

@@ -5,6 +5,12 @@ export const FRAMEWORK_OPTIONS = [
   { value: 'json', label: 'JSON Fixtures Only', icon: 'fa-file-code' },
 ];
 
+export const MOCK_DURATION_OPTIONS = [
+  { value: 3600, label: '1 Hour (Testing)' },
+  { value: 86400, label: '1 Day (Standard)' },
+  { value: 604800, label: '7 Days (Team Sync)' },
+];
+
 export const PAGINATION_OPTIONS = [
   { value: 'none', label: 'None' },
   { value: 'offset', label: 'Offset / Limit' },
@@ -35,6 +41,7 @@ export const DEFAULT_OUTPUT_CONFIG = {
   includeTypes: true,
   includeAnalysis: false,
   envPrefix: 'none',
+  mockDuration: 3600,
 };
 
 export const SPEC_TEMPLATES = [

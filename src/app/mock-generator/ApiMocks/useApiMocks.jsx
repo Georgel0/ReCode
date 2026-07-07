@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
 import { convertCode, useDraft, useShareState } from '@/lib';
 import { DEFAULT_OUTPUT_CONFIG, detectSpecFormat } from './constants';
+import { toast } from 'sonner';
 
 const MAX_HISTORY = 5;
 
@@ -11,7 +12,6 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
-
   const [outputConfig, setOutputConfig] = useState(DEFAULT_OUTPUT_CONFIG);
   const updateOutputConfig = useCallback((key, value) => {
     setOutputConfig(prev => ({ ...prev, [key]: value }));
@@ -31,17 +31,15 @@ export function useApiMocks({ onDataUpdate } = {}) {
     if (!shared) return;
     if (shared.input) setSpecInput(shared.input);
     if (shared.config) setOutputConfig(prev => ({ ...prev, ...shared.config }));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
   const [activeHandlerIdx, setActiveHandlerIdx] = useState(0);
   const [viewMode, setViewMode] = useState('code');
   const [filterQuery, setFilterQuery] = useState('');
   const [parsedSpecFeedback, setParsedSpecFeedback] = useState([]);
-
   const [copyFlash, setCopyFlash] = useState(null);
 
   const [savedSpecs, setSavedSpecs] = useState([]);
@@ -58,32 +56,56 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const [regeneratingIdx, setRegeneratingIdx] = useState(null);
   const [isAddEndpointOpen, setIsAddEndpointOpen] = useState(false);
   const [addEndpointInput, setAddEndpointInput] = useState('');
-
   const [isDragOver, setIsDragOver] = useState(false);
 
   const [generationHistory, setGenerationHistory] = useState([]);
   const [historyOpen, setHistoryOpen] = useState(false);
-
   const [activeErrorVariant, setActiveErrorVariant] = useState({});
+  const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
-  const [modalConfig, setModalConfig] = useState({
-    isOpen: false, title: '', message: '', onConfirm: () => { },
-  });
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  
+  useEffect(() => {
+    if (!generatedData?.expiresAt) {
+      setTimeRemaining(null);
+      return;
+    }
+    const tick = () => {
+      const diff = generatedData.expiresAt - Date.now();
+      if (diff <= 0) {
+        setTimeRemaining(0);
+      } else {
+        setTimeRemaining(diff);
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [generatedData?.expiresAt]);
+
+  const isHibernating = timeRemaining === 0;
+  
+  const formattedTimeRemaining = useMemo(() => {
+    if (timeRemaining == null || timeRemaining <= 0) return '0m';
+    const totalSeconds = Math.floor(timeRemaining / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m ${totalSeconds % 60}s`;
+  }, [timeRemaining]);
+
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('mockApiSpecs');
       if (saved) setSavedSpecs(JSON.parse(saved));
-    } catch (e) {
-      console.warn('Failed to load saved API specs:', e);
-      localStorage.removeItem('mockApiSpecs');
-    }
-    try {
       const hist = localStorage.getItem('mockApiHistory');
       if (hist) setGenerationHistory(JSON.parse(hist));
     } catch (e) {
-      console.warn('Failed to load generation history:', e);
-      localStorage.removeItem('mockApiHistory');
+      console.warn('Failed to load saved data:', e);
     }
   }, []);
 
@@ -102,6 +124,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
         ...(moduleData.includeTypes != null && { includeTypes: moduleData.includeTypes }),
         ...(moduleData.includeAnalysis != null && { includeAnalysis: moduleData.includeAnalysis }),
         ...(moduleData.envPrefix && { envPrefix: moduleData.envPrefix }),
+        ...(moduleData.mockDuration && { mockDuration: moduleData.mockDuration }),
       }));
 
       const rawOutput = moduleData.output || moduleData.fullOutput;
@@ -151,7 +174,6 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
   const methodCounts = useMemo(() => {
     if (!generatedData?.handlers) return {};
-
     return generatedData.handlers.reduce((acc, h) => {
       const m = h.method?.toUpperCase() ?? 'GET';
       acc[m] = (acc[m] || 0) + 1;
@@ -177,16 +199,24 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
     setIsLoading(true);
     setParsedSpecFeedback([]);
-    setGeneratedData(null);
     setHandlerDirty({});
     setActiveErrorVariant({});
+
+    const oldMockId = generatedData?.mockId;
 
     try {
       const data = await convertCode('api-mocks', specInput, {
         ...outputConfig,
+        existingMockId: oldMockId,
+        expiresIn: outputConfig.mockDuration,
         qualityMode,
         detectedFormat,
       });
+
+      // Verify if ID was maintained
+      if (oldMockId && data.mockId && oldMockId !== data.mockId) {
+        toast.info("Note: Your Mock Server ID changed due to a reset or cleared session. Update your base URLs.");
+      }
 
       setGeneratedData(data);
       setParsedSpecFeedback(data.parsedSpec || []);
@@ -209,7 +239,26 @@ export function useApiMocks({ onDataUpdate } = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [specInput, outputConfig, qualityMode, detectedFormat, onDataUpdate, pushHistory]);
+  }, [specInput, outputConfig, qualityMode, detectedFormat, onDataUpdate, pushHistory, generatedData?.mockId]);
+
+  const handleWakeUp = useCallback(async () => {
+    if (!generatedData?.mockId) return;
+    setIsLoading(true);
+    try {
+      const data = await convertCode('api-mocks', '', {
+        action: 'wake',
+        existingMockId: generatedData.mockId,
+        wakeData: generatedData,
+        expiresIn: outputConfig.mockDuration,
+      });
+      setGeneratedData(data);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to wake up server. You may need to regenerate the mock entirely.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [generatedData, outputConfig.mockDuration]);
 
   const handleRegenerateHandler = useCallback(async (idx) => {
     if (!generatedData?.handlers?.[idx]) return;
@@ -271,7 +320,6 @@ export function useApiMocks({ onDataUpdate } = {}) {
       });
       setFilterQuery('');
       setActiveHandlerIdx(newIndex);
-
       setAddEndpointInput('');
       setIsAddEndpointOpen(false);
     } catch (error) {
@@ -292,28 +340,16 @@ export function useApiMocks({ onDataUpdate } = {}) {
     reader.readAsText(file);
   }, []);
 
-  // Tracks nested enter/leave pairs so the overlay doesn't flicker while the
-  // pointer moves across the editor's internal child elements during a drag.
   const dragCounterRef = useRef(0);
-
-  const handleDragEnter = useCallback((e) => {
-    e.preventDefault();
-    dragCounterRef.current += 1;
-    setIsDragOver(true);
-  }, []);
-
+  const handleDragEnter = useCallback((e) => { e.preventDefault(); dragCounterRef.current += 1; setIsDragOver(true); }, []);
   const handleDragOver = useCallback((e) => { e.preventDefault(); }, []);
-
   const handleDragLeave = useCallback((e) => {
     e.preventDefault();
     dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) setIsDragOver(false);
   }, []);
-
   const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    dragCounterRef.current = 0;
-    setIsDragOver(false);
+    e.preventDefault(); dragCounterRef.current = 0; setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (file) handleFileUpload(file);
   }, [handleFileUpload]);
@@ -325,13 +361,8 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
   const handleCopyActiveHandler = useCallback(() => {
     if (!activeHandler) return;
-
-    const text = viewMode === 'fixture'
-      ? JSON.stringify(activeHandler.fixtureData, null, 2)
-      : activeHandler.code;
-    navigator.clipboard.writeText(text)
-      .then(() => flashCopy('handler'))
-      .catch(() => { });
+    const text = viewMode === 'fixture' ? JSON.stringify(activeHandler.fixtureData, null, 2) : activeHandler.code;
+    navigator.clipboard.writeText(text).then(() => flashCopy('handler')).catch(() => { });
   }, [activeHandler, viewMode, flashCopy]);
 
   const handleCopyAll = useCallback(() => {
@@ -344,11 +375,8 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
   const startEdit = useCallback((idx, field) => {
     if (!generatedData?.handlers?.[idx]) return;
-
     const handler = generatedData.handlers[idx];
-    const value = field === 'fixtureData'
-      ? JSON.stringify(handler.fixtureData, null, 2)
-      : handler.code;
+    const value = field === 'fixtureData' ? JSON.stringify(handler.fixtureData, null, 2) : handler.code;
     setEditingHandlerIdx(idx);
     setEditingField(field);
     setEditDraft(value);
@@ -373,15 +401,10 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
   const commitEdit = useCallback(() => {
     if (editingHandlerIdx == null || !editingField) return;
-
     let parsedFixture;
     if (editingField === 'fixtureData') {
-      try {
-        parsedFixture = JSON.parse(editDraft);
-      } catch (_) {
-        alert('Invalid JSON in fixture data. Please fix before saving.');
-        return;
-      }
+      try { parsedFixture = JSON.parse(editDraft); } 
+      catch (_) { toast.error('Invalid JSON in fixture data. Please fix before saving.'); return; }
     }
 
     setGeneratedData(prev => {
@@ -449,22 +472,16 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
       const barrel = [
         `// Auto-generated barrel – re-exports all handler arrays`,
-        ...barrelImports.map(({ group, filename }) =>
-          `export { ${group}Handlers } from './${filename.replace('.ts', '')}';`
-        ),
+        ...barrelImports.map(({ group, filename }) => `export { ${group}Handlers } from './${filename.replace('.ts', '')}';`),
         '',
         `// Combined handlers array for setupWorker / setupServer`,
-        ...barrelImports.map(({ group, filename }) =>
-          `import { ${group}Handlers } from './${filename.replace('.ts', '')}';`
-        ),
+        ...barrelImports.map(({ group, filename }) => `import { ${group}Handlers } from './${filename.replace('.ts', '')}';`),
         `export const handlers = [${barrelImports.map(b => `...${b.group}Handlers`).join(', ')}];`,
       ].join('\n');
       srcMocks.file('index.ts', barrel);
 
       if (outputConfig.framework === 'msw') {
-        zip.folder('src/mocks').file('browser.ts',
-          `import { setupWorker } from 'msw/browser';\nimport { handlers } from './handlers';\nexport const worker = setupWorker(...handlers);\n`
-        );
+        zip.folder('src/mocks').file('browser.ts', `import { setupWorker } from 'msw/browser';\nimport { handlers } from './handlers';\nexport const worker = setupWorker(...handlers);\n`);
       }
 
       const blob = await zip.generateAsync({ type: 'blob' });
@@ -478,7 +495,6 @@ export function useApiMocks({ onDataUpdate } = {}) {
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch (e) {
       console.error('Zip export failed:', e);
-      alert('Zip export requires the jszip package. Run: npm install jszip');
     }
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   }, [generatedData, outputConfig]);
@@ -486,141 +502,87 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const exportAsVSCodeSnippets = useCallback(() => {
     if (!generatedData?.handlers) return;
     const snippets = {};
-
     generatedData.handlers.forEach(h => {
       const key = h.name;
       const prefix = h.name;
-      snippets[key] = {
-        scope: 'typescript,javascript',
-        prefix,
-        body: h.code.split('\n'),
-        description: h.description,
-      };
+      snippets[key] = { scope: 'typescript,javascript', prefix, body: h.code.split('\n'), description: h.description };
     });
-
-    downloadFile(
-      JSON.stringify(snippets, null, 2),
-      'api-mocks.code-snippets',
-      'application/json'
-    );
+    downloadFile(JSON.stringify(snippets, null, 2), 'api-mocks.code-snippets', 'application/json');
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   }, [generatedData]);
 
   const executeExport = useCallback((exportType) => {
     if (!generatedData?.handlers) return;
-
     if (exportType === 'all-ts') {
       const isJson = outputConfig.framework === 'json';
       const ext = isJson ? 'json' : 'ts';
-      const fileHeader = isJson
-        ? ''
-        : outputConfig.framework === 'msw'
-          ? `// MSW v2 Handlers – generated by Mock Data Factory\nimport { http, HttpResponse } from 'msw';\n\nexport const handlers = [\n`
-          : outputConfig.framework === 'nextjs'
-            ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
-            : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
+      const fileHeader = isJson ? '' : outputConfig.framework === 'msw'
+        ? `// MSW v2 Handlers – generated by Mock Data Factory\nimport { http, HttpResponse } from 'msw';\n\nexport const handlers = [\n`
+        : outputConfig.framework === 'nextjs'
+        ? `// Next.js App Router API Routes – generated by Mock Data Factory\n`
+        : `// Axios Mock Adapter handlers – generated by Mock Data Factory\nimport MockAdapter from 'axios-mock-adapter';\n\n`;
 
       const allCode = viewMode === 'fixture'
-        ? generatedData.handlers.map(h =>
-          JSON.stringify(h.fixtureData, null, 2)).join('\n\n')
+        ? generatedData.handlers.map(h => JSON.stringify(h.fixtureData, null, 2)).join('\n\n')
         : generatedData.handlers.map(h => h.code).join('\n\n// ─────\n\n');
       const fileFooter = outputConfig.framework === 'msw' ? '\n];\n' : '';
 
       downloadFile(fileHeader + allCode + fileFooter, `mock-handlers.${ext}`, isJson ? 'application/json' : 'text/typescript');
     }
-
     else if (exportType === 'fixtures-json') {
       const fixtures = {};
       generatedData.handlers.forEach(h => {
-        fixtures[`${h.method} ${h.path}`] = {
-          status: h.statusCode ?? 200,
-          data: h.fixtureData,
-        };
+        fixtures[`${h.method} ${h.path}`] = { status: h.statusCode ?? 200, data: h.fixtureData };
       });
       downloadFile(JSON.stringify(fixtures, null, 2), 'fixtures.json', 'application/json');
     }
-
     else if (exportType === 'active-ts') {
       if (!activeHandler) return;
       downloadFile(activeHandler.code, `${activeHandler.name}.ts`, 'text/typescript');
     }
-
     else if (exportType === 'postman') {
       const collection = {
         info: { name: 'Mock API Collection', schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json' },
         item: generatedData.handlers.map(h => ({
           name: h.name,
-          request: {
-            method: h.method,
-            url: { raw: `{{baseUrl}}${h.path}`, host: ['{{baseUrl}}'], path: h.path.split('/').filter(Boolean) },
-            description: h.description,
-          },
-          response: [{
-            name: `${h.statusCode ?? 200} OK`,
-            status: 'OK',
-            code: h.statusCode ?? 200,
-            body: JSON.stringify(h.fixtureData, null, 2),
-          }],
+          request: { method: h.method, url: { raw: `{{baseUrl}}${h.path}`, host: ['{{baseUrl}}'], path: h.path.split('/').filter(Boolean) }, description: h.description },
+          response: [{ name: `${h.statusCode ?? 200} OK`, status: 'OK', code: h.statusCode ?? 200, body: JSON.stringify(h.fixtureData, null, 2) }],
         })),
       };
       downloadFile(JSON.stringify(collection, null, 2), 'mock-collection.postman_collection.json', 'application/json');
     }
-
-    else if (exportType === 'zip') {
-      exportAsZip();
-      return;
-    }
-
-    else if (exportType === 'vscode-snippets') {
-      exportAsVSCodeSnippets();
-      return;
-    }
-
+    else if (exportType === 'zip') { exportAsZip(); return; }
+    else if (exportType === 'vscode-snippets') { exportAsVSCodeSnippets(); return; }
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   }, [generatedData, activeHandler, outputConfig, viewMode, exportAsZip, exportAsVSCodeSnippets]);
 
   const triggerExportModal = useCallback((type) => {
     const labels = {
-      'all-ts': `All Handlers (.ts)`,
-      'fixtures-json': 'JSON Fixtures',
-      'active-ts': `Active Handler (.ts)`,
-      'postman': 'Postman Collection (.json)',
-      'zip': 'Project Structure (.zip)',
-      'vscode-snippets': 'VS Code Snippets (.code-snippets)',
+      'all-ts': `All Handlers (.ts)`, 'fixtures-json': 'JSON Fixtures', 'active-ts': `Active Handler (.ts)`,
+      'postman': 'Postman Collection (.json)', 'zip': 'Project Structure (.zip)', 'vscode-snippets': 'VS Code Snippets (.code-snippets)',
     };
-
     setModalConfig({
-      isOpen: true,
-      title: `Export ${labels[type] || type}`,
+      isOpen: true, title: `Export ${labels[type] || type}`,
       message: 'Download the generated mock code as a production-ready file.',
-      confirmText: 'Export',
-      cancelText: 'Cancel',
-      icon: 'fa-file-export',
+      confirmText: 'Export', cancelText: 'Cancel', icon: 'fa-file-export',
       onConfirm: () => executeExport(type),
     });
   }, [executeExport]);
 
   const handleSaveSpec = useCallback(() => {
-    setNewSpecName('');
-    setSaveSpecError('');
-    setIsSaveModalOpen(true);
+    setNewSpecName(''); setSaveSpecError(''); setIsSaveModalOpen(true);
   }, []);
 
   const executeSaveSpec = useCallback(() => {
     if (!newSpecName?.trim()) { setSaveSpecError('Name cannot be empty.'); return; }
-
     const trimmed = newSpecName.trim();
-
     if (savedSpecs.some(s => s.name.toLowerCase() === trimmed.toLowerCase())) {
       setSaveSpecError('A spec with this name already exists.'); return;
     }
-
     const newSaved = [...savedSpecs, { name: trimmed, spec: specInput, framework: outputConfig.framework }];
-
     try {
       localStorage.setItem('mockApiSpecs', JSON.stringify(newSaved));
-      setSavedSpecs(newSaved);
-      setIsSaveModalOpen(false);
+      setSavedSpecs(newSaved); setIsSaveModalOpen(false);
     } catch (e) {
       setSaveSpecError('Storage quota exceeded. Delete some saved specs first.');
     }
@@ -629,103 +591,44 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const handleDeleteSpec = useCallback((idx) => {
     const newSaved = savedSpecs.filter((_, i) => i !== idx);
     setSavedSpecs(newSaved);
-    try {
-      localStorage.setItem('mockApiSpecs', JSON.stringify(newSaved));
-    } catch (e) {
-      console.warn('Failed to persist spec deletion:', e);
-    }
+    try { localStorage.setItem('mockApiSpecs', JSON.stringify(newSaved)); } catch (e) {}
     if (newSaved.length === 0) setSpecsVisible(false);
   }, [savedSpecs]);
 
   const clearWorkspace = useCallback(() => {
-    setSpecInput('');
-    setGeneratedData(null);
-    setParsedSpecFeedback([]);
-    setActiveHandlerIdx(0);
-    setFilterQuery('');
-    setViewMode('code');
-    setEditingHandlerIdx(null);
-    setEditingField(null);
-    setEditDraft('');
-    setHandlerDirty({});
-    setRegeneratingIdx(null);
-    setActiveErrorVariant({});
-    setCopyFlash(null);
-    setIsAddEndpointOpen(false);
-    setAddEndpointInput('');
+    setSpecInput(''); setGeneratedData(null); setParsedSpecFeedback([]);
+    setActiveHandlerIdx(0); setFilterQuery(''); setViewMode('code');
+    setEditingHandlerIdx(null); setEditingField(null); setEditDraft('');
+    setHandlerDirty({}); setRegeneratingIdx(null); setActiveErrorVariant({});
+    setCopyFlash(null); setIsAddEndpointOpen(false); setAddEndpointInput('');
   }, []);
 
-  const resetConfig = useCallback(() => {
-    setOutputConfig(DEFAULT_OUTPUT_CONFIG);
-  }, []);
+  const resetConfig = useCallback(() => { setOutputConfig(DEFAULT_OUTPUT_CONFIG); }, []);
 
   const resultData = useMemo(() => {
     if (!generatedData) return null;
-    return {
-      type: 'api-mocks',
-      input: specInput,
-      output: JSON.stringify(generatedData),
-      ...outputConfig,
-    };
+    return { type: 'api-mocks', input: specInput, output: JSON.stringify(generatedData), ...outputConfig };
   }, [generatedData, specInput, outputConfig]);
 
   return {
-    share, shareCopied, resultData,
-    shareDisabled: !specInput.trim(),
-
-    specInput, setSpecInput,
-    outputConfig, updateOutputConfig,
-    isDropdownOpen, setIsDropdownOpen,
-    detectedFormat,
-
-    isLoading,
-    generatedData, setGeneratedData,
-    activeHandlerIdx,
-    setActiveHandlerIdx,
-    viewMode, setViewMode,
-    filterQuery, setFilterQuery,
-    filteredHandlers,
-    activeHandler,
-    parsedSpecFeedback,
-    methodCounts,
-    copyFlash,
-
-    editingHandlerIdx, editingField, editDraft, setEditDraft,
-    handlerDirty,
-    startEdit, cancelEdit, commitEdit,
-
-    regeneratingIdx,
-    isAddEndpointOpen, setIsAddEndpointOpen,
-    addEndpointInput, setAddEndpointInput,
-    handleRegenerateHandler,
-    handleAddEndpoint,
-
-    isDragOver,
-    handleDrop, handleDragEnter, handleDragOver, handleDragLeave,
-    handleFileUpload,
-
-    generationHistory,
-    historyOpen, setHistoryOpen,
-    handleRestoreHistory,
-
-    activeErrorVariant,
-    setErrorVariantForHandler,
-
-    savedSpecs, specsVisible, setSpecsVisible,
-    isSaveModalOpen, setIsSaveModalOpen,
-    newSpecName, setNewSpecName,
-    saveSpecError, setSaveSpecError,
-
-    modalConfig, setModalConfig,
-
-    handleGenerate,
-    handleCopyActiveHandler,
-    handleCopyAll,
-    triggerExportModal,
-    handleSaveSpec,
-    executeSaveSpec,
-    handleDeleteSpec,
-    clearWorkspace,
-    resetConfig
+    share, shareCopied, resultData, shareDisabled: !specInput.trim(),
+    specInput, setSpecInput, outputConfig, updateOutputConfig,
+    isDropdownOpen, setIsDropdownOpen, detectedFormat,
+    isLoading, generatedData, setGeneratedData,
+    activeHandlerIdx, setActiveHandlerIdx,
+    viewMode, setViewMode, filterQuery, setFilterQuery, filteredHandlers,
+    activeHandler, parsedSpecFeedback, methodCounts, copyFlash,
+    editingHandlerIdx, editingField, editDraft, setEditDraft, handlerDirty,
+    startEdit, cancelEdit, commitEdit, regeneratingIdx,
+    isAddEndpointOpen, setIsAddEndpointOpen, addEndpointInput, setAddEndpointInput,
+    handleRegenerateHandler, handleAddEndpoint,
+    isDragOver, handleDrop, handleDragEnter, handleDragOver, handleDragLeave, handleFileUpload,
+    generationHistory, historyOpen, setHistoryOpen, handleRestoreHistory,
+    activeErrorVariant, setErrorVariantForHandler,
+    savedSpecs, specsVisible, setSpecsVisible, isSaveModalOpen, setIsSaveModalOpen,
+    newSpecName, setNewSpecName, saveSpecError, setSaveSpecError, modalConfig, setModalConfig,
+    isHibernating, formattedTimeRemaining, handleWakeUp,
+    handleGenerate, handleCopyActiveHandler, handleCopyAll, triggerExportModal,
+    handleSaveSpec, executeSaveSpec, handleDeleteSpec, clearWorkspace, resetConfig
   };
 }
