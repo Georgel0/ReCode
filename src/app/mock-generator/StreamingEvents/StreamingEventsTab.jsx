@@ -12,6 +12,7 @@ import { useStreamingEvents } from './useStreamingEvents';
 
 export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, isActive }) {
   const stream = useStreamingEvents({ onDataUpdate, isActive });
+  const fileInputRef = useRef(null);
 
   // Report share state up so the parent's single ModuleHeader can reflect
   // this tool whenever it's the active paradigm.
@@ -52,16 +53,25 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
                 <div className="m-section-title">
                   <i className="fas fa-stream" /> Event Schema
                 </div>
-                <button
-                  className="m-icon-text-btn"
-                  onClick={() => stream.setTemplatesVisible(!stream.templatesVisible)}
-                  disabled={stream.savedTemplates.length === 0}
-                >
-                  <i className={`fas ${stream.templatesVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
-                  {stream.savedTemplates.length > 0 && (
-                    <span className="m-badge-count">{stream.savedTemplates.length}</span>
-                  )}
-                </button>
+                <div className="stream-header-actions">
+                  <button
+                    className="m-icon-text-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Upload a JSON schema file"
+                  >
+                    <i className="fas fa-file-arrow-up" />
+                  </button>
+                  <button
+                    className="m-icon-text-btn"
+                    onClick={() => stream.setTemplatesVisible(!stream.templatesVisible)}
+                    disabled={stream.savedTemplates.length === 0}
+                  >
+                    <i className={`fas ${stream.templatesVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
+                    {stream.savedTemplates.length > 0 && (
+                      <span className="m-badge-count">{stream.savedTemplates.length}</span>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="m-form-group param-group reset-btn">
@@ -72,7 +82,7 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
                     if (selected) stream.handleLoadSample(selected);
                   }}
                 >
-                  <option value="" disabled>⚡ Load Starter Sample...</option>
+                  <option value="" disabled>Load Starter Sample...</option>
                   {SAMPLE_TEMPLATES.map(s => (
                     <option key={s.label} value={s.label}>{s.label}</option>
                   ))}
@@ -114,13 +124,37 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
                 </div>
               )}
 
-              <div className="editor-wrapper-box param-group">
+              <div
+                className={`editor-wrapper-box param-group stream-editor-dropzone ${stream.isDragOver ? 'stream-dragover' : ''}`}
+                onDrop={stream.handleDrop}
+                onDragEnter={stream.handleDragEnter}
+                onDragOver={stream.handleDragOver}
+                onDragLeave={stream.handleDragLeave}
+                title="Drop a JSON schema file here"
+              >
                 <CodeEditor
                   value={stream.config.schemaInput}
                   lineNumbers={false}
                   onValueChange={v => stream.updateConfig('schemaInput', v)}
                   language="json"
                   placeholder={`{\n  "event_type": "page_view | click | purchase",\n  "user_id": "UUID",\n  "session_id": "string",\n  "timestamp": "ISO8601"\n}`}
+                />
+
+                {stream.isDragOver && (
+                  <div className="stream-drop-overlay">
+                    <div className="stream-drop-overlay-card">
+                      <i className="fas fa-file-arrow-up" />
+                      <span>Drop your <strong>schema.json</strong> to load it</span>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json,.txt"
+                  style={{ display: 'none' }}
+                  onChange={e => stream.handleFileUpload(e.target.files?.[0])}
                 />
               </div>
 

@@ -825,6 +825,62 @@ th:hover .col-dist-btn,
   margin-bottom: 0.57rem;
 }
 
+.stream-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.stream-editor-dropzone {
+  position: relative;
+}
+
+.stream-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(1px);
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius);
+  pointer-events: none;
+  animation: stream-drop-overlay-in 0.15s ease;
+}
+
+.stream-drop-overlay-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1.1rem;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.stream-drop-overlay-card i {
+  font-size: 1.1rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.stream-drop-overlay-card strong {
+  color: var(--accent);
+}
+
+@keyframes stream-drop-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .full-width-btn {
   width: 100%;
   justify-content: center;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
 import { convertCode, useDraft, useShareState } from '@/lib';
 import { DEFAULT_OUTPUT_CONFIG, detectSpecFormat } from './constants';
@@ -291,15 +291,31 @@ export function useApiMocks({ onDataUpdate } = {}) {
     reader.readAsText(file);
   }, []);
 
+  // Tracks nested enter/leave pairs so the overlay doesn't flicker while the
+  // pointer moves across the editor's internal child elements during a drag.
+  const dragCounterRef = useRef(0);
+
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current += 1;
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragOver = useCallback((e) => { e.preventDefault(); }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+    if (dragCounterRef.current === 0) setIsDragOver(false);
+  }, []);
+
   const handleDrop = useCallback((e) => {
     e.preventDefault();
+    dragCounterRef.current = 0;
     setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (file) handleFileUpload(file);
   }, [handleFileUpload]);
-
-  const handleDragOver = useCallback((e) => { e.preventDefault(); setIsDragOver(true); }, []);
-  const handleDragLeave = useCallback(() => setIsDragOver(false), []);
 
   const flashCopy = useCallback((key) => {
     setCopyFlash(key);
@@ -685,7 +701,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
     handleAddEndpoint,
 
     isDragOver,
-    handleDrop, handleDragOver, handleDragLeave,
+    handleDrop, handleDragEnter, handleDragOver, handleDragLeave,
     handleFileUpload,
 
     generationHistory,

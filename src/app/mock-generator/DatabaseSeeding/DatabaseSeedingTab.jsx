@@ -216,7 +216,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, i
                     if (selected) db.handleLoadSample(selected);
                   }}
                 >
-                  <option value="" disabled>⚡ Load Starter Sample...</option>
+                  <option value="" disabled>Load Starter Sample...</option>
                   {SAMPLE_SCHEMAS.map(s => (
                     <option key={s.label} value={s.label}>{s.label}</option>
                   ))}

@@ -61,17 +61,26 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                     </span>
                   )}
                 </div>
-                <button
-                  className="m-icon-text-btn"
-                  onClick={() => api.setSpecsVisible(!api.specsVisible)}
-                  disabled={api.savedSpecs.length === 0}
-                  title={api.savedSpecs.length === 0 ? 'Save a spec first' : 'Toggle Saved Specs'}
-                >
-                  <i className={`fas ${api.specsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
-                  {api.savedSpecs.length > 0 && (
-                    <span className="m-badge-count">{api.savedSpecs.length}</span>
-                  )}
-                </button>
+                <div className="ma-section-header-actions">
+                  <button
+                    className="m-icon-text-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Upload an OpenAPI / Swagger YAML or JSON file"
+                  >
+                    <i className="fas fa-file-arrow-up" />
+                  </button>
+                  <button
+                    className="m-icon-text-btn"
+                    onClick={() => api.setSpecsVisible(!api.specsVisible)}
+                    disabled={api.savedSpecs.length === 0}
+                    title={api.savedSpecs.length === 0 ? 'Save a spec first' : 'Toggle Saved Specs'}
+                  >
+                    <i className={`fas ${api.specsVisible ? 'fa-folder-open' : 'fa-bookmark'}`} />
+                    {api.savedSpecs.length > 0 && (
+                      <span className="m-badge-count">{api.savedSpecs.length}</span>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {api.specsVisible && api.savedSpecs.length > 0 && (
@@ -120,31 +129,36 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
               </div>
 
               <div
-                className={`ma-spec-dropzone ${api.isDragOver ? 'ma-dragover' : ''}`}
+                className={`editor-container ma-editor-dropzone ${api.isDragOver ? 'ma-dragover' : ''}`}
                 onDrop={api.handleDrop}
+                onDragEnter={api.handleDragEnter}
                 onDragOver={api.handleDragOver}
                 onDragLeave={api.handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
                 title="Drop an OpenAPI / Swagger YAML or JSON file here"
               >
-                <i className="fas fa-file-arrow-up" />
-                <span>Drop openapi.yaml / swagger.json or <strong>click to browse</strong></span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".yaml,.yml,.json"
-                  style={{ display: 'none' }}
-                  onChange={e => api.handleFileUpload(e.target.files?.[0])}
-                />
-              </div>
-
-              <div className="editor-container">
                 <CodeEditor
                   value={api.specInput}
                   lineNumbers={false}
                   onValueChange={api.setSpecInput}
                   language={api.detectedFormat === 'auto' ? 'graphql' : api.detectedFormat === 'typescript' ? 'typescript' : api.detectedFormat === 'json' ? 'json' : 'graphql'}
                   placeholder={`Paste a GraphQL SDL, OpenAPI definition, TypeScript interfaces, or plain REST spec…\n\nExamples:\n  type User { id: ID!, name: String! }\n  GET /api/users\n  { "id": 1, "name": "Alice" }`}
+                />
+
+                {api.isDragOver && (
+                  <div className="ma-editor-drop-overlay">
+                    <div className="ma-editor-drop-overlay-card">
+                      <i className="fas fa-file-arrow-up" />
+                      <span>Drop <strong>openapi.yaml</strong> / <strong>swagger.json</strong> to load spec</span>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".yaml,.yml,.json"
+                  style={{ display: 'none' }}
+                  onChange={e => api.handleFileUpload(e.target.files?.[0])}
                 />
               </div>
 

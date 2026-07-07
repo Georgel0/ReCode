@@ -74,6 +74,9 @@ export function useStreamingEvents({ onDataUpdate }) {
   const [newTemplateName, setNewTemplateName] = useState('');
   const [saveTemplateError, setSaveTemplateError] = useState('');
 
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragCounterRef = useRef(0);
+
   const [modalConfig, setModalConfig] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => { },
   });
@@ -202,6 +205,38 @@ export function useStreamingEvents({ onDataUpdate }) {
     if (!distColumn || !activeStreamData?.events) return null;
     return computeColumnDistribution(activeStreamData.events, distColumn);
   }, [distColumn, activeStreamData]);
+
+  const handleFileUpload = useCallback((file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      if (typeof text === 'string') updateConfig('schemaInput', text);
+    };
+    reader.readAsText(file);
+  }, [updateConfig]);
+
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current += 1;
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragOver = useCallback((e) => { e.preventDefault(); }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+    if (dragCounterRef.current === 0) setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileUpload(file);
+  }, [handleFileUpload]);
 
   const handleLoadSample = useCallback((sample) => {
     if (!sample) return;
@@ -609,6 +644,10 @@ export function useStreamingEvents({ onDataUpdate }) {
     newTemplateName, setNewTemplateName,
     saveTemplateError, setSaveTemplateError,
     handleSaveTemplate, executeSaveTemplate, handleDeleteTemplate,
+
+    isDragOver,
+    handleDrop, handleDragEnter, handleDragOver, handleDragLeave,
+    handleFileUpload,
 
     modalConfig, setModalConfig,
 
