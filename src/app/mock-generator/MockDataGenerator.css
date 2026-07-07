@@ -75,7 +75,7 @@
 .m-factory-container {
   display: flex;
   justify-content: center;
-  height: 75vh;
+  height: 81vh;
   width: 100%;
   background-color: var(--bg-primary);
   border: 1px solid var(--border);

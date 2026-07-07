@@ -45,7 +45,6 @@ export default function MockDataGenerator() {
     <div className="m-module-container m-flex-col-container">
       <ModuleHeader
         title="Mock Data Factory"
-        description="Transform schemas into highly interconnected relational targets, API mock handlers, and event streams."
         resultData={shareState.resultData}
         onShare={shareState.share}
         shareCopied={shareState.shareCopied}

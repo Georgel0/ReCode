@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import DOMPurify from 'dompurify';
-import { CodeEditor, ConfirmModal } from '@/components/ui';
+import { CodeEditor, ConfirmModal, CopyButton } from '@/components/ui';
 import { CodeHighlightAnalyzer } from '@/components/widgets';
 import { EmptyState } from '@/components/layout';
 import { useApiMocks } from './useApiMocks';
@@ -531,7 +531,8 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '1rem'
+                gap: '1rem',
+                position: 'relative'
               }}>
                 <div>
                   <h4 style={{ color: '#10b981', margin: 0, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -553,15 +554,8 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                     {typeof window !== 'undefined' ? `${window.location.origin}/m/${api.generatedData.mockId}` : ''}
                   </code>
                 </div>
-                <button
-                  className="secondary-button"
-                  style={{ flexShrink: 0 }}
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/m/${api.generatedData.mockId}`);
-                  }}
-                >
-                  <i className="far fa-copy" /> Copy
-                </button>
+
+                <CopyButton codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
               </div>
             )}
 

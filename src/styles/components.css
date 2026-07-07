@@ -383,7 +383,7 @@ html[data-theme='quartz'] .primary-button:hover::after {
   justify-content: space-between;
   align-items: center;
   border-bottom: 0.75px solid var(--border);
-  padding: 1.5em;
+  padding: 1em;
   margin-bottom: 0.75em;
 }
 
