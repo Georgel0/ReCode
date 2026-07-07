@@ -36,16 +36,13 @@ export default function MockDataGenerator() {
     else if (moduleData?.type === 'stream') setActiveParadigm('stream');
   }, [moduleData]);
 
-  // Clear stale share state immediately on switch so the header doesn't
-  // briefly show the previous tool's share link/copied state while the
-  // newly-active tab mounts and reports its own.
-  useEffect(() => {
+  const [prevParadigm, setPrevParadigm] = useState(activeParadigm);
+  if (activeParadigm !== prevParadigm) {
+    setPrevParadigm(activeParadigm);
     setShareState(EMPTY_SHARE_STATE);
-  }, [activeParadigm]);
+  }
 
-  // Only ApiMocksTab reports live share state today; db/stream fall back to
-  // the old post-generate snapshot via onDataUpdate until they're upgraded.
-  const isShareAware = activeParadigm === 'api';
+  const isShareAware = activeParadigm === 'api' || activeParadigm === 'db';
 
   return (
     <div className="m-module-container m-flex-col-container">
@@ -87,7 +84,7 @@ export default function MockDataGenerator() {
           <ApiMocksTab onDataUpdate={setHeaderResultData} onShareStateChange={setShareState} />
         )}
         {activeParadigm === 'db' && (
-          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} />
+          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} onShareStateChange={setShareState} />
         )}
         {activeParadigm === 'stream' && (
           <StreamingEventsTab onDataUpdate={setHeaderResultData} />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context';
-import { convertCode, useDraft } from '@/lib';
+import { convertCode, useDraft, useShareState } from '@/lib';
 
 export const RULE_TEMPLATES = [
   { label: "Date Range (Last 30 Days)", value: "All created_at dates must be within the last 30 days." },
@@ -196,21 +196,6 @@ function deriveTypeScriptTypes(tables) {
     .join('\n\n');
 }
 
-function encodeShareState(schema, rules, seed) {
-  try {
-    return btoa(unescape(encodeURIComponent(JSON.stringify({ schema, rules, seed }))));
-  } catch {
-    return null;
-  }
-}
-
-function decodeShareState(encoded) {
-  try {
-    return JSON.parse(decodeURIComponent(escape(atob(encoded))));
-  } catch {
-    return null;
-  }
-}
 
 export function useDatabaseSeedingTab({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
@@ -262,26 +247,33 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     }
   }, []);
 
+  // Presence check only (doesn't consume the param, safe to read every
+  // render). Defers the moduleData/draft restores below to a share link on
+  // the very first render — before either restore effect has a chance to run.
+  const hasShareParam = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).has('share');
+
+  const { share, readSharedState, shareCopied } = useShareState({
+    toolId: 'db-seeding',
+    input: schemaInput,
+    config: { ...config, rules },
+  });
+
+  // Hydrate from a shared link. Runs once on mount and takes priority over
+  // both the moduleData (history) restore and the local draft restore below.
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const shared = params.get('mock');
-      if (shared) {
-        const decoded = decodeShareState(shared);
-        if (decoded) {
-          if (decoded.schema) setSchemaInput(decoded.schema);
-          if (decoded.rules) setRules(decoded.rules);
-          if (decoded.seed) setConfig(prev => ({ ...prev, seed: decoded.seed }));
-          
-          params.delete('mock');
-          const newUrl = [window.location.pathname, params.toString()].filter(Boolean).join('?');
-          window.history.replaceState({}, '', newUrl);
-        }
-      }
-    } catch { /* non-browser or SSR — ignore */ }
-  }, []);
+    const shared = readSharedState();
+    if (!shared) return;
+    if (shared.input) setSchemaInput(shared.input);
+    if (shared.config) {
+      const { rules: sharedRules, ...restConfig } = shared.config;
+      setConfig(prev => ({ ...prev, ...restConfig }));
+      if (sharedRules) setRules(sharedRules);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (hasShareParam) return; // a share link takes priority over saved module data
     if (moduleData && moduleData.type === 'mock') {
       setSchemaInput(moduleData.input || '');
       if (moduleData.rules) setRules(moduleData.rules);
@@ -333,7 +325,7 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     },
     {
       isEmpty: (d) => !d.schemaInput?.trim(),
-      skip: !!(moduleData && moduleData.type === 'mock'),
+      skip: hasShareParam || !!(moduleData && moduleData.type === 'mock'),
     }
   );
 
@@ -752,20 +744,6 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     });
   }, [executeExport, activeTableData]);
 
-  const handleCopyShareLink = useCallback(() => {
-    const encoded = encodeShareState(schemaInput, rules, config.seed);
-    if (!encoded) { alert('Could not encode schema for sharing.'); return; }
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('mock', encoded);
-      navigator.clipboard.writeText(url.toString())
-        .then(() => alert('Share link copied to clipboard!'))
-        .catch(() => alert(`Copy this URL:\n${url.toString()}`));
-    } catch {
-      alert('Share link could not be generated in this environment.');
-    }
-  }, [schemaInput, rules, config.seed]);
-
   const handleSaveSchema = useCallback(() => {
     setNewSchemaName('');
     setSaveSchemaError('');
@@ -829,7 +807,28 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     setConfig(DEFAULT_CONFIG);
   }, []);
 
+  // Mirrors the payload shape already sent via onDataUpdate in handleGenerate,
+  // kept in sync automatically since it's derived rather than duplicated.
+  const resultData = useMemo(() => {
+    if (!generatedData) return null;
+    return {
+      type: 'mock',
+      input: schemaInput,
+      output: JSON.stringify(generatedData),
+      rules,
+      locale: config.locale,
+      rowCount: config.rowCount,
+      seed: config.seed,
+      dataQuality: config.dataQuality,
+      includeAnalysis: config.includeAnalysis,
+    };
+  }, [generatedData, schemaInput, rules, config]);
+
   return {
+    // Share
+    share, shareCopied, resultData,
+    shareDisabled: !schemaInput.trim(),
+
     schemaInput, setSchemaInput,
     rules, setRules,
     config, setConfig, updateConfig,
@@ -862,7 +861,6 @@ export function useDatabaseSeedingTab({ onDataUpdate }) {
     handleGenerate,
     handleRegenerateTable,
     triggerExportModal,
-    handleCopyShareLink,
     savedSchemas,
     schemaOptionsVisible, setSchemaOptionsVisible,
     isSaveModalOpen, setIsSaveModalOpen,

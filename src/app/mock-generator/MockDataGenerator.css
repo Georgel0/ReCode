@@ -97,6 +97,7 @@
 
 .m-sidebar-content {
   padding: 0.75rem;
+  padding-right: .2rem;
   overflow-y: auto;
   flex: 1;
   display: flex;

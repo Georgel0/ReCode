@@ -162,10 +162,12 @@ function ColFilterBar({ colKeys, colFilter, setColFilter, filterQuery, filteredR
   );
 }
 
-export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
+export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, isActive }) {
   const db = useDatabaseSeedingTab({ onDataUpdate, isActive });
 
   const {
+    share, shareCopied, resultData, shareDisabled,
+
     schemaInput, setSchemaInput,
     rules, setRules,
     config, setConfig,
@@ -189,7 +191,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
 
     allTableNames, activeColKeys, fkRelationships,
 
-    handleGenerate, handleRegenerateTable, triggerExportModal, handleCopyShareLink,
+    handleGenerate, handleRegenerateTable, triggerExportModal,
 
     savedSchemas, schemaOptionsVisible, setSchemaOptionsVisible,
     isSaveModalOpen, setIsSaveModalOpen, newSchemaName, setNewSchemaName,
@@ -198,6 +200,12 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
     modalConfig, setModalConfig,
     activeTableData, hasNoInboundFKs, handleLoadSample,
   } = db;
+
+  // Report share state up so the parent's single ModuleHeader can reflect
+  // this tool whenever it's the active paradigm.
+  useEffect(() => {
+    onShareStateChange?.({ share, shareCopied, resultData, shareDisabled });
+  }, [share, shareCopied, resultData, shareDisabled, onShareStateChange]);
 
   const colKeys = activeColKeys;
   const sampleRow = activeTableData?.rows?.[0] ?? {};
@@ -504,14 +512,6 @@ export default function DatabaseSeedingTab({ onDataUpdate, isActive }) {
                       <i className="fas fa-project-diagram" /> ERD
                     </button>
                   </div>
-
-                  <button
-                    className="secondary-button m-tool-btn m-share-btn"
-                    title="Copy shareable link"
-                    onClick={handleCopyShareLink}
-                  >
-                    <i className="fas fa-share-alt" />
-                  </button>
 
                   <div className="m-export-group">
                     <button
