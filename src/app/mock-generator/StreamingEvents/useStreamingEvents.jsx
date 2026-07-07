@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
-import { convertCode, useDraft } from '@/lib';
+import { convertCode, useDraft, useShareState } from '@/lib';
 import { DEFAULT_CONFIG, ITEMS_PER_PAGE } from './constants';
 import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from './utils';
 
@@ -14,6 +14,37 @@ export function useStreamingEvents({ onDataUpdate }) {
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
   }, []);
+
+  // Presence check only (doesn't consume the param, safe to read every
+  // render). Defers the moduleData/draft restores below to a share link on
+  // the very first render — before either restore effect has a chance to run.
+  const hasShareParam = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).has('share');
+
+  // schemaInput already lives inside `config`; keep it out of the share
+  // payload's `config` blob since it's already carried as `input`.
+  const shareConfig = useMemo(() => {
+    const { schemaInput, ...rest } = config;
+    return rest;
+  }, [config]);
+
+  const { share, readSharedState, shareCopied } = useShareState({
+    toolId: 'streaming-events',
+    input: config.schemaInput,
+    config: shareConfig,
+  });
+
+  // Hydrate from a shared link. Runs once on mount and takes priority over
+  // both the moduleData (history) restore and the local draft restore below.
+  useEffect(() => {
+    const shared = readSharedState();
+    if (!shared) return;
+    setConfig(prev => ({
+      ...prev,
+      ...(shared.config || {}),
+      schemaInput: shared.input || prev.schemaInput,
+    }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
@@ -58,6 +89,7 @@ export function useStreamingEvents({ onDataUpdate }) {
   }, []);
 
   useEffect(() => {
+    if (hasShareParam) return; // a share link takes priority over saved module data
     if (moduleData && moduleData.type === 'stream') {
       setConfig(prev => ({
         ...prev,
@@ -110,7 +142,7 @@ export function useStreamingEvents({ onDataUpdate }) {
     },
     {
       isEmpty: (d) => !d.config?.schemaInput?.trim(),
-      skip: !!(moduleData && moduleData.type === 'stream'),
+      skip: hasShareParam || !!(moduleData && moduleData.type === 'stream'),
     }
   );
 
@@ -520,7 +552,29 @@ export function useStreamingEvents({ onDataUpdate }) {
     }));
   }, []);
 
+  // Mirrors the payload shape already sent via onDataUpdate in handleGenerate,
+  // kept in sync automatically since it's derived rather than duplicated.
+  const resultData = useMemo(() => {
+    if (!generatedData) return null;
+    return {
+      type: 'stream',
+      input: config.schemaInput,
+      output: JSON.stringify(generatedData),
+      rules: config.rules,
+      eventFormat: config.eventFormat,
+      streamParadigm: config.streamParadigm,
+      eventCount: config.eventCount,
+      seed: config.seed,
+      dataQuality: config.dataQuality,
+      includeAnalysis: config.includeAnalysis,
+      includeStateMachine: config.includeStateMachine,
+    };
+  }, [generatedData, config]);
+
   return {
+    share, shareCopied, resultData,
+    shareDisabled: !config.schemaInput?.trim(),
+
     config, setConfig, updateConfig,
     clearWorkspace, resetConfig,
 

@@ -19,7 +19,6 @@ export default function MockDataGenerator() {
   const { moduleData } = useApp();
 
   const [activeParadigm, setActiveParadigm] = useState('api');
-  const [headerResultData, setHeaderResultData] = useState(null);
   const [shareState, setShareState] = useState(EMPTY_SHARE_STATE);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -42,15 +41,13 @@ export default function MockDataGenerator() {
     setShareState(EMPTY_SHARE_STATE);
   }
 
-  const isShareAware = activeParadigm === 'api' || activeParadigm === 'db';
-
   return (
     <div className="m-module-container m-flex-col-container">
       <ModuleHeader
         title="Mock Data Factory"
         description="Transform schemas into highly interconnected relational targets, API mock handlers, and event streams."
-        resultData={isShareAware ? shareState.resultData : headerResultData}
-        onShare={isShareAware ? shareState.share : undefined}
+        resultData={shareState.resultData}
+        onShare={shareState.share}
         shareCopied={shareState.shareCopied}
         shareDisabled={shareState.shareDisabled}
       />
@@ -81,13 +78,13 @@ export default function MockDataGenerator() {
 
       <div className="m-paradigm-content">
         {activeParadigm === 'api' && (
-          <ApiMocksTab onDataUpdate={setHeaderResultData} onShareStateChange={setShareState} />
+          <ApiMocksTab onShareStateChange={setShareState} />
         )}
         {activeParadigm === 'db' && (
-          <DatabaseSeedingTab onDataUpdate={setHeaderResultData} onShareStateChange={setShareState} />
+          <DatabaseSeedingTab onShareStateChange={setShareState} />
         )}
         {activeParadigm === 'stream' && (
-          <StreamingEventsTab onDataUpdate={setHeaderResultData} />
+          <StreamingEventsTab onShareStateChange={setShareState} />
         )}
       </div>
     </div>

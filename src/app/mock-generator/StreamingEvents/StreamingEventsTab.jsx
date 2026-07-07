@@ -10,8 +10,19 @@ import { inferEventBadges } from './utils';
 import { STREAM_RULE_TEMPLATES, EVENT_FORMATS, STREAM_PARADIGMS, SAMPLE_TEMPLATES } from './constants';
 import { useStreamingEvents } from './useStreamingEvents';
 
-export default function StreamingEventsTab({ onDataUpdate, isActive }) {
+export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, isActive }) {
   const stream = useStreamingEvents({ onDataUpdate, isActive });
+
+  // Report share state up so the parent's single ModuleHeader can reflect
+  // this tool whenever it's the active paradigm.
+  useEffect(() => {
+    onShareStateChange?.({
+      share: stream.share,
+      shareCopied: stream.shareCopied,
+      resultData: stream.resultData,
+      shareDisabled: stream.shareDisabled,
+    });
+  }, [stream.share, stream.shareCopied, stream.resultData, stream.shareDisabled, onShareStateChange]);
 
   const sampleEvent = stream.activeStreamData?.events?.[0] ?? {};
   const hasMultipleStreams = (stream.generatedData?.streams?.length ?? 0) > 1;
