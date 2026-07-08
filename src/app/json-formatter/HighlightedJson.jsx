@@ -56,7 +56,7 @@ export function HighlightedEditor({
 
   return (
     <div className={`j-highlight-wrapper ${className}`}>
-      <pre ref={preRef} className="j-highlight-pre" aria-hidden="true">
+      <pre ref={preRef} tabIndex={0} className={`j-highlight-pre language-${language}`} aria-hidden="true">
         <code
           className={`language-${language}`}
           dangerouslySetInnerHTML={{ __html: highlight(paddedValue, language) }}

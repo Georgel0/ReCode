@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import admin from "firebase-admin";
-import { createClient } from 'redis';
 import { nanoid } from 'nanoid';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { PROMPT_CONFIG } from '@/lib/ai/prompts';
+import { getRedisClient } from '@/lib/redis';
+
 
 function extractJson(text) {
   if (!text) return null;
@@ -84,6 +85,8 @@ async function resolveMockId(redis, desiredId, uid) {
   return { mockId: nanoid(8), idChanged: true };
 }
 
+
+
 export async function POST(request) {
   const authHeader = request.headers.get('Authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
@@ -108,8 +111,7 @@ export async function POST(request) {
       if (!existingMockId || !wakeData) {
         return NextResponse.json({ error: 'Missing data for wake up' }, { status: 400 });
       }
-      const redis = createClient({ url: process.env.KV_REDIS_URL });
-      await redis.connect();
+      const redis = await getRedisClient();
 
       const { mockId, idChanged } = await resolveMockId(redis, existingMockId, uid);
       const ttl = parseInt(expiresIn, 10) || 3600;
@@ -119,7 +121,6 @@ export async function POST(request) {
       wakeData.idChanged = idChanged;
 
       await redis.set(`mock:${mockId}`, JSON.stringify(wakeData), { EX: ttl });
-      await redis.disconnect();
 
       wakeData.expiresAt = Date.now() + (ttl * 1000);
       return NextResponse.json(wakeData);
@@ -208,8 +209,7 @@ export async function POST(request) {
 
     if (type === 'api-mocks' && finalData) {
       try {
-        const redis = createClient({ url: process.env.KV_REDIS_URL });
-        await redis.connect();
+        const redis = await getRedisClient();
 
         const { mockId, idChanged } = await resolveMockId(redis, existingMockId, uid);
         const ttl = parseInt(expiresIn, 10) || 3600;
@@ -219,7 +219,6 @@ export async function POST(request) {
         finalData.idChanged = idChanged;
 
         await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: ttl });
-        await redis.disconnect();
 
         finalData.expiresAt = Date.now() + (ttl * 1000);
       } catch (redisError) {
