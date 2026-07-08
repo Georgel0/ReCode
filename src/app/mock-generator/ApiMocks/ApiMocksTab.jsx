@@ -562,15 +562,64 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
 
                 <div className="ma-live-banner-actions">
                   {api.isHibernating ? (
-                    <button
-                      className="primary-button"
-                      onClick={api.handleWakeUp}
-                      disabled={api.isLoading}
-                    >
-                      {api.isLoading ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-bolt" />} Wake Up
-                    </button>
+                    <>
+                      <select
+                        className="ma-wake-duration-select"
+                        value={api.outputConfig.mockDuration}
+                        onChange={e => api.updateOutputConfig('mockDuration', parseInt(e.target.value, 10))}
+                        title="How long the revived server should stay live"
+                      >
+                        {MOCK_DURATION_OPTIONS.map(o => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                      <button
+                        className="primary-button"
+                        onClick={api.handleWakeUp}
+                        disabled={api.isLoading}
+                      >
+                        {api.isLoading ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-bolt" />} Wake Up
+                      </button>
+                    </>
                   ) : (
-                    <CopyButton codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
+                    <>
+                      <div className="ma-tabs-dropdown-wrapper">
+                        <button
+                          className={`ma-tab-dropdown-toggle ${api.linksDropdownOpen ? 'ma-active' : ''}`}
+                          onClick={() => api.setLinksDropdownOpen(!api.linksDropdownOpen)}
+                          title="All endpoint URLs"
+                        >
+                          <i className="fas fa-link" />
+                        </button>
+                        {api.linksDropdownOpen && (
+                          <>
+                            <div className="ma-dropdown-backdrop" onClick={() => api.setLinksDropdownOpen(false)} />
+                            <div className="ma-tabs-dropdown-menu ma-links-dropdown">
+                              <div className="ma-history-dropdown-header">
+                                <i className="fas fa-link" /> Endpoint URLs
+                              </div>
+                              {api.mockLinks.map(link => (
+                                <button
+                                  key={link.key}
+                                  className="ma-dropdown-item ma-link-item"
+                                  onClick={() => api.handleCopyLink(link.key, link.url)}
+                                  title={api.copyFlash === link.key ? 'Copied!' : link.url}
+                                >
+                                  {link.method ? (
+                                    <MethodBadge method={link.method} />
+                                  ) : (
+                                    <span className="ma-link-root-tag"><i className="fas fa-house" /> Base</span>
+                                  )}
+                                  <span className="ma-link-item-url">{link.url}</span>
+                                  <i className={`fas ${api.copyFlash === link.key ? 'fa-check' : 'fa-copy'} ma-link-copy-icon`} />
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <CopyButton codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
+                    </>
                   )}
                 </div>
               </div>

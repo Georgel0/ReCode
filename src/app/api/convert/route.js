@@ -56,13 +56,43 @@ const groq = createGroq();
 const GROQ_MAX_TOKENS_DEFAULT = 8000;
 const GROQ_MAX_TOKENS_MOCK = 24000;
 
+/**
+ * Decides which mock ID to use for a save/wake operation.
+ *  - No desired ID                                  -> mint a fresh one.
+ *  - Desired ID free (never used / already expired)  -> reuse it.
+ *  - Desired ID still live but has no owner on record
+ *    (older mocks saved before ownership tracking)   -> reuse it.
+ *  - Desired ID still live and owned by this same uid -> reuse it (renewal).
+ *  - Desired ID still live and owned by someone else -> mint a fresh one
+ *    and flag that the caller's requested ID changed.
+ */
+async function resolveMockId(redis, desiredId, uid) {
+  if (!desiredId) return { mockId: nanoid(8), idChanged: false };
+
+  const existingRaw = await redis.get(`mock:${desiredId}`);
+  if (!existingRaw) return { mockId: desiredId, idChanged: false };
+
+  try {
+    const existing = JSON.parse(existingRaw);
+    if (!existing.ownerId || existing.ownerId === uid) {
+      return { mockId: desiredId, idChanged: false };
+    }
+  } catch {
+    // Corrupted entry under this key — treat it as unusable and reissue.
+  }
+
+  return { mockId: nanoid(8), idChanged: true };
+}
+
 export async function POST(request) {
   const authHeader = request.headers.get('Authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   
+  let uid;
   try {
-    await admin.auth().verifyIdToken(token);
+    const decoded = await admin.auth().verifyIdToken(token);
+    uid = decoded.uid;
   } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
@@ -74,19 +104,24 @@ export async function POST(request) {
       action, existingMockId, expiresIn = 3600, wakeData 
     } = payload;
 
-    // WAKE UP SHORTCUT
-    // Rehydrates Redis using local draft data without spending AI tokens
     if (action === 'wake') {
       if (!existingMockId || !wakeData) {
         return NextResponse.json({ error: 'Missing data for wake up' }, { status: 400 });
       }
       const redis = createClient({ url: process.env.KV_REDIS_URL });
       await redis.connect();
-      await redis.set(`mock:${existingMockId}`, JSON.stringify(wakeData), { EX: parseInt(expiresIn, 10) });
+
+      const { mockId, idChanged } = await resolveMockId(redis, existingMockId, uid);
+      const ttl = parseInt(expiresIn, 10) || 3600;
+
+      wakeData.mockId = mockId;
+      wakeData.ownerId = uid;
+      wakeData.idChanged = idChanged;
+
+      await redis.set(`mock:${mockId}`, JSON.stringify(wakeData), { EX: ttl });
       await redis.disconnect();
 
-      wakeData.mockId = existingMockId;
-      wakeData.expiresAt = Date.now() + (parseInt(expiresIn, 10) * 1000);
+      wakeData.expiresAt = Date.now() + (ttl * 1000);
       return NextResponse.json(wakeData);
     }
 
@@ -173,16 +208,19 @@ export async function POST(request) {
 
     if (type === 'api-mocks' && finalData) {
       try {
-        const mockId = existingMockId || nanoid(8);
-        const ttl = parseInt(expiresIn, 10) || 3600;
-
         const redis = createClient({ url: process.env.KV_REDIS_URL });
         await redis.connect();
+
+        const { mockId, idChanged } = await resolveMockId(redis, existingMockId, uid);
+        const ttl = parseInt(expiresIn, 10) || 3600;
+
+        finalData.mockId = mockId;
+        finalData.ownerId = uid;
+        finalData.idChanged = idChanged;
 
         await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: ttl });
         await redis.disconnect();
 
-        finalData.mockId = mockId;
         finalData.expiresAt = Date.now() + (ttl * 1000);
       } catch (redisError) {
         console.error("Failed to save mock to Redis:", redisError);

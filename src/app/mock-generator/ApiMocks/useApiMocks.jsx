@@ -34,6 +34,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
   }, []); 
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [linksDropdownOpen, setLinksDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
   const [activeHandlerIdx, setActiveHandlerIdx] = useState(0);
@@ -94,7 +95,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m ${totalSeconds % 60}s`;
+    return `${mins}m`;
   }, [timeRemaining]);
 
 
@@ -214,8 +215,8 @@ export function useApiMocks({ onDataUpdate } = {}) {
       });
 
       // Verify if ID was maintained
-      if (oldMockId && data.mockId && oldMockId !== data.mockId) {
-        toast.info("Note: Your Mock Server ID changed due to a reset or cleared session. Update your base URLs.");
+      if (oldMockId && data.mockId && (data.idChanged || oldMockId !== data.mockId)) {
+        toast.info("Note: Your Mock Server ID changed because it was picked up by another session. Update your base URLs.");
       }
 
       setGeneratedData(data);
@@ -243,14 +244,22 @@ export function useApiMocks({ onDataUpdate } = {}) {
 
   const handleWakeUp = useCallback(async () => {
     if (!generatedData?.mockId) return;
+
     setIsLoading(true);
+    const oldMockId = generatedData.mockId;
+
     try {
       const data = await convertCode('api-mocks', '', {
         action: 'wake',
-        existingMockId: generatedData.mockId,
+        existingMockId: oldMockId,
         wakeData: generatedData,
         expiresIn: outputConfig.mockDuration,
       });
+
+      if (data.idChanged || (data.mockId && data.mockId !== oldMockId)) {
+        toast.info("Your original link was taken over in the meantime, so we issued a new one. Update your base URLs.");
+      }
+
       setGeneratedData(data);
     } catch (error) {
       console.error(error);
@@ -358,6 +367,20 @@ export function useApiMocks({ onDataUpdate } = {}) {
     setCopyFlash(key);
     setTimeout(() => setCopyFlash(null), 2000);
   }, []);
+
+  const mockLinks = useMemo(() => {
+    if (!generatedData?.mockId || typeof window === 'undefined') return [];
+    const base = `${window.location.origin}/m/${generatedData.mockId}`;
+    const links = [{ key: 'link-root', url: base, method: null }];
+    (generatedData.handlers || []).forEach((h, i) => {
+      links.push({ key: `link-${i}`, url: `${base}${h.path}`, method: h.method });
+    });
+    return links;
+  }, [generatedData?.mockId, generatedData?.handlers]);
+
+  const handleCopyLink = useCallback((key, url) => {
+    navigator.clipboard.writeText(url).then(() => flashCopy(key)).catch(() => { });
+  }, [flashCopy]);
 
   const handleCopyActiveHandler = useCallback(() => {
     if (!activeHandler) return;
@@ -628,6 +651,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
     savedSpecs, specsVisible, setSpecsVisible, isSaveModalOpen, setIsSaveModalOpen,
     newSpecName, setNewSpecName, saveSpecError, setSaveSpecError, modalConfig, setModalConfig,
     isHibernating, formattedTimeRemaining, handleWakeUp,
+    mockLinks, handleCopyLink, linksDropdownOpen, setLinksDropdownOpen,
     handleGenerate, handleCopyActiveHandler, handleCopyAll, triggerExportModal,
     handleSaveSpec, executeSaveSpec, handleDeleteSpec, clearWorkspace, resetConfig
   };
