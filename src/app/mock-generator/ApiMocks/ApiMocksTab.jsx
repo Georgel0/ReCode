@@ -61,7 +61,7 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                     </span>
                   )}
                 </div>
-                <div className="ma-section-header-actions">
+                <div className="m-section-header-actions">
                   <button
                     className="m-icon-text-btn"
                     onClick={() => fileInputRef.current?.click()}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/context';
 import { convertCode, useDraft, useShareState } from '@/lib';
 import {
@@ -39,6 +39,9 @@ export function useDatabaseSeeding({ onDataUpdate }) {
   const [modalConfig, setModalConfig] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => { }
   });
+
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragCounterRef = useRef(0);
 
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -218,6 +221,38 @@ export function useDatabaseSeeding({ onDataUpdate }) {
       return { col, dir: 'asc' };
     });
   }, []);
+
+  const handleFileUpload = useCallback((file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      if (typeof text === 'string') setSchemaInput(text);
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current += 1;
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragOver = useCallback((e) => { e.preventDefault(); }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+    if (dragCounterRef.current === 0) setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileUpload(file);
+  }, [handleFileUpload]);
 
   const handleLoadSample = useCallback((sample) => {
     if (!sample) return;
@@ -629,6 +664,10 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     config, setConfig, updateConfig,
     clearWorkspace, resetConfig,
     detectedLanguage,
+
+    isDragOver,
+    handleDrop, handleDragEnter, handleDragOver, handleDragLeave,
+    handleFileUpload,
     isLoading,
     generatedData,
     activeTab,

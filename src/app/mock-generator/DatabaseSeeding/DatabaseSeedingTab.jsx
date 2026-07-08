@@ -164,6 +164,7 @@ function ColFilterBar({ colKeys, colFilter, setColFilter, filterQuery, filteredR
 
 export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, isActive }) {
   const db = useDatabaseSeeding({ onDataUpdate, isActive });
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     onShareStateChange?.({ 
@@ -196,6 +197,13 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, i
                   <i className="fas fa-sitemap" /> Architecture ({db.detectedLanguage})
                 </div>
                 <div className="m-section-header-actions">
+                  <button
+                    className="m-icon-text-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Upload a schema file"
+                  >
+                    <i className="fas fa-file-arrow-up" />
+                  </button>
                   <button
                     className="m-icon-text-btn"
                     onClick={() => db.setSchemaOptionsVisible(!db.schemaOptionsVisible)}
@@ -272,13 +280,37 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, i
                 </div>
               )}
 
-              <div className="m-editor-wrapper-box">
+              <div
+                className={`m-editor-wrapper-box mb-editor-dropzone ${db.isDragOver ? 'mb-dragover' : ''}`}
+                onDrop={db.handleDrop}
+                onDragEnter={db.handleDragEnter}
+                onDragOver={db.handleDragOver}
+                onDragLeave={db.handleDragLeave}
+                title="Drop a schema file here"
+              >
                 <CodeEditor
                   value={db.schemaInput}
                   lineNumbers={false}
                   onValueChange={db.setSchemaInput}
                   language={db.detectedLanguage}
                   placeholder="CREATE TABLE users (id UUID PRIMARY KEY, created_at TIMESTAMP);"
+                />
+
+                {db.isDragOver && (
+                  <div className="mb-drop-overlay">
+                    <div className="mb-drop-overlay-card">
+                      <i className="fas fa-file-arrow-up" />
+                      <span>Drop your schema file to load it</span>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".sql,.prisma,.ts,.json,.txt"
+                  style={{ display: 'none' }}
+                  onChange={e => db.handleFileUpload(e.target.files?.[0])}
                 />
               </div>
 

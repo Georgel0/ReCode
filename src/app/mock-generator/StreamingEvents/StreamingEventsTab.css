@@ -825,13 +825,6 @@ th:hover .col-dist-btn,
   margin-bottom: 0.57rem;
 }
 
-.stream-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-}
-
 .stream-editor-dropzone {
   position: relative;
 }

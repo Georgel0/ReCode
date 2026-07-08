@@ -11,6 +11,51 @@
   min-height: 41px;
 }
 
+.mb-editor-dropzone {
+  position: relative;
+}
+
+.mb-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(1px);
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius);
+  pointer-events: none;
+  animation: mb-drop-overlay-in 0.15s ease;
+}
+
+.mb-drop-overlay-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1.1rem;
+  text-align: center;
+  box-shadow: var(--shadow-subtle);
+}
+
+.mb-drop-overlay-card i {
+  font-size: 1.1rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+@keyframes mb-drop-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .m-tabs-container {
   display: flex;
   flex-direction: row;

@@ -387,12 +387,6 @@
   cursor: default;
 }
 
-.ma-section-header-actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
 .ma-editor-dropzone {
   position: relative;
 }

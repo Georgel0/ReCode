@@ -160,6 +160,12 @@
   padding-bottom: 0.38rem;
 }
 
+.m-section-header-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .m-section-title {
   font-size: 0.64rem;
   font-weight: 700;

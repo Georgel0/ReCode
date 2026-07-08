@@ -53,7 +53,7 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
                 <div className="m-section-title">
                   <i className="fas fa-stream" /> Event Schema
                 </div>
-                <div className="stream-header-actions">
+                <div className="m-section-header-actions">
                   <button
                     className="m-icon-text-btn"
                     onClick={() => fileInputRef.current?.click()}
