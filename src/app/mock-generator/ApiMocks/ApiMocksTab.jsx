@@ -473,6 +473,13 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                     >
                       <i className="fas fa-brackets-curly" /> Fixture
                     </button>
+                    <button
+                      className={`m-view-toggle-btn ${api.viewMode === 'test' ? 'm-active' : ''}`}
+                      onClick={() => api.setViewMode('test')}
+                      title="Test Endpoint"
+                    >
+                      <i className="fas fa-play" /> Test
+                    </button>
                   </div>
 
                   <div className="ma-tabs-dropdown-wrapper">
@@ -767,6 +774,61 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                         spellCheck={false}
                         autoFocus
                       />
+                    </div>
+                  ) : api.viewMode === 'test' ? (
+                    <div className="ma-api-test-pane">
+                      <div className="m-form-group">
+                        <label className="m-input-label">Live Request URL</label>
+                        <div className="ma-test-url-row">
+                          <MethodBadge method={api.activeHandler.method} />
+                          <input
+                            type="text"
+                            className="m-text-input ma-test-url-input"
+                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/m/${api.generatedData.mockId}${api.activeHandler.path.replace(/[:{\[][a-zA-Z0-9_]+[}\]]?/g, '123')}`}
+                            readOnly
+                          />
+                          <button
+                            className="primary-button"
+                            onClick={() => api.executeTestRequest(globalHandlerIdx)}
+                            disabled={api.isTesting[globalHandlerIdx]}
+                          >
+                            {api.isTesting[globalHandlerIdx] ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-paper-plane" />} Send
+                          </button>
+                        </div>
+                      </div>
+
+                      {['POST', 'PUT', 'PATCH'].includes(api.activeHandler.method.toUpperCase()) && (
+                        <div className="m-form-group ma-test-body-group">
+                          <label className="m-input-label">Request Body (JSON)</label>
+                          <textarea
+                            className="m-text-input ma-test-body-textarea"
+                            value={api.testPayloads[globalHandlerIdx] ?? '{\n  \n}'}
+                            onChange={e => api.updateTestPayload(globalHandlerIdx, e.target.value)}
+                            placeholder="Enter JSON payload here..."
+                          />
+                        </div>
+                      )}
+
+                      {api.testResponses[globalHandlerIdx] && (
+                        <div className="ma-test-response-section">
+                          <div className="ma-test-response-header">
+                            <h4 className="m-input-label ma-test-response-title">Response</h4>
+                            <div className="ma-test-response-meta">
+                              <StatusBadge code={api.testResponses[globalHandlerIdx].status} />
+                              <span className="ma-test-response-time">
+                                <i className="fas fa-clock" /> {api.testResponses[globalHandlerIdx].time}ms
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ma-test-response-body">
+                            <pre className="ma-test-response-pre">
+                              {api.testResponses[globalHandlerIdx].error
+                                ? `Error: ${api.testResponses[globalHandlerIdx].error}`
+                                : JSON.stringify(api.testResponses[globalHandlerIdx].data, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : api.viewMode === 'code'
                     ? <CodeDisplay

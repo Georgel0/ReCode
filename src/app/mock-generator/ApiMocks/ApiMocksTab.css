@@ -790,6 +790,68 @@
   flex-shrink: 0;
 }
 
+.ma-test-url-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ma-test-url-input {
+  flex: 1;
+}
+
+.ma-test-body-group {
+  margin-bottom: 16px;
+}
+
+.ma-test-body-textarea {
+  font-family: monospace;
+  min-height: 120px;
+}
+
+.ma-test-response-section {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.ma-test-response-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ma-test-response-title {
+  margin: 0;
+}
+
+.ma-test-response-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.ma-test-response-time {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ma-test-response-body {
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: .75px solid var(--border);
+  padding: 16px;
+  overflow: auto;
+  max-height: 400px;
+}
+
+.ma-test-response-pre {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: monospace;
+}
+
 @media (max-width: 768px) {
   .ma-method-summary-pills {
     display: none;

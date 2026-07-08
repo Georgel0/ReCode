@@ -5,8 +5,112 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import * as prettier from 'prettier';
 import { PROMPT_CONFIG } from '@/lib/ai/prompts';
 import { getRedisClient } from '@/lib/redis';
+
+// Every PROMPT_CONFIG entry currently sets `schema`, so the code the model
+// writes always lives *inside* a JSON field (formatter.content, sql.query,
+// refactor.files[].content, api-mocks.handlers[].code, etc.) rather than as
+// a bare text response. These paths say, for each `type`, which fields hold
+// code and how to figure out the language it's written in. `[]` marks an
+// array to iterate — supports one level of nesting (see api-mocks).
+const CODE_FIELDS_BY_TYPE = {
+  formatter: [{ path: 'content', lang: (p) => p.lang }],
+  refactor: [{ path: 'files[].content', lang: (p) => p.targetLang }],
+  converter: [{ path: 'files[].content', lang: (p) => p.targetLang }],
+  generator: [{ path: 'files[].content', lang: (p) => p.language }],
+  sql: [{ path: 'query', lang: () => 'sql' }],
+  json: [{ path: 'formattedJson', lang: () => 'json' }],
+  'css-framework': [
+    { path: 'convertedCode', lang: (p) => p.targetLang },
+    { path: 'convertedHtml', lang: () => 'html' },
+  ],
+  'api-mocks': [
+    { path: 'handlers[].code', lang: (p) => (p.includeTypes ? 'typescript' : 'javascript') },
+    { path: 'handlers[].errorVariants[].code', lang: (p) => (p.includeTypes ? 'typescript' : 'javascript') },
+  ],
+  // fix-diff intentionally excluded: `before` must stay a verbatim slice of
+  // the source, and reformatting it would break the diff's own contract.
+};
+
+// Prettier only understands this family of languages. Anything else
+// (Python, Go, Java, Rust, PHP, Ruby, C#, ...) has no in-process JS
+// formatter available, so we skip the Prettier pass for those — the
+// retry-on-squash logic below is what actually protects those languages.
+function prettierParserFor(language) {
+  if (!language) return null;
+  const map = {
+    javascript: 'babel', js: 'babel', jsx: 'babel',
+    typescript: 'typescript', ts: 'typescript', tsx: 'typescript',
+    css: 'css', scss: 'scss', sass: 'scss', less: 'less',
+    html: 'html', json: 'json', yaml: 'yaml', yml: 'yaml',
+    markdown: 'markdown', md: 'markdown', vue: 'vue', graphql: 'graphql',
+  };
+  return map[String(language).toLowerCase()] ?? null;
+}
+
+/** Resolves a `files[].content`-style path into concrete {container, key} refs. */
+function collectFieldRefs(obj, pathParts) {
+  if (!obj || pathParts.length === 0) return [];
+  const [first, ...rest] = pathParts;
+  const isArray = first.endsWith('[]');
+  const key = isArray ? first.slice(0, -2) : first;
+
+  if (rest.length === 0) {
+    return isArray ? [] : [{ container: obj, key }];
+  }
+  const val = obj[key];
+  if (isArray) {
+    return Array.isArray(val) ? val.flatMap((item) => collectFieldRefs(item, rest)) : [];
+  }
+  return val ? collectFieldRefs(val, rest) : [];
+}
+
+// Heuristic, language-agnostic "did the model squash this into one line?"
+// check. Real code past a couple hundred characters should have some line
+// breaks; if it doesn't, that's the bug you're seeing, regardless of language.
+function looksSquashed(code) {
+  if (typeof code !== 'string' || code.length < 200) return false;
+  const newlineCount = (code.match(/\n/g) || []).length;
+  return newlineCount < code.length / 300;
+}
+
+/** True if any known code field in `data` for this `type` looks squashed. */
+function hasSquashedCodeFields(type, data, payload) {
+  const specs = CODE_FIELDS_BY_TYPE[type];
+  if (!specs || !data) return false;
+  return specs.some(({ path }) =>
+    collectFieldRefs(data, path.split('.')).some(({ container, key }) => looksSquashed(container[key]))
+  );
+}
+
+/**
+ * Best-effort cleanup pass: runs Prettier over any code field whose language
+ * Prettier supports. Mutates and returns `data`. Never throws — a formatting
+ * failure just leaves that field as the model wrote it.
+ */
+async function prettifyCodeFields(type, data, payload) {
+  const specs = CODE_FIELDS_BY_TYPE[type];
+  if (!specs || !data) return data;
+
+  for (const { path, lang } of specs) {
+    const parser = prettierParserFor(lang(payload));
+    if (!parser) continue;
+    for (const { container, key } of collectFieldRefs(data, path.split('.'))) {
+      const value = container[key];
+      if (typeof value !== 'string' || !value.trim()) continue;
+      try {
+        container[key] = await prettier.format(value, {
+          parser, singleQuote: true, semi: true, printWidth: 100,
+        });
+      } catch (err) {
+        console.warn(`Prettier formatting failed for ${path} (parser=${parser}):`, err.message);
+      }
+    }
+  }
+  return data;
+}
 
 
 function extractJson(text) {
@@ -161,23 +265,45 @@ export async function POST(request) {
       const maxTokens = type === 'mock' ? GROQ_MAX_TOKENS_MOCK : GROQ_MAX_TOKENS_DEFAULT;
 
       if (config.schema) {
+        let sawInvalidJson = false;
+        let sawSquashedCode = false;
+
         for (let attempt = 0; attempt < 3; attempt++) {
+          let retryNote = '';
+          if (sawInvalidJson) {
+            retryNote = `\n\nIMPORTANT: Your previous response was not valid JSON. ` +
+              `Return ONLY a JSON object — no markdown, no explanation.`;
+          } else if (sawSquashedCode) {
+            retryNote = `\n\nIMPORTANT: In your previous response, code fields were written as a ` +
+              `single line. Every code field MUST contain real line breaks (\\n) between lines, ` +
+              `indentation, and blank lines between logical blocks — exactly as you'd write it in ` +
+              `an editor, just JSON-escaped. Do not minify or collapse the code.`;
+          }
+
           const { text } = await generateText({
             model: modelInstance,
             system: systemPrompt,
-            prompt: attempt === 0 ? userPrompt
-              : `${userPrompt}\n\nIMPORTANT: Your previous response was not valid JSON. ` +
-              `Return ONLY a JSON object — no markdown, no explanation.`,
+            prompt: userPrompt + retryNote,
             temperature: attempt === 0 ? 0.1 : 0.05,
             maxTokens,
             experimental_providerMetadata: {
               groq: { response_format: { type: 'json_object' } }
             }
           });
-          finalData = extractJson(text);
-          if (finalData) break;
+
+          const parsed = extractJson(text);
+          if (!parsed) { sawInvalidJson = true; sawSquashedCode = false; continue; }
+
+          finalData = parsed; // keep the best attempt so far as a fallback
+          if (!hasSquashedCodeFields(type, parsed, payload)) break;
+          sawInvalidJson = false;
+          sawSquashedCode = true;
         }
         if (!finalData) throw new Error("Groq failed to return valid JSON after multiple attempts.");
+
+        // Best-effort polish for languages Prettier understands, whether or
+        // not the retries above fully resolved the squashing.
+        finalData = await prettifyCodeFields(type, finalData, payload);
       } else {
         const { text } = await generateText({
           model: modelInstance, system: systemPrompt, prompt: userPrompt, maxTokens,
@@ -198,7 +324,7 @@ export async function POST(request) {
           model: modelInstance, system: systemPrompt, prompt: userPrompt,
           schema: config.schema, maxTokens: 8000
         });
-        finalData = object;
+        finalData = await prettifyCodeFields(type, object, payload);
       } else {
         const { text } = await generateText({
           model: modelInstance, system: systemPrompt, prompt: userPrompt, maxTokens: 8000
