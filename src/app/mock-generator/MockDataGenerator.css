@@ -464,6 +464,10 @@
   gap: 0.3rem;
 }
 
+.m-view-toggle-btn i {
+  margin-top: 2px;
+}
+
 .m-view-toggle-btn.m-active {
   background: var(--bg-secondary);
   color: var(--text-primary);

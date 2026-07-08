@@ -15,65 +15,98 @@ function jsonWithCors(body, init = {}) {
   });
 }
 
-// Browsers send a preflight OPTIONS request before cross-origin GET/POST/etc.
-// calls that carry custom headers (like x-mock-status) or non-simple methods.
-// Without this, every call from a real frontend to its generated mock server
-// fails at the preflight step before your handler code ever runs.
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }
 
-// Turns a handler path template into a matcher that understands path
-// parameters written as `:id`, `{id}`, or `[id]`, so a request to `/users/123`
-// correctly matches a stored handler registered as `/users/:id`.
 function compilePathMatcher(handlerPath) {
-  const cleanPath = (handlerPath || '/').split('?')[0].replace(/\/$/, '') || '/';
-  let paramCount = 0;
+  const [rawPath, rawQuery] = (handlerPath || '/').split('?');
+  const cleanPath = rawPath.replace(/\/$/, '') || '/';
 
-  const pattern = cleanPath
-    .split('/')
-    .map(segment => {
-      const isParam =
-        /^:(\w+)$/.test(segment) ||
-        /^\{(\w+)\}$/.test(segment) ||
-        /^\[(\w+)\]$/.test(segment);
-      if (isParam) {
-        paramCount += 1;
-        return '([^/]+)';
-      }
-      // Escape literal segments so regex special chars in a static path
-      // (e.g. a path containing a dot) don't get treated as regex syntax.
-      return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    })
-    .join('/');
+  const paramNames = [];
+  const segments = cleanPath.split(/(:\w+|\{\w+\}|\[\w+\])/);
 
-  return { regex: new RegExp(`^${pattern}$`), paramCount };
+  let pattern = segments.map(segment => {
+    const match = segment.match(/^[:{\[](\w+)[}\]]?$/);
+    if (match) {
+      paramNames.push(match[1]);
+      return '([^/]+)'; // Captures the dynamic value
+    }
+    return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }).join('');
+
+  const expectedQuery = new URLSearchParams(rawQuery || '');
+  const weight = (paramNames.length * -1) + (Array.from(expectedQuery.keys()).length * 2);
+
+  return { regex: new RegExp(`^${pattern}$`), paramNames, expectedQuery, weight };
 }
 
-function findHandler(handlers, method, cleanRequestedPath) {
-  return handlers
+function findHandler(handlers, method, cleanRequestedPath, requestQuery) {
+  const matches = handlers
     .filter(h => h.method.toUpperCase() === method.toUpperCase())
     .map(h => ({ handler: h, ...compilePathMatcher(h.path) }))
-    // Try static (param-free) paths before dynamic ones, so a literal route
-    // like /users/me isn't shadowed by an earlier /users/:id handler.
-    .sort((a, b) => a.paramCount - b.paramCount)
-    .find(({ regex }) => regex.test(cleanRequestedPath))?.handler ?? null;
+    .filter(({ regex, expectedQuery }) => {
+      if (!regex.test(cleanRequestedPath)) return false;
+
+      for (const [key, val] of expectedQuery.entries()) {
+        if (!requestQuery.has(key)) return false;
+        if (val && requestQuery.get(key) !== val) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => b.weight - a.weight);
+
+  if (matches.length === 0) return null;
+
+  const bestMatch = matches[0];
+  const pathMatch = cleanRequestedPath.match(bestMatch.regex);
+  const params = {};
+
+  bestMatch.paramNames.forEach((name, i) => {
+    params[name] = pathMatch[i + 1];
+  });
+
+  return { handler: bestMatch.handler, params };
 }
 
-async function handleMockRequest(request, { params }, method) {
-  const { mockId, slug } = await params;
+export async function handleMockRequest(request, context, method) {
+  if (['POST', 'PUT', 'PATCH'].includes(method)) {
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > 5 * 1024 * 1024) { 
+      return jsonWithCors({ error: "Payload too large. Max 2MB allowed." }, { status: 413 });
+    }
+  }
 
+  const params = await context.params;
+  const { mockId, slug } = params;
+  
+  // Isolate the relative mock path from the global Next.js path
   const requestedPath = slug ? '/' + slug.join('/') : '/';
+  const cleanRequestedPath = requestedPath.replace(/\/$/, '') || '/';
 
   try {
     const redis = await getRedisClient();
-    const dataString = await redis.get(`mock:${mockId}`);
 
+    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+    const rateKey = `rate:${mockId}:${ip}`;
+    const reqCount = await redis.incr(rateKey);
+    if (reqCount === 1) await redis.expire(rateKey, 10); 
+    if (reqCount > 50) {
+      return jsonWithCors({ error: "Rate limit exceeded. Too many requests to this mock." }, { status: 429 });
+    }
+
+    const dataString = await redis.get(`mock:${mockId}`);
     if (!dataString) {
       return jsonWithCors({ error: "Live mock server not found or has expired." }, { status: 404 });
     }
 
-    const mockData = JSON.parse(dataString);
+    let mockData;
+    try {
+      mockData = JSON.parse(dataString);
+    } catch (parseError) {
+      console.error(`Mock ID ${mockId} corrupted data:`, parseError);
+      return jsonWithCors({ error: "Mock engine failed parsing stored configuration.", details: parseError.message }, { status: 500 });
+    }
 
     if (requestedPath === '/') {
       return jsonWithCors({
@@ -88,33 +121,71 @@ async function handleMockRequest(request, { params }, method) {
       }, { status: 200 });
     }
 
-    const cleanRequestedPath = requestedPath.replace(/\/$/, "") || '/';
+    // Pass the isolated path and the query params independently
+    const matchResult = findHandler(mockData.handlers, method, cleanRequestedPath, request.nextUrl.searchParams);
 
-    const handler = findHandler(mockData.handlers, method, cleanRequestedPath);
-
-    if (!handler) {
+    if (!matchResult) {
       return jsonWithCors({
-        error: `No route found for ${method} ${requestedPath}`,
+        error: `No route found for ${method} ${cleanRequestedPath}${request.nextUrl.search}`,
         availableRoutes: mockData.handlers.map(h => `${h.method} ${h.path}`)
       }, { status: 404 });
     }
 
+    const { handler, params: pathParams } = matchResult;
+
     const forceStatus = request.headers.get('x-mock-status');
+    const errorRate = mockData.config?.errorRate || 0;
+    const delayMs = handler.delayMs ?? (mockData.config?.delayMs || 0);
+
+    if (delayMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+
+    let responseStatus = handler.statusCode || 200;
+    let responseData = handler.fixtureData;
+
     if (forceStatus && handler.errorVariants) {
       const targetStatus = parseInt(forceStatus, 10);
       const variant = handler.errorVariants.find(v => v.statusCode === targetStatus);
-      if (variant) return jsonWithCors(variant.fixtureData, { status: targetStatus });
+      if (variant) {
+        responseStatus = variant.statusCode;
+        responseData = variant.fixtureData;
+      }
+    } else if (errorRate > 0 && handler.errorVariants && handler.errorVariants.length > 0) {
+      const roll = Math.random() * 100;
+      if (roll < errorRate) {
+        const randomVariant = handler.errorVariants[Math.floor(Math.random() * handler.errorVariants.length)];
+        responseStatus = randomVariant.statusCode;
+        responseData = randomVariant.fixtureData;
+      }
     }
 
-    if (handler.delayMs > 0) {
-      await new Promise(resolve => setTimeout(resolve, handler.delayMs));
+    if (['POST', 'PUT', 'PATCH'].includes(method)) {
+      try {
+        const bodyText = await request.text(); 
+        if (bodyText && responseStatus >= 200 && responseStatus < 300) {
+          const bodyJson = JSON.parse(bodyText);
+          if (typeof responseData === 'object' && responseData !== null && !Array.isArray(responseData)) {
+            responseData = { ...responseData, ...bodyJson };
+          }
+        }
+      } catch (e) {
+      }
     }
 
-    return jsonWithCors(handler.fixtureData, { status: handler.statusCode || 200 });
+    if (typeof responseData === 'object' && responseData !== null && !Array.isArray(responseData)) {
+      for (const [key, value] of Object.entries(pathParams)) {
+        if (key in responseData) {
+          responseData[key] = isNaN(value) ? value : Number(value);
+        }
+      }
+    }
+
+    return jsonWithCors(responseData, { status: responseStatus });
 
   } catch (error) {
     console.error("Redis fetch error:", error);
-    return jsonWithCors({ error: "Database connection failed." }, { status: 500 });
+    return jsonWithCors({ error: "Database connection failed or transaction timed out." }, { status: 500 });
   }
 }
 

@@ -9,12 +9,6 @@ import * as prettier from 'prettier';
 import { PROMPT_CONFIG } from '@/lib/ai/prompts';
 import { getRedisClient } from '@/lib/redis';
 
-// Every PROMPT_CONFIG entry currently sets `schema`, so the code the model
-// writes always lives *inside* a JSON field (formatter.content, sql.query,
-// refactor.files[].content, api-mocks.handlers[].code, etc.) rather than as
-// a bare text response. These paths say, for each `type`, which fields hold
-// code and how to figure out the language it's written in. `[]` marks an
-// array to iterate — supports one level of nesting (see api-mocks).
 const CODE_FIELDS_BY_TYPE = {
   formatter: [{ path: 'content', lang: (p) => p.lang }],
   refactor: [{ path: 'files[].content', lang: (p) => p.targetLang }],
@@ -30,14 +24,8 @@ const CODE_FIELDS_BY_TYPE = {
     { path: 'handlers[].code', lang: (p) => (p.includeTypes ? 'typescript' : 'javascript') },
     { path: 'handlers[].errorVariants[].code', lang: (p) => (p.includeTypes ? 'typescript' : 'javascript') },
   ],
-  // fix-diff intentionally excluded: `before` must stay a verbatim slice of
-  // the source, and reformatting it would break the diff's own contract.
 };
 
-// Prettier only understands this family of languages. Anything else
-// (Python, Go, Java, Rust, PHP, Ruby, C#, ...) has no in-process JS
-// formatter available, so we skip the Prettier pass for those — the
-// retry-on-squash logic below is what actually protects those languages.
 function prettierParserFor(language) {
   if (!language) return null;
   const map = {
@@ -50,7 +38,6 @@ function prettierParserFor(language) {
   return map[String(language).toLowerCase()] ?? null;
 }
 
-/** Resolves a `files[].content`-style path into concrete {container, key} refs. */
 function collectFieldRefs(obj, pathParts) {
   if (!obj || pathParts.length === 0) return [];
   const [first, ...rest] = pathParts;
@@ -67,16 +54,12 @@ function collectFieldRefs(obj, pathParts) {
   return val ? collectFieldRefs(val, rest) : [];
 }
 
-// Heuristic, language-agnostic "did the model squash this into one line?"
-// check. Real code past a couple hundred characters should have some line
-// breaks; if it doesn't, that's the bug you're seeing, regardless of language.
 function looksSquashed(code) {
   if (typeof code !== 'string' || code.length < 200) return false;
   const newlineCount = (code.match(/\n/g) || []).length;
   return newlineCount < code.length / 300;
 }
 
-/** True if any known code field in `data` for this `type` looks squashed. */
 function hasSquashedCodeFields(type, data, payload) {
   const specs = CODE_FIELDS_BY_TYPE[type];
   if (!specs || !data) return false;
@@ -85,11 +68,6 @@ function hasSquashedCodeFields(type, data, payload) {
   );
 }
 
-/**
- * Best-effort cleanup pass: runs Prettier over any code field whose language
- * Prettier supports. Mutates and returns `data`. Never throws — a formatting
- * failure just leaves that field as the model wrote it.
- */
 async function prettifyCodeFields(type, data, payload) {
   const specs = CODE_FIELDS_BY_TYPE[type];
   if (!specs || !data) return data;
@@ -111,7 +89,6 @@ async function prettifyCodeFields(type, data, payload) {
   }
   return data;
 }
-
 
 function extractJson(text) {
   if (!text) return null;
@@ -161,16 +138,6 @@ const groq = createGroq();
 const GROQ_MAX_TOKENS_DEFAULT = 8000;
 const GROQ_MAX_TOKENS_MOCK = 24000;
 
-/**
- * Decides which mock ID to use for a save/wake operation.
- *  - No desired ID                                  -> mint a fresh one.
- *  - Desired ID free (never used / already expired)  -> reuse it.
- *  - Desired ID still live but has no owner on record
- *    (older mocks saved before ownership tracking)   -> reuse it.
- *  - Desired ID still live and owned by this same uid -> reuse it (renewal).
- *  - Desired ID still live and owned by someone else -> mint a fresh one
- *    and flag that the caller's requested ID changed.
- */
 async function resolveMockId(redis, desiredId, uid) {
   if (!desiredId) return { mockId: nanoid(8), idChanged: false };
 
@@ -188,8 +155,6 @@ async function resolveMockId(redis, desiredId, uid) {
 
   return { mockId: nanoid(8), idChanged: true };
 }
-
-
 
 export async function POST(request) {
   const authHeader = request.headers.get('Authorization') || '';
@@ -259,7 +224,6 @@ export async function POST(request) {
 
     let finalData;
 
-    // Route: Turbo (Groq)
     if (qualityMode === 'turbo') {
       const modelInstance = groq('llama-3.3-70b-versatile');
       const maxTokens = type === 'mock' ? GROQ_MAX_TOKENS_MOCK : GROQ_MAX_TOKENS_DEFAULT;
@@ -271,13 +235,9 @@ export async function POST(request) {
         for (let attempt = 0; attempt < 3; attempt++) {
           let retryNote = '';
           if (sawInvalidJson) {
-            retryNote = `\n\nIMPORTANT: Your previous response was not valid JSON. ` +
-              `Return ONLY a JSON object — no markdown, no explanation.`;
+            retryNote = `\n\nIMPORTANT: Your previous response was not valid JSON. Return ONLY a JSON object — no markdown, no explanation.`;
           } else if (sawSquashedCode) {
-            retryNote = `\n\nIMPORTANT: In your previous response, code fields were written as a ` +
-              `single line. Every code field MUST contain real line breaks (\\n) between lines, ` +
-              `indentation, and blank lines between logical blocks — exactly as you'd write it in ` +
-              `an editor, just JSON-escaped. Do not minify or collapse the code.`;
+            retryNote = `\n\nIMPORTANT: In your previous response, code fields were written as a single line. Every code field MUST contain real line breaks (\\n) between lines, indentation, and blank lines between logical blocks — exactly as you'd write it in an editor, just JSON-escaped. Do not minify or collapse the code.`;
           }
 
           const { text } = await generateText({
@@ -294,15 +254,13 @@ export async function POST(request) {
           const parsed = extractJson(text);
           if (!parsed) { sawInvalidJson = true; sawSquashedCode = false; continue; }
 
-          finalData = parsed; // keep the best attempt so far as a fallback
+          finalData = parsed; 
           if (!hasSquashedCodeFields(type, parsed, payload)) break;
           sawInvalidJson = false;
           sawSquashedCode = true;
         }
         if (!finalData) throw new Error("Groq failed to return valid JSON after multiple attempts.");
 
-        // Best-effort polish for languages Prettier understands, whether or
-        // not the retries above fully resolved the squashing.
         finalData = await prettifyCodeFields(type, finalData, payload);
       } else {
         const { text } = await generateText({
@@ -310,9 +268,7 @@ export async function POST(request) {
         });
         finalData = { convertedCode: text.trim() };
       }
-    }
-    // Route: Standard / Quality (Gateway)
-    else {
+    } else {
       const modelId = qualityMode === 'quality'
         ? 'gateway:deepseek/deepseek-v3.2-thinking'
         : 'gateway:mistral/devstral-2';
@@ -340,9 +296,15 @@ export async function POST(request) {
         const { mockId, idChanged } = await resolveMockId(redis, existingMockId, uid);
         const ttl = parseInt(expiresIn, 10) || 3600;
 
+        // Inject the UI configs here so the live runner engine can access them
         finalData.mockId = mockId;
         finalData.ownerId = uid;
         finalData.idChanged = idChanged;
+        finalData.config = {
+          errorRate: payload.errorRate || 0,
+          delayMs: payload.delayMs || 0,
+          paginationStyle: payload.paginationStyle || 'none'
+        };
 
         await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: ttl });
 
