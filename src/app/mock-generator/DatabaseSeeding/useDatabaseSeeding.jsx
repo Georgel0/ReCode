@@ -8,6 +8,7 @@ import {
   ITEMS_PER_PAGE,
   extractFkRelationships,
   hasNoInboundFKs,
+  isSafeToRegenerate,
   topologicalSort,
   deriveTypeScriptTypes
 } from './utils';
@@ -28,7 +29,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
   const [filterQuery, setFilterQuery] = useState('');
   const [colFilter, setColFilter] = useState(null);
   const [sortConfig, setSortConfig] = useState(null);
-  const [editingCell, setEditingCell] = useState(null); 
+  const [editingCell, setEditingCell] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [savedSchemas, setSavedSchemas] = useState([]);
@@ -82,7 +83,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     if (moduleData && moduleData.type === 'mock') {
       setSchemaInput(moduleData.input || '');
       if (moduleData.rules) setRules(moduleData.rules);
-      
+
       setConfig(prev => ({
         ...prev,
         locale: moduleData.locale ?? prev.locale,
@@ -216,7 +217,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     setSortConfig(prev => {
       if (prev?.col === col) {
         if (prev.dir === 'asc') return { col, dir: 'desc' };
-        return null; 
+        return null;
       }
       return { col, dir: 'asc' };
     });
@@ -293,10 +294,10 @@ export function useDatabaseSeeding({ onDataUpdate }) {
           type: 'mock',
           input: schemaInput,
           output: JSON.stringify(data),
-          rules, 
-          locale: config.locale, 
-          rowCount: targetRows, 
-          seed: config.seed, 
+          rules,
+          locale: config.locale,
+          rowCount: targetRows,
+          seed: config.seed,
           dataQuality: config.dataQuality,
           includeAnalysis: config.includeAnalysis,
         });
@@ -704,5 +705,6 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     modalConfig, setModalConfig,
     activeTableData,
     hasNoInboundFKs: (tableName) => hasNoInboundFKs(tableName, fkRelationships),
+    isSafeToRegenerate: (tableName) => isSafeToRegenerate(tableName, fkRelationships),
   };
 }

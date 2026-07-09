@@ -49,7 +49,7 @@ export const DEFAULT_CONFIG = {
   locale: 'en-US',
   rowCount: '15',
   seed: '',
-  dataQuality: 100,
+  dataQuality: 75,
   includeAnalysis: false
 };
 
@@ -143,6 +143,12 @@ export function extractFkRelationships(tables) {
 
 export function hasNoInboundFKs(tableName, allRelationships) {
   return !allRelationships.some(r => r.toTable === tableName);
+}
+
+export function isSafeToRegenerate(tableName, allRelationships) {
+  return !allRelationships.some(
+    r => r.toTable === tableName || r.fromTable === tableName
+  );
 }
 
 export function topologicalSort(tables, relationships) {

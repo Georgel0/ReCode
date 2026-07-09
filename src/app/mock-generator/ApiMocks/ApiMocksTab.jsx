@@ -801,12 +801,11 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                           {api.editingField === 'fixtureData' ? 'Must be valid JSON' : 'TypeScript / JS'}
                         </span>
                       </div>
-                      <textarea
-                        className="ma-handler-edit-textarea"
+                      <CodeEditor
                         value={api.editDraft}
-                        onChange={e => api.setEditDraft(e.target.value)}
-                        spellCheck={false}
-                        autoFocus
+                        onValueChange={api.setEditDraft}
+                        language={api.editingField === 'fixtureData' ? 'json' : 'typescript'}
+                        lineNumbers={true}
                       />
                     </div>
                   ) : api.viewMode === 'test' ? (

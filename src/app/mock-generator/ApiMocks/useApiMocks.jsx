@@ -50,6 +50,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
   const [saveSpecError, setSaveSpecError] = useState('');
 
   const [editingHandlerIdx, setEditingHandlerIdx] = useState(null);
+  const [editingVariantIdx, setEditingVariantIdx] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [editDraft, setEditDraft] = useState('');
   const [handlerDirty, setHandlerDirty] = useState({});
@@ -199,6 +200,24 @@ export function useApiMocks({ onDataUpdate } = {}) {
     });
   }, []);
 
+  const syncMockServer = useCallback(async (nextData) => {
+    if (!nextData?.mockId) return;
+
+    try {
+      // route.js uses 'wake' to write wakeData into Redis
+      await convertCode('api-mocks', '', {
+        action: 'wake',
+        existingMockId: nextData.mockId,
+        wakeData: nextData,
+        expiresIn: outputConfig.mockDuration,
+      });
+      toast.success('Live mock server updated!');
+    } catch (error) {
+      console.error('Failed to sync live server:', error);
+      toast.error('Changes saved locally, but failed to sync with live mock server.');
+    }
+  }, [outputConfig.mockDuration]);
+
   const handleGenerate = useCallback(async () => {
     if (!specInput.trim()) return;
 
@@ -325,22 +344,32 @@ export function useApiMocks({ onDataUpdate } = {}) {
       const newHandler = data.handlers?.[0];
       if (!newHandler) throw new Error('No handler returned');
 
+      let updatedData = null;
+
       setGeneratedData(prev => {
         const handlers = [...prev.handlers];
         handlers[idx] = newHandler;
         const next = { ...prev, handlers };
+
+        updatedData = next; // Capture for sync
         pushHistory(next);
         return next;
       });
+
       setHandlerDirty(prev => { const n = { ...prev }; delete n[idx]; return n; });
       setActiveErrorVariant(prev => { const n = { ...prev }; delete n[idx]; return n; });
+
+      if (updatedData) {
+        await syncMockServer(updatedData);
+      }
+
     } catch (error) {
       console.error(error);
       alert(error.message || 'Error regenerating handler.');
     } finally {
       setRegeneratingIdx(null);
     }
-  }, [generatedData, outputConfig, qualityMode, pushHistory]);
+  }, [generatedData, outputConfig, qualityMode, pushHistory, syncMockServer]);
 
   const handleAddEndpoint = useCallback(async () => {
     if (!addEndpointInput.trim() || !generatedData) return;
@@ -359,9 +388,11 @@ export function useApiMocks({ onDataUpdate } = {}) {
       if (!newHandler) throw new Error('No handler returned');
 
       const newIndex = generatedData.handlers.length;
+      let updatedData = null;
       setGeneratedData(prev => {
         const handlers = [...prev.handlers, newHandler];
         const next = { ...prev, handlers };
+        updatedData = next;
         pushHistory(next);
         return next;
       });
@@ -369,13 +400,17 @@ export function useApiMocks({ onDataUpdate } = {}) {
       setActiveHandlerIdx(newIndex);
       setAddEndpointInput('');
       setIsAddEndpointOpen(false);
+
+      if (updatedData) {
+        await syncMockServer(updatedData);
+      }
     } catch (error) {
       console.error(error);
       alert(error.message || 'Error adding endpoint.');
     } finally {
       setIsLoading(false);
     }
-  }, [addEndpointInput, generatedData, outputConfig, qualityMode, pushHistory]);
+  }, [addEndpointInput, generatedData, outputConfig, qualityMode, pushHistory, syncMockServer]);
 
   const handleFileUpload = useCallback((file) => {
     if (!file) return;
@@ -395,6 +430,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
     dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) setIsDragOver(false);
   }, []);
+
   const handleDrop = useCallback((e) => {
     e.preventDefault(); dragCounterRef.current = 0; setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
@@ -514,22 +550,76 @@ export function useApiMocks({ onDataUpdate } = {}) {
     }
   }, [generatedData, testPayloads, activeErrorVariant]);
 
-  const startEdit = useCallback((idx, field) => {
+
+  const startEdit = useCallback((idx, field, variantIdx = null) => {
     if (!generatedData?.handlers?.[idx]) return;
-    const handler = generatedData.handlers[idx];
+
+    let handler = generatedData.handlers[idx];
+    // If editing a variant, pull the data from the variant instead
+    if (variantIdx != null && handler.errorVariants?.[variantIdx]) {
+      handler = { ...handler, ...handler.errorVariants[variantIdx] };
+    }
+
     const value = field === 'fixtureData' ? JSON.stringify(handler.fixtureData, null, 2) : handler.code;
+
     setEditingHandlerIdx(idx);
+    setEditingVariantIdx(variantIdx);
     setEditingField(field);
     setEditDraft(value);
   }, [generatedData]);
 
   const cancelEdit = useCallback(() => {
     setEditingHandlerIdx(null);
+    setEditingVariantIdx(null);
     setEditingField(null);
     setEditDraft('');
   }, []);
 
-  const handleRestoreHistory = useCallback((entry) => {
+  const commitEdit = useCallback(async () => {
+    if (editingHandlerIdx == null || !editingField) return;
+
+    let parsedFixture;
+    if (editingField === 'fixtureData') {
+      try { parsedFixture = JSON.parse(editDraft); }
+      catch (_) { toast.error('Invalid JSON in fixture data. Please fix before saving.'); return; }
+    }
+
+    let updatedData = null;
+
+    setGeneratedData(prev => {
+      if (!prev) return prev;
+      const handlers = [...prev.handlers];
+      const handler = { ...handlers[editingHandlerIdx] };
+
+      if (editingVariantIdx != null) {
+        const variants = [...(handler.errorVariants || [])];
+        if (editingField === 'fixtureData') variants[editingVariantIdx].fixtureData = parsedFixture;
+        else variants[editingVariantIdx].code = editDraft;
+        handler.errorVariants = variants;
+      } else {
+        if (editingField === 'fixtureData') handler.fixtureData = parsedFixture;
+        else handler.code = editDraft;
+      }
+
+      handlers[editingHandlerIdx] = handler;
+      updatedData = { ...prev, handlers };
+      return updatedData;
+    });
+
+    setHandlerDirty(prev => ({ ...prev, [editingHandlerIdx]: true }));
+    cancelEdit();
+
+    if (updatedData) {
+      await syncMockServer(updatedData);
+    }
+  }, [editingHandlerIdx, editingVariantIdx, editingField, editDraft, cancelEdit, syncMockServer]);
+
+  useEffect(() => {
+    cancelEdit();
+  }, [activeHandlerIdx, filterQuery, cancelEdit]);
+
+
+  const handleRestoreHistory = useCallback(async (entry) => {
     setGeneratedData(entry.data);
     setParsedSpecFeedback(entry.data.parsedSpec || []);
     setActiveHandlerIdx(0);
@@ -538,29 +628,11 @@ export function useApiMocks({ onDataUpdate } = {}) {
     setActiveErrorVariant({});
     cancelEdit();
     setHistoryOpen(false);
-  }, [cancelEdit]);
 
-  const commitEdit = useCallback(() => {
-    if (editingHandlerIdx == null || !editingField) return;
-    let parsedFixture;
-    if (editingField === 'fixtureData') {
-      try { parsedFixture = JSON.parse(editDraft); }
-      catch (_) { toast.error('Invalid JSON in fixture data. Please fix before saving.'); return; }
+    if (entry.data) {
+      await syncMockServer(entry.data);
     }
-
-    setGeneratedData(prev => {
-      const handlers = [...prev.handlers];
-      const handler = { ...handlers[editingHandlerIdx] };
-      if (editingField === 'fixtureData') handler.fixtureData = parsedFixture;
-      else handler.code = editDraft;
-      handlers[editingHandlerIdx] = handler;
-      return { ...prev, handlers };
-    });
-    setHandlerDirty(prev => ({ ...prev, [editingHandlerIdx]: true }));
-    setEditingHandlerIdx(null);
-    setEditingField(null);
-    setEditDraft('');
-  }, [editingHandlerIdx, editingField, editDraft]);
+  }, [cancelEdit, syncMockServer]);
 
   const setErrorVariantForHandler = useCallback((handlerIdx, variantIdx) => {
     setActiveErrorVariant(prev => ({ ...prev, [handlerIdx]: variantIdx }));

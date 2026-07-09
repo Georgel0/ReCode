@@ -203,7 +203,7 @@
 }
 
 @media (max-width: 576px) {
-  .m-toolbar {
+  .mb-toolbar {
     flex-direction: column;
     align-items: stretch;
   }

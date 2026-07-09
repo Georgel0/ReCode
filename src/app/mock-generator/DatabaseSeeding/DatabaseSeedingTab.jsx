@@ -150,28 +150,28 @@ function ColFilterBar({ colKeys, colFilter, setColFilter, filterQuery, filteredR
           >
             <i className="fas fa-times" />
           </button>
-
-          {(filterQuery || colFilter) && (
-            <span className="m-table-filter-count">
-              {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
-            </span>
-          )}
         </>
+      )}
+
+      {(filterQuery || colFilter) && (
+        <span className="m-table-filter-count">
+          {filteredRows.length} match{filteredRows.length !== 1 ? 'es' : ''}
+        </span>
       )}
     </div>
   );
 }
 
-export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, isActive }) {
-  const db = useDatabaseSeeding({ onDataUpdate, isActive });
+export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange }) {
+  const db = useDatabaseSeeding({ onDataUpdate });
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    onShareStateChange?.({ 
-      share: db.share, 
-      shareCopied: db.shareCopied, 
-      resultData: db.resultData, 
-      shareDisabled: db.shareDisabled 
+    onShareStateChange?.({
+      share: db.share,
+      shareCopied: db.shareCopied,
+      resultData: db.resultData,
+      shareDisabled: db.shareDisabled
     });
   }, [db.share, db.shareCopied, db.resultData, db.shareDisabled, onShareStateChange]);
 
@@ -457,7 +457,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange, i
             {!db.isLoading && db.viewMode !== 'erd' ? (
               <div className="m-tabs-container">
                 {db.generatedData?.tables.map((table, idx) => {
-                  const canRegen = db.hasNoInboundFKs(table.tableName);
+                  const canRegen = db.isSafeToRegenerate(table.tableName);
                   return (
                     <div key={idx} className="m-tab-btn-wrapper">
                       <button
