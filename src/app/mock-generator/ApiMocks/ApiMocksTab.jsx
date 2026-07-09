@@ -1,5 +1,6 @@
 'use client';
 
+import { Tooltip } from 'react-tooltip';
 import React, { useRef, useEffect } from 'react';
 import DOMPurify from 'dompurify';
 import { CodeEditor, ConfirmModal, CopyButton } from '@/components/ui';
@@ -15,6 +16,13 @@ import {
   MethodBadge, StatusBadge, CodeDisplay, FixtureDisplay, MethodSummaryPills,
   HistoryDropdown, ErrorVariantPanel, FixtureShapeWarning
 } from './components';
+
+const getAuthTooltipText = (style) => {
+  if (style === 'bearer') return "Simulation Mode: The mock server only checks that the header starts with 'Bearer '. You can pass any dummy token (e.g., 'Bearer test') in Postman.";
+  if (style === 'apikey') return "Simulation Mode: The mock server only checks for the presence of the 'x-api-key' header. Any dummy value will work.";
+  if (style === 'session') return "Simulation Mode: The mock server accepts any username/password combination under standard HTTP Basic Auth.";
+  return "";
+};
 
 export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive }) {
   const api = useApiMocks({ onDataUpdate, isActive });
@@ -235,7 +243,25 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
               </div>
 
               <div className="m-form-group">
-                <label className="m-input-label">Auth Simulation</label>
+                <label className="m-input-label">
+                  Auth Simulation
+
+                  {api.outputConfig.authStyle && api.outputConfig.authStyle !== 'none' && (
+                    <span className="code-analysis-info-wrapper">
+                      <i
+                        className="fa-solid fa-circle-info code-analysis-info-icon"
+                        data-tooltip-id="auth-simulation-tooltip"
+                      ></i>
+                      <Tooltip
+                        id="auth-simulation-tooltip"
+                        place="top"
+                        className="custom-analysis-tooltip api"
+                      >
+                        {getAuthTooltipText(api.outputConfig.authStyle)}
+                      </Tooltip>
+                    </span>
+                  )}
+                </label>
                 <select
                   value={api.outputConfig.authStyle}
                   onChange={e => api.updateOutputConfig('authStyle', e.target.value)}

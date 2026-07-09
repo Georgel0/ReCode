@@ -46,11 +46,35 @@
   text-transform: uppercase;
 }
 
-.method-badge--get { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
-.method-badge--post { background: rgba(56, 189, 248, 0.1); color: var(--accent); border-color: rgba(56, 189, 248, 0.2); }
-.method-badge--put { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
-.method-badge--patch { background: rgba(167, 139, 250, 0.1); color: #a78bfa; border-color: rgba(167, 139, 250, 0.2); }
-.method-badge--delete { background: rgba(248, 113, 113, 0.1); color: #f87171; border-color: rgba(248, 113, 113, 0.2); }
+.method-badge--get {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.method-badge--post {
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--accent);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.method-badge--put {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.method-badge--patch {
+  background: rgba(167, 139, 250, 0.1);
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.2);
+}
+
+.method-badge--delete {
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
 
 .ma-status-badge {
   display: inline-flex;
@@ -63,9 +87,23 @@
   font-family: monospace;
 }
 
-.ma-status-badge--ok { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
-.ma-status-badge--client { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
-.ma-status-badge--server { background: rgba(248, 113, 113, 0.1); color: #f87171; border-color: rgba(248, 113, 113, 0.2); }
+.ma-status-badge--ok {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.ma-status-badge--client {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.ma-status-badge--server {
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
 
 .ma-tabs-navigation-row {
   display: flex;
@@ -437,8 +475,13 @@
 }
 
 @keyframes ma-drop-overlay-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .ma-handler-edit-header {
@@ -850,6 +893,14 @@
   color: var(--text-primary);
   font-size: 13px;
   font-family: monospace;
+}
+
+.custom-analysis-tooltip.api {
+  max-width: 280px; 
+  white-space: normal;
+  line-height: 1.4;
+  font-weight: normal;
+  text-transform: none;
 }
 
 @media (max-width: 768px) {
