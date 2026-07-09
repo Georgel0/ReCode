@@ -563,6 +563,7 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                   {!api.isHibernating && (
                     <code className="ma-live-url">
                       {typeof window !== 'undefined' ? `${window.location.origin}/m/${api.generatedData.mockId}` : ''}
+                      <CopyButton className="primary-button copy-btn" codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
                     </code>
                   )}
                 </div>
@@ -625,7 +626,14 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                           </>
                         )}
                       </div>
-                      <CopyButton codeToCopy={`${window.location.origin}/m/${api.generatedData.mockId}`} />
+                      <button
+                        className="secondary-button btn-danger"
+                        onClick={api.triggerStopModal}
+                        disabled={api.isLoading}
+                        title="Turn off this mock server"
+                      >
+                        <i className="fas fa-power-off" /> Turn Off
+                      </button>
                     </>
                   )}
                 </div>

@@ -273,6 +273,40 @@ export function useApiMocks({ onDataUpdate } = {}) {
     }
   }, [generatedData, outputConfig.mockDuration]);
 
+  const handleStopServer = useCallback(async () => {
+    if (!generatedData?.mockId) return;
+    setIsLoading(true);
+
+    try {
+      await convertCode('api-mocks', '', {
+        action: 'stop',
+        existingMockId: generatedData.mockId,
+      });
+
+      setGeneratedData(prev => (prev ? { ...prev, expiresAt: Date.now() - 1 } : prev));
+      toast.success('Mock server turned off. Use "Wake Up" to bring it back online.');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to turn off mock server.');
+    } finally {
+      setIsLoading(false);
+      setModalConfig(prev => ({ ...prev, isOpen: false }));
+    }
+  }, [generatedData]);
+
+  const triggerStopModal = useCallback(() => {
+    if (!generatedData?.mockId) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Turn Off Mock Server?',
+      message: 'The live URL will stop responding immediately — anyone using it gets a 404 until you wake it back up with the same link.',
+      confirmText: 'Turn Off',
+      cancelText: 'Cancel',
+      icon: 'fa-power-off',
+      onConfirm: handleStopServer,
+    });
+  }, [generatedData, handleStopServer]);
+
   const handleRegenerateHandler = useCallback(async (idx) => {
     if (!generatedData?.handlers?.[idx]) return;
     const handler = generatedData.handlers[idx];
@@ -436,6 +470,17 @@ export function useApiMocks({ onDataUpdate } = {}) {
       const activeVariant = activeErrorVariant[handlerIdx];
       if (activeVariant != null && handler.errorVariants?.[activeVariant]) {
         options.headers['x-mock-status'] = handler.errorVariants[activeVariant].statusCode.toString();
+      }
+
+      // The runtime only checks presence/shape for authStyle, not a real signature —
+      // any well-formed credential passes, so auto-attach one so the tester doesn't 401.
+      const authStyle = generatedData?.config?.authStyle;
+      if (authStyle === 'bearer') {
+        options.headers['Authorization'] = 'Bearer mock-test-token';
+      } else if (authStyle === 'basic') {
+        options.headers['Authorization'] = 'Basic bW9jazp0ZXN0'; // "mock:test"
+      } else if (authStyle === 'apiKey') {
+        options.headers['x-api-key'] = 'mock-test-key';
       }
 
       const res = await fetch(testUrl, options);
@@ -727,6 +772,7 @@ export function useApiMocks({ onDataUpdate } = {}) {
     mockLinks, handleCopyLink, linksDropdownOpen, setLinksDropdownOpen,
     handleGenerate, handleCopyActiveHandler, handleCopyAll, triggerExportModal,
     handleSaveSpec, executeSaveSpec, handleDeleteSpec, clearWorkspace, resetConfig,
-    testPayloads, updateTestPayload, testResponses, isTesting, executeTestRequest
+    testPayloads, updateTestPayload, testResponses, isTesting, executeTestRequest,
+    isHibernating, formattedTimeRemaining, handleWakeUp, triggerStopModal,
   };
 }

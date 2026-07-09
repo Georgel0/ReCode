@@ -195,6 +195,31 @@ export async function POST(request) {
       return NextResponse.json(wakeData);
     }
 
+    if (action === 'stop') {
+      if (!existingMockId) {
+        return NextResponse.json({ error: 'Missing mock ID to stop' }, { status: 400 });
+      }
+      const redis = await getRedisClient();
+
+      const existingRaw = await redis.get(`mock:${existingMockId}`);
+      if (!existingRaw) {
+        // Already gone (expired or never existed) — turning it off is a no-op success.
+        return NextResponse.json({ stopped: true, mockId: existingMockId });
+      }
+
+      try {
+        const existing = JSON.parse(existingRaw);
+        if (existing.ownerId && existing.ownerId !== uid) {
+          return NextResponse.json({ error: 'You do not own this mock server' }, { status: 403 });
+        }
+      } catch {
+        // Corrupted entry — nothing coherent to protect, let the delete through.
+      }
+
+      await redis.del(`mock:${existingMockId}`);
+      return NextResponse.json({ stopped: true, mockId: existingMockId });
+    }
+
     if (!input || !PROMPT_CONFIG[type]) {
       return NextResponse.json({ error: 'Invalid input or missing configuration type' }, { status: 400 });
     }
@@ -296,14 +321,22 @@ export async function POST(request) {
         const { mockId, idChanged } = await resolveMockId(redis, existingMockId, uid);
         const ttl = parseInt(expiresIn, 10) || 3600;
 
-        // Inject the UI configs here so the live runner engine can access them
+        const ALLOWED_PAGINATION_STYLES = ['none', 'offset', 'page', 'cursor'];
+        const ALLOWED_AUTH_STYLES = ['none', 'bearer', 'apiKey', 'basic'];
+        const MAX_DELAY_MS = 10000;
+
         finalData.mockId = mockId;
         finalData.ownerId = uid;
         finalData.idChanged = idChanged;
         finalData.config = {
-          errorRate: payload.errorRate || 0,
-          delayMs: payload.delayMs || 0,
-          paginationStyle: payload.paginationStyle || 'none'
+          errorRate: Math.min(100, Math.max(0, Number(payload.errorRate) || 0)),
+          delayMs: Math.min(MAX_DELAY_MS, Math.max(0, Number(payload.delayMs) || 0)),
+          paginationStyle: ALLOWED_PAGINATION_STYLES.includes(payload.paginationStyle)
+            ? payload.paginationStyle
+            : 'none',
+          authStyle: ALLOWED_AUTH_STYLES.includes(payload.authStyle)
+            ? payload.authStyle
+            : 'none',
         };
 
         await redis.set(`mock:${mockId}`, JSON.stringify(finalData), { EX: ttl });
