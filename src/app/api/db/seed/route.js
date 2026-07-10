@@ -1,5 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Client } from 'pg';
+import {
+  assertValidIdentifier,
+  assertLooksLikePostgresUri,
+  assertPublicHost,
+  assertBodyWithinLimit,
+  toClientError,
+  safeError,
+} from '@/lib/server/db-security';
 
 // Server-side safety ceilings. The client does its own dynamic chunking
 // (see chunkTableRows in useDatabaseSeeding.jsx), but the server never
@@ -8,57 +16,56 @@ import { Client } from 'pg';
 // Postgres's bound-parameter limit (65535).
 const MAX_ROWS_PER_REQUEST = 2000;
 const MAX_PARAMS_PER_REQUEST = 65000;
-
-// Only allow plain SQL identifiers for table/column names. These values
-// come from client-generated schema data, so they're untrusted — and
-// since they're interpolated into the query string (Postgres can't
-// parametrize identifiers), we validate them ourselves instead of just
-// wrapping them in quotes.
-const IDENTIFIER_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
-
-function assertValidIdentifier(name, kind) {
-  if (typeof name !== 'string' || !IDENTIFIER_RE.test(name)) {
-    throw new Error(`Invalid ${kind} name: ${JSON.stringify(name)}`);
-  }
-}
+// Generous ceiling for a JSON body carrying up to MAX_ROWS_PER_REQUEST rows.
+const MAX_BODY_BYTES = 5 * 1024 * 1024;
 
 export async function POST(request) {
   let client;
 
   try {
+    assertBodyWithinLimit(request, MAX_BODY_BYTES);
+
     const { connectionString, tableName, columns, rows } = await request.json();
 
-    // --- Validation -------------------------------------------------
-    if (!connectionString || typeof connectionString !== 'string' || !connectionString.startsWith('postgres')) {
-      return NextResponse.json({ error: 'A valid Postgres connection string is required.' }, { status: 400 });
-    }
+    // Validation 
+    assertLooksLikePostgresUri(connectionString);
+    await assertPublicHost(connectionString);
+
     if (!Array.isArray(columns) || columns.length === 0) {
-      return NextResponse.json({ error: 'columns must be a non-empty array.' }, { status: 400 });
+      throw safeError('columns must be a non-empty array.');
     }
 
     assertValidIdentifier(tableName, 'table');
     columns.forEach(col => assertValidIdentifier(col, 'column'));
 
     if (!Array.isArray(rows)) {
-      return NextResponse.json({ error: 'rows must be an array.' }, { status: 400 });
+      throw safeError('rows must be an array.');
     }
     // An empty chunk is a legitimate no-op (e.g. a table with 0 generated rows) — not an error.
     if (rows.length === 0) {
       return NextResponse.json({ success: true, inserted: 0 });
     }
     if (rows.length > MAX_ROWS_PER_REQUEST) {
-      return NextResponse.json({
-        error: `Chunk too large: ${rows.length} rows exceeds the ${MAX_ROWS_PER_REQUEST}-row limit per request. Reduce the client-side chunk size.`,
-      }, { status: 400 });
+      throw safeError(
+        `Chunk too large: ${rows.length} rows exceeds the ${MAX_ROWS_PER_REQUEST}-row limit per request. Reduce the client-side chunk size.`
+      );
     }
     if (columns.length * rows.length > MAX_PARAMS_PER_REQUEST) {
-      return NextResponse.json({
-        error: `Chunk has too many bound parameters (${columns.length * rows.length}). Reduce rows per chunk.`,
-      }, { status: 400 });
+      throw safeError(
+        `Chunk has too many bound parameters (${columns.length * rows.length}). Reduce rows per chunk.`
+      );
     }
 
-    // --- Insert -------------------------------------------------------
-    client = new Client({ connectionString });
+    // Insert
+    client = new Client({
+      connectionString,
+      // Bound how long a bad/unreachable host, or a stuck transaction, can
+      // tie up this request instead of hanging until the platform's own
+      // (often much longer) function timeout kicks in.
+      connectionTimeoutMillis: 5000,
+      query_timeout: 30000,
+      statement_timeout: 30000,
+    });
     await client.connect();
 
     await client.query('BEGIN');
@@ -90,7 +97,8 @@ export async function POST(request) {
         // Connection may already be dead — nothing more we can do here.
       }
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const status = error?.__safeForClient ? 400 : 500;
+    return NextResponse.json({ error: toClientError(error) }, { status });
   } finally {
     if (client) {
       try {

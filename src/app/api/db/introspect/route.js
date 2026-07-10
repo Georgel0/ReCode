@@ -1,16 +1,33 @@
 import { NextResponse } from 'next/server';
 import { Client } from 'pg'; // Add mysql2 logic later based on the URI prefix
+import {
+  assertLooksLikePostgresUri,
+  assertPublicHost,
+  assertBodyWithinLimit,
+  toClientError,
+} from '@/lib/server/db-security';
+
+// Just a connection string in the body — no reason for this request to be
+// anything but tiny.
+const MAX_BODY_BYTES = 16 * 1024;
 
 export async function POST(request) {
-  try {
-    const { connectionString } = await request.json();
-    
-    // Quick validation
-    if (!connectionString.startsWith('postgres')) {
-      return NextResponse.json({ error: 'Currently only Postgres is supported in this example.' }, { status: 400 });
-    }
+  let client;
 
-    const client = new Client({ connectionString });
+  try {
+    assertBodyWithinLimit(request, MAX_BODY_BYTES);
+
+    const { connectionString } = await request.json();
+
+    assertLooksLikePostgresUri(connectionString);
+    await assertPublicHost(connectionString);
+
+    client = new Client({
+      connectionString,
+      connectionTimeoutMillis: 5000,
+      query_timeout: 15000,
+      statement_timeout: 15000,
+    });
     await client.connect();
 
     // Get Tables & Columns
@@ -33,8 +50,6 @@ export async function POST(request) {
       WHERE tc.constraint_type = 'FOREIGN KEY';
     `);
 
-    await client.end();
-
     // Format into a standard SQL DDL string for your LLM
     const tables = {};
     colsRes.rows.forEach(({ table_name, column_name, data_type }) => {
@@ -55,6 +70,18 @@ export async function POST(request) {
 
     return NextResponse.json({ schema: schemaDDL });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const status = error?.__safeForClient ? 400 : 500;
+    return NextResponse.json({ error: toClientError(error) }, { status });
+  } finally {
+    // Previously this only ran on the success path — if any query threw,
+    // the client was never closed and the connection leaked. Now it always
+    // runs, success or failure.
+    if (client) {
+      try {
+        await client.end();
+      } catch (_) {
+        // Already closed/errored — ignore.
+      }
+    }
   }
 }
