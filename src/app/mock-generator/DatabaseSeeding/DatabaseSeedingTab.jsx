@@ -191,6 +191,32 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange })
       <div className="m-factory-container">
         <div className="m-sidebar">
           <div className="m-sidebar-content">
+
+            <div className="m-section">
+              <div className="m-section-header">
+                <div className="m-section-title">
+                  <i className="fas fa-plug" /> Live DB Connection
+                </div>
+              </div>
+              <div className="m-form-group">
+                <input
+                  type="password"
+                  className="m-text-input"
+                  placeholder="postgresql://user:pass@localhost:5432/db"
+                  value={db.dbUri}
+                  onChange={e => db.setDbUri(e.target.value)}
+                />
+                <button
+                  className="primary-button"
+                  onClick={db.handleIntrospect}
+                  disabled={db.isDbConnecting || !db.dbUri}
+                  style={{ marginTop: '8px', width: '100%' }}
+                >
+                  {db.isDbConnecting ? 'Connecting...' : <><i className="fas fa-download" /> Pull Live Schema</>}
+                </button>
+              </div>
+            </div>
+
             <div className="m-section">
               <div className="m-section-header">
                 <div className="m-section-title">
@@ -530,6 +556,19 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange })
                       <option value="prisma">Prisma Seed (.ts)</option>
                       <option value="types">TypeScript Types (.ts)</option>
                     </select>
+
+                    <button
+                      className={`primary-button m-tool-btn ${db.isSeedingDb ? 'm-loading' : ''}`}
+                      title="Seed directly into the connected database"
+                      onClick={db.handleSeedDirectly}
+                      disabled={db.isSeedingDb || !db.dbUri}
+                    >
+                      {db.isSeedingDb ? (
+                        <i className="fas fa-circle-notch fa-spin" />
+                      ) : (
+                        <><i className="fas fa-bolt" /> Seed to DB</>
+                      )}
+                    </button>
                   </div>
                 </>
               )}

@@ -44,6 +44,10 @@ export function useDatabaseSeeding({ onDataUpdate }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounterRef = useRef(0);
 
+  const [dbUri, setDbUri] = useState('');
+  const [isDbConnecting, setIsDbConnecting] = useState(false);
+  const [isSeedingDb, setIsSeedingDb] = useState(false);
+
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
   }, []);
@@ -657,6 +661,53 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     };
   }, [generatedData, schemaInput, rules, config]);
 
+  const handleIntrospect = useCallback(async () => {
+    if (!dbUri.trim()) return alert('Please enter a connection string.');
+    setIsDbConnecting(true);
+    try {
+      const res = await fetch('/api/db/introspect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ connectionString: dbUri })
+      });
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      setSchemaInput(data.schema);
+      alert('Schema successfully extracted from live database!');
+    } catch (err) {
+      alert(err.message || 'Failed to connect to database.');
+    } finally {
+      setIsDbConnecting(false);
+    }
+  }, [dbUri]);
+
+  const handleSeedDirectly = useCallback(async () => {
+    if (!dbUri.trim() || !generatedData) return alert('Need connection string and generated data.');
+
+    // Reuse your existing logic to ensure safe insert order
+    const sortedTables = topologicalSort(generatedData.tables, fkRelationships);
+
+    setIsSeedingDb(true);
+    try {
+      const res = await fetch('/api/db/seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ connectionString: dbUri, sortedTables })
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      alert('Successfully seeded the live database!');
+    } catch (err) {
+      alert(`Seeding failed: ${err.message}`);
+    } finally {
+      setIsSeedingDb(false);
+    }
+  }, [dbUri, generatedData, fkRelationships]);
+
   return {
     share, shareCopied, resultData,
     shareDisabled: !schemaInput.trim(),
@@ -706,5 +757,6 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     activeTableData,
     hasNoInboundFKs: (tableName) => hasNoInboundFKs(tableName, fkRelationships),
     isSafeToRegenerate: (tableName) => isSafeToRegenerate(tableName, fkRelationships),
+    dbUri, setDbUri, isDbConnecting, isSeedingDb, handleIntrospect, handleSeedDirectly
   };
 }

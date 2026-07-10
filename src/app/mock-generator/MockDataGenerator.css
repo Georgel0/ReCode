@@ -529,10 +529,14 @@
 
 .m-data-table th,
 .m-data-table td {
-  padding: 0.57rem 0.75rem;
+  padding: 0.2rem 0.75rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+}
+
+.m-row-actions-cell {
+  padding-right: 0 !important;
 }
 
 .m-th-content {
@@ -595,7 +599,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-primary);
-  font-size: .8rem;
+  font-size: .7rem;
 }
 
 .m-cell-edit-icon {

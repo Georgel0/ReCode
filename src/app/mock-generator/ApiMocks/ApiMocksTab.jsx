@@ -755,7 +755,7 @@ export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive
                     {!isEditing && (
                       <button
                         className="secondary-button"
-                        onClick={() => api.startEdit(globalHandlerIdx, api.viewMode === 'fixture' ? 'fixtureData' : 'code')}
+                        onClick={() => api.startEdit(globalHandlerIdx, api.viewMode === 'fixture' ? 'fixtureData' : 'code', variantIdx)}
                         title={api.viewMode === 'fixture' ? 'Edit fixture data' : 'Edit handler code'}
                       >
                         <i className="fas fa-pencil" /> Edit

@@ -5,6 +5,7 @@
   border-top: 0.75px solid var(--border);
   color: var(--text-secondary);
   font-family: inherit;
+  align-items: start;
 }
 
 .footer-content {
@@ -34,6 +35,7 @@
   margin-top: 1rem;
   border-bottom: 0.75px solid var(--border);
   padding-bottom: 0.75rem;
+  height: max-content;
 }
 
 .seo-details summary {
