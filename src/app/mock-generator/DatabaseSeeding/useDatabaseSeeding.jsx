@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { auth, initializeAuth } from '@/lib/firebase';
 import { useApp } from '@/context';
 import { convertCode, useDraft, useShareState } from '@/lib';
 import {
@@ -66,20 +67,28 @@ function buildSeedPlan(sortedTables) {
   return plan;
 }
 
-// Retries only on network-level failures (the request never reached the
-// server, so nothing could have been committed) — not on HTTP error
-// responses, since those come after the server has already decided the
-// outcome and blindly retrying could double-insert.
 async function postBatchWithRetry(url, body, signal, maxRetries = 2) {
   let attempt = 0;
   while (true) {
     try {
+      let token = '';
+      try {
+        const user = auth.currentUser || await initializeAuth();
+        token = await user.getIdToken();
+      } catch (e) {
+        console.warn('Auth token refresh failed');
+      }
+
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
         body: JSON.stringify(body),
         signal,
       });
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.error) {
         throw new Error(data.error || `Request failed with status ${res.status}`);
@@ -762,9 +771,21 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     if (!dbUri.trim()) return alert('Please enter a connection string.');
     setIsDbConnecting(true);
     try {
+      // Grab runtime auth token context
+      let token = '';
+      try {
+        const user = auth.currentUser || await initializeAuth();
+        token = await user.getIdToken();
+      } catch (authErr) {
+        console.warn('Could not retrieve Firebase token for introspection:', authErr);
+      }
+
       const res = await fetch('/api/db/introspect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }) // Passed Auth Header
+        },
         body: JSON.stringify({ connectionString: dbUri })
       });
       const data = await res.json();
@@ -783,7 +804,6 @@ export function useDatabaseSeeding({ onDataUpdate }) {
   const handleSeedDirectly = useCallback(async () => {
     if (!dbUri.trim() || !generatedData) return alert('Need connection string and generated data.');
 
-    // Reuse your existing logic to ensure safe insert order
     const sortedTables = topologicalSort(generatedData.tables, fkRelationships);
     const plan = buildSeedPlan(sortedTables);
 
@@ -826,6 +846,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
           ),
         }));
 
+        // Injected the acquired token payload right into your bulk writer execution steps
         await postBatchWithRetry('/api/db/seed', {
           connectionString: dbUri,
           tableName: batch.tableName,
