@@ -13,6 +13,101 @@ import {
   deriveTypeScriptTypes
 } from './utils';
 
+// Hard ceiling on rows per chunk, regardless of how small the rows are.
+const MAX_ROWS_PER_BATCH = 500;
+// Stay well under Postgres's 65535 bound-parameter limit.
+const MAX_PARAMS_PER_BATCH = 8000;
+// Rough cap on the JSON payload size per request (bytes), so wide/heavy
+// rows (big text/JSON columns) still produce reasonably small requests.
+const MAX_BATCH_BYTES = 1.5 * 1024 * 1024;
+
+// Splits one table's rows into request-sized chunks, sized dynamically:
+// small/narrow rows pack up to MAX_ROWS_PER_BATCH per chunk, while
+// wide/heavy rows get split earlier to respect MAX_BATCH_BYTES.
+function chunkTableRows(rows, columns) {
+  const batches = [];
+  if (!rows?.length) return batches;
+
+  const maxRowsByParams = Math.max(1, Math.floor(MAX_PARAMS_PER_BATCH / Math.max(1, columns.length)));
+  const rowsPerBatchCap = Math.min(MAX_ROWS_PER_BATCH, maxRowsByParams);
+
+  let i = 0;
+  while (i < rows.length) {
+    const batch = [];
+    let bytes = 0;
+    while (batch.length < rowsPerBatchCap && i < rows.length) {
+      const row = rows[i];
+      const rowBytes = JSON.stringify(row)?.length ?? 0;
+      if (batch.length > 0 && bytes + rowBytes > MAX_BATCH_BYTES) break;
+      batch.push(row);
+      bytes += rowBytes;
+      i += 1;
+    }
+    // Guarantee forward progress even if a single row alone exceeds the byte cap.
+    if (batch.length === 0) {
+      batch.push(rows[i]);
+      i += 1;
+    }
+    batches.push(batch);
+  }
+  return batches;
+}
+
+// Flattens FK-sorted tables into an ordered list of { tableName, columns, rows } batches.
+function buildSeedPlan(sortedTables) {
+  const plan = [];
+  sortedTables.forEach(table => {
+    if (!table.rows?.length) return;
+    const columns = Object.keys(table.rows[0]);
+    chunkTableRows(table.rows, columns).forEach(rows => {
+      plan.push({ tableName: table.tableName, columns, rows });
+    });
+  });
+  return plan;
+}
+
+// Retries only on network-level failures (the request never reached the
+// server, so nothing could have been committed) — not on HTTP error
+// responses, since those come after the server has already decided the
+// outcome and blindly retrying could double-insert.
+async function postBatchWithRetry(url, body, signal, maxRetries = 2) {
+  let attempt = 0;
+  while (true) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `Request failed with status ${res.status}`);
+      }
+      return data;
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      const isNetworkError = err instanceof TypeError;
+      if (!isNetworkError || attempt >= maxRetries) throw err;
+      attempt += 1;
+      await new Promise(r => setTimeout(r, 400 * attempt));
+    }
+  }
+}
+
+const IDLE_SEED_PROGRESS = {
+  status: 'idle', // idle | running | done | error | cancelled
+  tables: [],
+  currentTableName: null,
+  totalRows: 0,
+  rowsDone: 0,
+  totalBatches: 0,
+  batchesDone: 0,
+  error: null,
+  startedAt: null,
+  finishedAt: null,
+};
+
 export function useDatabaseSeeding({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
 
@@ -47,6 +142,8 @@ export function useDatabaseSeeding({ onDataUpdate }) {
   const [dbUri, setDbUri] = useState('');
   const [isDbConnecting, setIsDbConnecting] = useState(false);
   const [isSeedingDb, setIsSeedingDb] = useState(false);
+  const [seedProgress, setSeedProgress] = useState(IDLE_SEED_PROGRESS);
+  const seedAbortRef = useRef(null);
 
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -688,25 +785,95 @@ export function useDatabaseSeeding({ onDataUpdate }) {
 
     // Reuse your existing logic to ensure safe insert order
     const sortedTables = topologicalSort(generatedData.tables, fkRelationships);
+    const plan = buildSeedPlan(sortedTables);
+
+    if (plan.length === 0) {
+      alert('No rows to seed.');
+      return;
+    }
+
+    const totalRows = plan.reduce((sum, b) => sum + b.rows.length, 0);
+    const tableOrder = [...new Set(plan.map(b => b.tableName))];
+
+    const controller = new AbortController();
+    seedAbortRef.current = controller;
 
     setIsSeedingDb(true);
+    setSeedProgress({
+      ...IDLE_SEED_PROGRESS,
+      status: 'running',
+      tables: tableOrder.map(name => ({
+        tableName: name,
+        totalRows: plan.filter(b => b.tableName === name).reduce((s, b) => s + b.rows.length, 0),
+        rowsDone: 0,
+        status: 'pending',
+      })),
+      totalRows,
+      totalBatches: plan.length,
+      startedAt: Date.now(),
+    });
+
+    let rowsDone = 0;
+    let batchesDone = 0;
+
     try {
-      const res = await fetch('/api/db/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ connectionString: dbUri, sortedTables })
-      });
+      for (const batch of plan) {
+        setSeedProgress(prev => ({
+          ...prev,
+          currentTableName: batch.tableName,
+          tables: prev.tables.map(t =>
+            t.tableName === batch.tableName && t.status === 'pending' ? { ...t, status: 'seeding' } : t
+          ),
+        }));
 
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+        await postBatchWithRetry('/api/db/seed', {
+          connectionString: dbUri,
+          tableName: batch.tableName,
+          columns: batch.columns,
+          rows: batch.rows,
+        }, controller.signal);
 
-      alert('Successfully seeded the live database!');
+        rowsDone += batch.rows.length;
+        batchesDone += 1;
+
+        setSeedProgress(prev => ({
+          ...prev,
+          rowsDone,
+          batchesDone,
+          tables: prev.tables.map(t => {
+            if (t.tableName !== batch.tableName) return t;
+            const newRowsDone = t.rowsDone + batch.rows.length;
+            return { ...t, rowsDone: newRowsDone, status: newRowsDone >= t.totalRows ? 'done' : 'seeding' };
+          }),
+        }));
+      }
+
+      setSeedProgress(prev => ({ ...prev, status: 'done', currentTableName: null, finishedAt: Date.now() }));
     } catch (err) {
-      alert(`Seeding failed: ${err.message}`);
+      if (err.name === 'AbortError') {
+        setSeedProgress(prev => ({ ...prev, status: 'cancelled', finishedAt: Date.now() }));
+      } else {
+        setSeedProgress(prev => ({
+          ...prev,
+          status: 'error',
+          error: { message: err.message, tableName: prev.currentTableName },
+          tables: prev.tables.map(t => (t.tableName === prev.currentTableName ? { ...t, status: 'error' } : t)),
+          finishedAt: Date.now(),
+        }));
+      }
     } finally {
       setIsSeedingDb(false);
+      seedAbortRef.current = null;
     }
   }, [dbUri, generatedData, fkRelationships]);
+
+  const handleCancelSeed = useCallback(() => {
+    seedAbortRef.current?.abort();
+  }, []);
+
+  const dismissSeedProgress = useCallback(() => {
+    setSeedProgress(IDLE_SEED_PROGRESS);
+  }, []);
 
   return {
     share, shareCopied, resultData,
@@ -757,6 +924,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     activeTableData,
     hasNoInboundFKs: (tableName) => hasNoInboundFKs(tableName, fkRelationships),
     isSafeToRegenerate: (tableName) => isSafeToRegenerate(tableName, fkRelationships),
-    dbUri, setDbUri, isDbConnecting, isSeedingDb, handleIntrospect, handleSeedDirectly
+    dbUri, setDbUri, isDbConnecting, isSeedingDb, handleIntrospect, handleSeedDirectly,
+    seedProgress, handleCancelSeed, dismissSeedProgress,
   };
 }

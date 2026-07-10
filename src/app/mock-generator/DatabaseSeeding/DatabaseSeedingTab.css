@@ -202,9 +202,153 @@
   margin-top: 4px;
 }
 
+.m-seed-progress-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.9rem;
+  margin: 0.65rem 0.75rem;
+  background: var(--bg-secondary);
+}
+
+.m-seed-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.m-seed-progress-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.m-seed-progress-title--done i {
+  color: var(--success, #22c55e);
+}
+
+.m-seed-progress-title--error i {
+  color: var(--danger, #ef4444);
+}
+
+.m-seed-progress-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.m-seed-progress-elapsed {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+}
+
+.m-seed-progress-btn {
+  padding: 2px 10px;
+  font-size: 0.65rem;
+}
+
+.m-seed-progress-track {
+  height: 6px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.m-seed-progress-fill {
+  height: 100%;
+  width: var(--m-seed-progress-pct, 0%);
+  background: var(--success, #22c55e);
+  transition: width 150ms ease;
+}
+
+.m-seed-progress-fill--error {
+  background: var(--danger, #ef4444);
+}
+
+.m-seed-progress-fill--cancelled {
+  background: var(--text-secondary);
+}
+
+.m-seed-progress-meta {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+}
+
+.m-seed-table-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 0.5rem;
+}
+
+.m-seed-table-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  min-width: 160px;
+  color: var(--text-primary);
+}
+
+.m-seed-table-count {
+  color: var(--text-secondary);
+}
+
+.m-seed-status-icon {
+  font-size: 0.6rem;
+}
+
+.m-seed-status-icon--pending {
+  font-size: 6px;
+  color: var(--text-secondary);
+}
+
+.m-seed-status-icon--seeding {
+  color: var(--accent);
+}
+
+.m-seed-status-icon--done {
+  color: var(--success, #22c55e);
+}
+
+.m-seed-status-icon--error {
+  color: var(--danger, #ef4444);
+}
+
+.m-seed-error-box {
+  margin-top: 0.6rem;
+  font-size: 0.65rem;
+  color: var(--danger, #ef4444);
+  background: rgba(239, 68, 68, 0.08);
+  padding: 0.5rem;
+  border-radius: var(--radius);
+}
+
+.m-seed-error-note {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.m-seed-cancelled-note {
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 576px) {
   .mb-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .m-seed-progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

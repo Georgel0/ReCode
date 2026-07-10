@@ -13,6 +13,96 @@ import {
   FAKER_ANNOTATIONS,
 } from './utils';
 
+const SEED_STATUS_ICON_CLASS = {
+  pending: 'fas fa-circle',
+  seeding: 'fas fa-circle-notch fa-spin',
+  done: 'fas fa-check-circle',
+  error: 'fas fa-times-circle',
+};
+
+function SeedStatusIcon({ status }) {
+  const iconClass = SEED_STATUS_ICON_CLASS[status] || 'fas fa-circle';
+  return <i className={`${iconClass} m-seed-status-icon m-seed-status-icon--${status}`} />;
+}
+
+function SeedProgressPanel({ progress, onCancel, onDismiss }) {
+  if (!progress || progress.status === 'idle') return null;
+
+  const { status, tables, totalRows, rowsDone, totalBatches, batchesDone, error, currentTableName, startedAt, finishedAt } = progress;
+  const pct = totalBatches > 0 ? Math.min(100, Math.round((batchesDone / totalBatches) * 100)) : 0;
+  const elapsedSec = startedAt ? Math.max(0, Math.round(((finishedAt ?? Date.now()) - startedAt) / 1000)) : 0;
+
+  const headline = {
+    running: <><i className="fas fa-bolt" /> Seeding database in {totalBatches} batch{totalBatches === 1 ? '' : 'es'}…</>,
+    done: <><i className="fas fa-check-circle" /> Seed complete</>,
+    error: <><i className="fas fa-times-circle" /> Seeding failed</>,
+    cancelled: <><i className="fas fa-ban" /> Seeding cancelled</>,
+  }[status];
+
+  return (
+    <div className={`m-seed-progress-panel m-seed-progress-panel--${status}`}>
+      <div className="m-seed-progress-header">
+        <div className={`m-seed-progress-title m-seed-progress-title--${status}`}>
+          {headline}
+        </div>
+        <div className="m-seed-progress-actions">
+          <span className="m-seed-progress-elapsed">{elapsedSec}s</span>
+          {status === 'running' ? (
+            <button className="secondary-button btn-danger m-seed-progress-btn" onClick={onCancel}>
+              Cancel
+            </button>
+          ) : (
+            <button className="secondary-button m-seed-progress-btn" onClick={onDismiss}>
+              Dismiss
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="m-seed-progress-track">
+        {/* The completion % is per-run data, not a style choice, so it's passed through
+            as a single CSS custom property — every actual style rule stays in the .css file. */}
+        <div
+          className={`m-seed-progress-fill m-seed-progress-fill--${status}`}
+          style={{ '--m-seed-progress-pct': `${pct}%` }}
+        />
+      </div>
+
+      <div className="m-seed-progress-meta">
+        {rowsDone.toLocaleString()} / {totalRows.toLocaleString()} rows · batch {batchesDone}/{totalBatches}
+        {status === 'running' && currentTableName && <> · inserting <strong>{currentTableName}</strong></>}
+      </div>
+
+      <div className="m-seed-table-list">
+        {tables.map(t => (
+          <div key={t.tableName} className="m-seed-table-row">
+            <SeedStatusIcon status={t.status} />
+            <span className="m-seed-table-name">{t.tableName}</span>
+            <span className="m-seed-table-count">{t.rowsDone.toLocaleString()}/{t.totalRows.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+
+      {status === 'error' && error && (
+        <div className="m-seed-error-box">
+          <strong>{error.tableName ? `${error.tableName}: ` : ''}</strong>{error.message}
+          <div className="m-seed-error-note">
+            Each batch commits independently, so rows already inserted before this failure remain in the database.
+            Fix the issue and re-run — already-seeded tables will insert again unless you clear them first.
+          </div>
+        </div>
+      )}
+
+      {status === 'cancelled' && (
+        <div className="m-seed-cancelled-note">
+          Batches already sent before cancelling remain committed. Re-running is not an automatic resume —
+          already-seeded tables will insert again unless cleared first.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ColTypeBadge({ label }) {
   let cls = 'm-col-type-badge';
   if (label.startsWith('FK')) cls += ' m-col-type-badge--fk';
@@ -559,12 +649,15 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange })
 
                     <button
                       className={`primary-button m-tool-btn ${db.isSeedingDb ? 'm-loading' : ''}`}
-                      title="Seed directly into the connected database"
+                      title="Seed directly into the connected database (sent in small chunks per request)"
                       onClick={db.handleSeedDirectly}
                       disabled={db.isSeedingDb || !db.dbUri}
                     >
                       {db.isSeedingDb ? (
-                        <i className="fas fa-circle-notch fa-spin" />
+                        <>
+                          <i className="fas fa-circle-notch fa-spin" />
+                          {db.seedProgress.totalBatches > 0 && ` ${db.seedProgress.batchesDone}/${db.seedProgress.totalBatches}`}
+                        </>
                       ) : (
                         <><i className="fas fa-bolt" /> Seed to DB</>
                       )}
@@ -574,6 +667,12 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange })
               )}
             </div>
           </div>
+
+          <SeedProgressPanel
+            progress={db.seedProgress}
+            onCancel={db.handleCancelSeed}
+            onDismiss={db.dismissSeedProgress}
+          />
 
           <div className="m-preview-area">
             <EmptyState
