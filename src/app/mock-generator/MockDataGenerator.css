@@ -272,6 +272,10 @@
   background-color: var(--bg-primary);
 }
 
+.m-table-filter-bar select {
+  width: max-content;
+}
+
 .m-table-filter-input-wrap {
   position: relative;
   flex: 1;
