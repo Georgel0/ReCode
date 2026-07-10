@@ -13,14 +13,54 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  setDoc,
   writeBatch,
   Timestamp,
   where,
   serverTimestamp,
   onSnapshot
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { auth, db } from "./client";
+
+/**
+ * DEVICE A: Generates a code and saves it to Firestore
+ */
+export const generateSyncCode = async () => {
+  if (!auth.currentUser) throw new Error("Not authenticated");
+
+  // Generate a random 6-character alphanumeric code
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  
+  await setDoc(doc(db, "syncCodes", code), {
+    uid: auth.currentUser.uid,
+    expiresAt: Date.now() + 15 * 60 * 1000 // Expires in 15 minutes
+  });
+
+  return code; 
+};
+
+/**
+ * DEVICE B: Verifies the code via your API and signs in
+ */
+export const consumeSyncCode = async (code) => {
+  const response = await fetch('/api/auth/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to sync devices");
+  }
+
+  // Swap out the current anonymous session for the synced one!
+  await signInWithCustomToken(auth, data.token);
+  
+  return true;
+};
 
 /**
  * HELPER: Gets a reference to the 'history' sub-collection for the current user.

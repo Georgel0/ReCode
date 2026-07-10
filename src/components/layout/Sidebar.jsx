@@ -1,7 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getHistory, deleteHistoryItem, clearAllHistory, subscribeToHistory } from '@/lib/firebase';
+import {
+  getHistory,
+  deleteHistoryItem,
+  clearAllHistory,
+  subscribeToHistory,
+  generateSyncCode,
+  consumeSyncCode
+} from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context';
 import Link from 'next/link';
@@ -30,7 +37,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
 
   const pathname = usePathname();
   const { currentTheme, changeTheme, groupedThemes } = useTheme();
-  
+
   const sidebarRef = useRef(null);
   const themeMenuRef = useRef(null);
 
@@ -38,6 +45,14 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
   const [isDeleting, setIsDeleting] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [deviceCode, setDeviceCode] = useState('');
+  const [insertCode, setInsertCode] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState({ type: '', message: '' });
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(null);
 
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
@@ -76,6 +91,35 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!expiresAt || !deviceCode) return;
+
+    const interval = setInterval(() => {
+      const distance = expiresAt - Date.now();
+
+      if (distance <= 0) {
+        clearInterval(interval);
+        setDeviceCode('');
+        setTimeLeft(null);
+        setExpiresAt(null);
+        setSyncStatus({ type: 'error', message: 'Code expired. Please generate a new one.' });
+      } else {
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt, deviceCode]);
+
+  useEffect(() => {
+    if (!showDeviceModal) {
+      setInsertCode('');
+      setSyncStatus({ type: '', message: '' });
+    }
+  }, [showDeviceModal]);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -153,6 +197,39 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
   const handleHistoryClick = () => {
     if (historyItems.length > 0) {
       setShowHistoryModal(true);
+    }
+  };
+
+  const generateDeviceCode = () => {
+    setDeviceCode(Math.random().toString(36).substring(2, 8).toUpperCase());
+  };
+
+  const handleGenerateCode = async () => {
+    setIsSyncing(true);
+    setSyncStatus({ type: '', message: '' });
+    try {
+      const code = await generateSyncCode();
+      setDeviceCode(code);
+      setExpiresAt(Date.now() + 15 * 60 * 1000); // 15 minutes
+    } catch (error) {
+      setSyncStatus({ type: 'error', message: 'Authentication required to generate code.' });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleConnectDevice = async () => {
+    if (insertCode.length !== 6) return;
+    setIsSyncing(true);
+    setSyncStatus({ type: '', message: '' });
+    try {
+      await consumeSyncCode(insertCode);
+      setSyncStatus({ type: 'success', message: 'Workspace synced successfully!' });
+      setTimeout(() => setShowDeviceModal(false), 2000); // Close automatically
+    } catch (error) {
+      setSyncStatus({ type: 'error', message: error.message || 'Invalid or expired code.' });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -288,27 +365,22 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
 
         <footer className="sidebar-footer">
           <div className="footer-action-container">
+            <button className={`footer-icon-btn ${showDeviceModal ? 'active' : ''}`} onClick={() => setShowDeviceModal(true)} title="Link Devices">
+              <i className="fas fa-link"></i>
+            </button>
+          </div>
+          <div className="footer-action-container">
             <div className="ai-options-menu">
               {Object.entries(qualityConfig).map(([key, config]) => (
-                <button
-                  key={key}
-                  className={`ai-option-btn ${qualityMode === key ? 'active' : ''}`}
-                  onClick={() => toggleQuality(key)}
-                  title={config.title}
-                >
+                <button key={key} className={`ai-option-btn ${qualityMode === key ? 'active' : ''}`} onClick={() => toggleQuality(key)} title={config.title}>
                   <i className={`fas ${config.icon}`}></i>
                 </button>
               ))}
             </div>
-            <button 
-              className="footer-icon-btn" 
-              onClick={openModelSelector} 
-              title="AI Model Selection"
-            >
+            <button className="footer-icon-btn" onClick={openModelSelector} title="AI Model Selection">
               <i className="fas fa-microchip"></i>
             </button>
           </div>
-
           <div className="footer-action-container" ref={themeMenuRef}>
             <div className={`theme-dropdown-menu ${isThemeMenuOpen ? 'open' : ''}`}>
               {Object.entries(groupedThemes).map(([group, themes]) => (
@@ -318,27 +390,85 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
                     <button
                       key={theme.id}
                       className={`theme-option-btn ${currentTheme === theme.id ? 'active' : ''}`}
-                      onClick={() => {
-                        changeTheme(theme.id);
-                        setIsThemeMenuOpen(false);
-                      }}
-                    >
+                      onClick={() => { changeTheme(theme.id); setIsThemeMenuOpen(false); }}>
                       {theme.label}
                     </button>
                   ))}
                 </div>
               ))}
             </div>
-            <button 
-              className={`footer-icon-btn ${isThemeMenuOpen ? 'active' : ''}`} 
-              onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)} 
-              title="Change Theme"
-            >
+            <button className={`footer-icon-btn ${isThemeMenuOpen ? 'active' : ''}`} onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)} title="Change Theme">
               <i className="fas fa-palette"></i>
             </button>
           </div>
         </footer>
       </aside>
+
+      {showDeviceModal && (
+        <div className="modal-overlay" onClick={() => setShowDeviceModal(false)}>
+          <div className="modal-content device-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2><i className="fas fa-satellite-dish"></i> Sync Workspace</h2>
+            </div>
+            <p className="modal-desc">
+              Generate a secure 6-digit code to bridge your session, or enter an active code from another device.
+            </p>
+
+            {syncStatus.message && (
+              <div className={`sync-status-banner ${syncStatus.type}`}>
+                <i className={`fas ${syncStatus.type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}`}></i>
+                {syncStatus.message}
+              </div>
+            )}
+
+            <div className="device-code-section">
+              <div className="code-display">
+                {deviceCode || '------'}
+              </div>
+
+              {timeLeft && (
+                <div className="timer-display">
+                  <i className="fas fa-stopwatch"></i> Expires in {timeLeft}
+                </div>
+              )}
+
+              <button className="primary-button" onClick={handleGenerateCode} disabled={isSyncing || timeLeft}>
+                {isSyncing && !insertCode ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-fingerprint"></i>}
+                {timeLeft ? 'Code Active' : 'Generate Code'}
+              </button>
+            </div>
+
+            <div className="device-insert-section">
+              <p><i className="fas fa-keyboard"></i> Have a code from another device?</p>
+              <div className="insert-code-wrapper">
+                <input
+                  type="text"
+                  placeholder="Enter 6 digits"
+                  className="device-code-input"
+                  maxLength={6}
+                  value={insertCode}
+                  onChange={(e) => setInsertCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  disabled={isSyncing || !!timeLeft}
+                />
+                <button
+                  className="secondary-button"
+                  onClick={handleConnectDevice}
+                  disabled={insertCode.length < 6 || isSyncing || !!timeLeft}
+                >
+                  {isSyncing && insertCode ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-plug"></i>}
+                  Connect
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-footer action-row" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+              <button className="secondary-button" onClick={() => setShowDeviceModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showHistoryModal && (
         <div className="history-modal-overlay" onClick={() => setShowHistoryModal(false)}>
