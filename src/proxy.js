@@ -5,9 +5,11 @@ import { NextResponse } from 'next/server';
 // caller open arbitrary Postgres connections and (for /seed) write rows,
 // so they must never be reachable without credentials.
 //
-// This file runs on the Edge Runtime (Next.js middleware default), which
-// only has Web APIs, not Node's standard library — so no `node:crypto` or
-// `Buffer` here, only things like TextEncoder/TextDecoder and atob.
+// As of Next.js 16 this file convention is called "proxy" (renamed from
+// "middleware") and runs on the Node.js runtime by default — so Node
+// built-ins like `node:crypto`/`Buffer` would work fine here now. Kept the
+// comparison/decoding below on plain Web APIs anyway since it's simpler and
+// portable if this ever needs to move back to an edge-constrained context.
 //
 // Env vars required: BASIC_AUTH_USER, BASIC_AUTH_PASS
 const PROTECTED_PREFIX = '/api/db';
@@ -88,7 +90,7 @@ function hasValidOrigin(request) {
   }
 }
 
-export function middleware(request) {
+export function proxy(request) {
   if (!request.nextUrl.pathname.startsWith(PROTECTED_PREFIX)) {
     return NextResponse.next();
   }
