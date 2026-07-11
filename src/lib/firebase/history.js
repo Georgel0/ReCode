@@ -22,9 +22,12 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { auth, db } from "./client";
+import { collectLocalSyncPayload, applyLocalSyncPayload } from "./localSync";
 
 /**
- * DEVICE A: Generates a code and saves it to Firestore
+ * DEVICE A: Generates a code and saves it to Firestore, then best-effort
+ * pushes this device's local drafts (IndexedDB) and settings (localStorage)
+ * to Redis under the same code so device B can pick them up too.
  */
 export const generateSyncCode = async () => {
   if (!auth.currentUser) throw new Error("Not authenticated");
@@ -37,11 +40,28 @@ export const generateSyncCode = async () => {
     expiresAt: Date.now() + 15 * 60 * 1000 // Expires in 15 minutes
   });
 
+  // Best-effort: local drafts/settings aren't in Firestore, so ship them
+  // separately via Redis. If this fails, the code above still works fine
+  // for history sync — the caller just won't get local drafts on the
+  // other end.
+  try {
+    const payload = await collectLocalSyncPayload();
+    const token = await auth.currentUser.getIdToken();
+    await fetch('/api/sync/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ code, payload }),
+    });
+  } catch (e) {
+    console.error('Failed to push local draft data for sync:', e);
+  }
+
   return code; 
 };
 
 /**
- * DEVICE B: Verifies the code via your API and signs in
+ * DEVICE B: Verifies the code via your API, signs in, then applies any
+ * local draft/settings data (IndexedDB + localStorage) the server sent back.
  */
 export const consumeSyncCode = async (code) => {
   const response = await fetch('/api/auth/sync', {
@@ -58,7 +78,18 @@ export const consumeSyncCode = async (code) => {
 
   // Swap out the current anonymous session for the synced one!
   await signInWithCustomToken(auth, data.token);
-  
+
+  // Best-effort: apply local drafts/settings if the source device pushed
+  // any. Failing here shouldn't fail the whole sync — auth + history are
+  // already synced by this point.
+  if (data.localData) {
+    try {
+      await applyLocalSyncPayload(data.localData);
+    } catch (e) {
+      console.error('Failed to apply synced local draft data:', e);
+    }
+  }
+
   return true;
 };
 

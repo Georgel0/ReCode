@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import admin from "firebase-admin";
+import { getRedisClient } from '@/lib/redis';
 
-// Ensure Firebase Admin is initialized (same as your existing route.js)
 function initializeFirebase() {
   if (admin.apps.length) return;
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -20,8 +20,9 @@ export async function POST(request) {
     const { code } = await request.json();
     if (!code) return NextResponse.json({ error: 'Code is required' }, { status: 400 });
 
+    const normalizedCode = code.toUpperCase();
     const db = admin.firestore();
-    const codeRef = db.collection('syncCodes').doc(code.toUpperCase());
+    const codeRef = db.collection('syncCodes').doc(normalizedCode);
     const doc = await codeRef.get();
 
     if (!doc.exists) {
@@ -42,7 +43,25 @@ export async function POST(request) {
     // Burn the code so it's strictly single-use
     await codeRef.delete();
 
-    return NextResponse.json({ token: customToken });
+    // Best-effort: pick up any local draft/settings data the source device
+    // pushed to Redis under this same code, and burn that too. If nothing
+    // was pushed (or it already expired), localData just stays null — the
+    // auth/history sync above still succeeds either way. Only this exact
+    // key is ever touched, never a broader scan/flush of Redis.
+    let localData = null;
+    try {
+      const redis = await getRedisClient();
+      const redisKey = `syncdraft:${normalizedCode}`;
+      const raw = await redis.get(redisKey);
+      if (raw) {
+        localData = JSON.parse(raw);
+        await redis.del(redisKey);
+      }
+    } catch (redisError) {
+      console.error("Sync: failed to fetch local draft data:", redisError);
+    }
+
+    return NextResponse.json({ token: customToken, localData });
 
   } catch (error) {
     console.error("Sync Error:", error);
