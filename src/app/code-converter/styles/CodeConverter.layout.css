@@ -37,6 +37,10 @@
   justify-content: flex-end;
 }
 
+.c-control-bar__group select {
+  width: max-content;
+}
+
 .c-control-bar__cta {
   display: flex;
   align-items: center;
