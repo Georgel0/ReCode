@@ -632,6 +632,13 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
                 onPause={stream.handleReplayPause}
                 onReset={stream.handleReplayReset}
                 onStep={stream.handleReplayStep}
+                liveEndpoint={stream.liveEndpoint}
+                setLiveEndpoint={stream.setLiveEndpoint}
+                isLivePushing={stream.isLivePushing}
+                setIsLivePushing={stream.setIsLivePushing}
+                continuousLoop={stream.continuousLoop}
+                setContinuousLoop={stream.setContinuousLoop}
+                pushMetrics={stream.pushMetrics}
               />
             )}
 

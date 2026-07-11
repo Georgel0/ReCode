@@ -51,7 +51,7 @@ export function useStreamingEvents({ onDataUpdate }) {
   const [activeStream, setActiveStreamRaw] = useState(0);
   const [parsedRulesFeedback, setParsedRulesFeedback] = useState([]);
 
-  const [viewMode, setViewMode] = useState('events'); 
+  const [viewMode, setViewMode] = useState('events');
   const [filterQuery, setFilterQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -59,7 +59,7 @@ export function useStreamingEvents({ onDataUpdate }) {
 
   const [replayIndex, setReplayIndex] = useState(0);
   const [replayPlaying, setReplayPlaying] = useState(false);
-  const [replaySpeed, setReplaySpeed] = useState(500); 
+  const [replaySpeed, setReplaySpeed] = useState(500);
   const replayTimerRef = useRef(null);
 
   const [distColumn, setDistColumn] = useState(null);
@@ -73,6 +73,13 @@ export function useStreamingEvents({ onDataUpdate }) {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [saveTemplateError, setSaveTemplateError] = useState('');
+
+  const [liveEndpoint, setLiveEndpoint] = useState('http://localhost:3000/events');
+  const [isLivePushing, setIsLivePushing] = useState(false);
+  const [continuousLoop, setContinuousLoop] = useState(true);
+  const [pushMetrics, setPushMetrics] = useState({ sent: 0, errors: 0, lastError: null, tripped: false });
+  const consecutiveErrorsRef = useRef(0);
+  const CIRCUIT_BREAKER_THRESHOLD = 5;
 
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounterRef = useRef(0);
@@ -158,29 +165,99 @@ export function useStreamingEvents({ onDataUpdate }) {
 
   const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
+  // Arming a fresh push session clears out any stale error/tripped state
+  // from a previous run so old failures don't linger in the UI.
+  useEffect(() => {
+    if (isLivePushing) {
+      consecutiveErrorsRef.current = 0;
+      setPushMetrics(m => ({ ...m, lastError: null, tripped: false }));
+    }
+  }, [isLivePushing]);
+
+  const dispatchLiveEvent = useCallback((eventPayload, endpoint) => {
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventPayload),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        consecutiveErrorsRef.current = 0;
+        setPushMetrics(m => ({ ...m, sent: m.sent + 1, lastError: null }));
+      })
+      .catch(err => {
+        consecutiveErrorsRef.current += 1;
+
+        // "Failed to fetch" is what the browser reports for both network
+        // failures and CORS-blocked requests — give people a pointer since
+        // the generic message alone isn't actionable.
+        const message = err.message === 'Failed to fetch'
+          ? 'Request blocked — check that the endpoint is running and sends CORS headers (Access-Control-Allow-Origin) for OPTIONS/POST.'
+          : err.message;
+
+        const tripped = consecutiveErrorsRef.current >= CIRCUIT_BREAKER_THRESHOLD;
+        if (tripped) {
+          consecutiveErrorsRef.current = 0;
+          setIsLivePushing(false);
+          setReplayPlaying(false);
+        }
+
+        setPushMetrics(m => ({
+          ...m,
+          errors: m.errors + 1,
+          lastError: tripped
+            ? `Stopped after ${CIRCUIT_BREAKER_THRESHOLD} consecutive failures — ${message}`
+            : message,
+          tripped,
+        }));
+      });
+  }, []);
+
   useEffect(() => {
     if (!replayPlaying) {
       clearInterval(replayTimerRef.current);
       return;
     }
+
     const events = activeStreamData?.events ?? [];
-    if (replayIndex >= events.length - 1) {
-      setReplayPlaying(false);
-      return;
-    }
+    if (events.length === 0) return;
+
     clearInterval(replayTimerRef.current);
 
     replayTimerRef.current = setInterval(() => {
       setReplayIndex(prev => {
-        if (prev >= events.length - 1) {
-          setReplayPlaying(false);
-          return prev;
+        let nextIdx = prev + 1;
+
+        // Handle the wrap-around if continuous loop is enabled
+        if (nextIdx >= events.length) {
+          if (continuousLoop) {
+            nextIdx = 0; // Wrap around for infinite stream
+          } else {
+            setReplayPlaying(false);
+            setIsLivePushing(false); // Kill network if we hit the end
+            return prev;
+          }
         }
-        return prev + 1;
+
+        // If network push is armed, dispatch the event
+        if (isLivePushing && liveEndpoint) {
+          dispatchLiveEvent(events[nextIdx], liveEndpoint);
+        }
+
+        return nextIdx;
       });
     }, replaySpeed);
+
     return () => clearInterval(replayTimerRef.current);
-  }, [replayPlaying, replaySpeed, activeStream, activeStreamData]);
+  }, [
+    replayPlaying,
+    replaySpeed,
+    activeStreamData,
+    isLivePushing,
+    liveEndpoint,
+    continuousLoop,
+    dispatchLiveEvent
+  ]);
 
   const allStreamNames = useMemo(
     () => generatedData?.streams?.map(s => s.streamName) ?? [],
@@ -516,13 +593,13 @@ export function useStreamingEvents({ onDataUpdate }) {
       return;
     }
     const updated = [
-      ...savedTemplates, 
-      { 
-        name: trimmed, 
-        schema: config.schemaInput, 
-        rules: config.rules, 
-        eventFormat: config.eventFormat, 
-        streamParadigm: config.streamParadigm 
+      ...savedTemplates,
+      {
+        name: trimmed,
+        schema: config.schemaInput,
+        rules: config.rules,
+        eventFormat: config.eventFormat,
+        streamParadigm: config.streamParadigm
       }
     ];
     setSavedTemplates(updated);
@@ -663,6 +740,11 @@ export function useStreamingEvents({ onDataUpdate }) {
 
     ruleValidation,
     correlatedView,
-    generateCodeSnippet
+    generateCodeSnippet,
+
+    liveEndpoint, setLiveEndpoint,
+    isLivePushing, setIsLivePushing,
+    continuousLoop, setContinuousLoop,
+    pushMetrics
   };
 }

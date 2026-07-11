@@ -167,15 +167,12 @@ export function RuleValidationPanel({ results }) {
 }
 
 export function ReplayView({
-  events,
-  replayIndex,
-  replayPlaying,
-  replaySpeed,
-  setReplaySpeed,
-  onPlay,
-  onPause,
-  onReset,
-  onStep,
+  events, replayIndex, replayPlaying, replaySpeed, setReplaySpeed,
+  onPlay, onPause, onReset, onStep,
+  liveEndpoint, setLiveEndpoint,
+  isLivePushing, setIsLivePushing,
+  continuousLoop, setContinuousLoop,
+  pushMetrics
 }) {
   const endRef = useRef(null);
   const visibleEvents = events.slice(0, replayIndex + 1);
@@ -246,6 +243,59 @@ export function ReplayView({
           </select>
         </div>
       </div>
+
+      <div className="live-push-bar" style={{ display: 'flex', gap: '0.75rem', padding: '0.57rem 0.75rem', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="toggle-row" onClick={() => setContinuousLoop(!continuousLoop)}>
+          <input type="checkbox" checked={continuousLoop} readOnly />
+          <span className="toggle-label">Infinite Loop</span>
+        </div>
+        
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <i className="fas fa-satellite-dish" style={{ color: 'var(--text-secondary)' }} />
+          <input 
+            type="text" 
+            className="m-text-input" 
+            style={{ flex: 1, fontSize: '0.6rem' }} 
+            placeholder="Webhook URL (e.g., http://localhost:8080/events)"
+            value={liveEndpoint}
+            onChange={e => setLiveEndpoint(e.target.value)}
+            disabled={replayPlaying && isLivePushing}
+          />
+        </div>
+
+        <button 
+          className={`primary-button ${isLivePushing ? 'btn-danger' : ''}`}
+          style={{ padding: '0.2rem 0.6rem', fontSize: '0.6rem' }}
+          onClick={() => {
+            const willPush = !isLivePushing;
+            setIsLivePushing(willPush);
+            if (willPush && !replayPlaying) onPlay(); 
+            if (!willPush && replayPlaying) onPause();
+          }}
+        >
+          {isLivePushing ? <><i className="fas fa-stop" /> Stop Push</> : <><i className="fas fa-broadcast-tower" /> Arm & Fire</>}
+        </button>
+
+        <div className="metrics-display" style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', display: 'flex', gap: '0.5rem' }}>
+          <span style={{ color: 'var(--accent)' }}>Sent: {pushMetrics?.sent || 0}</span>
+          <span
+            style={{ color: pushMetrics?.errors > 0 ? 'var(--danger)' : 'inherit', cursor: pushMetrics?.lastError ? 'help' : 'default' }}
+            title={pushMetrics?.lastError || ''}
+          >
+            Errors: {pushMetrics?.errors || 0}
+          </span>
+        </div>
+      </div>
+
+      {pushMetrics?.tripped && (
+        <div
+          className="live-push-error-banner"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'rgba(220, 38, 38, 0.1)', color: 'var(--danger)', fontSize: '0.65rem', borderBottom: '1px solid var(--border)' }}
+        >
+          <i className="fas fa-triangle-exclamation" />
+          <span>{pushMetrics.lastError}</span>
+        </div>
+      )}
 
       {type && (
         <div className="replay-current-event">
