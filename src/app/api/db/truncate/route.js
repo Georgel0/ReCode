@@ -2,27 +2,16 @@ import { NextResponse } from 'next/server';
 import { Client } from 'pg';
 import {
   assertValidIdentifier,
-  assertLooksLikePostgresUri,
+  assertLooksLikeDbUri,
   assertPublicHost,
   assertBodyWithinLimit,
   toClientError,
   safeError,
 } from '@/lib/server/db-security';
 
-// Body is just a connection string plus a short list of table names.
 const MAX_BODY_BYTES = 16 * 1024;
-// Defensive ceiling — a real schema won't have more tables than this in one seed run.
 const MAX_TABLES_PER_REQUEST = 500;
 
-// Used two ways from the client:
-//  1. "Clear tables before seeding" — called once, before the seed loop starts.
-//  2. "Rollback seeded tables" — called after a mid-run failure, passing only
-//     the tables that actually received rows during that run.
-// A single multi-table TRUNCATE ... CASCADE is used rather than looping
-// per-table in FK order: CASCADE already pulls in any dependent rows
-// (including tables outside our list) atomically, so there's no need to
-// topologically sort the table list first, and either every table clears or
-// none do.
 export async function POST(request) {
   let client;
 
@@ -31,8 +20,15 @@ export async function POST(request) {
 
     const { connectionString, tableNames } = await request.json();
 
-    assertLooksLikePostgresUri(connectionString);
+    assertLooksLikeDbUri(connectionString);
     await assertPublicHost(connectionString);
+
+    if (connectionString.toLowerCase().startsWith('mysql')) {
+      throw safeError('MySQL truncation is not yet implemented.');
+    }
+
+    const targetSchema = new URL(connectionString).searchParams.get('schema') || 'public';
+    assertValidIdentifier(targetSchema, 'schema');
 
     if (!Array.isArray(tableNames) || tableNames.length === 0) {
       throw safeError('tableNames must be a non-empty array.');
@@ -50,9 +46,8 @@ export async function POST(request) {
     });
     await client.connect();
 
-    const quotedList = tableNames.map(t => `"${t}"`).join(', ');
-    // RESTART IDENTITY resets any SERIAL/IDENTITY sequences on these tables
-    // back to their start value — a clean slate, not just an empty table.
+    // Map targets to their explicit schema namespaces
+    const quotedList = tableNames.map(t => `"${targetSchema}"."${t}"`).join(', ');
     await client.query(`TRUNCATE TABLE ${quotedList} RESTART IDENTITY CASCADE`);
 
     return NextResponse.json({ success: true, truncated: tableNames });
@@ -61,11 +56,7 @@ export async function POST(request) {
     return NextResponse.json({ error: toClientError(error) }, { status });
   } finally {
     if (client) {
-      try {
-        await client.end();
-      } catch (_) {
-        // Already closed/errored — ignore.
-      }
+      try { await client.end(); } catch (_) {}
     }
   }
 }

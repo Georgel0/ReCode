@@ -14,13 +14,12 @@ import {
   deriveTypeScriptTypes
 } from './utils';
 
-// Hard ceiling on rows per chunk, regardless of how small the rows are.
-const MAX_ROWS_PER_BATCH = 500;
-// Stay well under Postgres's 65535 bound-parameter limit.
-const MAX_PARAMS_PER_BATCH = 8000;
-// Rough cap on the JSON payload size per request (bytes), so wide/heavy
-// rows (big text/JSON columns) still produce reasonably small requests.
-const MAX_BATCH_BYTES = 1.5 * 1024 * 1024;
+// Significantly raised ceiling on rows per chunk to cut down HTTP round-trips.
+const MAX_ROWS_PER_BATCH = 2000;
+// Stay well under Postgres's 65535 bound-parameter limit. 
+const MAX_PARAMS_PER_BATCH = 50000;
+// Raised cap on the JSON payload size per request to 4MB.
+const MAX_BATCH_BYTES = 4 * 1024 * 1024;
 
 // Splits one table's rows into request-sized chunks, sized dynamically:
 // small/narrow rows pack up to MAX_ROWS_PER_BATCH per chunk, while
