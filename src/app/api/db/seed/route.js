@@ -3,8 +3,8 @@ import { Pool } from 'pg';
 import {
   assertValidIdentifier,
   assertLooksLikeDbUri,
-  assertPublicHost,
-  assertBodyWithinLimit,
+  assertPublicHostAndPin,
+  readJsonWithLimit,
   toClientError,
   safeError,
 } from '@/lib/server/db-security';
@@ -14,19 +14,29 @@ const MAX_PARAMS_PER_REQUEST = 65000;
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 const ALLOWED_CONFLICT_MODES = new Set(['error', 'skip']);
 
-// Global pool cache to prevent connection exhaustion during chunked seeding
-const poolCache = new Map();
+const poolCache = new Map(); 
+const POOL_IDLE_MS = 5 * 60 * 1000;
+
+function scheduleEviction(key) {
+  return setTimeout(() => {
+    const entry = poolCache.get(key);
+    if (entry) {
+      poolCache.delete(key);
+      entry.pool.end().catch(() => {});
+    }
+  }, POOL_IDLE_MS).unref();
+}
 
 function getPool(connectionString) {
-  if (!poolCache.has(connectionString)) {
-    poolCache.set(connectionString, new Pool({
-      connectionString,
-      max: 5,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-    }));
+  const cached = poolCache.get(connectionString);
+  if (cached) {
+    clearTimeout(cached.timer);
+    cached.timer = scheduleEviction(connectionString);
+    return cached.pool;
   }
-  return poolCache.get(connectionString);
+  const pool = new Pool({ connectionString, max: 5, connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000 });
+  poolCache.set(connectionString, { pool, timer: scheduleEviction(connectionString) });
+  return pool;
 }
 
 function castSuffixFor(columnTypes, col) {
@@ -42,15 +52,13 @@ export async function POST(request) {
   let client;
 
   try {
-    assertBodyWithinLimit(request, MAX_BODY_BYTES);
-
     const {
       connectionString, tableName, columns, rows,
       isFinalChunk = true, onConflict = 'error',
-    } = await request.json();
+    } = await readJsonWithLimit(request, MAX_BODY_BYTES);
 
     assertLooksLikeDbUri(connectionString);
-    await assertPublicHost(connectionString);
+    await assertPublicHostAndPin(connectionString);
 
     if (connectionString.toLowerCase().startsWith('mysql')) {
       throw safeError('MySQL seeding is not yet implemented.');

@@ -89,9 +89,13 @@ export function inferColumnBadges(colName, sampleValue, allTableNames = []) {
 
   if (lower.endsWith('_id') && lower !== 'id') {
     const ref = lower.replace(/_id$/, '');
-    const matchedTable = allTableNames.find(
-      t => t.toLowerCase() === ref || t.toLowerCase() === ref + 's' || t.toLowerCase() === ref + 'es'
-    );
+    const matched = tableNames.find(t => {
+      const tl = t.toLowerCase();
+      return tl === ref ||
+        tl === ref + 's' ||
+        tl === ref + 'es' ||
+        (ref.endsWith('y') && tl === ref.slice(0, -1) + 'ies');
+    });
     badges.push(matchedTable ? `FK → ${matchedTable}` : 'FK');
   }
 
@@ -121,11 +125,13 @@ export function extractFkRelationships(tables) {
       if (!lower.endsWith('_id') || lower === 'id') return;
 
       const ref = lower.replace(/_id$/, '');
-      const matched = tableNames.find(
-        t => t.toLowerCase() === ref ||
-          t.toLowerCase() === ref + 's' ||
-          t.toLowerCase() === ref + 'es'
-      );
+      const matched = tableNames.find(t => {
+        const tl = t.toLowerCase();
+        return tl === ref ||
+          tl === ref + 's' ||
+          tl === ref + 'es' ||
+          (ref.endsWith('y') && tl === ref.slice(0, -1) + 'ies');
+      });
 
       if (matched && matched !== table.tableName) {
         relationships.push({
@@ -178,8 +184,8 @@ export function deriveTypeScriptTypes(tables) {
 
     const s = String(val);
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidRe.test(s)) return 'string'; 
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return 'string'; 
+    if (uuidRe.test(s)) return 'string';
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return 'string';
 
     return 'string';
   };

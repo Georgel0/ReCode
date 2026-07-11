@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { Client } from 'pg';
 import {
   assertLooksLikeDbUri,
-  assertPublicHost,
-  assertBodyWithinLimit,
+  assertPublicHostAndPin,
+  readJsonWithLimit,
   toClientError,
   safeError
 } from '@/lib/server/db-security';
@@ -14,11 +14,10 @@ export async function POST(request) {
   let client;
 
   try {
-    assertBodyWithinLimit(request, MAX_BODY_BYTES);
-    const { connectionString } = await request.json();
+    const { connectionString } = await readJsonWithLimit(request, MAX_BODY_BYTES);
 
     assertLooksLikeDbUri(connectionString);
-    await assertPublicHost(connectionString);
+    await assertPublicHostAndPin(connectionString);
 
     if (connectionString.toLowerCase().startsWith('mysql')) {
       throw safeError('MySQL introspection is not yet implemented.');

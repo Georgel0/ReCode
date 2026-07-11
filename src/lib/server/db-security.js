@@ -62,37 +62,44 @@ function isBlockedV6(ip) {
   return false;
 }
 
-export async function assertPublicHost(connectionString) {
-  let hostname;
-  try {
-    hostname = new URL(connectionString).hostname;
-  } catch {
-    throw safeError('Malformed connection string.');
-  }
-
+// AFTER — db-security.js: validate AND pin the exact IP that gets used
+export async function assertPublicHostAndPin(connectionString) {
+  const parsed = new URL(connectionString);
+  const hostname = parsed.hostname;
   if (!hostname) throw safeError('Connection string is missing a host.');
   if (hostname.toLowerCase() === 'localhost') {
     throw safeError('Connections to localhost are not allowed.');
   }
 
-  let addresses;
-  try {
-    addresses = await dns.lookup(hostname, { all: true });
-  } catch {
+  const addresses = await dns.lookup(hostname, { all: true }).catch(() => {
     throw safeError('Could not resolve database host.');
+  });
+
+  const blocked = ({ address, family }) => family === 4 ? isBlockedV4(address) : isBlockedV6(address);
+  if (addresses.some(blocked)) {
+    throw safeError('Connections to private or internal network addresses are not allowed.');
   }
 
-  for (const { address, family } of addresses) {
-    const blocked = family === 4 ? isBlockedV4(address) : isBlockedV6(address);
-    if (blocked) {
-      throw safeError('Connections to private or internal network addresses are not allowed.');
-    }
-  }
+  // Pin the connection to the address we just validated so it can't be
+  // swapped out between this check and the real connect. pg-connection-string
+  // honors a `host` query param as an override of the URL host.
+  parsed.searchParams.set('host', addresses[0].address);
+  return parsed.toString();
 }
 
-export function assertBodyWithinLimit(request, maxBytes) {
+export async function readJsonWithLimit(request, maxBytes) {
   const len = Number(request.headers.get('content-length') || 0);
-  if (len > maxBytes) {
-    throw safeError(`Request body too large (max ${Math.floor(maxBytes / 1024)}KB).`);
+  if (len > maxBytes) throw safeError(`Request body too large (max ${Math.floor(maxBytes / 1024)}KB).`);
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) throw safeError(`Request body too large (max ${Math.floor(maxBytes / 1024)}KB).`);
+    chunks.push(value);
   }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
