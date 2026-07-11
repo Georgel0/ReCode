@@ -65,10 +65,18 @@ export const consumeSyncCode = async (code) => {
 /**
  * HELPER: Gets a reference to the 'history' sub-collection for the current user.
  * Pattern: users/{uid}/history
- * @returns {CollectionReference|null}
+ *
+ * Throws rather than returning null when there's no signed-in user yet, so
+ * callers get a visible failure instead of a silent no-op (e.g. a "Saved"
+ * UI state where nothing was actually written). Auth should normally already
+ * be ready by the time this is called — see AuthBootstrap, mounted at the
+ * app root. This is a safety net for the case where it isn't.
+ * @returns {CollectionReference}
  */
 const getHistoryRef = () => {
-  if (!auth.currentUser) return null;
+  if (!auth.currentUser) {
+    throw new Error("Not authenticated yet — history is unavailable until auth is ready.");
+  }
   return collection(db, "users", auth.currentUser.uid, "history");
 };
 

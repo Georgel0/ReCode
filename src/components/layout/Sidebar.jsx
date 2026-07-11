@@ -411,7 +411,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
               <h2><i className="fas fa-satellite-dish"></i> Sync Workspace</h2>
             </div>
             <p className="modal-desc">
-              Generate a secure 6-digit code to bridge your session, or enter an active code from another device.
+              Generate a secure 6-digit code to bridge your session, or enter an active code from another device, to sync your data across devices.
             </p>
 
             {syncStatus.message && (

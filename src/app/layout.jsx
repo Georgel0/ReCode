@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AppProvider, ThemeProvider } from '@/context';
 import { MainLayout } from '@/components/layout';
+import { AuthBootstrap } from '@/components/effects/AuthBootstrap';
 
 import '@/styles/index.css';
 import '@/styles/base.css';
@@ -80,6 +81,8 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <AuthBootstrap />
+
         <ThemeProvider>
           <AppProvider>
             <MainLayout>
