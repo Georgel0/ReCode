@@ -25,19 +25,23 @@ function SeedStatusIcon({ status }) {
   return <i className={`${iconClass} m-seed-status-icon m-seed-status-icon--${status}`} />;
 }
 
-function SeedProgressPanel({ progress, onCancel, onDismiss }) {
+function SeedProgressPanel({ progress, onCancel, onDismiss, onRollback }) {
   if (!progress || progress.status === 'idle') return null;
 
-  const { status, tables, totalRows, rowsDone, totalBatches, batchesDone, error, currentTableName, startedAt, finishedAt } = progress;
+  const { status, tables, totalRows, rowsDone, totalBatches, batchesDone, error, currentTableName, startedAt, finishedAt, seededTables } = progress;
   const pct = totalBatches > 0 ? Math.min(100, Math.round((batchesDone / totalBatches) * 100)) : 0;
   const elapsedSec = startedAt ? Math.max(0, Math.round(((finishedAt ?? Date.now()) - startedAt) / 1000)) : 0;
 
   const headline = {
+    clearing: <><i className="fas fa-eraser" /> Clearing tables before seeding…</>,
     running: <><i className="fas fa-bolt" /> Seeding database in {totalBatches} batch{totalBatches === 1 ? '' : 'es'}…</>,
     done: <><i className="fas fa-check-circle" /> Seed complete</>,
     error: <><i className="fas fa-times-circle" /> Seeding failed</>,
     cancelled: <><i className="fas fa-ban" /> Seeding cancelled</>,
+    rolled_back: <><i className="fas fa-rotate-left" /> Seeded tables rolled back</>,
   }[status];
+
+  const isActive = status === 'running' || status === 'clearing';
 
   return (
     <div className={`m-seed-progress-panel m-seed-progress-panel--${status}`}>
@@ -47,14 +51,21 @@ function SeedProgressPanel({ progress, onCancel, onDismiss }) {
         </div>
         <div className="m-seed-progress-actions">
           <span className="m-seed-progress-elapsed">{elapsedSec}s</span>
-          {status === 'running' ? (
+          {isActive ? (
             <button className="secondary-button btn-danger m-seed-progress-btn" onClick={onCancel}>
               Cancel
             </button>
           ) : (
-            <button className="secondary-button m-seed-progress-btn" onClick={onDismiss}>
-              Dismiss
-            </button>
+            <>
+              {(status === 'error' || status === 'cancelled') && seededTables?.length > 0 && (
+                <button className="secondary-button btn-danger m-seed-progress-btn" onClick={onRollback}>
+                  <i className="fas fa-rotate-left" /> Rollback seeded tables
+                </button>
+              )}
+              <button className="secondary-button m-seed-progress-btn" onClick={onDismiss}>
+                Dismiss
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -88,7 +99,9 @@ function SeedProgressPanel({ progress, onCancel, onDismiss }) {
           <strong>{error.tableName ? `${error.tableName}: ` : ''}</strong>{error.message}
           <div className="m-seed-error-note">
             Each batch commits independently, so rows already inserted before this failure remain in the database.
-            Fix the issue and re-run — already-seeded tables will insert again unless you clear them first.
+            {seededTables?.length > 0
+              ? ' Use "Rollback seeded tables" above to clear them before re-running, or switch to "Skip duplicates" / "Clear tables first" mode.'
+              : ' Fix the issue and re-run.'}
           </div>
         </div>
       )}
@@ -96,7 +109,14 @@ function SeedProgressPanel({ progress, onCancel, onDismiss }) {
       {status === 'cancelled' && (
         <div className="m-seed-cancelled-note">
           Batches already sent before cancelling remain committed. Re-running is not an automatic resume —
+          {seededTables?.length > 0 ? ' use "Rollback seeded tables" above, or ' : ' '}
           already-seeded tables will insert again unless cleared first.
+        </div>
+      )}
+
+      {status === 'rolled_back' && (
+        <div className="m-seed-cancelled-note">
+          The tables touched by this run have been truncated. You can safely re-run the seed from a clean slate.
         </div>
       )}
     </div>
@@ -647,10 +667,26 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange })
                       <option value="types">TypeScript Types (.ts)</option>
                     </select>
 
+                    <select
+                      value={db.seedMode}
+                      onChange={e => db.setSeedMode(e.target.value)}
+                      disabled={db.isSeedingDb}
+                      title="What to do about rows that already exist in the target tables"
+                    >
+                      <option value="insert">Insert (fail on duplicate)</option>
+                      <option value="skipDuplicates">Skip duplicates</option>
+                      <option value="clearFirst">Clear tables first</option>
+                    </select>
+
                     <button
                       className={`primary-button m-tool-btn ${db.isSeedingDb ? 'm-loading' : ''}`}
                       title="Seed directly into the connected database (sent in small chunks per request)"
-                      onClick={db.handleSeedDirectly}
+                      onClick={() => {
+                        if (db.seedMode === 'clearFirst' && !window.confirm(
+                          'This will TRUNCATE every table in the current schema before seeding. This cannot be undone. Continue?'
+                        )) return;
+                        db.handleSeedDirectly();
+                      }}
                       disabled={db.isSeedingDb || !db.dbUri}
                     >
                       {db.isSeedingDb ? (
@@ -672,6 +708,7 @@ export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange })
             progress={db.seedProgress}
             onCancel={db.handleCancelSeed}
             onDismiss={db.dismissSeedProgress}
+            onRollback={db.handleRollbackSeededTables}
           />
 
           <div className="m-preview-area">

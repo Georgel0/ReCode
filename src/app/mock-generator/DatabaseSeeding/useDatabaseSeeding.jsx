@@ -54,14 +54,19 @@ function chunkTableRows(rows, columns) {
   return batches;
 }
 
-// Flattens FK-sorted tables into an ordered list of { tableName, columns, rows } batches.
+// Flattens FK-sorted tables into an ordered list of
+// { tableName, columns, rows, isFinalChunk } batches. isFinalChunk marks the
+// last chunk sent for a given table — the seed API uses it as the signal to
+// run that table's SERIAL/IDENTITY sequence resync exactly once, after all
+// of that table's rows are in, instead of after every chunk.
 function buildSeedPlan(sortedTables) {
   const plan = [];
   sortedTables.forEach(table => {
     if (!table.rows?.length) return;
     const columns = Object.keys(table.rows[0]);
-    chunkTableRows(table.rows, columns).forEach(rows => {
-      plan.push({ tableName: table.tableName, columns, rows });
+    const chunks = chunkTableRows(table.rows, columns);
+    chunks.forEach((rows, idx) => {
+      plan.push({ tableName: table.tableName, columns, rows, isFinalChunk: idx === chunks.length - 1 });
     });
   });
   return plan;
@@ -105,7 +110,7 @@ async function postBatchWithRetry(url, body, signal, maxRetries = 2) {
 }
 
 const IDLE_SEED_PROGRESS = {
-  status: 'idle', // idle | running | done | error | cancelled
+  status: 'idle', // idle | running | clearing | done | error | cancelled | rolled_back
   tables: [],
   currentTableName: null,
   totalRows: 0,
@@ -115,7 +120,17 @@ const IDLE_SEED_PROGRESS = {
   error: null,
   startedAt: null,
   finishedAt: null,
+  // Tables that received at least one successful insert this run — the
+  // basis for the "rollback seeded tables" action after a mid-run failure.
+  seededTables: [],
 };
+
+// 'insert': plain INSERT, fails on any duplicate key (original behavior).
+// 'skipDuplicates': INSERT ... ON CONFLICT DO NOTHING, so re-running a seed
+//   against a partially-populated database doesn't crash.
+// 'clearFirst': TRUNCATE every table about to be seeded before inserting,
+//   for a guaranteed-clean slate.
+const SEED_MODES = ['insert', 'skipDuplicates', 'clearFirst'];
 
 export function useDatabaseSeeding({ onDataUpdate }) {
   const { moduleData, qualityMode } = useApp();
@@ -152,6 +167,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
   const [isDbConnecting, setIsDbConnecting] = useState(false);
   const [isSeedingDb, setIsSeedingDb] = useState(false);
   const [seedProgress, setSeedProgress] = useState(IDLE_SEED_PROGRESS);
+  const [seedMode, setSeedMode] = useState('insert');
   const seedAbortRef = useRef(null);
 
   const updateConfig = useCallback((key, value) => {
@@ -821,7 +837,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     setIsSeedingDb(true);
     setSeedProgress({
       ...IDLE_SEED_PROGRESS,
-      status: 'running',
+      status: seedMode === 'clearFirst' ? 'clearing' : 'running',
       tables: tableOrder.map(name => ({
         tableName: name,
         totalRows: plan.filter(b => b.tableName === name).reduce((s, b) => s + b.rows.length, 0),
@@ -835,8 +851,22 @@ export function useDatabaseSeeding({ onDataUpdate }) {
 
     let rowsDone = 0;
     let batchesDone = 0;
+    const seededTables = new Set();
 
     try {
+      if (seedMode === 'clearFirst') {
+        // Single upfront TRUNCATE for every table about to be seeded, before
+        // any inserts start. Doing this as one dedicated call (rather than
+        // threading a "truncate first" flag through the first chunk of each
+        // table's insert) keeps the seed route simple and means the clear
+        // either fully succeeds or fully fails before any row is written.
+        await postBatchWithRetry('/api/db/truncate', {
+          connectionString: dbUri,
+          tableNames: tableOrder,
+        }, controller.signal);
+        setSeedProgress(prev => ({ ...prev, status: 'running' }));
+      }
+
       for (const batch of plan) {
         setSeedProgress(prev => ({
           ...prev,
@@ -852,8 +882,11 @@ export function useDatabaseSeeding({ onDataUpdate }) {
           tableName: batch.tableName,
           columns: batch.columns,
           rows: batch.rows,
+          isFinalChunk: batch.isFinalChunk,
+          onConflict: seedMode === 'skipDuplicates' ? 'skip' : 'error',
         }, controller.signal);
 
+        seededTables.add(batch.tableName);
         rowsDone += batch.rows.length;
         batchesDone += 1;
 
@@ -861,6 +894,7 @@ export function useDatabaseSeeding({ onDataUpdate }) {
           ...prev,
           rowsDone,
           batchesDone,
+          seededTables: Array.from(seededTables),
           tables: prev.tables.map(t => {
             if (t.tableName !== batch.tableName) return t;
             const newRowsDone = t.rowsDone + batch.rows.length;
@@ -872,12 +906,13 @@ export function useDatabaseSeeding({ onDataUpdate }) {
       setSeedProgress(prev => ({ ...prev, status: 'done', currentTableName: null, finishedAt: Date.now() }));
     } catch (err) {
       if (err.name === 'AbortError') {
-        setSeedProgress(prev => ({ ...prev, status: 'cancelled', finishedAt: Date.now() }));
+        setSeedProgress(prev => ({ ...prev, status: 'cancelled', seededTables: Array.from(seededTables), finishedAt: Date.now() }));
       } else {
         setSeedProgress(prev => ({
           ...prev,
           status: 'error',
           error: { message: err.message, tableName: prev.currentTableName },
+          seededTables: Array.from(seededTables),
           tables: prev.tables.map(t => (t.tableName === prev.currentTableName ? { ...t, status: 'error' } : t)),
           finishedAt: Date.now(),
         }));
@@ -886,11 +921,36 @@ export function useDatabaseSeeding({ onDataUpdate }) {
       setIsSeedingDb(false);
       seedAbortRef.current = null;
     }
-  }, [dbUri, generatedData, fkRelationships]);
+  }, [dbUri, generatedData, fkRelationships, seedMode]);
 
   const handleCancelSeed = useCallback(() => {
     seedAbortRef.current?.abort();
   }, []);
+
+  // Best-effort recovery from a mid-run failure or cancellation: TRUNCATEs
+  // only the tables that actually received rows this run, so a retry starts
+  // from a clean slate instead of double-inserting into whatever partially
+  // landed. There's no true cross-request transaction here (see the note in
+  // the seed route about the HTTP-chunking tradeoff) — this is the
+  // "undo button" workaround for that gap.
+  const handleRollbackSeededTables = useCallback(async () => {
+    const tableNames = seedProgress.seededTables;
+    if (!tableNames?.length || !dbUri.trim()) return;
+    const confirmed = window.confirm(
+      `This will TRUNCATE ${tableNames.length} table(s) touched by this run: ${tableNames.join(', ')}. This cannot be undone. Continue?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await postBatchWithRetry('/api/db/truncate', {
+        connectionString: dbUri,
+        tableNames,
+      });
+      setSeedProgress(prev => ({ ...prev, status: 'rolled_back', seededTables: [] }));
+    } catch (err) {
+      alert(err.message || 'Rollback failed — you may need to clear these tables manually.');
+    }
+  }, [dbUri, seedProgress.seededTables]);
 
   const dismissSeedProgress = useCallback(() => {
     setSeedProgress(IDLE_SEED_PROGRESS);
@@ -947,5 +1007,6 @@ export function useDatabaseSeeding({ onDataUpdate }) {
     isSafeToRegenerate: (tableName) => isSafeToRegenerate(tableName, fkRelationships),
     dbUri, setDbUri, isDbConnecting, isSeedingDb, handleIntrospect, handleSeedDirectly,
     seedProgress, handleCancelSeed, dismissSeedProgress,
+    seedMode, setSeedMode, seedModes: SEED_MODES, handleRollbackSeededTables,
   };
 }
