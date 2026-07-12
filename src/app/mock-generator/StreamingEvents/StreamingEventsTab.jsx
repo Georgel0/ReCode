@@ -14,8 +14,6 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
   const stream = useStreamingEvents({ onDataUpdate, isActive });
   const fileInputRef = useRef(null);
 
-  // Report share state up so the parent's single ModuleHeader can reflect
-  // this tool whenever it's the active paradigm.
   useEffect(() => {
     onShareStateChange?.({
       share: stream.share,
@@ -639,6 +637,21 @@ export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, i
                 continuousLoop={stream.continuousLoop}
                 setContinuousLoop={stream.setContinuousLoop}
                 pushMetrics={stream.pushMetrics}
+                speedFactor={stream.speedFactor}
+                setSpeedFactor={stream.setSpeedFactor}
+                batchSize={stream.batchSize}
+                setBatchSize={stream.setBatchSize}
+                customHeaders={stream.customHeaders}
+                headersMode={stream.headersMode}
+                setHeadersMode={stream.setHeadersMode}
+                headersJsonText={stream.headersJsonText}
+                setHeadersJsonText={stream.setHeadersJsonText}
+                headersError={stream.headersError}
+                addHeaderRow={stream.addHeaderRow}
+                updateHeaderRow={stream.updateHeaderRow}
+                removeHeaderRow={stream.removeHeaderRow}
+                isAlertTesting={stream.isAlertTesting}
+                injectAlertBurst={stream.injectAlertBurst}
               />
             )}
 

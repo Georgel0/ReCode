@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, useState } from "react";
 
 export function CorrelatedView({ correlatedView, streams }) {
   const { combined, corrKey, tsKey } = correlatedView;
@@ -172,9 +172,19 @@ export function ReplayView({
   liveEndpoint, setLiveEndpoint,
   isLivePushing, setIsLivePushing,
   continuousLoop, setContinuousLoop,
-  pushMetrics
+  pushMetrics,
+  speedFactor, setSpeedFactor,
+  batchSize, setBatchSize,
+  customHeaders, headersMode, setHeadersMode,
+  headersJsonText, setHeadersJsonText, headersError,
+  addHeaderRow, updateHeaderRow, removeHeaderRow,
+  isAlertTesting, injectAlertBurst,
 }) {
   const endRef = useRef(null);
+  const [headersOpen, setHeadersOpen] = useState(false);
+  const activeHeaderCount = headersMode === 'grid'
+    ? customHeaders.filter(h => h.key?.trim()).length
+    : (headersJsonText.trim() && headersJsonText.trim() !== '{}' ? 1 : 0);
   const visibleEvents = events.slice(0, replayIndex + 1);
   const current = events[replayIndex];
   const ts = current
@@ -188,7 +198,6 @@ export function ReplayView({
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [replayIndex]);
 
-  const speedLabel = replaySpeed <= 100 ? 'Fast' : replaySpeed <= 500 ? 'Normal' : 'Slow';
   const progressPct = events.length > 1 ? Math.round((replayIndex / (events.length - 1)) * 100) : 100;
 
   return (
@@ -229,17 +238,44 @@ export function ReplayView({
         )}
 
         <div className="replay-speed-wrap">
-          <span className="replay-speed-label">{speedLabel}</span>
+          <div className="speed-factor-toggle" title="Scales the real gap between event timestamps (e.g. a 30s gap becomes 3s at ×10)">
+            <span className="replay-speed-label">Speed</span>
+            {[1, 5, 10].map(f => (
+              <button
+                key={f}
+                type="button"
+                className={`speed-factor-btn ${speedFactor === f ? 'm-active' : ''}`}
+                onClick={() => setSpeedFactor(f)}
+              >
+                ×{f}
+              </button>
+            ))}
+          </div>
           <select
             value={replaySpeed}
             onChange={e => setReplaySpeed(Number(e.target.value))}
+            title="Fallback pacing used when events have no parseable timestamp field"
           >
-            <option value={50}>50ms (×20)</option>
-            <option value={100}>100ms (×10)</option>
-            <option value={250}>250ms (×4)</option>
-            <option value={500}>500ms (×2)</option>
-            <option value={1000}>1s (×1)</option>
-            <option value={2000}>2s (slow)</option>
+            <option value={50}>Fallback: 50ms</option>
+            <option value={100}>Fallback: 100ms</option>
+            <option value={250}>Fallback: 250ms</option>
+            <option value={500}>Fallback: 500ms</option>
+            <option value={1000}>Fallback: 1s</option>
+            <option value={2000}>Fallback: 2s</option>
+          </select>
+        </div>
+
+        <div className="replay-batch-wrap">
+          <span className="replay-speed-label">Batch</span>
+          <select
+            value={batchSize}
+            onChange={e => setBatchSize(Number(e.target.value))}
+            title="Advance and dispatch this many events per replay tick"
+          >
+            <option value={1}>Single event</option>
+            <option value={5}>5 events</option>
+            <option value={10}>10 events</option>
+            <option value={50}>50 events</option>
           </select>
         </div>
       </div>
@@ -262,6 +298,30 @@ export function ReplayView({
             disabled={replayPlaying && isLivePushing}
           />
         </div>
+
+        <button
+          type="button"
+          className={`secondary-button headers-toggle-btn ${headersOpen ? 'm-active' : ''}`}
+          style={{ padding: '0.2rem 0.6rem', fontSize: '0.6rem' }}
+          onClick={() => setHeadersOpen(!headersOpen)}
+          title="Configure auth / custom headers for outgoing pushes"
+        >
+          <i className="fas fa-key" /> Headers
+          {activeHeaderCount > 1 && <span className="m-badge-count">{activeHeaderCount - 1}</span>}
+        </button>
+
+        <button
+          type="button"
+          className="secondary-button alert-test-btn"
+          style={{ padding: '0.2rem 0.6rem', fontSize: '0.6rem' }}
+          onClick={() => injectAlertBurst(10)}
+          disabled={!liveEndpoint || isAlertTesting}
+          title="Fire a burst of synthetic error/spike events at the endpoint to verify downstream alerting (Datadog, PagerDuty, Slack, etc.)"
+        >
+          {isAlertTesting
+            ? <><i className="fas fa-spinner fa-spin" /> Firing…</>
+            : <><i className="fas fa-triangle-exclamation" /> Inject Alert Test</>}
+        </button>
 
         <button 
           className={`primary-button ${isLivePushing ? 'btn-danger' : ''}`}
@@ -286,6 +346,81 @@ export function ReplayView({
           </span>
         </div>
       </div>
+
+      {headersOpen && (
+        <div className="headers-config-panel">
+          <div className="headers-config-header">
+            <div className="headers-mode-toggle">
+              <button
+                type="button"
+                className={`headers-mode-btn ${headersMode === 'grid' ? 'm-active' : ''}`}
+                onClick={() => setHeadersMode('grid')}
+              >
+                <i className="fas fa-table-list" /> Key/Value
+              </button>
+              <button
+                type="button"
+                className={`headers-mode-btn ${headersMode === 'json' ? 'm-active' : ''}`}
+                onClick={() => setHeadersMode('json')}
+              >
+                <i className="fas fa-code" /> JSON
+              </button>
+            </div>
+            <span className="headers-config-hint">
+              Sent with every push — e.g. <code>Authorization</code>, <code>X-API-Key</code>
+            </span>
+          </div>
+
+          {headersMode === 'grid' ? (
+            <div className="headers-grid">
+              {customHeaders.map((h, i) => (
+                <div key={i} className="headers-grid-row">
+                  <input
+                    type="text"
+                    className="m-text-input"
+                    placeholder="Header name (e.g. Authorization)"
+                    value={h.key}
+                    onChange={e => updateHeaderRow(i, 'key', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="m-text-input"
+                    placeholder="Value (e.g. Bearer sk-...)"
+                    value={h.value}
+                    onChange={e => updateHeaderRow(i, 'value', e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="m-icon-text-btn"
+                    onClick={() => removeHeaderRow(i)}
+                    title="Remove header"
+                  >
+                    <i className="fas fa-trash-alt" />
+                  </button>
+                </div>
+              ))}
+              <button type="button" className="secondary-button headers-add-btn" onClick={addHeaderRow}>
+                <i className="fas fa-plus" /> Add Header
+              </button>
+            </div>
+          ) : (
+            <div className="headers-json-editor">
+              <textarea
+                className="m-rule-input headers-json-textarea"
+                placeholder='{\n  "Authorization": "Bearer sk-...",\n  "X-API-Key": "..."\n}'
+                value={headersJsonText}
+                onChange={e => setHeadersJsonText(e.target.value)}
+                spellCheck={false}
+              />
+              {headersError && (
+                <div className="error-message">
+                  <i className="fas fa-exclamation-triangle" /> {headersError}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {pushMetrics?.tripped && (
         <div

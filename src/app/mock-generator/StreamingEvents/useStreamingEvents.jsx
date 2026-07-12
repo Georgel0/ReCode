@@ -15,14 +15,9 @@ export function useStreamingEvents({ onDataUpdate }) {
     setConfig(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Presence check only (doesn't consume the param, safe to read every
-  // render). Defers the moduleData/draft restores below to a share link on
-  // the very first render — before either restore effect has a chance to run.
   const hasShareParam = typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).has('share');
 
-  // schemaInput already lives inside `config`; keep it out of the share
-  // payload's `config` blob since it's already carried as `input`.
   const shareConfig = useMemo(() => {
     const { schemaInput, ...rest } = config;
     return rest;
@@ -34,8 +29,6 @@ export function useStreamingEvents({ onDataUpdate }) {
     config: shareConfig,
   });
 
-  // Hydrate from a shared link. Runs once on mount and takes priority over
-  // both the moduleData (history) restore and the local draft restore below.
   useEffect(() => {
     const shared = readSharedState();
     if (!shared) return;
@@ -44,7 +37,7 @@ export function useStreamingEvents({ onDataUpdate }) {
       ...(shared.config || {}),
       schemaInput: shared.input || prev.schemaInput,
     }));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
@@ -81,6 +74,16 @@ export function useStreamingEvents({ onDataUpdate }) {
   const consecutiveErrorsRef = useRef(0);
   const CIRCUIT_BREAKER_THRESHOLD = 5;
 
+  const [speedFactor, setSpeedFactor] = useState(1);
+  const [batchSize, setBatchSize] = useState(1);
+
+  const [customHeaders, setCustomHeaders] = useState([{ key: '', value: '' }]);
+  const [headersMode, setHeadersMode] = useState('grid');
+  const [headersJsonText, setHeadersJsonText] = useState('{}');
+  const [headersError, setHeadersError] = useState('');
+
+  const [isAlertTesting, setIsAlertTesting] = useState(false);
+
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounterRef = useRef(0);
 
@@ -99,7 +102,7 @@ export function useStreamingEvents({ onDataUpdate }) {
   }, []);
 
   useEffect(() => {
-    if (hasShareParam) return; // a share link takes priority over saved module data
+    if (hasShareParam) return;
     if (moduleData && moduleData.type === 'stream') {
       setConfig(prev => ({
         ...prev,
@@ -165,8 +168,6 @@ export function useStreamingEvents({ onDataUpdate }) {
 
   const activeStreamData = generatedData?.streams?.[activeStream] ?? null;
 
-  // Arming a fresh push session clears out any stale error/tripped state
-  // from a previous run so old failures don't linger in the UI.
   useEffect(() => {
     if (isLivePushing) {
       consecutiveErrorsRef.current = 0;
@@ -174,14 +175,74 @@ export function useStreamingEvents({ onDataUpdate }) {
     }
   }, [isLivePushing]);
 
-  const dispatchLiveEvent = useCallback((eventPayload, endpoint) => {
+  useEffect(() => {
+    if (headersMode !== 'json') { setHeadersError(''); return; }
+    if (!headersJsonText.trim()) { setHeadersError(''); return; }
+    try {
+      const parsed = JSON.parse(headersJsonText);
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        setHeadersError('Headers must be a flat JSON object, e.g. {"Authorization": "Bearer ..."}');
+      } else {
+        setHeadersError('');
+      }
+    } catch {
+      setHeadersError('Invalid JSON.');
+    }
+  }, [headersJsonText, headersMode]);
+
+  const addHeaderRow = useCallback(() => {
+    setCustomHeaders(prev => [...prev, { key: '', value: '' }]);
+  }, []);
+
+  const updateHeaderRow = useCallback((idx, field, value) => {
+    setCustomHeaders(prev => prev.map((h, i) => (i === idx ? { ...h, [field]: value } : h)));
+  }, []);
+
+  const removeHeaderRow = useCallback((idx) => {
+    setCustomHeaders(prev => {
+      const next = prev.filter((_, i) => i !== idx);
+      return next.length ? next : [{ key: '', value: '' }];
+    });
+  }, []);
+
+  // Resolves the active headers editor (grid or JSON) into a plain headers
+  // object used for every live/alert-test dispatch. Content-Type is always
+  // included by default but can be overridden by an explicit entry.
+  const resolvedHeaders = useMemo(() => {
+    const base = { 'Content-Type': 'application/json' };
+    if (headersMode === 'json') {
+      try {
+        const parsed = JSON.parse(headersJsonText || '{}');
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return { ...base, ...parsed };
+        }
+      } catch {
+        // fall through to base headers while the JSON is invalid
+      }
+      return base;
+    }
+    customHeaders.forEach(({ key, value }) => {
+      if (key?.trim()) base[key.trim()] = value ?? '';
+    });
+    return base;
+  }, [headersMode, headersJsonText, customHeaders]);
+
+  const dispatchLiveEvent = useCallback((eventPayload, endpoint, headers) => {
     fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers || { 'Content-Type': 'application/json' },
       body: JSON.stringify(eventPayload),
     })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      .then(async res => {
+        if (!res.ok) {
+          // Surface the ingestion API's own response body (e.g. a Kafka REST
+          // Proxy / Vector / Logstash schema-validation error) instead of
+          // just the status code, so schema mismatches are diagnosable.
+          let bodyText = '';
+          try { bodyText = await res.text(); } catch { /* no body to read */ }
+          const detail = bodyText ? ` — ${bodyText.slice(0, 300)}` : '';
+          throw new Error(`HTTP ${res.status}${detail}`);
+        }
         consecutiveErrorsRef.current = 0;
         setPushMetrics(m => ({ ...m, sent: m.sent + 1, lastError: null }));
       })
@@ -213,50 +274,109 @@ export function useStreamingEvents({ onDataUpdate }) {
       });
   }, []);
 
+  const injectAlertBurst = useCallback((count = 10) => {
+    if (!liveEndpoint) return;
+    const events = activeStreamData?.events ?? [];
+    const sample = events[Math.min(replayIndex, events.length - 1)] || events[0] || {};
+    const tsKeys = ['timestamp', 'ts', 'event_time', 'created_at', 'occurred_at'];
+    const tsKey = tsKeys.find(k => sample[k] !== undefined);
+    const typeKey = ['event_type', 'type', 'name', 'event_name'].find(k => sample[k] !== undefined) || 'event_type';
+
+    setIsAlertTesting(true);
+    for (let i = 0; i < count; i++) {
+      const synthetic = {
+        ...sample,
+        [typeKey]: 'error',
+        status_code: 500,
+        error_message: 'Synthetic alert-test failure injected by Data Factory',
+        ...(tsKey ? { [tsKey]: new Date().toISOString() } : {}),
+      };
+      dispatchLiveEvent(synthetic, liveEndpoint, resolvedHeaders);
+    }
+    setTimeout(() => setIsAlertTesting(false), 800);
+  }, [liveEndpoint, activeStreamData, replayIndex, dispatchLiveEvent, resolvedHeaders]);
+
+  const replayIndexRef = useRef(0);
+  useEffect(() => { replayIndexRef.current = replayIndex; }, [replayIndex]);
+
   useEffect(() => {
     if (!replayPlaying) {
-      clearInterval(replayTimerRef.current);
+      clearTimeout(replayTimerRef.current);
       return;
     }
 
     const events = activeStreamData?.events ?? [];
     if (events.length === 0) return;
 
-    clearInterval(replayTimerRef.current);
+    clearTimeout(replayTimerRef.current);
 
-    replayTimerRef.current = setInterval(() => {
-      setReplayIndex(prev => {
-        let nextIdx = prev + 1;
+    const TS_KEYS = ['timestamp', 'ts', 'event_time', 'created_at', 'occurred_at'];
+    const tsKey = TS_KEYS.find(k => events[0]?.[k] !== undefined) || null;
 
-        // Handle the wrap-around if continuous loop is enabled
-        if (nextIdx >= events.length) {
+    const getDelay = (fromIdx, toIdx) => {
+      if (!tsKey || fromIdx < 0 || toIdx < 0 || toIdx >= events.length) return replaySpeed;
+      const a = new Date(events[fromIdx][tsKey]).getTime();
+      const b = new Date(events[toIdx][tsKey]).getTime();
+      if (isNaN(a) || isNaN(b)) return replaySpeed;
+      const scaled = Math.max(0, b - a) / speedFactor;
+      return Math.min(Math.max(scaled, 20), 8000);
+    };
+
+    let cancelled = false;
+
+    const tick = (currentIdx) => {
+      const delay = getDelay(currentIdx, Math.min(currentIdx + 1, events.length - 1));
+
+      replayTimerRef.current = setTimeout(() => {
+        if (cancelled) return;
+
+        const batchStart = currentIdx + 1;
+        const batchEndExclusive = Math.min(batchStart + batchSize, events.length);
+        const reachedEnd = batchEndExclusive >= events.length;
+        let nextIdx = batchEndExclusive - 1;
+        let stop = false;
+
+        if (reachedEnd) {
           if (continuousLoop) {
-            nextIdx = 0; // Wrap around for infinite stream
+            nextIdx = -1;
           } else {
-            setReplayPlaying(false);
-            setIsLivePushing(false); // Kill network if we hit the end
-            return prev;
+            nextIdx = events.length - 1;
+            stop = true;
           }
         }
 
-        // If network push is armed, dispatch the event
         if (isLivePushing && liveEndpoint) {
-          dispatchLiveEvent(events[nextIdx], liveEndpoint);
+          for (let i = batchStart; i < batchEndExclusive; i++) {
+            dispatchLiveEvent(events[i], liveEndpoint, resolvedHeaders);
+          }
         }
 
-        return nextIdx;
-      });
-    }, replaySpeed);
+        setReplayIndex(Math.max(nextIdx, 0));
 
-    return () => clearInterval(replayTimerRef.current);
+        if (stop) {
+          setReplayPlaying(false);
+          setIsLivePushing(false); // Kill network if we hit the end
+          return;
+        }
+
+        tick(nextIdx);
+      }, delay);
+    };
+
+    tick(replayIndexRef.current);
+
+    return () => { cancelled = true; clearTimeout(replayTimerRef.current); };
   }, [
     replayPlaying,
     replaySpeed,
+    speedFactor,
+    batchSize,
     activeStreamData,
     isLivePushing,
     liveEndpoint,
     continuousLoop,
-    dispatchLiveEvent
+    dispatchLiveEvent,
+    resolvedHeaders,
   ]);
 
   const allStreamNames = useMemo(
@@ -745,6 +865,15 @@ export function useStreamingEvents({ onDataUpdate }) {
     liveEndpoint, setLiveEndpoint,
     isLivePushing, setIsLivePushing,
     continuousLoop, setContinuousLoop,
-    pushMetrics
+    pushMetrics,
+
+    speedFactor, setSpeedFactor,
+    batchSize, setBatchSize,
+
+    customHeaders, headersMode, setHeadersMode,
+    headersJsonText, setHeadersJsonText, headersError,
+    addHeaderRow, updateHeaderRow, removeHeaderRow,
+
+    isAlertTesting, injectAlertBurst,
   };
 }
