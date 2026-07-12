@@ -137,6 +137,12 @@ export default function StreamingEventsTab({ onShareStateChange }) {
                   language="json"
                   placeholder={`{\n  "event_type": "page_view | click | purchase",\n  "user_id": "UUID",\n  "session_id": "string",\n  "timestamp": "ISO8601"\n}`}
                 />
+                
+                {stream.schemaError && (
+                  <div className="error-message" style={{ color: 'var(--danger)', fontSize: '0.6rem', marginTop: '0.4rem', background: 'rgba(220, 38, 38, 0.1)', padding: '0.4rem', borderRadius: '4px' }}>
+                    <i className="fas fa-exclamation-triangle" /> {stream.schemaError}
+                  </div>
+                )}
 
                 {stream.isDragOver && (
                   <div className="stream-drop-overlay">
@@ -489,6 +495,16 @@ export default function StreamingEventsTab({ onShareStateChange }) {
                     </span>
                   )}
                   <div className="m-table-controls-right">
+                    {stream.editHistory.length > 0 && (
+                      <button 
+                        className="m-icon-text-btn" 
+                        onClick={stream.handleUndoEdit} 
+                        title="Undo last edit"
+                        style={{ marginRight: '0.5rem', color: 'var(--accent)' }}
+                      >
+                        <i className="fas fa-undo" /> Undo
+                      </button>
+                    )}
                     <span className="m-table-meta-tag">
                       <i className="fas fa-info-circle" /> Triple-click cell to copy
                     </span>

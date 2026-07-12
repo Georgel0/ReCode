@@ -10,9 +10,11 @@ export function useStreamingEvents() {
   const { moduleData, qualityMode } = useApp();
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [schemaError, setSchemaError] = useState('');
 
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
+    if (key === 'schemaInput') setSchemaError('');
   }, []);
 
   const hasShareParam = typeof window !== 'undefined'
@@ -30,14 +32,21 @@ export function useStreamingEvents() {
   });
 
   useEffect(() => {
+    let isMounted = true;
     const shared = readSharedState();
-    if (!shared) return;
-    setConfig(prev => ({
-      ...prev,
-      ...(shared.config || {}),
-      schemaInput: shared.input || prev.schemaInput,
-    }));
-  }, []);
+    if (shared) {
+      queueMicrotask(() => {
+        if (isMounted) {
+          setConfig(prev => ({
+            ...prev,
+            ...(shared.config || {}),
+            schemaInput: shared.input || prev.schemaInput,
+          }));
+        }
+      });
+    }
+    return () => { isMounted = false; };
+  }, [readSharedState]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [generatedData, setGeneratedData] = useState(null);
@@ -60,6 +69,7 @@ export function useStreamingEvents() {
 
   const [editingCell, setEditingCell] = useState(null);
   const [editingValue, setEditingValue] = useState('');
+  const [editHistory, setEditHistory] = useState([]);
 
   const [savedTemplates, setSavedTemplates] = useState([]);
   const [templatesVisible, setTemplatesVisible] = useState(false);
@@ -96,7 +106,6 @@ export function useStreamingEvents() {
       const saved = localStorage.getItem('streamTemplates');
       if (saved) setSavedTemplates(JSON.parse(saved));
     } catch (e) {
-      console.warn('Failed to load stream templates:', e);
       localStorage.removeItem('streamTemplates');
     }
   }, []);
@@ -127,12 +136,12 @@ export function useStreamingEvents() {
           setCurrentPage(1);
           setFilterQuery('');
           setFieldFilters({});
+          setEditHistory([]);
         } catch (e) {
-          console.error('Failed to rehydrate stream data:', e);
         }
       }
     }
-  }, [moduleData]);
+  }, [moduleData, hasShareParam]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -205,9 +214,6 @@ export function useStreamingEvents() {
     });
   }, []);
 
-  // Resolves the active headers editor (grid or JSON) into a plain headers
-  // object used for every live/alert-test dispatch. Content-Type is always
-  // included by default but can be overridden by an explicit entry.
   const resolvedHeaders = useMemo(() => {
     const base = { 'Content-Type': 'application/json' };
     if (headersMode === 'json') {
@@ -217,7 +223,6 @@ export function useStreamingEvents() {
           return { ...base, ...parsed };
         }
       } catch {
-        // fall through to base headers while the JSON is invalid
       }
       return base;
     }
@@ -235,11 +240,8 @@ export function useStreamingEvents() {
     })
       .then(async res => {
         if (!res.ok) {
-          // Surface the ingestion API's own response body (e.g. a Kafka REST
-          // Proxy / Vector / Logstash schema-validation error) instead of
-          // just the status code, so schema mismatches are diagnosable.
           let bodyText = '';
-          try { bodyText = await res.text(); } catch { /* no body to read */ }
+          try { bodyText = await res.text(); } catch { }
           const detail = bodyText ? ` — ${bodyText.slice(0, 300)}` : '';
           throw new Error(`HTTP ${res.status}${detail}`);
         }
@@ -249,9 +251,6 @@ export function useStreamingEvents() {
       .catch(err => {
         consecutiveErrorsRef.current += 1;
 
-        // "Failed to fetch" is what the browser reports for both network
-        // failures and CORS-blocked requests — give people a pointer since
-        // the generic message alone isn't actionable.
         const message = err.message === 'Failed to fetch'
           ? 'Request blocked — check that the endpoint is running and sends CORS headers (Access-Control-Allow-Origin) for OPTIONS/POST.'
           : err.message;
@@ -302,7 +301,7 @@ export function useStreamingEvents() {
   useEffect(() => {
     if (!replayPlaying) {
       clearTimeout(replayTimerRef.current);
-      return;
+      return () => clearTimeout(replayTimerRef.current);
     }
 
     const events = activeStreamData?.events ?? [];
@@ -355,7 +354,7 @@ export function useStreamingEvents() {
 
         if (stop) {
           setReplayPlaying(false);
-          setIsLivePushing(false); // Kill network if we hit the end
+          setIsLivePushing(false);
           return;
         }
 
@@ -444,6 +443,7 @@ export function useStreamingEvents() {
       streamParadigm: sample.streamParadigm || prev.streamParadigm,
       eventFormat: sample.eventFormat || prev.eventFormat
     }));
+    setSchemaError('');
   }, []);
 
   const filteredEvents = useMemo(() => {
@@ -519,6 +519,15 @@ export function useStreamingEvents() {
 
   const handleGenerate = useCallback(async () => {
     if (!config.schemaInput.trim()) return;
+    
+    try {
+      JSON.parse(config.schemaInput);
+      setSchemaError('');
+    } catch (err) {
+      setSchemaError(`Invalid JSON Schema: ${err.message}`);
+      return;
+    }
+
     setIsLoading(true);
     setParsedRulesFeedback([]);
     setGeneratedData(null);
@@ -527,6 +536,7 @@ export function useStreamingEvents() {
     setDistColumn(null);
     setReplayIndex(0);
     setReplayPlaying(false);
+    setEditHistory([]);
 
     try {
       const count = parseInt(config.eventCount, 10) || 25;
@@ -544,10 +554,8 @@ export function useStreamingEvents() {
       });
 
       if (config.includeStateMachine && !data.stateMachine) {
-        console.warn('[StreamingEventsTab] includeStateMachine was true but AI response omitted stateMachine field.');
       }
       if (config.includeAnalysis && !data.explanation) {
-        console.warn('[StreamingEventsTab] includeAnalysis was true but AI response omitted explanation field.');
       }
 
       setGeneratedData(data);
@@ -556,11 +564,9 @@ export function useStreamingEvents() {
       setCurrentPage(1);
       setFilterQuery('');
       setEditingCell(null);
-
+      setIsLoading(false);
     } catch (error) {
-      console.error(error);
       alert(error.message || 'Error generating event stream.');
-    } finally {
       setIsLoading(false);
     }
   }, [config, qualityMode]);
@@ -579,6 +585,8 @@ export function useStreamingEvents() {
     const { rowIdx, colKey } = editingCell;
     const targetEvent = paginatedEvents[rowIdx];
     if (!targetEvent) return;
+
+    setEditHistory(prev => [...prev, generatedData]);
 
     setGeneratedData(prev => {
       const updatedStreams = prev.streams.map((stream, idx) => {
@@ -610,10 +618,22 @@ export function useStreamingEvents() {
     setEditingCell(null);
     setEditingValue('');
   }, []);
+  
+  const handleUndoEdit = useCallback(() => {
+    setEditHistory(prev => {
+      if (prev.length === 0) return prev;
+      const newHistory = [...prev];
+      const previousState = newHistory.pop();
+      setGeneratedData(previousState);
+      return newHistory;
+    });
+    setEditingCell(null);
+    setEditingValue('');
+  }, []);
 
   const handleCopyCell = useCallback((val) => {
     const text = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val ?? '');
-    navigator.clipboard.writeText(text).catch(() => console.warn('Clipboard write failed'));
+    navigator.clipboard.writeText(text).catch(() => {});
   }, []);
 
   const downloadFile = (content, filename, type) => {
@@ -741,6 +761,7 @@ export function useStreamingEvents() {
 
   const clearWorkspace = useCallback(() => {
     setConfig(prev => ({ ...prev, schemaInput: '', rules: '' }));
+    setSchemaError('');
     setGeneratedData(null);
     setParsedRulesFeedback([]);
     setActiveStreamRaw(0);
@@ -750,6 +771,7 @@ export function useStreamingEvents() {
     setCurrentPage(1);
     setEditingCell(null);
     setEditingValue('');
+    setEditHistory([]);
     setDistColumn(null);
     setRuleValidation([]);
     setReplayIndex(0);
@@ -767,6 +789,7 @@ export function useStreamingEvents() {
       includeAnalysis: DEFAULT_CONFIG.includeAnalysis,
       includeStateMachine: DEFAULT_CONFIG.includeStateMachine,
     }));
+    setSchemaError('');
   }, []);
 
   const resultData = useMemo(() => {
@@ -792,6 +815,8 @@ export function useStreamingEvents() {
 
     config, setConfig, updateConfig,
     clearWorkspace, resetConfig,
+    
+    schemaError,
 
     isLoading,
     generatedData,
@@ -813,6 +838,7 @@ export function useStreamingEvents() {
     rawFullContent,
 
     editingCell, editingValue, setEditingValue,
+    editHistory, handleUndoEdit,
     handleStartEdit, handleCommitEdit, handleCancelEdit, handleCopyCell,
 
     handleGenerate,

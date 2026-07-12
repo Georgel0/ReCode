@@ -14,7 +14,7 @@ export function EventColBadge({ label }) {
 
 export function EditableCell({ value, isEditing, editingValue, onStartEdit, onChange, onCommit, onCancel, onCopy }) {
   const inputRef = useRef(null);
-  const cancelledRef = useRef(false);
+  const suppressBlurRef = useRef(false);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
