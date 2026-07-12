@@ -50,6 +50,11 @@ export function runRuleValidation(streams, rules) {
     streams.forEach(stream => {
       const total = stream.events.length;
 
+      if (total === 0) {
+        results.push({ rule: `Error rate ~${targetPct}%`, status: 'warn', message: `Stream "${stream.streamName}" has no events to validate`, stream: stream.streamName });
+        return;
+      }
+
       const errCount = stream.events.filter(e => {
         const typeVal = String(e.event_type || e.type || e.name || '').toLowerCase();
         // Use != null (covers null and undefined) so a status_code of 0 is NOT treated as absent
@@ -349,7 +354,12 @@ export function inferEventBadges(colName, sampleValue) {
   if (uuidRe.test(strVal)) badges.push('UUID');
 
   const tsKeys = ['timestamp', 'ts', 'time', 'created_at', 'occurred_at', 'event_time', 'datetime'];
-  if (tsKeys.some(k => lower.includes(k))) badges.push('TIMESTAMP');
+  // Match keys as whole words only (boundary = start/end of string or "_"), and
+  // normalize camelCase into snake_case first so "eventTs" / "event_ts" both work,
+  // while "guests", "hits", "tests", "posts" no longer falsely match "ts".
+  const normalized = colName.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+  const isTsMatch = tsKeys.some(k => new RegExp(`(^|_)${k}($|_)`).test(normalized));
+  if (isTsMatch) badges.push('TIMESTAMP');
   else if (!badges.includes('UUID') && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) badges.push('TIMESTAMP');
 
   if (lower === 'event_type' || lower === 'type' || lower === 'name' || lower === 'event_name') badges.push('EVENT');

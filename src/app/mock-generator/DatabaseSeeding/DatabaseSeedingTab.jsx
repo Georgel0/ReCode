@@ -272,8 +272,8 @@ function ColFilterBar({ colKeys, colFilter, setColFilter, filterQuery, filteredR
   );
 }
 
-export default function DatabaseSeedingTab({ onDataUpdate, onShareStateChange }) {
-  const db = useDatabaseSeeding({ onDataUpdate });
+export default function DatabaseSeedingTab({ onShareStateChange }) {
+  const db = useDatabaseSeeding();
   const fileInputRef = useRef(null);
 
   useEffect(() => {

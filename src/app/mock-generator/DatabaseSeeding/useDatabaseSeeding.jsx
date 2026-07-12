@@ -131,7 +131,7 @@ const IDLE_SEED_PROGRESS = {
 //   for a guaranteed-clean slate.
 const SEED_MODES = ['insert', 'skipDuplicates', 'clearFirst'];
 
-export function useDatabaseSeeding({ onDataUpdate }) {
+export function useDatabaseSeeding() {
   const { moduleData, qualityMode } = useApp();
 
   const [schemaInput, setSchemaInput] = useState('');
@@ -414,26 +414,13 @@ export function useDatabaseSeeding({ onDataUpdate }) {
       setColFilter(null);
       setSortConfig(null);
 
-      if (onDataUpdate) {
-        onDataUpdate({
-          type: 'mock',
-          input: schemaInput,
-          output: JSON.stringify(data),
-          rules,
-          locale: config.locale,
-          rowCount: targetRows,
-          seed: config.seed,
-          dataQuality: config.dataQuality,
-          includeAnalysis: config.includeAnalysis,
-        });
-      }
     } catch (error) {
       console.error(error);
       alert(error.message || 'Error generating relational architecture maps.');
     } finally {
       setIsLoading(false);
     }
-  }, [schemaInput, qualityMode, rules, config, onDataUpdate]);
+  }, [schemaInput, qualityMode, rules, config]);
 
   const handleRegenerateTable = useCallback(async (tableIdx) => {
     if (!generatedData) return;

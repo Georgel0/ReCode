@@ -36,13 +36,16 @@ export function EditableCell({ value, isEditing, editingValue, onStartEdit, onCh
           value={editingValue}
           onChange={e => onChange(e.target.value)}
           onBlur={() => {
-            if (!cancelledRef.current) onCommit();
-            cancelledRef.current = false;
+            if (!suppressBlurRef.current) onCommit();
+            suppressBlurRef.current = false;
           }}
           onKeyDown={e => {
-            if (e.key === 'Enter') onCommit();
+            if (e.key === 'Enter') {
+              suppressBlurRef.current = true;
+              onCommit();
+            }
             if (e.key === 'Escape') {
-              cancelledRef.current = true;
+              suppressBlurRef.current = true;
               onCancel();
             }
           }}

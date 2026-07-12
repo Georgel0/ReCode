@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 const MAX_HISTORY = 5;
 
-export function useApiMocks({ onDataUpdate } = {}) {
+export function useApiMocks() {
   const { moduleData, qualityMode } = useApp();
 
   const [specInput, setSpecInput] = useState('');
@@ -249,21 +249,13 @@ export function useApiMocks({ onDataUpdate } = {}) {
       setViewMode('code');
       pushHistory(data);
 
-      if (onDataUpdate) {
-        onDataUpdate({
-          type: 'api-mocks',
-          input: specInput,
-          output: JSON.stringify(data),
-          ...outputConfig,
-        });
-      }
     } catch (error) {
       console.error(error);
       alert(error.message || 'Error generating API mock handlers.');
     } finally {
       setIsLoading(false);
     }
-  }, [specInput, outputConfig, qualityMode, detectedFormat, onDataUpdate, pushHistory, generatedData?.mockId]);
+  }, [specInput, outputConfig, qualityMode, detectedFormat, pushHistory, generatedData?.mockId]);
 
   const handleWakeUp = useCallback(async () => {
     if (!generatedData?.mockId) return;

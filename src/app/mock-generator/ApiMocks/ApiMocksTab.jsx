@@ -24,8 +24,8 @@ const getAuthTooltipText = (style) => {
   return "";
 };
 
-export default function ApiMocksTab({ onDataUpdate, onShareStateChange, isActive }) {
-  const api = useApiMocks({ onDataUpdate, isActive });
+export default function ApiMocksTab({ onShareStateChange }) {
+  const api = useApiMocks();
   const fileInputRef = useRef(null);
 
   const selectedFramework = FRAMEWORK_OPTIONS.find(f => f.value === api.outputConfig.framework);

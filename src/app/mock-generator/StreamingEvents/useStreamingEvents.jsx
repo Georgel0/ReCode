@@ -6,7 +6,7 @@ import { convertCode, useDraft, useShareState } from '@/lib';
 import { DEFAULT_CONFIG, ITEMS_PER_PAGE } from './constants';
 import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from './utils';
 
-export function useStreamingEvents({ onDataUpdate }) {
+export function useStreamingEvents() {
   const { moduleData, qualityMode } = useApp();
 
   const [config, setConfig] = useState(DEFAULT_CONFIG);
@@ -557,28 +557,13 @@ export function useStreamingEvents({ onDataUpdate }) {
       setFilterQuery('');
       setEditingCell(null);
 
-      if (onDataUpdate) {
-        onDataUpdate({
-          type: 'stream',
-          input: config.schemaInput,
-          output: JSON.stringify(data),
-          rules: config.rules,
-          eventFormat: config.eventFormat,
-          streamParadigm: config.streamParadigm,
-          eventCount: config.eventCount,
-          seed: config.seed,
-          dataQuality: config.dataQuality,
-          includeAnalysis: config.includeAnalysis,
-          includeStateMachine: config.includeStateMachine,
-        });
-      }
     } catch (error) {
       console.error(error);
       alert(error.message || 'Error generating event stream.');
     } finally {
       setIsLoading(false);
     }
-  }, [config, qualityMode, onDataUpdate]);
+  }, [config, qualityMode]);
 
   const handleStartEdit = useCallback((rowIdx, colKey, currentVal) => {
     const rawVal = typeof currentVal === 'object' && currentVal !== null
@@ -784,8 +769,6 @@ export function useStreamingEvents({ onDataUpdate }) {
     }));
   }, []);
 
-  // Mirrors the payload shape already sent via onDataUpdate in handleGenerate,
-  // kept in sync automatically since it's derived rather than duplicated.
   const resultData = useMemo(() => {
     if (!generatedData) return null;
     return {

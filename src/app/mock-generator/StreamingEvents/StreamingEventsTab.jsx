@@ -10,8 +10,8 @@ import { inferEventBadges } from './utils';
 import { STREAM_RULE_TEMPLATES, EVENT_FORMATS, STREAM_PARADIGMS, SAMPLE_TEMPLATES } from './constants';
 import { useStreamingEvents } from './useStreamingEvents';
 
-export default function StreamingEventsTab({ onDataUpdate, onShareStateChange, isActive }) {
-  const stream = useStreamingEvents({ onDataUpdate, isActive });
+export default function StreamingEventsTab({ onShareStateChange }) {
+  const stream = useStreamingEvents();
   const fileInputRef = useRef(null);
 
   useEffect(() => {

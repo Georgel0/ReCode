@@ -69,7 +69,7 @@ export function CorrelatedView({ correlatedView, streams }) {
                     </div>
                     <div className="timeline-payload">
                       {Object.entries(evt)
-                        .filter(([k]) => !['event_type','type','name','timestamp','ts','event_time','created_at','__streamName','__streamIdx'].includes(k))
+                        .filter(([k]) => !['event_type', 'type', 'name', 'timestamp', 'ts', 'event_time', 'created_at', '__streamName', '__streamIdx'].includes(k))
                         .slice(0, 5)
                         .map(([k, v]) => (
                           <span key={k} className="timeline-kv">
@@ -285,13 +285,13 @@ export function ReplayView({
           <input type="checkbox" checked={continuousLoop} readOnly />
           <span className="toggle-label">Infinite Loop</span>
         </div>
-        
+
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <i className="fas fa-satellite-dish" style={{ color: 'var(--text-secondary)' }} />
-          <input 
-            type="text" 
-            className="m-text-input" 
-            style={{ flex: 1, fontSize: '0.6rem' }} 
+          <input
+            type="text"
+            className="m-text-input"
+            style={{ flex: 1, fontSize: '0.6rem' }}
             placeholder="Webhook URL (e.g., http://localhost:8080/events)"
             value={liveEndpoint}
             onChange={e => setLiveEndpoint(e.target.value)}
@@ -307,7 +307,7 @@ export function ReplayView({
           title="Configure auth / custom headers for outgoing pushes"
         >
           <i className="fas fa-key" /> Headers
-          {activeHeaderCount > 1 && <span className="m-badge-count">{activeHeaderCount - 1}</span>}
+          {activeHeaderCount > 0 && <span className="m-badge-count">{activeHeaderCount}</span>}
         </button>
 
         <button
@@ -323,13 +323,13 @@ export function ReplayView({
             : <><i className="fas fa-triangle-exclamation" /> Inject Alert Test</>}
         </button>
 
-        <button 
+        <button
           className={`primary-button ${isLivePushing ? 'btn-danger' : ''}`}
           style={{ padding: '0.2rem 0.6rem', fontSize: '0.6rem' }}
           onClick={() => {
             const willPush = !isLivePushing;
             setIsLivePushing(willPush);
-            if (willPush && !replayPlaying) onPlay(); 
+            if (willPush && !replayPlaying) onPlay();
             if (!willPush && replayPlaying) onPause();
           }}
         >
@@ -437,7 +437,7 @@ export function ReplayView({
           <span className="replay-event-label">Now playing:</span>
           <span className="replay-event-type">{type}</span>
           {current && Object.entries(current)
-            .filter(([k]) => !['event_type','type','name','timestamp','ts','event_time','created_at'].includes(k))
+            .filter(([k]) => !['event_type', 'type', 'name', 'timestamp', 'ts', 'event_time', 'created_at'].includes(k))
             .slice(0, 5)
             .map(([k, v]) => (
               <span key={k} className="timeline-kv">
@@ -450,7 +450,7 @@ export function ReplayView({
 
       <div className="replay-stream-area">
         <div className="stream-timeline-inner">
-          
+
           {visibleEvents.map((evt, i) => {
             const evtType = evt.event_type || evt.type || evt.name || evt.event_name || `event_${i + 1}`;
             const evtTs = evt.timestamp || evt.ts || evt.event_time || evt.created_at;
@@ -470,7 +470,7 @@ export function ReplayView({
                   </div>
                   <div className="timeline-payload">
                     {Object.entries(evt)
-                      .filter(([k]) => !['event_type','type','name','timestamp','ts','event_time','created_at'].includes(k))
+                      .filter(([k]) => !['event_type', 'type', 'name', 'timestamp', 'ts', 'event_time', 'created_at'].includes(k))
                       .slice(0, 4)
                       .map(([k, v]) => (
                         <span key={k} className="timeline-kv">
