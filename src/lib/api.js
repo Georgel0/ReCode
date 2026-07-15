@@ -1,15 +1,21 @@
 import { auth, initializeAuth } from '@/lib/firebase';
+import { getByokKey } from '@/lib/byok';
 
 /**
  * Communicates with the AI Conversion API.
  * @param {string} type - The operation type (e.g., 'analysis', 'sql', 'converter').
  * @param {string} input - The primary text or code payload to process.
  * @param {Object} [options={}] - Additional configuration (e.g., targetLang, qualityMode, schemas).
+ *   Pass options.byok to override the stored key for a single call; otherwise
+ *   whatever the user saved in the model modal is attached automatically.
  * @returns {Promise<Object>} The AI-generated response.
  */
 export const convertCode = async (type, input, options = {}) => {
   const MAX_RETRIES = 2;
-  const { qualityMode = 'fast', ...restOptions } = options;
+  const { qualityMode = 'fast', byok: byokOverride, ...restOptions } = options;
+
+  const storedByok = getByokKey();
+  const byok = byokOverride || storedByok || undefined;
 
   let lastError;
 
@@ -30,7 +36,8 @@ export const convertCode = async (type, input, options = {}) => {
           type,
           input,
           qualityMode,
-          ...restOptions 
+          byok,
+          ...restOptions
         }),
       });
 

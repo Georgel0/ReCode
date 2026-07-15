@@ -10,6 +10,7 @@
     "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.96",
     "@ai-sdk/groq": "^3.0.15",
     "@ai-sdk/openai": "^3.0.13",
     "@duckdb/duckdb-wasm": "^1.33.1-dev45.0",

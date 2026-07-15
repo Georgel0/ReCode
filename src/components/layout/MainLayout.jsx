@@ -11,7 +11,7 @@ import { ModelSelector } from '@/components/ui';
 
 export function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [hrefLaunch, setHrefLaunch] = useState('/code-converter');
 

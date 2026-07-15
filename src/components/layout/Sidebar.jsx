@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context';
 import Link from 'next/link';
 import { ConfirmModal } from '@/components/ui';
+import { BYOK_PROVIDERS, getByokKey, saveByokKey, clearByokKey, maskByokKey } from '@/lib/byok';
 import '@/styles/components/Sidebar.css';
 
 const modules = [
@@ -64,6 +65,16 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
 
   const [autoSave, setAutoSave] = useState(false);
 
+  const [showByokModal, setShowByokModal] = useState(false);
+  const [byokProvider, setByokProvider] = useState(BYOK_PROVIDERS[0].id);
+  const [byokKeyInput, setByokKeyInput] = useState('');
+  const [byokModelInput, setByokModelInput] = useState('');
+  const [byokShowKey, setByokShowKey] = useState(false);
+  const [savedByok, setSavedByok] = useState(null);
+  const [byokStatus, setByokStatus] = useState({ type: '', message: '' });
+
+  const [codeCopied, setCodeCopied] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedAutoSave = localStorage.getItem('recode_autoSave') === 'true';
@@ -78,6 +89,54 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
     setAutoSave(newState);
     localStorage.setItem("recode_autoSave", newState);
     window.dispatchEvent(new CustomEvent('recode_autoSave_changed', { detail: newState }));
+  };
+
+  useEffect(() => {
+    setSavedByok(getByokKey());
+  }, []);
+
+  const byokProviderMeta = BYOK_PROVIDERS.find(p => p.id === byokProvider) || BYOK_PROVIDERS[0];
+  const savedByokMeta = savedByok ? BYOK_PROVIDERS.find(p => p.id === savedByok.provider) : null;
+
+  const openByokModal = () => {
+    const saved = getByokKey();
+    setSavedByok(saved);
+    setByokProvider(saved?.provider || BYOK_PROVIDERS[0].id);
+    setByokKeyInput('');
+    setByokModelInput(saved?.model || '');
+    setByokShowKey(false);
+    setByokStatus({ type: '', message: '' });
+    setShowByokModal(true);
+  };
+
+  const handleSaveByok = () => {
+    if (!byokKeyInput.trim()) {
+      setByokStatus({ type: 'error', message: 'Enter an API key first.' });
+      return;
+    }
+    saveByokKey({ provider: byokProvider, apiKey: byokKeyInput, model: byokModelInput.trim() || null });
+    setSavedByok(getByokKey());
+    setByokKeyInput('');
+    setByokStatus({ type: 'success', message: 'Key saved to this browser.' });
+  };
+
+  const handleClearByok = () => {
+    clearByokKey();
+    setSavedByok(null);
+    setByokKeyInput('');
+    setByokModelInput('');
+    setByokStatus({ type: 'success', message: 'Key removed from this browser.' });
+  };
+
+  const handleCopyDeviceCode = async () => {
+    if (!deviceCode) return;
+    try {
+      await navigator.clipboard.writeText(deviceCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 1500);
+    } catch {
+      // clipboard not available — ignore silently
+    }
   };
 
   useEffect(() => {
@@ -365,6 +424,16 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
 
         <footer className="sidebar-footer">
           <div className="footer-action-container">
+            <button
+              className={`footer-icon-btn ${showByokModal ? 'active' : ''} ${savedByok ? 'has-byok' : ''}`}
+              onClick={openByokModal}
+              title={savedByok ? `Using your ${savedByokMeta?.label || savedByok.provider} key` : 'Bring Your Own Key'}
+            >
+              <i className="fas fa-key"></i>
+              {savedByok && <span className="byok-active-dot"></span>}
+            </button>
+          </div>
+          <div className="footer-action-container">
             <button className={`footer-icon-btn ${showDeviceModal ? 'active' : ''}`} onClick={() => setShowDeviceModal(true)} title="Link Devices">
               <i className="fas fa-link"></i>
             </button>
@@ -407,12 +476,13 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
       {showDeviceModal && (
         <div className="modal-overlay" onClick={() => setShowDeviceModal(false)}>
           <div className="modal-content device-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2><i className="fas fa-satellite-dish"></i> Sync Workspace</h2>
+            <div className="modal-header device-modal-header">
+              <div className="device-modal-icon"><i className="fas fa-satellite-dish"></i></div>
+              <div>
+                <h2>Sync Workspace</h2>
+                <p className="device-modal-subtitle">Link this browser with another device</p>
+              </div>
             </div>
-            <p className="modal-desc">
-              Generate a secure 6-digit code to bridge your session, or enter an active code from another device, to sync your data across devices.
-            </p>
 
             {syncStatus.message && (
               <div className={`sync-status-banner ${syncStatus.type}`}>
@@ -422,8 +492,19 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
             )}
 
             <div className="device-code-section">
-              <div className="code-display">
-                {deviceCode || '------'}
+              <span className="device-step-label"><i className="fas fa-arrow-up-from-bracket"></i> Generate a code on this device</span>
+
+              <div className="code-display-row">
+                <div className="code-display-boxes">
+                  {(deviceCode || '------').split('').map((char, i) => (
+                    <span key={i} className={`code-box ${deviceCode ? 'filled' : ''}`}>{char}</span>
+                  ))}
+                </div>
+                {deviceCode && (
+                  <button className="copy-code-btn" onClick={handleCopyDeviceCode} title="Copy code">
+                    <i className={`fas ${codeCopied ? 'fa-check' : 'fa-copy'}`}></i>
+                  </button>
+                )}
               </div>
 
               {timeLeft && (
@@ -438,8 +519,10 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
               </button>
             </div>
 
+            <div className="sync-divider"><span>OR</span></div>
+
             <div className="device-insert-section">
-              <p><i className="fas fa-keyboard"></i> Have a code from another device?</p>
+              <span className="device-step-label"><i className="fas fa-arrow-down-to-bracket"></i> Enter a code from another device</span>
               <div className="insert-code-wrapper">
                 <input
                   type="text"
@@ -464,6 +547,114 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
             <div className="modal-footer action-row" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
               <button className="secondary-button" onClick={() => setShowDeviceModal(false)}>
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showByokModal && (
+        <div className="modal-overlay" onClick={() => setShowByokModal(false)}>
+          <div className="modal-content byok-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header device-modal-header">
+              <div className="device-modal-icon byok-modal-icon"><i className="fas fa-key"></i></div>
+              <div>
+                <h2>Bring Your Own Key</h2>
+                <p className="device-modal-subtitle">Run requests through your own provider account</p>
+              </div>
+            </div>
+
+            {savedByokMeta && (
+              <div className="byok-current-status">
+                <i className="fas fa-check-circle"></i>
+                <div className="byok-current-status-text">
+                  <strong>{savedByokMeta.label} key active</strong>
+                  <span>{maskByokKey(savedByok.apiKey)}{savedByok.model ? ` · ${savedByok.model}` : ''}</span>
+                </div>
+                <button className="byok-clear-btn" onClick={handleClearByok} title="Remove saved key">
+                  <i className="fas fa-trash"></i>
+                </button>
+              </div>
+            )}
+
+            {byokStatus.message && (
+              <div className={`sync-status-banner ${byokStatus.type}`}>
+                <i className={`fas ${byokStatus.type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}`}></i>
+                {byokStatus.message}
+              </div>
+            )}
+
+            <div className="byok-form">
+              <label className="byok-field-label">Provider</label>
+              <div className="byok-provider-select">
+                {BYOK_PROVIDERS.map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`byok-provider-btn ${byokProvider === p.id ? 'active' : ''}`}
+                    onClick={() => setByokProvider(p.id)}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              <label className="byok-field-label" htmlFor="byok-key-input">API Key</label>
+              <div className="byok-key-input-wrapper">
+                <input
+                  id="byok-key-input"
+                  type={byokShowKey ? 'text' : 'password'}
+                  className="byok-key-input"
+                  placeholder={savedByokMeta ? 'Enter a new key to replace the saved one' : byokProviderMeta.keyPlaceholder}
+                  value={byokKeyInput}
+                  onChange={(e) => setByokKeyInput(e.target.value)}
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+                <button
+                  type="button"
+                  className="byok-visibility-toggle"
+                  onClick={() => setByokShowKey(v => !v)}
+                  title={byokShowKey ? 'Hide key' : 'Show key'}
+                >
+                  <i className={`fas ${byokShowKey ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                </button>
+              </div>
+
+              <label className="byok-field-label" htmlFor="byok-model-input">
+                Model <span className="byok-optional">(optional)</span>
+              </label>
+              <input
+                id="byok-model-input"
+                type="text"
+                className="byok-model-input"
+                placeholder={byokProviderMeta.defaultModel}
+                value={byokModelInput}
+                onChange={(e) => setByokModelInput(e.target.value)}
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+
+            <div className="byok-safety-note">
+              <div className="byok-safety-header">
+                <i className="fas fa-shield-halved"></i> How this key is handled
+              </div>
+              <ul>
+                <li>Stored only in this browser's local storage — never in our database.</li>
+                <li>Sent only with your own conversion requests, over HTTPS.</li>
+                <li>Used once on the server for that request, then dropped — never logged or persisted.</li>
+                <li>Requests bill your provider account directly, so use a key with spend limits if your provider offers them.</li>
+                <li>Clearing it removes it from this browser immediately.</li>
+              </ul>
+            </div>
+
+            <div className="modal-footer action-row" style={{ justifyContent: 'space-between', marginTop: '1.5rem' }}>
+              <button className="secondary-button" onClick={() => setShowByokModal(false)}>
+                Close
+              </button>
+              <button className="primary-button" onClick={handleSaveByok} disabled={!byokKeyInput.trim()}>
+                <i className="fas fa-floppy-disk"></i> Save Key
               </button>
             </div>
           </div>

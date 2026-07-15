@@ -3,6 +3,7 @@ import admin from "firebase-admin";
 import { nanoid } from 'nanoid';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGroq } from '@ai-sdk/groq';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, generateObject, experimental_createProviderRegistry as createProviderRegistry } from 'ai';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import * as prettier from 'prettier';
@@ -138,6 +139,32 @@ const groq = createGroq();
 const GROQ_MAX_TOKENS_DEFAULT = 8000;
 const GROQ_MAX_TOKENS_MOCK = 24000;
 
+// BYOK: builds a model instance scoped to this single request. The apiKey
+// lives only in this function's stack frame — it is never written to Redis,
+// never logged, and never echoed back in a response body.
+const BYOK_DEFAULT_MODELS = {
+  openai: 'gpt-4o',
+  anthropic: 'claude-sonnet-4-6',
+  groq: 'llama-3.3-70b-versatile',
+};
+
+function buildByokModel(byok) {
+  if (!byok?.provider || !byok?.apiKey) return null;
+  const modelId = byok.model || BYOK_DEFAULT_MODELS[byok.provider];
+  if (!modelId) return null;
+
+  switch (byok.provider) {
+    case 'openai':
+      return createOpenAI({ apiKey: byok.apiKey })(modelId);
+    case 'anthropic':
+      return createAnthropic({ apiKey: byok.apiKey })(modelId);
+    case 'groq':
+      return createGroq({ apiKey: byok.apiKey })(modelId);
+    default:
+      return null;
+  }
+}
+
 async function resolveMockId(redis, desiredId, uid) {
   if (!desiredId) return { mockId: nanoid(8), idChanged: false };
 
@@ -169,10 +196,11 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
 
+  let payload;
   try {
-    const payload = await request.json();
+    payload = await request.json();
     const { 
-      type, input, qualityMode = 'fast', 
+      type, input, qualityMode = 'fast', byok,
       action, existingMockId, expiresIn = 3600, wakeData 
     } = payload;
 
@@ -248,8 +276,24 @@ export async function POST(request) {
     }
 
     let finalData;
+    const byokModel = buildByokModel(byok);
 
-    if (qualityMode === 'turbo') {
+    if (byokModel) {
+      // User's own key — skip the turbo-specific Groq JSON-mode retry loop
+      // (not all providers support it) and just run the standard schema path.
+      if (config.schema) {
+        const { object } = await generateObject({
+          model: byokModel, system: systemPrompt, prompt: userPrompt,
+          schema: config.schema, maxTokens: 8000,
+        });
+        finalData = await prettifyCodeFields(type, object, payload);
+      } else {
+        const { text } = await generateText({
+          model: byokModel, system: systemPrompt, prompt: userPrompt, maxTokens: 8000,
+        });
+        finalData = { convertedCode: text.trim() };
+      }
+    } else if (qualityMode === 'turbo') {
       const modelInstance = groq('llama-3.3-70b-versatile');
       const maxTokens = type === 'mock' ? GROQ_MAX_TOKENS_MOCK : GROQ_MAX_TOKENS_DEFAULT;
 
@@ -350,7 +394,13 @@ export async function POST(request) {
     return NextResponse.json(finalData);
 
   } catch (error) {
-    console.error("API Error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    let message = error.message || "Internal Server Error";
+    // Defense in depth: never let a raw BYOK key reach logs or the client,
+    // even if a provider SDK's error text happens to echo request details.
+    if (payload?.byok?.apiKey && message.includes(payload.byok.apiKey)) {
+      message = message.split(payload.byok.apiKey).join('[redacted]');
+    }
+    console.error("API Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
