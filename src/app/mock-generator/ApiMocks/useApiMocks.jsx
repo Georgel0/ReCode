@@ -6,6 +6,8 @@ import { convertCode, useDraft, useShareState } from '@/lib';
 import { DEFAULT_OUTPUT_CONFIG, detectSpecFormat } from './constants';
 import { toast } from 'sonner';
 
+import { logGenerationEvent } from '@/lib/firebase/retention';
+
 const MAX_HISTORY = 5;
 
 export function useApiMocks() {
@@ -241,6 +243,8 @@ export function useApiMocks() {
       if (oldMockId && data.mockId && (data.idChanged || oldMockId !== data.mockId)) {
         toast.info("Note: Your Mock Server ID changed because it was picked up by another session. Update your base URLs.");
       }
+
+      logGenerationEvent('api-mocks', { endpointCount });
 
       setGeneratedData(data);
       setParsedSpecFeedback(data.parsedSpec || []);

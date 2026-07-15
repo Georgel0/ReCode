@@ -14,6 +14,8 @@ import {
   deriveTypeScriptTypes
 } from './utils';
 
+import { logGenerationEvent } from '@/lib/firebase/retention';
+
 // Significantly raised ceiling on rows per chunk to cut down HTTP round-trips.
 const MAX_ROWS_PER_BATCH = 2000;
 // Stay well under Postgres's 65535 bound-parameter limit. 
@@ -405,6 +407,8 @@ export function useDatabaseSeeding() {
         dataQuality: config.dataQuality,
         includeAnalysis: config.includeAnalysis,
       });
+
+      logGenerationEvent('database-seeding', { tableCount: tables.length, totalRows });
 
       setGeneratedData(data);
       setParsedRulesFeedback(data.parsedRules || []);

@@ -6,6 +6,8 @@ import { convertCode, useDraft, useShareState } from '@/lib';
 import { DEFAULT_CONFIG, ITEMS_PER_PAGE } from './constants';
 import { runRuleValidation, computeColumnDistribution, generateCodeSnippet, buildCorrelatedView } from './utils';
 
+import { logGenerationEvent } from '@/lib/firebase/retention';
+
 export function useStreamingEvents() {
   const { moduleData, qualityMode } = useApp();
 
@@ -557,6 +559,8 @@ export function useStreamingEvents() {
       }
       if (config.includeAnalysis && !data.explanation) {
       }
+
+      logGenerationEvent('streaming-events', { eventCount });
 
       setGeneratedData(data);
       setParsedRulesFeedback(data.parsedRules || []);
