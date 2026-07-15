@@ -419,9 +419,17 @@ export const PROMPT_CONFIG = {
 
       return withSchema(
         `You are a Senior API Architect and Mock Infrastructure Specialist.
-      Your Task: Transform API specifications into production-quality mock handlers with realistic fixture data.
- 
-      INPUT SPEC FORMAT: ${ctx?.detectedFormat ?? 'auto'} (${ctx?.detectedFormat === 'graphql' ? 'GraphQL SDL — derive REST-style handlers for each Query/Mutation field' :
+          Your Task: Transform API specifications into production-quality mock handlers with realistic fixture data.
+
+          CRITICAL OUTPUT REQUIREMENTS (NON-NEGOTIABLE — violating these breaks the consuming app):
+          - Every 'code' field must contain real, working code. NEVER return "", null, "// TODO", "...", or a comment-only placeholder.
+          - Every 'fixtureData' field must be a populated, realistic object or array. NEVER return {}, [], or null.
+          - If you are unsure of exact framework syntax, edge cases, auth details, or pagination shape, DO NOT omit the field or the handler — instead output the SIMPLEST possible correct version (e.g. a bare handler returning one static HttpResponse.json({...}) object). A minimal but non-empty handler is always required over a missing/blank one.
+          - Never skip generating a handler because a feature (auth, pagination, errors) feels complex. Simplify that feature; do not drop the handler.
+          - errorVariants is ALWAYS required and must contain at least one fully populated variant with real code and real fixtureData — never an empty array, never a variant with blank strings.
+          - If you cannot fully resolve the spec, still generate ${ctx?.endpointCount ?? 5} best-guess endpoints with complete, non-empty fields rather than fewer endpoints with gaps.
+
+          INPUT SPEC FORMAT: ${ctx?.detectedFormat ?? 'auto'} (${ctx?.detectedFormat === 'graphql' ? 'GraphQL SDL — derive REST-style handlers for each Query/Mutation field' :
           ctx?.detectedFormat === 'openapi' ? 'OpenAPI/Swagger definition — follow the paths and operations exactly' :
             ctx?.detectedFormat === 'typescript' ? 'TypeScript interfaces — infer CRUD endpoints from entity shapes' :
               ctx?.detectedFormat === 'json' ? 'JSON sample — infer entity shape and generate standard CRUD endpoints' :
@@ -571,7 +579,7 @@ export const PROMPT_CONFIG = {
 
 
 
-// In-tool promps, not separate modules
+  // In-tool promps, not separate modules
   'fix-diff': {
     system: () => withSchema(
       `You are an expert code reviewer producing surgical, minimal fixes.

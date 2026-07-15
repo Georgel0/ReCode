@@ -204,20 +204,38 @@ export const OUTPUT_SCHEMAS = {
 
   'api-mocks': z.object({
     handlers: z.array(z.object({
-      name: z.string().describe('camelCase function/handler name, e.g. "listUsers"'),
+      name: z.string().min(1, 'Handler name cannot be empty')
+        .describe('camelCase function/handler name, e.g. "listUsers"'),
       method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
-      path: z.string().describe('URL path, e.g. "/api/users/:id"'),
-      description: z.string().describe('One-sentence description of what this endpoint does'),
-      statusCode: z.number().describe('Primary HTTP response status code, e.g. 200 or 201'),
-      delayMs: z.number().default(0).describe('Simulated response delay in milliseconds (0 if none)'),
-      code: z.string().describe('Full, production-ready handler code for the chosen framework'),
-      fixtureData: z.any().describe('The realistic JSON object the handler returns'),
+      path: z.string().min(1, 'Path cannot be empty')
+        .describe('URL path, e.g. "/api/users/:id"'),
+      description: z.string().min(1, 'Description cannot be empty')
+        .describe('One-sentence description of what this endpoint does'),
+      statusCode: z.number().int().min(100).max(599)
+        .describe('Primary HTTP response status code, e.g. 200 or 201'),
+      delayMs: z.number().min(0).default(0)
+        .describe('Simulated response delay in milliseconds (0 if none)'),
+      code: z.string().min(15, 'code must be a real handler implementation, not a placeholder')
+        .describe('Full, production-ready handler code for the chosen framework — must always be non-empty, even if minimal'),
+      fixtureData: z.any()
+        .refine(
+          (v) => v !== null && v !== undefined &&
+            (Array.isArray(v) ? v.length > 0 : (typeof v === 'object' ? Object.keys(v).length > 0 : String(v).length > 0)),
+          { message: 'fixtureData must not be empty — always include realistic sample values' }
+        )
+        .describe('The realistic JSON object the handler returns'),
       errorVariants: z.array(z.object({
-        statusCode: z.number().describe('HTTP error status code, e.g. 404, 422, 500'),
-        code: z.string().describe('Full handler code returning this error response'),
-        fixtureData: z.any().describe('Realistic error response body, e.g. { error, message, code }'),
-      })).optional().describe('One or more error scenario variants for this handler (404, 422, 500, etc.)'),
-    })),
+        statusCode: z.number().int().min(400).max(599),
+        code: z.string().min(10, 'error handler code cannot be empty')
+          .describe('Full handler code returning this error response'),
+        fixtureData: z.record(z.any())
+          .refine((v) => Object.keys(v).length > 0, { message: 'error fixtureData must not be empty' })
+          .describe('Realistic error response body, e.g. { error, message, code }'),
+      }))
+        .min(1, 'At least one error variant is required for every handler')
+        .describe('One or more error scenario variants for this handler (404, 422, 500, etc.)'),
+    })).min(1, 'At least one handler is required'),
+
     parsedSpec: z.array(z.string()).optional()
       .describe('Bullet points listing each resolved endpoint and its mapped response shape'),
     explanation: z.string().optional()

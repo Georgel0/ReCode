@@ -556,7 +556,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
       {showByokModal && (
         <div className="modal-overlay" onClick={() => setShowByokModal(false)}>
           <div className="modal-content byok-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header device-modal-header">
+            <div className="modal-header device-modal-header" style={{justifyContent: 'flex-start'}}>
               <div className="device-modal-icon byok-modal-icon"><i className="fas fa-key"></i></div>
               <div>
                 <h2>Bring Your Own Key</h2>

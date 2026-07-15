@@ -1,13 +1,3 @@
-.sidebar-toggle {
-  padding: 0.37rem;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .sidebar {
   width: 195px;
   height: 100vh;
@@ -815,22 +805,8 @@ html[data-theme='quartz'] .history-modal-container {
   border: 0.75px solid var(--border);
   border-radius: var(--radius);
   margin-bottom: 1.5rem;
-}
-
-.code-display {
-  font-size: 2rem;
-  font-family: monospace;
-  letter-spacing: 0.5rem;
-  color: var(--accent);
-  font-weight: 700;
-  background: var(--bg-tertiary);
-  padding: 1rem 1.5rem;
-  border-radius: var(--radius);
-  border: 1px dashed var(--accent);
-  text-align: center;
-  width: 100%;
-  user-select: all;
-  margin-bottom: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .device-insert-section {
@@ -846,8 +822,15 @@ html[data-theme='quartz'] .history-modal-container {
 .device-insert-section p {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.device-insert-section p i {
+  color: var(--accent);
 }
 
 .insert-code-wrapper {
@@ -882,14 +865,6 @@ html[data-theme='quartz'] .history-modal-container {
   font-size: 0.8rem;
 }
 
-.device-modal-content .modal-desc {
-  margin-bottom: 1.2rem;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  line-height: 1.4;
-  text-align: center;
-}
-
 .sync-status-banner {
   padding: 0.75rem;
   border-radius: var(--radius);
@@ -915,11 +890,6 @@ html[data-theme='quartz'] .history-modal-container {
   color: #22c55e;
 }
 
-.device-code-section {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
 .timer-display {
   font-size: 0.75rem;
   color: var(--accent);
@@ -939,17 +909,6 @@ html[data-theme='quartz'] .history-modal-container {
   opacity: 0.6;
   cursor: not-allowed;
   background: var(--bg-tertiary);
-}
-
-.device-insert-section p {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-}
-
-.device-insert-section p i {
-  color: var(--accent);
 }
 
 .byok-active-dot {
@@ -1378,11 +1337,6 @@ html[data-theme='quartz'] .history-modal-container {
 
   .history-grid {
     grid-template-columns: 1fr;
-  }
-
-  .sidebar-toggle {
-    padding: 0.2rem;
-    font-size: 1.5rem;
   }
 }
 
