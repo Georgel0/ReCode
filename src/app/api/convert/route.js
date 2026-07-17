@@ -92,22 +92,34 @@ async function prettifyCodeFields(type, data, payload) {
 }
 
 function extractJson(text) {
-  if (!text) return null;
-  try { return JSON.parse(text); } catch (e) { }
-
-  const cleanMarkdown = text.replace(/```json|```/g, '').trim();
-  try { return JSON.parse(cleanMarkdown); } catch (e) { }
-
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start !== -1 && end !== -1 && end > start) {
-    const jsonCandidate = text.substring(start, end + 1)
-      .replace(/,\s*}/g, '}')
-      .replace(/,\s*]/g, ']')
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-    try { return JSON.parse(jsonCandidate); } catch (e) { }
+  try {
+    // 1. Attempt standard parse after stripping common markdown backticks
+    const stripped = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    return JSON.parse(stripped);
+  } catch (e) {
+    // 2. Aggressive fallback: Isolate the largest JSON object in the string
+    // This ignores any conversational filler text the LLM might have output
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch (innerError) {
+        throw new Error("Data was truncated. The requested row count exceeds the model's token limit.");
+      }
+    }
+    
+    // 3. If it's an array instead of an object
+    const arrayMatch = text.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+       try {
+        return JSON.parse(arrayMatch[0]);
+      } catch (innerError) {
+        throw new Error("Data was truncated. The requested row count exceeds the model's token limit.");
+      }
+    }
+    
+    throw new Error("Failed to extract valid JSON from response.");
   }
-  return null;
 }
 
 function initializeFirebase() {

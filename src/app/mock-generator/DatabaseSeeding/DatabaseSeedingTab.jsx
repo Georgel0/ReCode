@@ -778,7 +778,7 @@ export default function DatabaseSeedingTab({ onShareStateChange }) {
                       <tr>
                         <th className="m-row-actions-th" />
                         {db.activeColKeys.map(key => {
-                          const badges = inferColumnBadges(key, sampleRow[key], db.allTableNames);
+                          const badges = inferColumnBadges(key, sampleRow[key], db.allTableNames, db.tableNames);
                           return (
                             <th
                               key={key}

@@ -77,7 +77,7 @@ export const FAKER_ANNOTATIONS = [
   { annotation: '@regex:[A-Z]{3}-\\d{4}', description: 'Custom regex pattern' },
 ];
 
-export function inferColumnBadges(colName, sampleValue, allTableNames = []) {
+export function inferColumnBadges(colName, sampleValue, allTableNames = [], tableNames = []) {
   const badges = [];
   const lower = colName.toLowerCase();
   const strVal = sampleValue !== null && sampleValue !== undefined ? String(sampleValue) : '';
@@ -91,12 +91,10 @@ export function inferColumnBadges(colName, sampleValue, allTableNames = []) {
     const ref = lower.replace(/_id$/, '');
     const matched = tableNames.find(t => {
       const tl = t.toLowerCase();
-      return tl === ref ||
-        tl === ref + 's' ||
-        tl === ref + 'es' ||
-        (ref.endsWith('y') && tl === ref.slice(0, -1) + 'ies');
+      return tl === ref || tl === ref + 's' || tl + 's' === ref;
     });
-    badges.push(matchedTable ? `FK → ${matchedTable}` : 'FK');
+
+    badges.push(matched ? `FK → ${matched}` : 'FK');
   }
 
   const dateColNames = ['created_at', 'updated_at', 'deleted_at', 'timestamp', 'date', 'time', 'datetime'];
