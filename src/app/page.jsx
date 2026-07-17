@@ -62,6 +62,11 @@ export default function LandingPage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const slideCount = 10;
 
+  const [contactOpen, setContactOpen] = useState(false);
+  const [bugOpen, setBugOpen] = useState(false);
+  const [contactStatus, setContactStatus] = useState(null);
+  const [bugStatus, setBugStatus] = useState(null);
+
   const slides = Array.from({ length: slideCount }, (_, i) => `/assets/preview-images/preview-${i + 1}.png`);
 
   const nextSlide = useCallback(() => {
@@ -76,6 +81,34 @@ export default function LandingPage() {
     const saved = localStorage.getItem('recode_last_module');
     if (saved) setLastModule(saved);
   }, []);
+
+  const handlePanelSubmit = async (e, formType) => {
+    e.preventDefault();
+    const setStatus = formType === 'bug' ? setBugStatus : setContactStatus;
+    setStatus('sending');
+
+    const form = e.target;
+    const data = new FormData(form);
+
+    try {
+      const response = await fetch("https://formspree.io/f/xqalokdd", {
+        method: "POST",
+        body: data,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        form.reset();
+      } else {
+        setStatus('error');
+      }
+    } catch (error) {
+      setStatus('error');
+    }
+  };
 
   return (
     <div className="lp-wrapper">
@@ -245,6 +278,145 @@ export default function LandingPage() {
               />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="lp-section bg-alt">
+        <div className="lp-container">
+          <ScrollAnimation direction="up">
+            <div className="section-header lp center">
+              <h2 className="section-title">Get In Touch</h2>
+              <p className="section-desc">Have an idea for a feature? Found a bug? We'd love to hear from you.</p>
+            </div>
+          </ScrollAnimation>
+
+          <ScrollAnimation direction="up" delay={80}>
+            <div className="lp-contact-wrapper">
+              <div className="lp-contact-buttons">
+                <button
+                  className={`lp-contact-btn ${contactOpen ? 'is-active' : ''}`}
+                  onClick={() => setContactOpen(v => !v)}
+                >
+                  <i className="fas fa-envelope"></i> Contact Us
+                </button>
+                <button
+                  className={`lp-contact-btn ${bugOpen ? 'is-active' : ''}`}
+                  onClick={() => setBugOpen(v => !v)}
+                >
+                  <i className="fas fa-bug"></i> Report a Bug
+                </button>
+              </div>
+
+              {contactOpen && (
+                <div className="lp-form-container">
+                  <h3 className="lp-form-heading">Send us a Message</h3>
+
+                  {contactStatus === 'success' ? (
+                    <div className="lp-status-message lp-status-success">
+                      <i className="fas fa-check-circle"></i>
+                      <p>Thanks! Your message has been sent successfully.</p>
+                      <button className="lp-form-reset" onClick={() => setContactStatus(null)}>
+                        Send another?
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={(e) => handlePanelSubmit(e, 'contact')} className="lp-form">
+                      <input type="hidden" name="_subject" value="General Inquiry" />
+
+                      <div className="lp-form-row">
+                        <div className="lp-form-group">
+                          <label className="lp-form-label">Name</label>
+                          <input type="text" name="name" className="lp-form-input" placeholder="Your Name" required />
+                        </div>
+                        <div className="lp-form-group">
+                          <label className="lp-form-label">Email</label>
+                          <input type="email" name="email" className="lp-form-input" placeholder="Your Email" required />
+                        </div>
+                      </div>
+
+                      <div className="lp-form-group">
+                        <label className="lp-form-label">Message</label>
+                        <textarea name="message" className="lp-form-textarea" placeholder="How can we help you?" rows="5" required></textarea>
+                      </div>
+
+                      <button type="submit" className="lp-form-submit" disabled={contactStatus === 'sending'}>
+                        {contactStatus === 'sending' ? 'Sending...' : 'Send Message'}
+                      </button>
+
+                      {contactStatus === 'error' && (
+                        <p className="lp-status-error">Oops! Something went wrong. Please try again.</p>
+                      )}
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {bugOpen && (
+                <div className="lp-form-container">
+                  <h3 className="lp-form-heading">Submit a Bug Report</h3>
+
+                  {bugStatus === 'success' ? (
+                    <div className="lp-status-message lp-status-success">
+                      <i className="fas fa-check-circle"></i>
+                      <p>Thanks! Your report has been submitted successfully.</p>
+                      <button className="lp-form-reset" onClick={() => setBugStatus(null)}>
+                        Submit another?
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={(e) => handlePanelSubmit(e, 'bug')} className="lp-form">
+                      <input type="hidden" name="_subject" value="New Bug Report!" />
+
+                      <div className="lp-form-row">
+                        <div className="lp-form-group">
+                          <label className="lp-form-label">Name</label>
+                          <input type="text" name="name" className="lp-form-input" placeholder="Your Name" required />
+                        </div>
+                        <div className="lp-form-group">
+                          <label className="lp-form-label">Email</label>
+                          <input type="email" name="email" className="lp-form-input" placeholder="Your Email" required />
+                        </div>
+                      </div>
+
+                      <div className="lp-form-row">
+                        <div className="lp-form-group">
+                          <label className="lp-form-label">Severity</label>
+                          <select name="severity" className="lp-form-select" required>
+                            <option value="low">Low (UI/Minor)</option>
+                            <option value="medium">Medium (Feature Bug)</option>
+                            <option value="high">High (Broken Workflow)</option>
+                            <option value="critical">Critical (Crash/Data Loss)</option>
+                          </select>
+                        </div>
+                        <div className="lp-form-group">
+                          <label className="lp-form-label">Environment</label>
+                          <input type="text" name="environment" className="lp-form-input" placeholder="e.g. Chrome on Windows 11" required />
+                        </div>
+                      </div>
+
+                      <div className="lp-form-group">
+                        <label className="lp-form-label">Steps to Reproduce</label>
+                        <textarea name="steps" className="lp-form-textarea" placeholder="1. Click on... 2. Navigate to..." rows="3" required></textarea>
+                      </div>
+
+                      <div className="lp-form-group">
+                        <label className="lp-form-label">Expected vs Actual Behavior</label>
+                        <textarea name="behavior" className="lp-form-textarea" placeholder="What should have happened, and what actually happened?" rows="3" required></textarea>
+                      </div>
+
+                      <button type="submit" className="lp-form-submit" disabled={bugStatus === 'sending'}>
+                        {bugStatus === 'sending' ? 'Sending...' : 'Submit Bug Report'}
+                      </button>
+
+                      {bugStatus === 'error' && (
+                        <p className="lp-status-error">Oops! Something went wrong. Please try again.</p>
+                      )}
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+          </ScrollAnimation>
         </div>
       </section>
 

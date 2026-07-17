@@ -149,15 +149,22 @@ export const toolsContent = [
     slug: 'mock-generator',
     title: 'Enterprise Mock Data Factory',
     heading: 'Generate Relational, High-Fidelity Mock Data',
-    description: 'Instantly generate interconnected rows of realistic data. Paste your SQL DDL, TypeScript interfaces, or JSON schemas, define behavioral rules, and get production-ready relational mock data.',
+    description: 'Instantly generate interconnected rows of realistic data. Paste your SQL DDL, TypeScript interfaces, Prisma schema, or JSON schemas, define behavioral rules, and get production-ready relational mock data — editable in-browser or seeded directly into your database.',
     features: [
-      { title: 'Schema Inference', text: 'Automatically parses DDL, Prisma ORM, or TypeScript interfaces to understand data types.' },
-      { title: 'Relational Integrity', text: 'Foreign keys intelligently map to generated primary keys across multiple tables.' },
-      { title: 'Behavioral Rules', text: 'Define exact mathematical distributions, chronological date logic, and geographic localization.' }
+      { title: 'Schema Inference', text: 'Automatically parses DDL, Prisma ORM, or TypeScript interfaces to understand data types and constraints.' },
+      { title: 'Relational Integrity', text: 'Foreign keys intelligently map to generated primary keys across multiple tables, respecting an ERD-visualized dependency graph.' },
+      { title: 'Behavioral Rules', text: 'Define exact mathematical distributions, chronological date logic, and geographic localization down to the column level.' },
+      { title: 'Live Editable Grid', text: 'Sort, filter, and inline-edit any generated cell, or regenerate a single value on demand without rerunning the whole batch.' },
+      { title: 'Direct Database Seeding', text: 'Push generated rows straight into a connected database in batches, with per-table progress, cancellation, and one-click rollback.' },
+      { title: 'Reusable Templates', text: 'Save schema and rule configurations as named templates in your local library for instant reuse across projects.' }
     ],
     faq: [
       { question: 'Can I export to SQL?', answer: 'Yes, you can preview the data in the UI and export it as JSON, CSV, or raw SQL INSERT statements.' },
-      { question: 'How are foreign keys handled?', answer: 'The AI maps the schema relations and ensures that IDs referenced in child tables actually exist in the generated parent tables.' }
+      { question: 'How are foreign keys handled?', answer: 'The AI maps the schema relations and ensures that IDs referenced in child tables actually exist in the generated parent tables.' },
+      { question: 'Can I seed data directly into my database?', answer: 'Yes. Connect a database and seed generated rows in batches, with live per-table progress tracking, the option to cancel mid-run, and rollback for any tables affected by a failed or cancelled run.' },
+      { question: 'What if I need to tweak a single value?', answer: 'Every cell in the results grid is editable inline, and you can regenerate an individual cell on its own without regenerating the entire dataset.' },
+      { question: 'Does it support localization?', answer: 'Yes, you can apply geographic and locale-aware rules (names, addresses, phone formats, currencies, etc.) at the column level.' },
+      { question: 'Can I reuse a schema across projects?', answer: 'Yes, save any schema and its rule configuration as a named template in your local library for one-click reuse later.' }
     ]
   }];
 
@@ -173,8 +180,8 @@ export const tools = [
     name: 'Mock Data Factory',
     path: '/mock-generator',
     icon: 'fas fa-flask',
-    desc: 'Generate relational, high-fidelity mock data.',
-    info: 'Turn schemas into realistic, interconnected mock data with complex behavioral rules, geographical localization, and structural integrity.'
+    desc: 'Generate relational, high-fidelity mock data and seed it straight into your database.',
+    info: 'Turn schemas into realistic, interconnected mock data with complex behavioral rules, geographical localization, structural integrity, live-editable results, and one-click seeding into a real database with rollback support.'
   },
   {
     name: 'Code Analysis',
