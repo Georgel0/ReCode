@@ -24,6 +24,63 @@ function sanitise(name) {
   return name.replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
+// Frontend inference fallback for missing relationships
+function inferMissingRelationships(tables, existingRelationships = []) {
+  const inferred = [...(existingRelationships || [])];
+  if (!tables?.length) return inferred;
+
+  // Create a map of lowercased table names to their actual names for easy lookup
+  const tableMap = new Map(tables.map(t => [t.tableName.toLowerCase(), t.tableName]));
+  const tableNames = Array.from(tableMap.keys());
+
+  tables.forEach(table => {
+    const columns = table.rows?.length ? Object.keys(table.rows[0]) : [];
+
+    columns.forEach(col => {
+      const lowerCol = col.toLowerCase();
+
+      // Look for FK naming conventions: "tableNameId" or "table_name_id"
+      if (lowerCol.endsWith('id') && lowerCol !== 'id') {
+        // Strip the "id" or "_id" suffix to find the base name
+        const baseNameNoUnderscore = lowerCol.replace(/_?id$/, '');
+
+        // 1. Attempt exact match
+        let targetTable = tableMap.get(baseNameNoUnderscore);
+
+        // 2. Attempt fuzzy match (plurals or prefix abbreviations)
+        if (!targetTable) {
+          const fuzzyMatch = tableNames.find(t =>
+            t === `${baseNameNoUnderscore}s` ||       // e.g., user -> users
+            t === `${baseNameNoUnderscore}es` ||      // e.g., branch -> branches
+            t.startsWith(baseNameNoUnderscore)        // e.g., org -> organizations
+          );
+          if (fuzzyMatch) {
+            targetTable = tableMap.get(fuzzyMatch);
+          }
+        }
+
+        if (targetTable) {
+          // Check if this relationship is already mapped to prevent duplicate rendering
+          const alreadyExists = inferred.some(
+            rel => rel.fromTable === table.tableName && rel.fromCol === col
+          );
+
+          if (!alreadyExists) {
+            inferred.push({
+              fromTable: table.tableName,
+              fromCol: col,
+              toTable: targetTable,
+              toCol: 'id'
+            });
+          }
+        }
+      }
+    });
+  });
+
+  return inferred;
+}
+
 function buildMermaidERD(tables, relationships) {
   if (!tables?.length) return '';
 
@@ -45,8 +102,12 @@ function buildMermaidERD(tables, relationships) {
     columns.forEach(col => {
       const type = inferMermaidType(col, sampleRow[col]);
       const lower = col.toLowerCase();
-      const isPK = lower === 'id' || (lower.endsWith('id') && !lower.includes('_'));
-      const isFK = lower.endsWith('_id') && lower !== 'id';
+
+      const isExplicitFK = relationships.some(rel => rel.fromTable === table.tableName && rel.fromCol === col);
+
+      const isPK = lower === 'id' || (lower.endsWith('id') && !lower.includes('_') && !isExplicitFK);
+      const isFK = isExplicitFK || (lower.endsWith('_id') && lower !== 'id');
+
       const modifier = isPK ? ' PK' : isFK ? ' FK' : '';
       erd += `        ${type} ${sanitise(col)}${modifier}\n`;
     });
@@ -103,24 +164,25 @@ export function ErdDiagram({ tables, relationships = [] }) {
   const { currentTheme } = useTheme();
   const isDark = ['recode-dark', 'midnight-gold', 'deep-sea'].includes(currentTheme);
 
-  // Mermaid render target
   const svgHostRef = useRef(null);
-  // Outer clip container that receives pointer events
   const viewportRef = useRef(null);
 
   const [isRendering, setIsRendering] = useState(false);
   const [renderError, setRenderError] = useState(null);
 
-  // Pan / zoom state
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const dragRef = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0 });
 
-  const diagram = useMemo(
-    () => buildMermaidERD(tables, relationships),
-    [tables, relationships],
+  const effectiveRelationships = useMemo(
+    () => inferMissingRelationships(tables, relationships),
+    [tables, relationships]
   );
 
-  // Reset view whenever a new diagram is rendered
+  const diagram = useMemo(
+    () => buildMermaidERD(tables, effectiveRelationships),
+    [tables, effectiveRelationships],
+  );
+
   const resetView = useCallback(() => setTransform({ x: 0, y: 0, scale: 1 }), []);
 
   useEffect(() => {
@@ -144,7 +206,7 @@ export function ErdDiagram({ tables, relationships = [] }) {
             minEntityWidth: 120,
             minEntityHeight: 80,
             entityPadding: 16,
-            useMaxWidth: false, // we control sizing ourselves
+            useMaxWidth: false,
           },
           securityLevel: 'loose',
         });
@@ -179,12 +241,10 @@ export function ErdDiagram({ tables, relationships = [] }) {
 
   const clampScale = (s) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, s));
 
-  // Zoom toward a point (cx, cy) in viewport space.
   const zoomAt = useCallback((cx, cy, delta) => {
     setTransform(prev => {
       const newScale = clampScale(prev.scale + delta);
       const ratio = newScale / prev.scale;
-      // Adjust translation so the point under the cursor stays fixed
       const newX = cx - ratio * (cx - prev.x);
       const newY = cy - ratio * (cy - prev.y);
       return { x: newX, y: newY, scale: newScale };
@@ -312,7 +372,7 @@ export function ErdDiagram({ tables, relationships = [] }) {
         </div>
       </div>
 
-      {!isRendering && !renderError && relationships.length > 0 && (
+      {!isRendering && !renderError && effectiveRelationships.length > 0 && (
         <div className="erd-legend">
           <span className="erd-legend-item">
             <span className="erd-legend-line" />
@@ -323,7 +383,7 @@ export function ErdDiagram({ tables, relationships = [] }) {
         </div>
       )}
 
-      {!isRendering && relationships.length === 0 && (
+      {!isRendering && effectiveRelationships.length === 0 && (
         <div className="erd-no-relations">
           No FK relationships detected between tables
         </div>

@@ -977,6 +977,7 @@ export function useDatabaseSeeding() {
     handleAddRow,
     handleDeleteRow,
     handleRegenerateCell,
+    handleLoadSample,
     currentPage, setCurrentPage,
     totalPages,
     paginatedRows,
