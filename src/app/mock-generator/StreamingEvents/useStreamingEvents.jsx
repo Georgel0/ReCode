@@ -521,7 +521,7 @@ export function useStreamingEvents() {
 
   const handleGenerate = useCallback(async () => {
     if (!config.schemaInput.trim()) return;
-    
+
     try {
       JSON.parse(config.schemaInput);
       setSchemaError('');
@@ -560,7 +560,7 @@ export function useStreamingEvents() {
       if (config.includeAnalysis && !data.explanation) {
       }
 
-      logGenerationEvent('streaming-events', { eventCount });
+      logGenerationEvent('streaming-events', { eventCount: count });
 
       setGeneratedData(data);
       setParsedRulesFeedback(data.parsedRules || []);
@@ -622,7 +622,7 @@ export function useStreamingEvents() {
     setEditingCell(null);
     setEditingValue('');
   }, []);
-  
+
   const handleUndoEdit = useCallback(() => {
     setEditHistory(prev => {
       if (prev.length === 0) return prev;
@@ -637,7 +637,7 @@ export function useStreamingEvents() {
 
   const handleCopyCell = useCallback((val) => {
     const text = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val ?? '');
-    navigator.clipboard.writeText(text).catch(() => {});
+    navigator.clipboard.writeText(text).catch(() => { });
   }, []);
 
   const downloadFile = (content, filename, type) => {
@@ -819,7 +819,7 @@ export function useStreamingEvents() {
 
     config, setConfig, updateConfig,
     clearWorkspace, resetConfig,
-    
+
     schemaError,
 
     isLoading,

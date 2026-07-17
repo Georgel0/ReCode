@@ -218,19 +218,13 @@ export const OUTPUT_SCHEMAS = {
       code: z.string().min(15, 'code must be a real handler implementation, not a placeholder')
         .describe('Full, production-ready handler code for the chosen framework — must always be non-empty, even if minimal'),
       fixtureData: z.any()
-        .refine(
-          (v) => v !== null && v !== undefined &&
-            (Array.isArray(v) ? v.length > 0 : (typeof v === 'object' ? Object.keys(v).length > 0 : String(v).length > 0)),
-          { message: 'fixtureData must not be empty — always include realistic sample values' }
-        )
-        .describe('The realistic JSON object the handler returns'),
+        .describe('The realistic JSON object the handler returns. MUST NOT BE EMPTY — always include realistic sample values.'),
       errorVariants: z.array(z.object({
         statusCode: z.number().int().min(400).max(599),
         code: z.string().min(10, 'error handler code cannot be empty')
           .describe('Full handler code returning this error response'),
         fixtureData: z.record(z.any())
-          .refine((v) => Object.keys(v).length > 0, { message: 'error fixtureData must not be empty' })
-          .describe('Realistic error response body, e.g. { error, message, code }'),
+          .describe('Realistic error response body, e.g. { error, message, code }. MUST NOT BE EMPTY.'),
       }))
         .min(1, 'At least one error variant is required for every handler')
         .describe('One or more error scenario variants for this handler (404, 422, 500, etc.)'),

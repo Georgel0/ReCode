@@ -137,7 +137,7 @@ const registry = createProviderRegistry({
 
 const groq = createGroq();
 const GROQ_MAX_TOKENS_DEFAULT = 8000;
-const GROQ_MAX_TOKENS_MOCK = 24000;
+const GROQ_MAX_TOKENS_MOCK = 8000;
 
 // BYOK: builds a model instance scoped to this single request. The apiKey
 // lives only in this function's stack frame — it is never written to Redis,

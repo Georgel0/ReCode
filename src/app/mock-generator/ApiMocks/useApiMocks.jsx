@@ -244,7 +244,8 @@ export function useApiMocks() {
         toast.info("Note: Your Mock Server ID changed because it was picked up by another session. Update your base URLs.");
       }
 
-      logGenerationEvent('api-mocks', { endpointCount });
+      const generatedEndpointCount = data.handlers?.length || 0;
+      logGenerationEvent('api-mocks', { endpointCount: generatedEndpointCount });
 
       setGeneratedData(data);
       setParsedSpecFeedback(data.parsedSpec || []);

@@ -408,7 +408,9 @@ export function useDatabaseSeeding() {
         includeAnalysis: config.includeAnalysis,
       });
 
-      logGenerationEvent('database-seeding', { tableCount: tables.length, totalRows });
+      const tableCount = data.tables?.length || 0;
+      const totalRows = data.tables?.reduce((sum, t) => sum + (t.rows?.length || 0), 0) || 0;
+      logGenerationEvent('database-seeding', { tableCount, totalRows });
 
       setGeneratedData(data);
       setParsedRulesFeedback(data.parsedRules || []);
