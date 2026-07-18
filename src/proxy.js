@@ -17,6 +17,16 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
+// Helper to fix Base64URL and add strict padding required by Edge runtime
+function base64UrlDecode(str) {
+  let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = b64.length % 4;
+  if (pad) {
+    b64 += '='.repeat(4 - pad);
+  }
+  return atob(b64);
+}
+
 // Edge-safe cryptographic validation of the Firebase ID token using native Web Crypto APIs.
 async function verifyFirebaseToken(token, projectId) {
   try {
@@ -24,27 +34,25 @@ async function verifyFirebaseToken(token, projectId) {
     if (parts.length !== 3) return null;
     const [headerB64, payloadB64, signatureB64] = parts;
 
-    // Fast-decode payload to verify claims before checking signatures
-    const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
-    
+    // 1. Use the new helper here
+    const payload = JSON.parse(base64UrlDecode(payloadB64));
+
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp < now) return null;
     if (payload.aud !== projectId) return null;
     if (payload.iss !== `https://securetoken.google.com/${projectId}`) return null;
 
-    // Get the key ID (kid) from the JWT header
-    const header = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/')));
+    // 2. Use the new helper here
+    const header = JSON.parse(base64UrlDecode(headerB64));
     const kid = header.kid;
 
-    // Fetch Google's public JWK certificates (can safely use fetch caching here)
-    const res = await fetch('https://www.googleapis.com/oauth2/v3/certs', {
-      next: { revalidate: 3600 } 
+    const res = await fetch('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com', {
+      next: { revalidate: 3600 }
     });
     const { keys } = await res.json();
     const jwk = keys.find(k => k.kid === kid);
     if (!jwk) return null;
 
-    // Import the certificate structure natively into Web Crypto
     const key = await crypto.subtle.importKey(
       'jwk',
       jwk,
@@ -53,12 +61,11 @@ async function verifyFirebaseToken(token, projectId) {
       ['verify']
     );
 
-    // Verify token payload integrity against signature segments
     const encoder = new TextEncoder();
     const data = encoder.encode(`${headerB64}.${payloadB64}`);
-    
-    const b64 = signatureB64.replace(/-/g, '+').replace(/_/g, '/');
-    const binaryStr = atob(b64);
+
+    // 3. Rebuild the signature binary string safely using the helper
+    const binaryStr = base64UrlDecode(signatureB64);
     const signature = new Uint8Array(binaryStr.length);
     for (let i = 0; i < binaryStr.length; i++) {
       signature[i] = binaryStr.charCodeAt(i);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import { auth, initializeAuth } from '@/lib/firebase';
 import { useApp } from '@/context';
 import { convertCode, useDraft, useShareState } from '@/lib';
@@ -835,7 +836,7 @@ export function useDatabaseSeeding() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }) // Passed Auth Header
+          ...(token && { 'Authorization': `Bearer ${token}` }) 
         },
         body: JSON.stringify({ connectionString: dbUri })
       });
@@ -844,7 +845,7 @@ export function useDatabaseSeeding() {
       if (data.error) throw new Error(data.error);
 
       setSchemaInput(data.schema);
-      alert('Schema successfully extracted from live database!');
+      toast.message('Schema successfully extracted from live database');
     } catch (err) {
       alert(err.message || 'Failed to connect to database.');
     } finally {
