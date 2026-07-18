@@ -268,6 +268,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.57rem 0.75rem;
+  padding-top: 0;
   border-bottom: 1px solid var(--border);
   background-color: var(--bg-primary);
 }
@@ -440,6 +441,13 @@
   border-radius: 10px;
   font-size: 0.53rem;
   color: inherit;
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.m-tab-count-badge i {
+  margin-top: 2px;
 }
 
 .m-tab-btn.m-active .m-tab-count-badge {
@@ -819,6 +827,17 @@
 
 .m-text-accent {
   color: var(--accent);
+}
+
+.m-input-hint {
+  font-size: .6rem;
+  color: var(--text-primary);
+}
+
+.m-sample-amplify-note {
+  font-size: .6rem;
+  color: var(--text-primary);
+  padding-top: .5rem;
 }
 
 @media (max-width: 768px) {

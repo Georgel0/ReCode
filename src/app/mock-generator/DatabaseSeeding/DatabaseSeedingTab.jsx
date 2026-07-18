@@ -12,6 +12,7 @@ import {
   SAMPLE_SCHEMAS,
   FAKER_ANNOTATIONS,
 } from './utils';
+import { SAMPLE_FLOOR } from './amplifyDataset';
 
 const SEED_STATUS_ICON_CLASS = {
   pending: 'fas fa-circle',
@@ -523,11 +524,17 @@ export default function DatabaseSeedingTab({ onShareStateChange }) {
                     value={db.config.rowCount}
                     onChange={e => db.setConfig(prev => ({ ...prev, rowCount: e.target.value }))}
                   >
-                    <option value="4">4 (Fast)</option>
-                    <option value="12">12 (Standard)</option>
-                    <option value="38">38 (Batch)</option>
-                    <option value="75">75 (Deep)</option>
+                    <option value="10">10 (Preview)</option>
+                    <option value="25">25 (Standard)</option>
+                    <option value="100">100 (Batch)</option>
+                    <option value="500">500 (Bulk)</option>
+                    <option value="2000">2,000 (Max)</option>
                   </select>
+                  {parseInt(db.config.rowCount, 10) > SAMPLE_FLOOR && (
+                    <span className="m-input-hint">
+                      <i className="fas fa-flask" /> {SAMPLE_FLOOR} rows sampled by the AI, the rest generated locally from that sample's patterns
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -594,14 +601,22 @@ export default function DatabaseSeedingTab({ onShareStateChange }) {
               <div className="m-tabs-container">
                 {db.generatedData?.tables.map((table, idx) => {
                   const canRegen = db.isSafeToRegenerate(table.tableName);
+                  const rowCount = table.rows?.length ?? 0;
+                  const isAmplified = typeof table.sampleRowCount === 'number' && table.sampleRowCount < rowCount;
                   return (
                     <div key={idx} className="m-tab-btn-wrapper">
                       <button
                         className={`m-tab-btn ${db.activeTab === idx ? 'm-active' : ''}`}
                         onClick={() => db.setActiveTab(idx)}
+                        title={isAmplified
+                          ? `${table.sampleRowCount.toLocaleString()} sampled by the AI + ${(rowCount - table.sampleRowCount).toLocaleString()} generated locally`
+                          : undefined}
                       >
                         <i className="fas fa-table" /> {table.tableName}
-                        <span className="m-tab-count-badge">{table.rows?.length ?? 0}</span>
+                        <span className="m-tab-count-badge">
+                          {rowCount}
+                          {isAmplified && <i className="fas fa-flask m-amplified-icon" />}
+                        </span>
                       </button>
                       {canRegen && (
                         <button
@@ -732,6 +747,13 @@ export default function DatabaseSeedingTab({ onShareStateChange }) {
 
             {db.activeTableData && !db.isLoading && db.viewMode === 'table' && (
               <div className="m-table-wrapper">
+                {typeof db.activeTableData.sampleRowCount === 'number' &&
+                  db.activeTableData.sampleRowCount < (db.activeTableData.rows?.length ?? 0) && (
+                    <div className="m-sample-amplify-note">
+                      <i className="fas fa-flask" /> {db.activeTableData.sampleRowCount.toLocaleString()} row{db.activeTableData.sampleRowCount === 1 ? '' : 's'} sampled directly by the AI
+                      · {(db.activeTableData.rows.length - db.activeTableData.sampleRowCount).toLocaleString()} more generated locally by extending that sample's observed distributions, FK values, and date ranges
+                    </div>
+                )}
                 <div className="m-table-filter-bar">
                   <div className="m-table-filter-input-wrap">
                     <i className="fas fa-search m-table-filter-icon" />

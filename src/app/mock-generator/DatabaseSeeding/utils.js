@@ -47,7 +47,7 @@ export const ITEMS_PER_PAGE = 15;
 
 export const DEFAULT_CONFIG = {
   locale: 'en-US',
-  rowCount: '15',
+  rowCount: '25',
   seed: '',
   dataQuality: 75,
   includeAnalysis: false
@@ -77,9 +77,16 @@ export const FAKER_ANNOTATIONS = [
   { annotation: '@regex:[A-Z]{3}-\\d{4}', description: 'Custom regex pattern' },
 ];
 
+// Normalizes camelCase to snake_case (workspaceId -> workspace_id) so column
+// classification works the same regardless of naming convention. Already
+// snake_case or lowercase names pass through unchanged.
+export function toSnakeCase(name) {
+  return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+}
+
 export function inferColumnBadges(colName, sampleValue, allTableNames = [], tableNames = []) {
   const badges = [];
-  const lower = colName.toLowerCase();
+  const lower = toSnakeCase(colName);
   const strVal = sampleValue !== null && sampleValue !== undefined ? String(sampleValue) : '';
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -119,7 +126,7 @@ export function extractFkRelationships(tables) {
     const columns = Object.keys(table.rows[0]);
 
     columns.forEach(col => {
-      const lower = col.toLowerCase();
+      const lower = toSnakeCase(col);
       if (!lower.endsWith('_id') || lower === 'id') return;
 
       const ref = lower.replace(/_id$/, '');

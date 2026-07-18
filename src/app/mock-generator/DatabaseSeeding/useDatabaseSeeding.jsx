@@ -13,6 +13,7 @@ import {
   topologicalSort,
   deriveTypeScriptTypes
 } from './utils';
+import { amplifyDataset, SAMPLE_FLOOR } from './amplifyDataset';
 
 import { logGenerationEvent } from '@/lib/firebase/retention';
 
@@ -396,24 +397,45 @@ export function useDatabaseSeeding() {
 
     try {
       const targetRows = overrideRows ?? (parseInt(config.rowCount, 10) || 15);
+      // Above the floor, only ask the AI for a representative sample — large
+      // counts are slow, expensive, and risk truncation. The sample still
+      // has to be big enough that any percentage/distribution rule in the
+      // user's rules text is actually expressible, hence the floor rather
+      // than a proportionally tiny ask.
+      const sampleRows = targetRows > SAMPLE_FLOOR ? SAMPLE_FLOOR : targetRows;
 
       const data = await convertCode('mock', schemaInput, {
         mode: 'builder',
         qualityMode,
         rules,
         locale: config.locale,
-        rowCount: targetRows,
+        rowCount: sampleRows,
+        isSample: targetRows > SAMPLE_FLOOR,
         seed: config.seed || undefined,
         dataQuality: config.dataQuality,
         includeAnalysis: config.includeAnalysis,
       });
 
-      const tableCount = data.tables?.length || 0;
-      const totalRows = data.tables?.reduce((sum, t) => sum + (t.rows?.length || 0), 0) || 0;
+      const finalData = targetRows > SAMPLE_FLOOR
+        ? {
+            ...data,
+            ...amplifyDataset({
+              tables: data.tables,
+              requestedRows: targetRows,
+              rules,
+              schemaInput,
+              locale: config.locale,
+              seed: config.seed || undefined,
+            }),
+          }
+        : data;
+
+      const tableCount = finalData.tables?.length || 0;
+      const totalRows = finalData.tables?.reduce((sum, t) => sum + (t.rows?.length || 0), 0) || 0;
       logGenerationEvent('database-seeding', { tableCount, totalRows });
 
-      setGeneratedData(data);
-      setParsedRulesFeedback(data.parsedRules || []);
+      setGeneratedData(finalData);
+      setParsedRulesFeedback(finalData.parsedRules || []);
       setActiveTab(0);
       setCurrentPage(1);
       setFilterQuery('');
@@ -434,6 +456,8 @@ export function useDatabaseSeeding() {
     if (!table) return;
 
     const singleTableSchema = `-- Regenerate only: ${table.tableName}\n${schemaInput}`;
+    const targetRows = parseInt(config.rowCount, 10) || 15;
+    const sampleRows = targetRows > SAMPLE_FLOOR ? SAMPLE_FLOOR : targetRows;
 
     setRegenLoadingIdx(tableIdx);
     try {
@@ -442,17 +466,36 @@ export function useDatabaseSeeding() {
         qualityMode,
         rules,
         locale: config.locale,
-        rowCount: parseInt(config.rowCount, 10) || 15,
+        rowCount: sampleRows,
+        isSample: targetRows > SAMPLE_FLOOR,
         seed: config.seed || undefined,
         dataQuality: config.dataQuality,
         includeAnalysis: config.includeAnalysis,
       });
 
-      const newTable = data.tables.find(
+      const sampleTable = data.tables.find(
         t => t.tableName.toLowerCase() === table.tableName.toLowerCase()
       );
 
-      if (newTable) {
+      if (sampleTable) {
+        // Amplify against the full current table set so FK columns can pull
+        // from siblings' already-final PK pools, but only this table's rows
+        // actually get expanded.
+        const mergedTables = generatedData.tables.map((t, idx) =>
+          idx === tableIdx ? sampleTable : t
+        );
+        const newTable = targetRows > SAMPLE_FLOOR
+          ? amplifyDataset({
+              tables: mergedTables,
+              requestedRows: targetRows,
+              rules,
+              schemaInput,
+              locale: config.locale,
+              seed: config.seed || undefined,
+              onlyTables: [table.tableName],
+            }).tables.find(t => t.tableName === sampleTable.tableName)
+          : sampleTable;
+
         setGeneratedData(prev => ({
           ...prev,
           tables: prev.tables.map((t, idx) => idx === tableIdx ? newTable : t),
