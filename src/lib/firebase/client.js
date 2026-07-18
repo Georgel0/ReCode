@@ -49,3 +49,31 @@ export const initializeAuth = () => {
     });
   });
 };
+
+/**
+ * Requests the browser to change storage status from 'Best-Effort' to 'Persistent'.
+ * This prevents modern browsers from clearing IndexedDB during long periods of inactivity.
+ * @returns {Promise<boolean>} True if storage is successfully marked persistent.
+ */
+export const requestPersistentStorage = async () => {
+  // Guard clause for SSR (Next.js server-side rendering environments)
+  if (typeof window === 'undefined' || !navigator.storage || !navigator.storage.persist) {
+    return false;
+  }
+
+  try {
+    // Check if it's already persistent
+    const isAlreadyPersisted = await navigator.storage.persisted();
+    if (isAlreadyPersisted) {
+      return true;
+    }
+
+    // Request persistent storage allocation
+    const granted = await navigator.storage.persist();
+    console.log(`[Storage] Persistent storage permission: ${granted ? 'GRANTED' : 'DENIED'}`);
+    return granted;
+  } catch (error) {
+    console.error('[Storage] Failed to negotiate storage persistence:', error);
+    return false;
+  }
+};

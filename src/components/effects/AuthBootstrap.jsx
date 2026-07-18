@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initializeAuth } from '@/lib/firebase';
+import { initializeAuth, requestPersistentStorage } from '@/lib/firebase';
 
 /**
  * Mount once at the app root. Its only job is to kick off Firebase auth
@@ -15,6 +15,10 @@ import { initializeAuth } from '@/lib/firebase';
  */
 export function AuthBootstrap() {
   useEffect(() => {
+    // Lock down IndexedDB storage protection
+    requestPersistentStorage();
+
+    // Initialize anonymous or token session
     initializeAuth().catch((err) => {
       console.error('Auth bootstrap failed:', err);
     });

@@ -1,3 +1,9 @@
+.sidebar-toggle {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1.3rem;
+}
+
 .sidebar {
   width: 195px;
   height: 100vh;
