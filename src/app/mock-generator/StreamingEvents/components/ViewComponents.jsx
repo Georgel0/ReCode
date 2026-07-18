@@ -204,19 +204,19 @@ export function ReplayView({
     <div className="replay-wrapper">
       <div className="replay-controls-bar">
         <div className="replay-transport">
-          <button className="replay-btn" onClick={onReset} title="Reset">
+          <button type="button" className="replay-btn" onClick={onReset} title="Reset">
             <i className="fas fa-step-backward" />
           </button>
           {replayPlaying ? (
-            <button className="replay-btn replay-btn--primary" onClick={onPause} title="Pause">
+            <button type="button" className="replay-btn replay-btn--primary" onClick={onPause} title="Pause">
               <i className="fas fa-pause" />
             </button>
           ) : (
-            <button className="replay-btn replay-btn--primary" onClick={onPlay} title="Play">
+            <button type="button" className="replay-btn replay-btn--primary" onClick={onPlay} title="Play">
               <i className="fas fa-play" />
             </button>
           )}
-          <button className="replay-btn" onClick={onStep} title="Step forward" disabled={replayIndex >= events.length - 1}>
+          <button type="button" className="replay-btn" onClick={onStep} title="Step forward" disabled={replayIndex >= events.length - 1}>
             <i className="fas fa-step-forward" />
           </button>
         </div>

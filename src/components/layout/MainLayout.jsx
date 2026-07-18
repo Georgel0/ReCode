@@ -39,9 +39,6 @@ export function MainLayout({ children }) {
     if (isLandingPage) return;
 
     localStorage.setItem('recode_last_module', pathname);
-
-    const hasQualityModeSet = localStorage.getItem('recode_quality_mode');
-    if (!hasQualityModeSet) setShowModelSelector(true);
   }, [pathname, isLandingPage]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);

@@ -67,9 +67,9 @@ export const requestPersistentStorage = async () => {
     if (isAlreadyPersisted) {
       return true;
     }
-
     // Request persistent storage allocation
     const granted = await navigator.storage.persist();
+
     console.log(`[Storage] Persistent storage permission: ${granted ? 'GRANTED' : 'DENIED'}`);
     return granted;
   } catch (error) {
