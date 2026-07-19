@@ -33,9 +33,14 @@ export const db = getFirestore(app);
  * If no user exists, it performs an anonymous sign-in.
  * @returns {Promise<User>}
  */
+let authReadyPromise = null;
+
 export const initializeAuth = () => {
-  return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
+  if (authReadyPromise) return authReadyPromise;
+
+  authReadyPromise = new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe(); // only ever resolve once per attempt
       if (user) {
         resolve(user);
       } else {
@@ -43,11 +48,14 @@ export const initializeAuth = () => {
           .then(({ user }) => resolve(user))
           .catch((error) => {
             console.error("Auth Error:", error);
+            authReadyPromise = null; // allow a retry on next call
             reject(error);
           });
       }
     });
   });
+
+  return authReadyPromise;
 };
 
 /**
