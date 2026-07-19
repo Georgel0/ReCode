@@ -47,11 +47,15 @@ export const initializeAuth = () => {
         signInAnonymously(auth)
           .then(({ user }) => resolve(user))
           .catch((error) => {
-            console.error("Auth Error:", error);
+            console.error('[signInAnonymously] failed:', error.code, error.message);
             authReadyPromise = null; // allow a retry on next call
             reject(error);
           });
       }
+
+      console.warn('[authState]', user ? `signed in as ${user.uid}` : 'null — no user', new Date().toISOString());
+    }, (error) => {
+      console.error('[authState] listener error:', error.code, error.message);
     });
   });
 
