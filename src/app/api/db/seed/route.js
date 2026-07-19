@@ -14,7 +14,7 @@ const MAX_PARAMS_PER_REQUEST = 65000;
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 const ALLOWED_CONFLICT_MODES = new Set(['error', 'skip']);
 
-const poolCache = new Map(); 
+const poolCache = new Map();
 const POOL_IDLE_MS = 5 * 60 * 1000;
 
 function scheduleEviction(key) {
@@ -22,7 +22,7 @@ function scheduleEviction(key) {
     const entry = poolCache.get(key);
     if (entry) {
       poolCache.delete(key);
-      entry.pool.end().catch(() => {});
+      entry.pool.end().catch(() => { });
     }
   }, POOL_IDLE_MS).unref();
 }
@@ -93,7 +93,7 @@ export async function POST(request) {
          WHERE table_schema = $1 AND table_name = $2 AND column_name = ANY($3::text[])`,
         [targetSchema, tableName, columns]
       );
-      
+
       const columnTypes = {};
       typesRes.rows.forEach(({ column_name, data_type, udt_name }) => {
         columnTypes[column_name] = { data_type, udt_name };
@@ -102,14 +102,16 @@ export async function POST(request) {
       const values = [];
       const valueGroups = rows.map((row, rowIdx) => {
         const placeholders = columns.map((col, colIdx) => {
-          values.push(row[col]);
+          // Fallback to an empty string if the value is strictly null/undefined
+          const val = row[col] ?? "";
+          values.push(val);
           return `$${rowIdx * columns.length + colIdx + 1}${castSuffixFor(columnTypes, col)}`;
         });
         return `(${placeholders.join(', ')})`;
       });
 
       const conflictClause = onConflict === 'skip' ? ' ON CONFLICT DO NOTHING' : '';
-      
+
       // Interpolate BOTH schema and table securely
       const query = `INSERT INTO "${targetSchema}"."${tableName}" ("${columns.join('", "')}") VALUES ${valueGroups.join(', ')}${conflictClause}`;
       const insertRes = await client.query(query, values);
@@ -122,12 +124,12 @@ export async function POST(request) {
         // Use quote_ident to generate proper notation (e.g. "public"."UserTable") 
         // which pg_get_serial_sequence safely digests.
         const seqRes = await client.query(
-          `SELECT pg_get_serial_sequence(quote_ident($1) || '.' || quote_ident($2), $3) as seq`, 
+          `SELECT pg_get_serial_sequence(quote_ident($1) || '.' || quote_ident($2), $3) as seq`,
           [targetSchema, tableName, col]
         );
         const seqName = seqRes.rows[0]?.seq;
         if (!seqName) continue;
-        
+
         await client.query(
           `SELECT setval($1::regclass, COALESCE((SELECT MAX("${col}") FROM "${targetSchema}"."${tableName}"), 0) + 1, false)`,
           [seqName]
@@ -139,13 +141,13 @@ export async function POST(request) {
     return NextResponse.json({ success: true, inserted });
   } catch (error) {
     if (client) {
-      try { await client.query('ROLLBACK'); } catch (_) {}
+      try { await client.query('ROLLBACK'); } catch (_) { }
     }
     const status = error?.__safeForClient ? 400 : 500;
     return NextResponse.json({ error: toClientError(error) }, { status });
   } finally {
     if (client) {
-      try { client.release(); } catch (_) {}
+      try { client.release(); } catch (_) { }
     }
   }
 }
