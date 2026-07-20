@@ -52,8 +52,6 @@ export const initializeAuth = () => {
             reject(error);
           });
       }
-
-      console.warn('[authState]', user ? `signed in as ${user.uid}` : 'null — no user', new Date().toISOString());
     }, (error) => {
       console.error('[authState] listener error:', error.code, error.message);
     });
