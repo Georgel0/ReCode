@@ -173,10 +173,10 @@ export const getToolContent = (slug) => {
   return toolsContent.find(tool => tool.slug === slug) || null;
 };
 
-
 // Landingpage info
 export const tools = [
   {
+    slug: 'mock-generator',
     name: 'Mock Data Factory',
     path: '/mock-generator',
     icon: 'fas fa-flask',
@@ -184,6 +184,7 @@ export const tools = [
     info: 'Turn schemas into realistic, interconnected mock data with complex behavioral rules, geographical localization, structural integrity, live-editable results, and one-click seeding into a real database with rollback support.'
   },
   {
+    slug: 'code-analysis',
     name: 'Code Analysis',
     path: '/code-analysis',
     icon: 'fas fa-search',
@@ -191,6 +192,7 @@ export const tools = [
     info: 'Run a full health audit on your code across six dimensions: Big O time/space complexity, security vulnerabilities, bug detection, best practices, architecture smells, and test coverage hints — all scored and exportable in one pass.'
   },
   {
+    slug: 'code-converter',
     name: 'Code Converter',
     path: '/code-converter',
     icon: 'fas fa-rotate',
@@ -198,6 +200,7 @@ export const tools = [
     info: 'Paste code in one language and get a working equivalent in another — classes, loops, idioms and all. Handles the structural differences between languages automatically, so you can focus on reviewing the output rather than rewriting it by hand. Useful for migrations, cross-team handoffs, or just picking up a new language faster.'
   },
   {
+    slug: 'code-refactor',
     name: 'Code Refactor',
     path: '/code-refactor',
     icon: 'fas fa-wand-magic-sparkles',
@@ -205,6 +208,7 @@ export const tools = [
     info: 'Transform tangled, hard-to-maintain code into clean, professional source. The AI eliminates redundant loops, flattens nested conditionals, enforces modern syntax (ES6+, async/await), and applies established design patterns to cut technical debt and keep your codebase easy to extend.'
   },
   {
+    slug: 'code-generator',
     name: 'Code Generator',
     path: '/code-generator',
     icon: 'fas fa-cubes',
@@ -212,6 +216,7 @@ export const tools = [
     info: 'Bridge the gap between thought and execution. Describe your requirements in plain English (e.g., "A React hook for debounced API calls") and receive fully functional, documented code snippets ready to be dropped into your project.'
   },
   {
+    slug: 'css-converter',
     name: 'CSS Converter',
     path: '/css-frameworks',
     icon: 'fab fa-css3-alt',
@@ -219,6 +224,7 @@ export const tools = [
     info: 'Modernize your styling workflow by translating raw CSS properties into utility classes for Tailwind CSS, or structured SCSS/Bootstrap components. It maps standard layout rules to framework-specific shorthand instantly.'
   },
   {
+    slug: 'sql-builder',
     name: 'SQL Builder',
     path: '/sql-builder',
     icon: 'fas fa-database',
@@ -226,6 +232,7 @@ export const tools = [
     info: 'Construct complex database queries without memorizing exact syntax. Describe the data you need in natural language, and the AI generates optimized SQL including Joins, CTEs, and Unions for PostgreSQL, MySQL, and more.'
   },
   {
+    slug: 'regex-generator',
     name: 'Regex Generator',
     path: '/regex-generator',
     icon: 'fas fa-asterisk',
@@ -233,13 +240,14 @@ export const tools = [
     info: 'Regular expressions are notoriously difficult to write. Describe the pattern you want to match (e.g., "extract prices from a string") and receive the exact regex string along with a human-readable explanation of how the pattern works.'
   },
   {
+    slug: 'json-formatter',
     name: 'JSON Formatter',
     path: '/json-formatter',
     icon: 'fas fa-list-alt',
     desc: 'Fix and beautify messy data structures.',
     info: 'A utility for sanitizing data. Beyond simple indentation, this tool detects and fixes common syntax errors—like missing commas or unquoted keys—ensuring your JSON is valid and readable for APIs and config files.'
-  }];
-
+  }
+];
 
 // Coding languages used across the app
 export const LANGUAGES = [

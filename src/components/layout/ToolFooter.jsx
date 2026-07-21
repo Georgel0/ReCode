@@ -1,8 +1,11 @@
 import React from 'react';
+import { tools } from '@/lib';
 import '@/styles/components/ToolFooter.css';
 
 export function ToolFooter({ content }) {
   if (!content) return null;
+
+  const otherTools = tools.filter(tool => tool.slug !== content.slug);
 
   return (
     <footer className="tool-footer">
@@ -49,6 +52,19 @@ export function ToolFooter({ content }) {
         </details>
 
       </div>
+
+      <section className="other-tools-section">
+        <h3><i className="fa-solid fa-toolbox"></i> Explore Other Tools</h3>
+        <div className="other-tools-grid">
+          {otherTools.map((tool, index) => (
+            <a key={index} href={tool.path} className="other-tool-link">
+              <i className={tool.icon}></i>
+              <span>{tool.name}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
     </footer>
   );
 }

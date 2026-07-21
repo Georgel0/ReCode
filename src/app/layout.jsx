@@ -19,7 +19,7 @@ export const metadata = {
   metadataBase: new URL('https://recode-alpha.vercel.app'),
   title: {
     default: 'ReCode | AI Developer Suite',
-    template: 'ReCode | %s'
+    template: '%s'
   },
   description: 'Advanced AI tools for code conversion, refactoring, and generation.',
   keywords: ['Code Converter', 'Code Refactor', 'Code Analysis', 'Code Generator', 'CSS Converter', 'Regex Generator', 'SQL Generator', 'JSON Formatter'],

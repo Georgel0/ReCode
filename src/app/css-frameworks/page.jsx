@@ -3,7 +3,7 @@ import { ToolFooter } from '@/components/layout';
 import { getToolContent } from '@/lib/content';
 
 export const metadata = {
- title: 'CSS Framework Converter',
+ title: 'CSS Converter',
  description: 'Automatically convert raw CSS into utility classes for modern frameworks.',
 };
 
