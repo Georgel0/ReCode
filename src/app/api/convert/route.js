@@ -107,17 +107,17 @@ function extractJson(text) {
         throw new Error("Data was truncated. The requested row count exceeds the model's token limit.");
       }
     }
-    
+
     // 3. If it's an array instead of an object
     const arrayMatch = text.match(/\[[\s\S]*\]/);
     if (arrayMatch) {
-       try {
+      try {
         return JSON.parse(arrayMatch[0]);
       } catch (innerError) {
         throw new Error("Data was truncated. The requested row count exceeds the model's token limit.");
       }
     }
-    
+
     throw new Error("Failed to extract valid JSON from response.");
   }
 }
@@ -157,7 +157,7 @@ const GROQ_MAX_TOKENS_MOCK = 8000;
 const BYOK_DEFAULT_MODELS = {
   openai: 'gpt-4o',
   anthropic: 'claude-sonnet-4-6',
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'openai/gpt-oss-120b',
 };
 
 function buildByokModel(byok) {
@@ -199,7 +199,7 @@ export async function POST(request) {
   const authHeader = request.headers.get('Authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  
+
   let uid;
   try {
     const decoded = await admin.auth().verifyIdToken(token);
@@ -211,9 +211,9 @@ export async function POST(request) {
   let payload;
   try {
     payload = await request.json();
-    const { 
+    const {
       type, input, qualityMode = 'fast', byok,
-      action, existingMockId, expiresIn = 3600, wakeData 
+      action, existingMockId, expiresIn = 3600, wakeData
     } = payload;
 
     if (action === 'wake') {
@@ -306,7 +306,7 @@ export async function POST(request) {
         finalData = { convertedCode: text.trim() };
       }
     } else if (qualityMode === 'turbo') {
-      const modelInstance = groq('llama-3.3-70b-versatile');
+      const modelInstance = groq('openai/gpt-oss-120b');
       const maxTokens = type === 'mock' ? GROQ_MAX_TOKENS_MOCK : GROQ_MAX_TOKENS_DEFAULT;
 
       if (config.schema) {
@@ -335,7 +335,7 @@ export async function POST(request) {
           const parsed = extractJson(text);
           if (!parsed) { sawInvalidJson = true; sawSquashedCode = false; continue; }
 
-          finalData = parsed; 
+          finalData = parsed;
           if (!hasSquashedCodeFields(type, parsed, payload)) break;
           sawInvalidJson = false;
           sawSquashedCode = true;
@@ -351,8 +351,8 @@ export async function POST(request) {
       }
     } else {
       const modelId = qualityMode === 'quality'
-        ? 'gateway:deepseek/deepseek-v3.2-thinking'
-        : 'gateway:mistral/devstral-2';
+        ? 'gateway:alibaba/qwen3.8-omni-flash'
+        : 'gateway:poolside/laguna-s-2.1-free';
 
       const modelInstance = registry.languageModel(modelId);
 
@@ -412,7 +412,12 @@ export async function POST(request) {
     if (payload?.byok?.apiKey && message.includes(payload.byok.apiKey)) {
       message = message.split(payload.byok.apiKey).join('[redacted]');
     }
-    console.error("API Error:", message);
+    console.error("API Error:", {
+      message: error.message,
+      statusCode: error.statusCode,
+      responseBody: error.responseBody,
+      cause: error.cause,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
