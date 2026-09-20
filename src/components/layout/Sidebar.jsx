@@ -476,7 +476,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
       {showDeviceModal && (
         <div className="modal-overlay" onClick={() => setShowDeviceModal(false)}>
           <div className="modal-content device-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header device-modal-header">
+            <div className="modal-header device-modal-header" style={{justifyContent: "flex-start"}}>
               <div className="device-modal-icon"><i className="fas fa-satellite-dish"></i></div>
               <div>
                 <h2>Sync Workspace</h2>
