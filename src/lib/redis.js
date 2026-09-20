@@ -10,7 +10,7 @@ let connectingPromise = null;
 
 export async function getRedisClient() {
   if (!client) {
-    client = createClient({ url: process.env.KV_REDIS_URL });
+    client = createClient({ url: process.env.DATABASE_REDIS_URL });
 
     // Required: without a client-level 'error' listener, a dropped/idle
     // socket emits an unhandled 'error' event that can crash the process
