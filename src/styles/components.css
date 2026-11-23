@@ -46,38 +46,24 @@
   box-shadow: none;
 }
 
-
-
-html[data-theme='midnight-gold'] .primary-button:hover {
+html[data-glint='true'] .primary-button:hover {
   position: relative;
   overflow: hidden;
 }
 
-html[data-theme='midnight-gold'] .primary-button:hover::after {
+html[data-glint='true'] .primary-button:hover::after {
   content: '';
   position: absolute;
-  top: 0;
+  top: -20%;
   left: -150%;
   width: 150%;
-  height: 75%;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 37.5%, rgba(255, 255, 255, 0) 75%);
-  transform: skewX(-20deg);
-  animation: glint 1s forwards;
-}
-
-html[data-theme='quartz'] .primary-button:hover {
-  position: relative;
-  overflow: hidden;
-}
-
-html[data-theme='quartz'] .primary-button:hover::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 150%;
-  height: 75%;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 37.5%, rgba(255, 255, 255, 0) 75%);
+  height: 140%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 37.5%,
+    rgba(255, 255, 255, 0) 75%
+  );
   transform: skewX(-20deg);
   animation: glint 1s forwards;
 }
@@ -137,10 +123,6 @@ html[data-theme='quartz'] .primary-button:hover::after {
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-}
-
-.save-btn i {
-  margin-top: 3px;
 }
 
 .save-btn:hover:not(:disabled) {
@@ -261,11 +243,11 @@ html[data-theme='quartz'] .primary-button:hover::after {
 }
 
 .model-card.fast:hover {
-  border-color: var(--border)
+  border-color: var(--border);
 }
 
 .model-card.quality:hover {
-  border-color: var(--border)
+  border-color: var(--border);
 }
 
 .model-card.active {
@@ -464,29 +446,22 @@ html[data-theme='quartz'] .primary-button:hover::after {
 }
 
 .copy-btn {
-  background: var(--accent);
-  color: var(--bg-primary);
+  background: var(--btn-background);
+  color: var(--btn-text);
   padding: 0.18rem 0.37rem;
   margin-left: 0.75rem;
   border-radius: 3px;
   flex-shrink: 0;
-  gap: 0;
 }
 
 .copy-btn:hover {
-  background: var(--accent-hover);
+  background: var(--btn-background-hover);
 }
 
 .secondary-action-btn {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
   border: 0.75px solid var(--border);
-}
-
-html[data-theme='midnight-gold'] .copy-btn,
-html[data-theme='quartz'] .copy-btn {
-  background: var(--btn-background);
-  color: var(--text-on-accent);
 }
 
 .btn-active {
@@ -516,9 +491,8 @@ html[data-theme='quartz'] .copy-btn {
   z-index: 10;
 }
 
-html[data-theme='midnight-gold'] .copy-btn-absolute:hover,
-html[data-theme='quartz'] .copy-btn-absolute:hover {
-  position: absolute !important;
+html[data-glint='true'] .copy-btn-absolute:hover {
+  position: absolute;
 }
 
 .editor-container textarea::-webkit-scrollbar,
@@ -774,14 +748,15 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
   position: absolute;
   inset: 0;
   border-radius: var(--radius);
-  background: linear-gradient(90deg,
-      var(--accent) 0%,
-      transparent 50%,
-      var(--accent) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    transparent 50%,
+    var(--accent) 100%
+  );
   opacity: 0.03;
   pointer-events: none;
 }
-
 
 @keyframes spin {
   to {
@@ -790,8 +765,13 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 }
 
 @keyframes glint {
+  from {
+    left: -150%;
+    transform: skewX(-20deg);
+  }
   to {
     left: 150%;
+    transform: skewX(-20deg);
   }
 }
 
@@ -803,7 +783,6 @@ html[data-theme='quartz'] .copy-btn-absolute:hover {
 }
 
 @media (max-width: 825px) {
-
   .primary-button,
   .secondary-button {
     padding: 0.48rem 0.82rem;

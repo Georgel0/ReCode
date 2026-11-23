@@ -450,33 +450,62 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
               <i className="fas fa-microchip"></i>
             </button>
           </div>
+
           <div className="footer-action-container" ref={themeMenuRef}>
-            <div className={`theme-dropdown-menu ${isThemeMenuOpen ? 'open' : ''}`}>
+            <div
+              className={`theme-dropdown-menu ${isThemeMenuOpen ? 'open' : ''}`}
+              role="menu"
+              aria-label="Choose theme"
+            >
               {Object.entries(groupedThemes).map(([group, themes]) => (
                 <div key={group} className="theme-group">
                   <div className="theme-group-label">{group}</div>
-                  {themes.map((theme) => (
-                    <button
-                      key={theme.id}
-                      className={`theme-option-btn ${currentTheme === theme.id ? 'active' : ''}`}
-                      onClick={() => { changeTheme(theme.id); setIsThemeMenuOpen(false); }}>
-                      {theme.label}
-                    </button>
-                  ))}
+                  <div className="theme-swatch-grid">
+                    {themes.map((theme) => (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        className={`theme-swatch-btn ${currentTheme === theme.id ? 'active' : ''}`}
+                        title={theme.label}
+                        aria-label={theme.label}
+                        onClick={() => {
+                          changeTheme(theme.id);
+                          setIsThemeMenuOpen(false);
+                        }}
+                      >
+                        <span className="swatch-pair" aria-hidden="true">
+                          <span
+                            className="swatch-circle swatch-primary"
+                            style={{ background: theme.swatchBg }}
+                          />
+                          <span
+                            className="swatch-circle swatch-secondary"
+                            style={{ background: theme.swatchAccent }}
+                          />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-            <button className={`footer-icon-btn ${isThemeMenuOpen ? 'active' : ''}`} onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)} title="Change Theme">
+            <button
+              type="button"
+              className={`footer-icon-btn ${isThemeMenuOpen ? 'active' : ''}`}
+              onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+              title="Change Theme"
+            >
               <i className="fas fa-palette"></i>
             </button>
           </div>
+
         </footer>
       </aside>
 
       {showDeviceModal && (
         <div className="modal-overlay" onClick={() => setShowDeviceModal(false)}>
           <div className="modal-content device-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header device-modal-header" style={{justifyContent: "flex-start"}}>
+            <div className="modal-header device-modal-header" style={{ justifyContent: "flex-start" }}>
               <div className="device-modal-icon"><i className="fas fa-satellite-dish"></i></div>
               <div>
                 <h2>Sync Workspace</h2>
@@ -556,7 +585,7 @@ export function Sidebar({ isOpen, toggleSidebar, isCollapsed, toggleCollapse, lo
       {showByokModal && (
         <div className="modal-overlay" onClick={() => setShowByokModal(false)}>
           <div className="modal-content byok-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header device-modal-header" style={{justifyContent: 'flex-start'}}>
+            <div className="modal-header device-modal-header" style={{ justifyContent: 'flex-start' }}>
               <div className="device-modal-icon byok-modal-icon"><i className="fas fa-key"></i></div>
               <div>
                 <h2>Bring Your Own Key</h2>

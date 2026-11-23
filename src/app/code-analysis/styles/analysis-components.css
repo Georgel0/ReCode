@@ -40,6 +40,10 @@
   gap: 0.75rem;
 }
 
+.a-action-group .primary-button {
+  flex-shrink: 0;
+}
+
 .a-action-divider {
   width: 1px;
   height: 24px;
@@ -50,7 +54,6 @@
 .a-btn-sm {
   padding: 0.38rem 0.8rem !important;
   font-size: 0.8rem !important;
-  border-radius: var(--radius) !important;
   display: flex;
   align-items: center;
   gap: 0.4rem;

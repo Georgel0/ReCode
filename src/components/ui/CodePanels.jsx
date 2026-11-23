@@ -32,8 +32,6 @@ import 'prismjs/components/prism-css';
 
 import { useTheme } from '@/context';
 
-const DARK_THEMES = ['recode-dark', 'midnight-gold', 'deep-sea'];
-
 function getGrammar(lang) {
   const aliases = {
     js: 'javascript',
@@ -74,16 +72,16 @@ function makeHighlighter(language, lineNumbers = true) {
   };
 }
 
-export function CodeEditor({ 
-  value, 
-  onValueChange, 
-  language = 'javascript', 
-  placeholder = "Paste/write your code here...", 
+export function CodeEditor({
+  value,
+  onValueChange,
+  language = 'javascript',
+  placeholder = "Paste/write your code here...",
   lineNumbers = true,
   onSubmit
 }) {
-  const { currentTheme } = useTheme();
-  const isDarkTheme = DARK_THEMES.includes(currentTheme);
+  const { scheme } = useTheme();
+  const isDarkTheme = scheme === 'dark';
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -110,8 +108,8 @@ export function CodeEditor({
 }
 
 export function CodeOutput({ content, language = 'javascript', lineNumbers = true }) {
-  const { currentTheme } = useTheme();
-  const isDarkTheme = DARK_THEMES.includes(currentTheme);
+  const { scheme } = useTheme();
+  const isDarkTheme = scheme === 'dark';
 
   return (
     <div className={`editor-container ${lineNumbers ? 'has-line-numbers' : 'no-line-numbers'}`}>
